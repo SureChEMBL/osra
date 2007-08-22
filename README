@@ -1,0 +1,151 @@
+                        OSRA: Optical Structure Recognition
+
+							Igor Filippov, 2007
+							igorf@helix.nih.gov
+
+
+Description:
+
+OSRA is a utility designed to convert graphical representations of
+chemical structures, as they appear in journal articles, patent documents,
+textbooks, trade magazines etc., into SMILES (Simplified Molecular
+Input Line Entry Specification - see http://en.wikipedia.org/wiki/SMILES ) - 
+a computer recognizable molecular structure format.  OSRA can read a document 
+in any of the over 90 graphical formats parseable by ImageMagick - including 
+GIF, JPEG, PNG, TIFF, PDF, PS etc., and generate the SMILES representation of
+the molecular structure images encountered within that document.
+
+Note that any software designed for optical recognition is unlikely to
+be perfect, and the output produced might, and probably will, contain
+errors, so a curation by a human knowledgeable in chemical structures 
+is highly recommended.
+
+=============================================================================
+Dependencies:
+
+OSRA needs the following Open Source libraries installed:
+
+- ImageMagick, image manipulation library, version 6.2.8 or later; 
+if installing from RPM make sure you have the following packages:
+	ImageMagick
+	ImageMagick-devel
+	ImageMagick-c++-devel
+	ImageMagick-c++ 
+http://www.imagemagick.com/
+
+- POTRACE, vector tracing library, version 1.7 or later,
+http://potrace.sourceforge.net/
+
+- GOCR/JOCR, optical character recognition library, version 0.43,
+http://jocr.sourceforge.net/
+
+- OpenBabel, open source chemistry toolbox, version 2.1.0 or later; 
+if installing from RPM make sure you have the following packages:
+	 openbabel 
+	 openbabel-devel
+http://openbabel.sourceforge.net/wiki/Main_Page
+
+- TCLAP, Templatized C++ Command Line Parser Library, version 1.1.0,
+http://tclap.sourceforge.net/
+
+=============================================================================
+Other acknowledgements:
+
+OSRA also makes use of the following software (you do not need to
+install it separately, it's included in the distribution):
+
+- EVG-Thin, Thinning Approximation to the Extended Voronoi Graph,
+http://www.cs.utexas.edu/users/qr/software/evg-thin.html
+
+- OCRAD, optical character recognition program,
+http://www.gnu.org/software/ocrad/ocrad.html
+
+- ThinImage, C code from the article
+  "Efficient Binary Image Thinning using Neighborhood Maps"
+  by Joseph M. Cychosz, 3ksnn64@ecn.purdue.edu
+  in "Graphics Gems IV", Academic Press, 1994
+http://www.acm.org/pubs/tog/GraphicsGems/gemsiv/thin_image.c
+
+- GREYCstoration, Anisotropic smoothing plugin,
+http://www.greyc.ensicaen.fr/~dtschump/greycstoration/
+
+- CImg, The C++ Template Image Processing Library,
+http://cimg.sourceforge.net
+=============================================================================
+Compilation:
+
+Edit the included Makefile to make sure you have the correct locations
+for ImageMagick, potrace, gocr, openbabel, and tclap.  Running make
+should then generate the executable - osra.
+
+=============================================================================
+Usage:
+
+OSRA can process the following types of images:
+
+- Computer-generated 2D structures, such as found on the PubChem website,
+http://pubchem.ncbi.nlm.nih.gov/, black-and-white and color (use a
+resolution of 72 dpi),
+
+- Black-and-white PDF and PostScript files, including multi-page ones. Please
+note that you need Ghostcript installed for ImageMagick to be able to
+parse these kinds of files. OSRA internally renders PS and PDF at a resolution 
+of 150 dpi, so you do not need to specify the resolution as a commmand-line parameter,
+
+- Scanned images - black-and-white, a resolution of 300 dpi is recommended,
+though 150 dpi can also produce fair results. Please make sure the
+scanned image is of reasonable quality - an input that's too noisy will 
+only generate garbage output.
+
+Some common abbreviations, hetero atoms, fused and merged atomic
+labels, hash and wedge bonds, and bridge bonds are currently
+recognized. Formal charges, isotopes and some element
+symbols, i.e. iodine ("I" -- looks too much like a straight line = single
+bond), are not.
+
+
+Command-line options: 
+./osra --help 
+will give you a list of available options with short descriptions.
+
+Most common use: ./osra [-r <resolution>] <filename>
+
+Resolution in dpi, default is 300 (unless it's a PS or PDF file as
+mentioned above), filename is the name of your image file (or
+PS/PDF document).
+
+Other options: 
+-t, --threshold: Gray level threshold, default is 0.2
+                 for black-and-white images, 
+
+-n, --negate:    Inverts colors (for white on black images),
+
+-o, --output:    Sets a prefix for writing recognized images to files - i.e.
+                 "-o tmp" will create files tmp0.png, tmp1.png... for
+                 each of the structures,
+
+-s, --size:      Resize images on output - can be useful for running OSRA
+                 as a backend for a webservice. Example: "-s 300x400".
+
+============================================================================
+LICENSE:
+
+This program is free software; the part of the software that was written 
+at the National Cancer Institute is in the public domain.  This does not
+preclude, however, that components such as specific libraries used in the
+software may be covered by specific licenses, including but not limited
+to the GNU General Public License as published by the Free Software Foundation; 
+either version 2 of the License, or (at your option) any later version; 
+which may impose specific terms for redistribution or modification.
+
+This program is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307,
+USA. See also http://www.gnu.org/.
+
+See the file COPYING for details.
