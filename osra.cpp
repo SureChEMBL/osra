@@ -1014,7 +1014,7 @@ void valency_check(atom_t *atom, bond_t *bond, int n_atom,int n_bond)
 	if (pos!=string::npos)
 	  {
 	    atom[i].label.erase(pos,1);
-	    atom[i].charge=-1;
+	    if (atom[i].label.length()>0 && isalpha(atom[i].label.at(0))) atom[i].charge=-1;
 	  }
 	else
 	  {
@@ -1022,7 +1022,7 @@ void valency_check(atom_t *atom, bond_t *bond, int n_atom,int n_bond)
 	    if (pos!=string::npos)
 	      {
 		atom[i].label.erase(pos,1);
-		atom[i].charge=+1;
+		if (atom[i].label.length()>0 && isalpha(atom[i].label.at(0))) atom[i].charge=+1;
 	      }
 	  }
 
@@ -3073,7 +3073,8 @@ bool detect_curve(bond_t *bond,int n_bond, potrace_path_t *curve)
 int find_plus_minus(potrace_path_t *p,Image orig,letters_t *letters,
 		    atom_t *atom,bond_t *bond,int n_atom,int n_bond,int height,
 		    int width,ColorGray bgColor, double THRESHOLD, 
-		    int max_font_height, int max_font_width,int n_letters)
+		    int max_font_height, int max_font_width,int n_letters,
+		    double avg)
 {
   int n, *tag;
   potrace_dpoint_t (*c)[3];
@@ -3156,7 +3157,8 @@ int find_plus_minus(potrace_path_t *p,Image orig,letters_t *letters,
 
 
 	    if (((bottom-top)<=max_font_height) && 
-		((right-left)<=max_font_width) && (right-left>1))
+		((right-left)<=max_font_width) && (right-left>1) &&
+		(right-left)<avg/3)
 	    {
 	      double aspect=1.*(bottom-top)/(right-left);
 
@@ -3397,7 +3399,8 @@ int main(int argc,char **argv)
 	    if (thick) max_area=avg_bond;
 	    n_letters=find_plus_minus(p,orig_box,letters,atom,bond,n_atom,n_bond,
 	    			      height,width,bgColor,THRESHOLD_CHAR,
-	    			      max_font_height,max_font_width,n_letters);
+	    			      max_font_height,max_font_width,n_letters,
+				      avg_bond);
 	   
 	    n_atom=find_small_bonds(p,atom,bond,n_atom,&n_bond,max_area,avg_bond/2);
 
