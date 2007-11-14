@@ -760,7 +760,7 @@ int double_triple_bonds(atom_t *atom,bond_t *bond,int n_bond,double avg,int &n_a
   return(n_bond);
 }
 
-bool clorine(bond_t *bond, atom_t *atom,int i, letters_t *letters,int n_letters, 
+bool chlorine(bond_t *bond, atom_t *atom,int i, letters_t *letters,int n_letters, 
 	     int max_font_height,int min_font_height)
 {
   bool res=false;
@@ -796,7 +796,7 @@ int remove_small_bonds(bond_t *bond, int n_bond,atom_t *atom,
 	  {
 	    bond[i].exists=false;
 	  }
-	else if ((al) && (clorine(bond,atom,i,letters,n_letters,max_font_height,min_font_height)))
+	else if ((al) && (chlorine(bond,atom,i,letters,n_letters,max_font_height,min_font_height)))
 	  {
 	    letters[n_letters].a='l';
 	    letters[n_letters].x=(atom[bond[i].a].x+atom[bond[i].b].x)/2;
@@ -873,11 +873,13 @@ int assign_atom_labels(atom_t *atom,int n_atom,letters_t *letters,int n_letters,
   for (int i=0;i<n_letters;i++)
     {
      for (int j=i+1;j<n_letters;j++)
-      if ((distance(letters[i].x,letters[i].y,letters[j].x,letters[j].y)<letters[i].r+letters[j].r) &&
-	  (((fabs(letters[i].y-letters[j].y)<min(letters[i].r,letters[j].r))) ||
-	   ((fabs(letters[i].y-letters[j].y)<(letters[i].r+letters[j].r)) &&
-	    (((letters[i].y<letters[j].y) && (isdigit(letters[j].a))) ||
-	     ((letters[j].y<letters[i].y) && (isdigit(letters[i].a)))))))
+       if ((distance(letters[i].x,letters[i].y,letters[j].x,letters[j].y)<(letters[i].r+letters[j].r) && 
+	   (((fabs(letters[i].y-letters[j].y)<min(letters[i].r,letters[j].r))) ||
+	    ((fabs(letters[i].y-letters[j].y)<(letters[i].r+letters[j].r)) &&
+	     (((letters[i].y<letters[j].y) && (isdigit(letters[j].a))) ||
+	      ((letters[j].y<letters[i].y) && (isdigit(letters[i].a))))))) ||
+	   (distance(letters[i].x,letters[i].y,letters[j].x,letters[j].y)<2*(letters[i].r+letters[j].r) && 
+	    (letters[i].a=='-' || letters[i].a=='+' || letters[j].a=='-' || letters[j].a=='+')))
 	{
 	  lbond[n_lbond].a=i;
 	  lbond[n_lbond].b=j;
@@ -899,7 +901,8 @@ int assign_atom_labels(atom_t *atom,int n_atom,letters_t *letters,int n_letters,
 	label[n_label].x1=letters[lbond[i].a].x;
 	label[n_label].y1=letters[lbond[i].a].y;
 	label[n_label].r1=letters[lbond[i].a].r;
-	if (!isdigit(letters[lbond[i].b].a))
+	if (!isdigit(letters[lbond[i].b].a) && letters[lbond[i].b].a!='-'
+	    && letters[lbond[i].b].a!='+')
 	  {
 	    label[n_label].x2=letters[lbond[i].b].x;
 	    label[n_label].y2=letters[lbond[i].b].y;
@@ -917,7 +920,8 @@ int assign_atom_labels(atom_t *atom,int n_atom,letters_t *letters,int n_letters,
 	   if ((lbond[j].exists) && (lbond[j].a==last))
 	     {
 		label[n_label].a+=letters[lbond[j].b].a;
-		if (!isdigit(letters[lbond[j].b].a))
+		if (!isdigit(letters[lbond[j].b].a)  && letters[lbond[j].b].a!='-'
+		    && letters[lbond[j].b].a!='+')
 		  {
 		    label[n_label].x2=letters[lbond[j].b].x;
 		    label[n_label].y2=letters[lbond[j].b].y;
@@ -1005,8 +1009,25 @@ void valency_check(atom_t *atom, bond_t *bond, int n_atom,int n_bond)
 	      n+=bond[j].type;
 	      if (bond[j].type>1) m++;
 	    }
+	atom[i].charge=0;
+	string::size_type pos=atom[i].label.find_first_of('-');
+	if (pos!=string::npos)
+	  {
+	    atom[i].label.erase(pos,1);
+	    atom[i].charge=-1;
+	  }
+	else
+	  {
+	    pos=atom[i].label.find_first_of('+');
+	    if (pos!=string::npos)
+	      {
+		atom[i].label.erase(pos,1);
+		atom[i].charge=+1;
+	      }
+	  }
+
 	atom[i].label=fix_atom_name(atom[i].label,n);
-	if ((n>getValency(atom[i].label)) && (m>0))
+	if ((n>getValency(atom[i].label)-atom[i].charge) && (m>0))
 	  {
 	    int t=1+(m*rand())/RAND_MAX;
 	    int k=0;
@@ -3041,6 +3062,132 @@ void find_up_down_bonds(bond_t* bond,int n_bond,atom_t* atom)
       }
 }
 
+bool detect_curve(bond_t *bond,int n_bond, potrace_path_t *curve)
+{
+  bool res=false;
+  for(int i=0;i<n_bond;i++)
+    if (bond[i].exists && bond[i].curve==curve) res=true;
+  return(res);
+}
+
+int find_plus_minus(potrace_path_t *p,Image orig,letters_t *letters,
+		    atom_t *atom,bond_t *bond,int n_atom,int n_bond,int height,
+		    int width,ColorGray bgColor, double THRESHOLD, 
+		    int max_font_height, int max_font_width,int n_letters)
+{
+  int n, *tag;
+  potrace_dpoint_t (*c)[3];
+
+  while (p != NULL) 
+      {
+	if ((p->sign == int('+')) && detect_curve(bond,n_bond,p))
+	  {
+	    n = p->curve.n;
+	    tag = p->curve.tag;
+	    c = p->curve.c;
+	    int top=height;
+	    int x1=0;
+	    int left=width;
+	    int y1=0;
+	    int bottom=0;
+	    int x2=0;
+	    int right=0;
+	    int y2=0;
+	    for (int i=0; i<n; i++) 
+	      {
+		switch (tag[i]) 
+		  {
+		  case POTRACE_CORNER:
+		    if (c[i][1].x<left) {left=int(c[i][1].x);y1=int(c[i][1].y);}
+		    if (c[i][1].x>right) {right=int(c[i][1].x);y2=int(c[i][1].y);}
+		    if (c[i][1].y<top) {top=int(c[i][1].y);x1=int(c[i][1].x);}
+		    if (c[i][1].y>bottom) {bottom=int(c[i][1].y);x2=int(c[i][1].x);}
+		    break;
+		  case POTRACE_CURVETO:
+		    if (c[i][0].x<left) {left=int(c[i][0].x);y1=int(c[i][0].y);}
+		    if (c[i][0].x>right) {right=int(c[i][0].x);y2=int(c[i][0].y);}
+		    if (c[i][0].y<top) {top=int(c[i][0].y);x1=int(c[i][0].x);}
+		    if (c[i][0].y>bottom) {bottom=int(c[i][0].y);x2=int(c[i][0].x);}
+		    if (c[i][1].x<left) {left=int(c[i][1].x);y1=int(c[i][1].y);}
+		    if (c[i][1].x>right) {right=int(c[i][1].x);y2=int(c[i][1].y);}
+		    if (c[i][1].y<top) {top=int(c[i][1].y);x1=int(c[i][1].x);}
+		    if (c[i][1].y>bottom) {bottom=int(c[i][1].y);x2=int(c[i][1].x);}
+		    break;
+		  }
+		if (c[i][2].x<left) {left=int(c[i][2].x);y1=int(c[i][2].y);}
+		if (c[i][2].x>right) {right=int(c[i][2].x);y2=int(c[i][2].y);}
+		if (c[i][2].y<top) {top=int(c[i][2].y);x1=int(c[i][2].x);}
+		if (c[i][2].y>bottom) {bottom=int(c[i][2].y);x2=int(c[i][2].x);}
+	      }
+
+	    if (((bottom-top)<=2*max_font_height) && 
+		((right-left)<=2*max_font_width) && (right-left>V_DISPLACEMENT) 
+		&& (bottom-top>V_DISPLACEMENT))
+	      {
+		int s=1;
+		while((top>0) && (s>0))
+		  {
+		    s=0;
+		    s=getPixel(orig,bgColor,x1,top,THRESHOLD);
+		    if (s>0) top--;
+		  }
+		s=1;
+		while((bottom<height) && (s>0))
+		  {
+		    s=0;
+		    s=getPixel(orig,bgColor,x2,bottom,THRESHOLD);
+		    if (s>0) bottom++;
+		  }
+		s=1;
+		while((left>0) && (s>0))
+		  {
+		    s=0;
+		    s=getPixel(orig,bgColor,left,y1,THRESHOLD);
+		    if (s>0) left--;
+		  }
+		s=1;
+		while((right<width) && (s>0))
+		  {
+		    s=0;
+		    s=getPixel(orig,bgColor,right,y2,THRESHOLD);
+		    if (s>0) right++;
+		  }
+	      }
+
+
+	    if (((bottom-top)<=max_font_height) && 
+		((right-left)<=max_font_width) && (right-left>1))
+	    {
+	      double aspect=1.*(bottom-top)/(right-left);
+
+	      char c=' ';
+	      if (aspect<0.7)  c='-';
+	      else if (aspect<1./0.7) c='+';
+	      if (c!=' ')
+		{
+		  //cout<<c<<endl;
+		  letters[n_letters].a=c;
+		  letters[n_letters].x=(left+right)/2;
+		  letters[n_letters].y=(top+bottom)/2;
+		  letters[n_letters].r=distance(left,top,right,bottom)/2;
+		  letters[n_letters].free=true;
+		  n_letters++;
+		  delete_curve(atom,bond,n_atom,n_bond,p);
+		  potrace_path_t *child=p->childlist;
+		  while (child !=NULL)
+		    {
+		      delete_curve(atom,bond,n_atom,n_bond,child);
+		      child=child->sibling;
+		    }
+		}
+	    }
+	  }
+	p = p->next;
+      }
+  return(n_letters);	 
+}
+
+
 job_t *JOB;
 
 int main(int argc,char **argv)
@@ -3248,8 +3395,10 @@ int main(int argc,char **argv)
 
 	    double max_area=avg_bond*5;
 	    if (thick) max_area=avg_bond;
-
-
+	    n_letters=find_plus_minus(p,orig_box,letters,atom,bond,n_atom,n_bond,
+	    			      height,width,bgColor,THRESHOLD_CHAR,
+	    			      max_font_height,max_font_width,n_letters);
+	   
 	    n_atom=find_small_bonds(p,atom,bond,n_atom,&n_bond,max_area,avg_bond/2);
 
 
@@ -3287,7 +3436,7 @@ int main(int argc,char **argv)
 
 	    valency_check(atom,bond,n_atom,n_bond);
 
-	    //	    if (fname.str()!="") debug(thick_box,atom,n_atom,bond,n_bond,fname.str());     	      
+	    if (fname.str()!="") debug(thick_box,atom,n_atom,bond,n_bond,fname.str());     	      
 	    find_up_down_bonds(bond,n_bond,atom);
 	    int real_atoms=count_atoms(atom,n_atom);
 
@@ -3303,7 +3452,7 @@ int main(int argc,char **argv)
 		    total_boxes++;
 
 
-		    Image tmp=orig_box;
+		    /*Image tmp=orig_box;
 		    if (fname.str()!="")
 		      {
 			if (resize.getValue()!="")
@@ -3312,7 +3461,7 @@ int main(int argc,char **argv)
 			  }
 			tmp.write(fname.str());
 			}
-		    
+		    */
 		  }
 	      }
 

@@ -39,6 +39,7 @@ struct atom_s {
   int n;
   potrace_path_t *curve;
   bool exists,corner;
+  int charge;
 };
 typedef struct atom_s atom_t;
 

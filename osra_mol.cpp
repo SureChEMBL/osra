@@ -33,6 +33,7 @@ using namespace OpenBabel;
 string fix_atom_name(string s,int n)
 {
   string r=s;
+  if (s.length()==1) r=toupper(s.at(0));
   if (s=="Ci" || s=="Cf" || s=="Cll") r="Cl";
   if (s=="H" && n>1) r="N";
   if (s=="HN" || s=="NH" || s=="M" || s=="Hm" || s=="MN" || s=="N2"
@@ -498,6 +499,7 @@ string get_smiles(atom_t *atom, bond_t *bond, int n_bond, int &rotors)
 	   a=mol.CreateAtom();
 	   anum=getAnum(atom[bond[i].a].label,&mol,&n);
 	   a->SetAtomicNum(anum);
+	   a->SetFormalCharge(atom[bond[i].a].charge);
 	   //a->SetVector(atom[bond[i].a].x,atom[bond[i].a].y,0);
 	   mol.AddAtom(*a);
 	   atom[bond[i].a].n=n++;
@@ -507,6 +509,7 @@ string get_smiles(atom_t *atom, bond_t *bond, int n_bond, int &rotors)
 	   b=mol.CreateAtom();
 	   anum=getAnum(atom[bond[i].b].label,&mol,&n);
 	   b->SetAtomicNum(anum);
+	   b->SetFormalCharge(atom[bond[i].b].charge);
 	   //b->SetVector(atom[bond[i].b].x,atom[bond[i].b].y,0);
 	   mol.AddAtom(*b);
 	   atom[bond[i].b].n=n++;
