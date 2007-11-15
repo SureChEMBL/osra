@@ -3170,12 +3170,21 @@ int find_plus_minus(potrace_path_t *p,Image orig,letters_t *letters,
 	      double aspect=1.*(bottom-top)/(right-left);
 	      double fill=1.*p->area/((bottom-top)*(right-left));
 	      char c=' ';
+	      bool char_to_right=false;
+	      for(int j=0;j<n_letters;j++)
+		{
+		  if (letters[j].x>right && (top+bottom)/2>letters[j].y-letters[j].r
+		      && (top+bottom)/2<letters[j].y+letters[j].r
+		      && right>letters[j].x-2*letters[j].r)
+		    char_to_right=true;
+		}
 	      //	      cout<<left<<","<<y1<<" "<<right<<","<<y2<<" "<<top<<","<<x1<<" "<<bottom<<","<<x2<<endl;
 
-	      if (aspect<0.7 && fill>0.9)  c='-';
+	      if (aspect<0.7 && fill>0.9 && !char_to_right)  c='-';
 	      else if (aspect>0.7 && aspect<1./0.7 
 		       && abs(y1-y2)<2 && abs(y1+y2-bottom-top)<3
-		       && abs(x1-x2)<2 && abs(x1+x2-right-left)<3)
+		       && abs(x1-x2)<2 && abs(x1+x2-right-left)<3
+		       && !char_to_right)
 		c='+';
 	      if (c!=' ')
 		{
@@ -3409,8 +3418,8 @@ int main(int argc,char **argv)
 	    double max_area=avg_bond*5;
 	    if (thick) max_area=avg_bond;
 	    n_letters=find_plus_minus(p,orig_box,letters,atom,bond,n_atom,n_bond,
-	    			      height,width,bgColor,THRESHOLD_CHAR,
-	    			      max_font_height,max_font_width,n_letters,
+				      height,width,bgColor,THRESHOLD_CHAR,
+				      max_font_height,max_font_width,n_letters,
 				      avg_bond);
 	   
 	    n_atom=find_small_bonds(p,atom,bond,n_atom,&n_bond,max_area,avg_bond/2);
