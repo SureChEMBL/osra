@@ -3170,11 +3170,13 @@ int find_plus_minus(potrace_path_t *p,Image orig,letters_t *letters,
 	      double aspect=1.*(bottom-top)/(right-left);
 	      double fill=1.*p->area/((bottom-top)*(right-left));
 	      char c=' ';
-	      cout<<p->area<<" "<<(bottom-top)*(right-left)<<endl;
+	      //	      cout<<left<<","<<y1<<" "<<right<<","<<y2<<" "<<top<<","<<x1<<" "<<bottom<<","<<x2<<endl;
 
 	      if (aspect<0.7 && fill>0.9)  c='-';
 	      else if (aspect>0.7 && aspect<1./0.7 
-		       && fill>0.3 && fill<0.5) c='+';
+		       && abs(y1-y2)<2 && abs(y1+y2-bottom-top)<3
+		       && abs(x1-x2)<2 && abs(x1+x2-right-left)<3)
+		c='+';
 	      if (c!=' ')
 		{
 		  letters[n_letters].a=c;
