@@ -1010,19 +1010,26 @@ void valency_check(atom_t *atom, bond_t *bond, int n_atom,int n_bond)
 	      if (bond[j].type>1) m++;
 	    }
 	atom[i].charge=0;
-	string::size_type pos=atom[i].label.find_first_of('-');
-	if (pos!=string::npos)
+	bool cont=true;
+	while (cont)
 	  {
-	    atom[i].label.erase(pos,1);
-	    if (atom[i].label.length()>0 && isalpha(atom[i].label.at(0))) atom[i].charge=-1;
-	  }
-	else
-	  {
-	    pos=atom[i].label.find_first_of('+');
+	    string::size_type pos=atom[i].label.find_first_of('-');
 	    if (pos!=string::npos)
 	      {
 		atom[i].label.erase(pos,1);
-		if (atom[i].label.length()>0 && isalpha(atom[i].label.at(0))) atom[i].charge=+1;
+		if (atom[i].label.length()>0 && isalpha(atom[i].label.at(0))) 
+		  atom[i].charge--;
+	      }
+	    else
+	      {
+		pos=atom[i].label.find_first_of('+');
+		if (pos!=string::npos)
+		  {
+		    atom[i].label.erase(pos,1);
+		    if (atom[i].label.length()>0 && isalpha(atom[i].label.at(0))) 
+		      atom[i].charge++;
+		  }
+		else cont=false;
 	      }
 	  }
 
@@ -3161,13 +3168,15 @@ int find_plus_minus(potrace_path_t *p,Image orig,letters_t *letters,
 		(right-left)<avg/3)
 	    {
 	      double aspect=1.*(bottom-top)/(right-left);
-
+	      double fill=1.*p->area/((bottom-top)*(right-left));
 	      char c=' ';
-	      if (aspect<0.7)  c='-';
-	      else if (aspect<1./0.7) c='+';
+	      cout<<p->area<<" "<<(bottom-top)*(right-left)<<endl;
+
+	      if (aspect<0.7 && fill>0.9)  c='-';
+	      else if (aspect>0.7 && aspect<1./0.7 
+		       && fill>0.3 && fill<0.5) c='+';
 	      if (c!=' ')
 		{
-		  //cout<<c<<endl;
 		  letters[n_letters].a=c;
 		  letters[n_letters].x=(left+right)/2;
 		  letters[n_letters].y=(top+bottom)/2;
@@ -3439,7 +3448,7 @@ int main(int argc,char **argv)
 
 	    valency_check(atom,bond,n_atom,n_bond);
 
-	    if (fname.str()!="") debug(thick_box,atom,n_atom,bond,n_bond,fname.str());     	      
+	    //	    if (fname.str()!="") debug(thick_box,atom,n_atom,bond,n_bond,fname.str());     	      
 	    find_up_down_bonds(bond,n_bond,atom);
 	    int real_atoms=count_atoms(atom,n_atom);
 
@@ -3455,7 +3464,7 @@ int main(int argc,char **argv)
 		    total_boxes++;
 
 
-		    /*Image tmp=orig_box;
+		    Image tmp=orig_box;
 		    if (fname.str()!="")
 		      {
 			if (resize.getValue()!="")
@@ -3464,7 +3473,7 @@ int main(int argc,char **argv)
 			  }
 			tmp.write(fname.str());
 			}
-		    */
+		    
 		  }
 	      }
 
