@@ -3140,7 +3140,8 @@ int find_plus_minus(potrace_path_t *p,letters_t *letters,
 		{
 		  if (letters[j].x>right && (top+bottom)/2>letters[j].y-letters[j].r
 		      && (top+bottom)/2<letters[j].y+letters[j].r
-		      && right>letters[j].x-2*letters[j].r)
+		      && right>letters[j].x-2*letters[j].r
+		      && letters[j].a!='-' && letters[j].a!='+')
 		    char_to_right=true;
 		}
 	      //	      cout<<left<<","<<y1<<" "<<right<<","<<y2<<" "<<top<<","<<x1<<" "<<bottom<<","<<x2<<endl;
