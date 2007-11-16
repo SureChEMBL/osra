@@ -3077,11 +3077,10 @@ bool detect_curve(bond_t *bond,int n_bond, potrace_path_t *curve)
   return(res);
 }
 
-int find_plus_minus(potrace_path_t *p,Image orig,letters_t *letters,
+int find_plus_minus(potrace_path_t *p,letters_t *letters,
 		    atom_t *atom,bond_t *bond,int n_atom,int n_bond,int height,
-		    int width,ColorGray bgColor, double THRESHOLD, 
-		    int max_font_height, int max_font_width,int n_letters,
-		    double avg)
+		    int width, int max_font_height, int max_font_width,
+		    int n_letters, double avg)
 {
   int n, *tag;
   potrace_dpoint_t (*c)[3];
@@ -3128,40 +3127,6 @@ int find_plus_minus(potrace_path_t *p,Image orig,letters_t *letters,
 		if (c[i][2].y>bottom) {bottom=int(c[i][2].y);x2=int(c[i][2].x);}
 	      }
 
-	    if (((bottom-top)<=2*max_font_height) && 
-		((right-left)<=2*max_font_width) && (right-left>V_DISPLACEMENT) 
-		&& (bottom-top>V_DISPLACEMENT))
-	      {
-		int s=1;
-		while((top>0) && (s>0))
-		  {
-		    s=0;
-		    s=getPixel(orig,bgColor,x1,top,THRESHOLD);
-		    if (s>0) top--;
-		  }
-		s=1;
-		while((bottom<height) && (s>0))
-		  {
-		    s=0;
-		    s=getPixel(orig,bgColor,x2,bottom,THRESHOLD);
-		    if (s>0) bottom++;
-		  }
-		s=1;
-		while((left>0) && (s>0))
-		  {
-		    s=0;
-		    s=getPixel(orig,bgColor,left,y1,THRESHOLD);
-		    if (s>0) left--;
-		  }
-		s=1;
-		while((right<width) && (s>0))
-		  {
-		    s=0;
-		    s=getPixel(orig,bgColor,right,y2,THRESHOLD);
-		    if (s>0) right++;
-		  }
-	      }
-
 
 	    if (((bottom-top)<=max_font_height) && 
 		((right-left)<=max_font_width) && (right-left>1) &&
@@ -3182,8 +3147,8 @@ int find_plus_minus(potrace_path_t *p,Image orig,letters_t *letters,
 
 	      if (aspect<0.7 && fill>0.9 && !char_to_right)  c='-';
 	      else if (aspect>0.7 && aspect<1./0.7 
-		       && abs(y1-y2)<2 && abs(y1+y2-bottom-top)<3
-		       && abs(x1-x2)<2 && abs(x1+x2-right-left)<3
+		       && abs(y1-y2)<3 && abs(y1+y2-bottom-top)/2<3
+		       && abs(x1-x2)<3 && abs(x1+x2-right-left)/2<3
 		       && !char_to_right)
 		c='+';
 	      if (c!=' ')
@@ -3417,10 +3382,9 @@ int main(int argc,char **argv)
 
 	    double max_area=avg_bond*5;
 	    if (thick) max_area=avg_bond;
-	    n_letters=find_plus_minus(p,orig_box,letters,atom,bond,n_atom,n_bond,
-				      height,width,bgColor,THRESHOLD_CHAR,
-				      max_font_height,max_font_width,n_letters,
-				      avg_bond);
+	    n_letters=find_plus_minus(p,letters,atom,bond,n_atom,n_bond,
+				      height,width,max_font_height,
+				      max_font_width,n_letters,avg_bond);
 	   
 	    n_atom=find_small_bonds(p,atom,bond,n_atom,&n_bond,max_area,avg_bond/2);
 
