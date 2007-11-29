@@ -23,7 +23,7 @@
 
 *********************************************************************/
 
-#define VERSION "0.9.2"
+#define VERSION "0.9.4"
 #define MAX_ATOMS 10000
 #define NUM_BOXES 50
 #define MAX_FONT_HEIGHT 17
@@ -536,6 +536,7 @@ void skeletize(atom_t *atom,bond_t *bond,int n_bond,Image image,
 		  {
 		    bond[i].exists=false;
 		    bond[j].type=2;
+		    if (bond[i].arom) bond[j].arom=true;
 		    /*if (l2-l1<4)
 		      {
 			if (ang>0)
@@ -559,6 +560,7 @@ void skeletize(atom_t *atom,bond_t *bond,int n_bond,Image image,
 		  {
 		    bond[j].exists=false;
 		    bond[i].type=2;
+		    if (bond[j].arom) bond[i].arom=true;
 		    /*if (l1-l2<4)
 		      {
 			if (ang>0)
@@ -626,6 +628,7 @@ int double_triple_bonds(atom_t *atom,bond_t *bond,int n_bond,double avg,int &n_a
 			  bond[n_bond].up=false;
 			  bond[n_bond].down=false;
 			  bond[n_bond].small=false;
+			  bond[n_bond].arom=false;
 			  atom[n_atom].x=x;
 			  atom[n_atom].y=y;
 			  atom[n_atom].label=" ";
@@ -653,6 +656,7 @@ int double_triple_bonds(atom_t *atom,bond_t *bond,int n_bond,double avg,int &n_a
 			  bond[n_bond].up=false;
 			  bond[n_bond].down=false;
 			  bond[n_bond].small=false;
+			  bond[n_bond].arom=false;
 			  atom[n_atom].x=x;
 			  atom[n_atom].y=y;
 			  atom[n_atom].label=" ";
@@ -667,6 +671,7 @@ int double_triple_bonds(atom_t *atom,bond_t *bond,int n_bond,double avg,int &n_a
 			}
 		      bond[j].exists=false;
 		      bond[i].type+=bond[j].type;
+		      if (bond[j].arom) bond[i].arom=true;
 		    }
 		  else if (l2>avg && l2>1.5*l1 && l1>0.5*avg)
 		    {
@@ -695,6 +700,7 @@ int double_triple_bonds(atom_t *atom,bond_t *bond,int n_bond,double avg,int &n_a
 			  bond[n_bond].up=false;
 			  bond[n_bond].down=false;
 			  bond[n_bond].small=false;
+			  bond[n_bond].arom=false;
 			  atom[n_atom].x=x;
 			  atom[n_atom].y=y;
 			  atom[n_atom].label=" ";
@@ -722,6 +728,7 @@ int double_triple_bonds(atom_t *atom,bond_t *bond,int n_bond,double avg,int &n_a
 			  bond[n_bond].up=false;
 			  bond[n_bond].down=false;
 			  bond[n_bond].small=false;
+			  bond[n_bond].arom=false;
 			  atom[n_atom].x=x;
 			  atom[n_atom].y=y;
 			  atom[n_atom].label=" ";
@@ -736,6 +743,7 @@ int double_triple_bonds(atom_t *atom,bond_t *bond,int n_bond,double avg,int &n_a
 			}
 		      bond[i].exists=false;
 		      bond[j].type+=bond[i].type;
+		      if (bond[i].arom) bond[j].arom=true;
 		      break;
 		    }
 		  else
@@ -744,6 +752,7 @@ int double_triple_bonds(atom_t *atom,bond_t *bond,int n_bond,double avg,int &n_a
 			{
 			  bond[j].exists=false;
 			  if (l2>l1/2)  bond[i].type+=bond[j].type;
+			  if (bond[j].arom) bond[i].arom=true;
 			}
 			/* else
 			{
@@ -2456,6 +2465,7 @@ void align_broken_bonds(atom_t* atom,int n_atom,bond_t* bond,int n_bond)
 		  {
 		    bond[b].exists=false;
 		    atom[i].exists=false;
+		    if (bond[b].arom) bond[a].arom=true;
 
 		    int olda=bond[a].a;
 		    int oldb=bond[a].b;
@@ -2593,6 +2603,8 @@ int fix_one_sided_bonds(bond_t *bond,int n_bond,atom_t *atom)
 			bond[n_bond].small=false;
 			bond[n_bond].up=false;
 			bond[n_bond].down=false;
+			if (bond[i].arom) bond[n_bond].arom=true;
+			else bond[n_bond].arom=false;
 			n_bond++;
 			bond[i].b=bond[j].a;
 			bond[i].wedge=false;
@@ -2624,6 +2636,8 @@ int fix_one_sided_bonds(bond_t *bond,int n_bond,atom_t *atom)
 			bond[n_bond].small=false;
 			bond[n_bond].up=false;
 			bond[n_bond].down=false;
+			if (bond[i].arom) bond[n_bond].arom=true;
+			else bond[n_bond].arom=false;
 			n_bond++;
 			bond[i].b=bond[j].b;
 			bond[i].wedge=false;
@@ -3175,6 +3189,38 @@ int find_plus_minus(potrace_path_t *p,letters_t *letters,
   return(n_letters);	 
 }
 
+void  find_old_aromatic_bonds(potrace_path_t *p,bond_t *bond,int n_bond,
+			      atom_t *atom,int n_atom)
+{
+  for(int i=0;i<n_bond;i++)
+    if (bond[i].exists)
+      bond[i].arom=false;
+  while (p != NULL) 
+    {
+      if ((p->sign == int('-')) && detect_curve(bond,n_bond,p))
+	{
+	  potrace_path_t *child=p->childlist;
+	  if (child != NULL && child->sign == int('+'))
+	    {
+	      potrace_path_t *gchild=child->childlist;
+	      if (gchild != NULL && gchild->sign == int('-'))
+		{
+		  for(int i=0;i<n_bond;i++)
+		    if (bond[i].exists && bond[i].curve==p)
+		      bond[i].arom=true;
+		  delete_curve(atom,bond,n_atom,n_bond,child);
+		  while (gchild !=NULL)
+		    {
+		      delete_curve(atom,bond,n_atom,n_bond,gchild);
+		      gchild=gchild->sibling;
+		    }
+		}
+	    }
+	}
+      p = p->next;
+    }
+  
+}
 
 job_t *JOB;
 
@@ -3390,6 +3436,8 @@ int main(int argc,char **argv)
 	    n_atom=find_small_bonds(p,atom,bond,n_atom,&n_bond,max_area,avg_bond/2);
 
 
+	    find_old_aromatic_bonds(p,bond,n_bond,atom,n_atom);
+	    
 	    skeletize(atom,bond,n_bond,box,THRESHOLD_BOND,bgColor);
 
 

@@ -52,6 +52,7 @@ struct bond_s {
   bool up;
   bool down;
   bool small;
+  bool arom;
 };
 typedef struct bond_s bond_t;
 

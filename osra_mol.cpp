@@ -33,6 +33,7 @@ using namespace OpenBabel;
 string fix_atom_name(string s,int n)
 {
   string r=s;
+  //cout<<s<<endl;
   if (s.length()==1) r=toupper(s.at(0));
   if (s=="Ci" || s=="Cf" || s=="Cll") r="Cl";
   if (s=="H" && n>1) r="N";
@@ -59,7 +60,7 @@ string fix_atom_name(string s,int n)
       || s=="Y" || s=="2") r="X";
   if (s=="pl" || s=="nl") r="Ar";
   if (s=="oX") r="Ox";
-  if (s=="NoZ" || s=="o2N") r="NO2";
+  if (s=="NoZ" || s=="o2N" || s=="No2" || s=="No") r="NO2";
   if (s=="ph") r="Ph";
   if (s=="F3C") r="CF3";
   if (s=="F3Co") r="F3CN";
@@ -516,7 +517,11 @@ string get_smiles(atom_t *atom, bond_t *bond, int n_bond, int &rotors)
 	   mol.AddAtom(*b);
 	   atom[bond[i].b].n=n++;
 	 }
-       if (bond[i].hash)
+       if (bond[i].arom)
+	 {
+	   mol.AddBond(atom[bond[i].a].n,atom[bond[i].b].n,5);
+	 }
+       else if (bond[i].hash)
 	 {
 	   mol.AddBond(atom[bond[i].a].n,atom[bond[i].b].n,bond[i].type,OB_HASH_BOND);
 	 }
@@ -533,7 +538,7 @@ string get_smiles(atom_t *atom, bond_t *bond, int n_bond, int &rotors)
 	   mol.AddBond(atom[bond[i].a].n,atom[bond[i].b].n,bond[i].type,OB_TORDOWN_BOND);
 	 }
        else
-       mol.AddBond(atom[bond[i].a].n,atom[bond[i].b].n,bond[i].type);
+	 mol.AddBond(atom[bond[i].a].n,atom[bond[i].b].n,bond[i].type);
      }
  mol.FindRingAtomsAndBonds();
  int j=0;
