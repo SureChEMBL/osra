@@ -1243,22 +1243,23 @@ int find_bonds(atom_t *atom, bond_t *bond, int b_atom, int n_atom, int n_bond,po
     return(n_bond);
 }
 
-void adjust_box(Image image,double THRESHOLD_BOND,ColorGray bgColor,int width,int height,int boundary, 
-	   int allowed,int &top,int &left, int &bottom, int &right,int maxh,int maxw)
+void adjust_box(Image image,double THRESHOLD_BOND,ColorGray bgColor,
+		int width,int height,int boundary,int allowed,
+		int &top,int &left, int &bottom, int &right,int maxh,int maxw)
 {
   int oldtop=top-1;
   int oldbottom=bottom-1;
   int oldleft=left-1;
   int oldright=right-1;
   while (((oldtop!=top) || (oldbottom!=bottom) || (oldleft!=left) || (oldright!=right)) &&
-	 ((right-left)<maxw) && ((bottom-top)<maxh))
+	 ((right-left)<=maxw) && ((bottom-top)<=maxh))
     {
       oldtop=top;
       oldbottom=bottom;
       oldleft=left;
       oldright=right;
       int s=1;
-      while((top>0) && (s>allowed)  && ((right-left)<maxw) && ((bottom-top)<maxh))
+      while((top>0) && (s>allowed)  && ((right-left)<=maxw) && ((bottom-top)<=maxh))
 	{
 	  s=0;
 	  for (int i=top;i<top+boundary;i++)
@@ -1268,7 +1269,7 @@ void adjust_box(Image image,double THRESHOLD_BOND,ColorGray bgColor,int width,in
 	  if (s>allowed) top--;
 	}
       s=1;
-      while((bottom<height) && (s>allowed) && ((right-left)<maxw) && ((bottom-top)<maxh))
+      while((bottom<height) && (s>allowed) && ((right-left)<=maxw) && ((bottom-top)<=maxh))
 	{
 	  s=0;
 	  for (int i=bottom;i>bottom-boundary;i--)
@@ -1278,7 +1279,7 @@ void adjust_box(Image image,double THRESHOLD_BOND,ColorGray bgColor,int width,in
 	  if (s>allowed) bottom++;
 	}
       s=1;
-      while((left>0) && (s>allowed) && ((right-left)<maxw) && ((bottom-top)<maxh))
+      while((left>0) && (s>allowed) && ((right-left)<=maxw) && ((bottom-top)<=maxh))
 	{
 	  s=0;
 	  for (int i=top;i<=bottom;i++)
@@ -1288,7 +1289,7 @@ void adjust_box(Image image,double THRESHOLD_BOND,ColorGray bgColor,int width,in
 	  if (s>allowed) left--;
 	}
       s=1;
-      while((right<width) && (s>allowed) && ((right-left)<maxw) && ((bottom-top)<maxh))
+      while((right<width) && (s>allowed) && ((right-left)<=maxw) && ((bottom-top)<=maxh))
 	{
 	  s=0;
 	  for (int i=top;i<=bottom;i++)
@@ -1841,6 +1842,11 @@ int find_boxes(box_t *boxes,Image image,double THRESHOLD_BOND,ColorGray bgColor,
 		if (c[i][2].x>right) {right=int(c[i][2].x);}
 		if (c[i][2].y<top) {top=int(c[i][2].y);}
 		if (c[i][2].y>bottom) {bottom=int(c[i][2].y);}
+		
+		if (left<0) left=0;
+		if (top<0) top=0;
+		if (right>width-1) right=width-1;
+		if (bottom>height-1) bottom=height-1;
 	      }
 	    int area=calculate_area(p);
 	    double ratio=0,aspect=0;
@@ -1852,6 +1858,12 @@ int find_boxes(box_t *boxes,Image image,double THRESHOLD_BOND,ColorGray bgColor,
 	      {
 		adjust_box(image,THRESHOLD_BOND,bgColor,width,height,boundary, 
 			   0,top,left,bottom,right,height,width);
+		//left=0;top=0;right=width-1;bottom=height-1;
+		if (left<0) left=0;
+		if (top<0) top=0;
+		if (right>width-1) right=width-1;
+		if (bottom>height-1) bottom=height-1;
+
 		if ((right-left)*300/working_resolution<MAX_WIDTH 
 		    && (bottom-top)*300/working_resolution<MAX_HEIGHT 
 		    && (right-left)>MIN_WIDTH && (bottom-top)>MIN_HEIGHT
@@ -1868,7 +1880,7 @@ int find_boxes(box_t *boxes,Image image,double THRESHOLD_BOND,ColorGray bgColor,
 
 	p = p->next;
       }
-    //    draw_box(image,boxes,n_boxes,"tmp.gif");
+    //draw_box(image,boxes,n_boxes,"tmp.gif");
     potrace_state_free(st);
     potrace_param_free(param);
     free(bm);
