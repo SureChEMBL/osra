@@ -52,7 +52,7 @@ string fix_atom_name(string s,int n)
   if ((s=="tBU") || (s=="BU") || (s=="llBU") || (s=="lBU")) r="tBu";
   if (s=="CooH" || s=="HooC") r="COOH";
   if (s=="AC") r="Ac";
-  if (s=="ACo") r="AcO";
+  if (s=="ACo" || s=="opC" || s=="pcO") r="AcO";
   if (s=="Bl" || s=="el") r="Br";
   if (s=="CH3" || s=="H3C") r="C";
   if (s=="R" || s=="Rl" || s=="Rlo" || s=="R2" || s=="R3" || s=="Rg"
