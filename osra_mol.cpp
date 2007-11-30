@@ -38,7 +38,7 @@ string fix_atom_name(string s,int n)
   if (s=="Ci" || s=="Cf" || s=="Cll") r="Cl";
   if (s=="H" && n>1) r="N";
   if (s=="HN" || s=="NH" || s=="M" || s=="Hm" || s=="MN" || s=="N2"
-      || s=="NM" || s=="NH2" || s=="H2N" || s=="NHZ" || s=="HZN")   r="N";
+      || s=="NM" || s=="NH2" || s=="H2N" || s=="NHZ" || s=="HZN" || s=="NH3")   r="N";
   if (s=="OH" || s=="oH" || s=="Ho" || s=="HO" || s=="ol"
       || s=="On" || s=="on" || s=="no" || s=="nO") r="O";
   if (s=="Meo" || s=="oMe" || s=="oMg" || s=="omg" || s=="Mgo"
