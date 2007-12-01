@@ -50,7 +50,7 @@ string fix_atom_name(string s,int n)
   if ((s=="olgU") || (s=="oleU")) r="OiBu";
   if ((s=="npr") || (s=="llpll") || (s=="lpl") || (s=="npl")) r="iPr";
   if ((s=="tBU") || (s=="BU") || (s=="llBU") || (s=="lBU")) r="tBu";
-  if (s=="CooH" || s=="HooC") r="COOH";
+  if (s=="CooH" || s=="HooC" || s=="Co2H" || s=="CO2H") r="COOH";
   if (s=="AC") r="Ac";
   if (s=="ACo" || s=="opC" || s=="pcO") r="AcO";
   if (s=="Bl" || s=="el") r="Br";
