@@ -1041,7 +1041,10 @@ void valency_check(atom_t *atom, bond_t *bond, int n_atom,int n_bond)
 		else cont=false;
 	      }
 	  }
-
+        for (int j=0;j<n_bond;j++)
+          if (bond[j].exists && bond[j].hash && bond[j].b==i)
+            atom[i].charge=0;
+                                                                                  
 	atom[i].label=fix_atom_name(atom[i].label,n);
 	if ((n>getValency(atom[i].label)-atom[i].charge) && (m>0))
 	  {
