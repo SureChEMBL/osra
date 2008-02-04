@@ -51,7 +51,7 @@ struct bond_s {
   bool wedge;
   bool up;
   bool down;
-  bool small;
+  bool Small;
   bool arom;
 };
 typedef struct bond_s bond_t;

@@ -149,3 +149,5 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307,
 USA. See also http://www.gnu.org/.
 
 See the file COPYING for details.
+./configure --disable-shared LDFLAGS=-L/usr/local/lib CPPFLAGS=-I/usr/local/include
+g++ -DHAVE_CONFIG_H -I. -I../../src -I../../include -I../../data -I../../include -g -O2 -MT cansmilesformat.lo -MD -MP -MF .deps/cansmilesformat.Tpo -c cansmilesformat.cpp -o cansmilesformat.o

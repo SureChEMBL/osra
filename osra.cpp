@@ -77,8 +77,8 @@ using namespace OpenBabel;
 
 #include "CmdLine.h"
 
-#include "datatypes.hh"
-#include "evg-thin.hh"
+//#include "datatypes.hh"
+//#include "evg-thin.hh"
 #include <float.h>
 
 #include <algorithm>
@@ -95,7 +95,7 @@ using namespace OpenBabel;
 #include "osra.h"
 
 #define cimg_use_magick
-#include <pthread.h>
+//#include <pthread.h>
 #define cimg_plugin "greycstoration.h"
 #include "CImg.h"
 using namespace cimg_library;
@@ -582,7 +582,7 @@ void skeletize(atom_t *atom,bond_t *bond,int n_bond,Image image,
 	      }
       }
   /*for (int i=0;i<n_bond;i++)
-    if (bond[i].exists && bond[i].type!=2 && !bond[i].hash && !bond[i].small)
+    if (bond[i].exists && bond[i].type!=2 && !bond[i].hash && !bond[i].Small)
     bond[i].exists=false;*/
 }
 
@@ -627,7 +627,7 @@ int double_triple_bonds(atom_t *atom,bond_t *bond,int n_bond,double avg,int &n_a
 			  bond[n_bond].wedge=false;
 			  bond[n_bond].up=false;
 			  bond[n_bond].down=false;
-			  bond[n_bond].small=false;
+			  bond[n_bond].Small=false;
 			  bond[n_bond].arom=false;
 			  atom[n_atom].x=x;
 			  atom[n_atom].y=y;
@@ -655,7 +655,7 @@ int double_triple_bonds(atom_t *atom,bond_t *bond,int n_bond,double avg,int &n_a
 			  bond[n_bond].wedge=false;
 			  bond[n_bond].up=false;
 			  bond[n_bond].down=false;
-			  bond[n_bond].small=false;
+			  bond[n_bond].Small=false;
 			  bond[n_bond].arom=false;
 			  atom[n_atom].x=x;
 			  atom[n_atom].y=y;
@@ -699,7 +699,7 @@ int double_triple_bonds(atom_t *atom,bond_t *bond,int n_bond,double avg,int &n_a
 			  bond[n_bond].wedge=false;
 			  bond[n_bond].up=false;
 			  bond[n_bond].down=false;
-			  bond[n_bond].small=false;
+			  bond[n_bond].Small=false;
 			  bond[n_bond].arom=false;
 			  atom[n_atom].x=x;
 			  atom[n_atom].y=y;
@@ -727,7 +727,7 @@ int double_triple_bonds(atom_t *atom,bond_t *bond,int n_bond,double avg,int &n_a
 			  bond[n_bond].wedge=false;
 			  bond[n_bond].up=false;
 			  bond[n_bond].down=false;
-			  bond[n_bond].small=false;
+			  bond[n_bond].Small=false;
 			  bond[n_bond].arom=false;
 			  atom[n_atom].x=x;
 			  atom[n_atom].y=y;
@@ -1240,7 +1240,7 @@ int find_bonds(atom_t *atom, bond_t *bond, int b_atom, int n_atom, int n_bond,po
 	bond[n_bond].wedge=false;
 	bond[n_bond].up=false;
 	bond[n_bond].down=false;
-	bond[n_bond].small=false;
+	bond[n_bond].Small=false;
       	n_bond++;
       }
     return(n_bond);
@@ -1464,7 +1464,8 @@ char get_atom_label(Image image, ColorGray bg, int x1, int y1, int x2, int y2, d
 	      char c2=0;
 	      b->find_holes();
 	      Character a(b);
-	      a.recognize1(control.charset,Rectangle( a.left(), a.top(), a.right(), a.bottom()));
+	      //Rectangle::Rectangle r;
+	      a.recognize1(control.charset,Rectangle::Rectangle( a.left(), a.top(), a.right(), a.bottom()));
 	      c2=a.result(control);
 	      //cout<<"c2="<<c2<<endl;
 	      string patern=job.cfg.cfilter;
@@ -2074,7 +2075,7 @@ Image thin_image(Image box,double THRESHOLD_BOND,ColorGray bgColor)
 }
 
 
-
+/*
 Image thin_image_evg(Image box,double THRESHOLD_BOND,ColorGray bgColor)
 {
   potrace_bitmap_t *bm;
@@ -2126,6 +2127,7 @@ Image thin_image_evg(Image box,double THRESHOLD_BOND,ColorGray bgColor)
   free(bm);
   return(image);
 }
+*/
 
 int count_fragments(string input)
 {
@@ -2291,7 +2293,7 @@ int find_dashed_bonds(potrace_path_t *p, atom_t *atom,bond_t *bond,int n_atom,in
 	    bond[*n_bond].wedge=false;
 	    bond[*n_bond].up=false;
 	    bond[*n_bond].down=false;
-	    bond[*n_bond].small=false;
+	    bond[*n_bond].Small=false;
 	    extend_dashed_bond(bond[*n_bond].a,bond[*n_bond].b,n,atom,avg);
 	    (*n_bond)++;
 	  }
@@ -2301,7 +2303,7 @@ int find_dashed_bonds(potrace_path_t *p, atom_t *atom,bond_t *bond,int n_atom,in
 }
 
 int find_small_bonds(potrace_path_t *p, atom_t *atom,bond_t *bond,int n_atom,int *n_bond,
-		      double max_area,double small)
+		      double max_area,double Small)
 {
 
   while (p != NULL) 
@@ -2345,7 +2347,7 @@ int find_small_bonds(potrace_path_t *p, atom_t *atom,bond_t *bond,int n_atom,int
 		for (int i=1;i<n_dot-1;i++)
 		  d=max(d,distance_from_bond(dot[0].x,dot[0].y,dot[n_dot-1].x,
 					     dot[n_dot-1].y,dot[i].x,dot[i].y));
-		if (d<5 || p->area<small)
+		if (d<5 || p->area<Small)
 		  {
 		    delete_curve(atom,bond,n_atom,*n_bond,p);
 		    atom[n_atom].x=dot[0].x;
@@ -2373,7 +2375,7 @@ int find_small_bonds(potrace_path_t *p, atom_t *atom,bond_t *bond,int n_atom,int
 		    bond[*n_bond].wedge=false;
 		    bond[*n_bond].up=false;
 		    bond[*n_bond].down=false;
-		    bond[*n_bond].small=true;
+		    bond[*n_bond].Small=true;
 		    (*n_bond)++;
 		  }
 	      }
@@ -2615,7 +2617,7 @@ int fix_one_sided_bonds(bond_t *bond,int n_bond,atom_t *atom)
 			bond[n_bond].hash=false;
 			if (bond[i].wedge) bond[n_bond].wedge=true;
 			else bond[n_bond].wedge=false;
-			bond[n_bond].small=false;
+			bond[n_bond].Small=false;
 			bond[n_bond].up=false;
 			bond[n_bond].down=false;
 			if (bond[i].arom) bond[n_bond].arom=true;
@@ -2648,7 +2650,7 @@ int fix_one_sided_bonds(bond_t *bond,int n_bond,atom_t *atom)
 			bond[n_bond].hash=false;
 			if (bond[i].wedge) bond[n_bond].wedge=true;
 			else bond[n_bond].wedge=false;
-			bond[n_bond].small=false;
+			bond[n_bond].Small=false;
 			bond[n_bond].up=false;
 			bond[n_bond].down=false;
 			if (bond[i].arom) bond[n_bond].arom=true;
