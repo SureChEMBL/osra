@@ -20,6 +20,10 @@ be perfect, and the output produced might, and probably will, contain
 errors, so a curation by a human knowledgeable in chemical structures 
 is highly recommended.
 
+Source code and pre-compiled binaries (compiled with MinGW suite for
+Windows platform) are available from:
+http://cactus.nci.nih.gov/osra
+http://osra.sf.net 
 =============================================================================
 Dependencies:
 
@@ -78,6 +82,8 @@ Edit the included Makefile to make sure you have the correct locations
 for ImageMagick, potrace, gocr, openbabel, and tclap.  Running make
 should then generate the executable - osra.
 
+For compiling with MinGW or Cygwin environment see more detailed
+instructions at the end of this file.
 =============================================================================
 Usage:
 
@@ -127,6 +133,25 @@ Other options:
 -s, --size:      Resize images on output - can be useful for running OSRA
                  as a backend for a webservice. Example: "-s 300x400".
 
+Windows users:
+You can download and use the zip archive with the pre-compiled binary.
+The archive includes:
+	osra.bat - Windows batch file, sets the environment and calls
+	           osra.exe, 
+	osra.exe - main executable. It is recommended that you use osra.bat
+		   and not osra.exe directly,
+	README   - this file,
+        delegates.xml - a configuration file for ImageMagick library,
+        Read Image Document (OSRA).xml - a simple Scitegic Pipeline Pilot
+	                                 component to read in an image
+					 document using OSRA.
+To use: 
+Make sure you have installed Ghostscript (32-bit executable) and edit if
+necessary osra.bat to have the correct PATH (by default it points to version
+8.61). Run osra.bat with the same options as described above for the Linux
+version. You can also run OSRA through Pipiline Pilot by using the included
+protocol. It runs osra.bat on the client by default but it's trivial to
+modify the component for "Run on Server" option.
 ============================================================================
 LICENSE:
 
@@ -149,5 +174,52 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307,
 USA. See also http://www.gnu.org/.
 
 See the file COPYING for details.
+====================================================================
+Compiling OSRA on Windows systems:
+
+It is possible to compile OSRA using either Cygwin or MinGW environment,
+however it appears that Cygwin-compiled executable runs about two orders of
+magnitude slower than a Linux version running on an equivalent class CPU.
+Therefore it is strongly recommended NOT to use Cygwin to compile OSRA.
+
+The instructions below are for MinGW environment.
+
+Before you compile ImageMagick it is necessary to install the pre-requisite
+libraries - zlib, bzip2, jasper (I was able to compile only version 1.701.0
+and not the later 1.900.1), jbigkit, jpeg-6b, lcms, libpng, tiff.
+You can read "ADD-ON LIBRARIES & PROGRAMS" for GraphicsMagick which
+seems to apply to ImageMagick as well: http://www.graphicsmagick.org/www/README.html
+
+Whenever "configure" script was available I used the following options:
 ./configure --disable-shared LDFLAGS=-L/usr/local/lib CPPFLAGS=-I/usr/local/include
+
+Compile and install ImageMagick, GOCR, Potrace, TCLAP.
+
+To compile OpenBabel first edit obmolecformat.h to comment out lines
+involving hash_map, as per instructions here:
+http://www.bioinformatics.org/molekel/wiki/Main/OpenBabel
+
+Run configure, make, make install. Compilation breaks at some point but not
+before generating libopenbabel.a which is what we need. Check that
+src/formats/obmolecformat.o and src/formats/cansmilesformat.o have also been
+generated. If for some reason the latter is not present you can compile it with
+the following commands:
+cd src/formats/
 g++ -DHAVE_CONFIG_H -I. -I../../src -I../../include -I../../data -I../../include -g -O2 -MT cansmilesformat.lo -MD -MP -MF .deps/cansmilesformat.Tpo -c cansmilesformat.cpp -o cansmilesformat.o
+
+Compiling osra:
+Edit the Makefile to comment out X11LIBS, choose the IMLIBS line containing
+gdi32 and OPENBABELLIB line containing cansmilesformat.o and
+obmolecformat.o, remove "-lnetpbm" from GOCRLIB. 
+Running make should (hopefully) generate osra.exe. You're done!
+Make sure you take a look at osra.bat to see that the environment is set
+correctly. You will still need delegates.xml from ImageMagick installation
+and a separately installed Ghostscript if you'd like to process PDF and
+PostScript files.
+
+===============================================================
+Known bugs:
+
+- Some PDF files cause the program to crash. As a workaround you can
+try to first convert such problematic files to PostScript by using pdf2ps from
+Ghostscript installation or some other utility.

@@ -9,11 +9,9 @@ POTRACEINC=-I../../potrace-1.7/src/
 GOCRINC= -I../../gocr-0.43/src/ -I../../gocr-0.43/include/
 GOCRLIB= -L../../gocr-0.43/src/ -lPgm2asc -lnetpbm
 #OPENBABELLIB=../openbabel-2.1.1/src/formats/cansmilesformat.o ../openbabel-2.1.1/src/formats/obmolecformat.o -L/usr/local/lib -lopenbabel
-#OPENBABELINC=-I../openbabel-2.1.1/include/
 OPENBABELLIB=-L/usr/local/lib -lopenbabel   
 OPENBABELINC=-I/usr/local/include/openbabel-2.0/
 TCLAPINC=-I/usr/local/include/tclap/ -I/usr/local/include
-#EVG_THIN=evg-thin
 OCRADOBJ = arg_parser.o common.o rational.o rectangle.o track.o ucs.o \
        page_image.o page_image_io.o page_image_layout.o \
        bitmap.o block.o profile.o feats.o feats_test0.o feats_test1.o \
