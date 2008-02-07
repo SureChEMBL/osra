@@ -63,6 +63,7 @@
 #include <math.h>
 #include <list>
 
+#include <omp.h>
 
 using namespace std;
 
@@ -3244,18 +3245,7 @@ job_t *JOB;
 
 int main(int argc,char **argv)
 {
-  Image image;
-  ColorGray bgColor;
-  potrace_bitmap_t *bm;
-  potrace_param_t *param;
-  potrace_path_t *p;
-  potrace_state_t *st;
-  box_t boxes[NUM_BOXES];
-  double avg_bond=0.;
-  double THRESHOLD_BOND,THRESHOLD_CHAR;
-  int page=0;
-
-
+  
   try {
     fclose(stderr);
     srand(1);
@@ -3279,17 +3269,15 @@ int main(int argc,char **argv)
     string type=image_type(input.getValue());
 
     if ((type=="PDF") || (type=="PS")) resolution=150;
-    page=count_pages(input.getValue());
+    int page=count_pages(input.getValue());
 
-    param = potrace_param_default();
-    param->alphamax=0.;
-    //    param->turnpolicy=POTRACE_TURNPOLICY_MINORITY;
-    param->turdsize=1;
+    
     int num_resolutions=NUM_RESOLUTIONS;
     if (resolution!=0) num_resolutions=1;
     vector<int> select_resolution(num_resolutions,resolution);
     vector < vector <string> > array_of_smiles(num_resolutions);
     vector<double> array_of_confidence(num_resolutions,0);
+    vector< vector <Image> >  array_of_images(num_resolutions);
 
     if (resolution==0)
       {
@@ -3298,255 +3286,266 @@ int main(int argc,char **argv)
 	select_resolution[2]=300;
 	select_resolution[3]=400;
       }
-
-    for (int res_iter=0;res_iter<num_resolutions;res_iter++)
+    int res_iter;
+#pragma omp parallel for default(none) shared(input,threshold,inv,resolution,type,page,num_resolutions,select_resolution,array_of_smiles,array_of_confidence,array_of_images) private(res_iter)
+    for (res_iter=0;res_iter<num_resolutions;res_iter++)
       {
 	int n_boxes=0,total_boxes=0;
 	double total_confidence=0;
 
+
 	resolution=select_resolution[res_iter];
+
+	Image image;
+	ColorGray bgColor;
+	potrace_bitmap_t *bm;
+	potrace_param_t *param;
+	potrace_path_t *p;
+	potrace_state_t *st;
+	box_t boxes[NUM_BOXES];
+	double THRESHOLD_BOND,THRESHOLD_CHAR;
+
+	param = potrace_param_default();
+	param->alphamax=0.;
+	//    param->turnpolicy=POTRACE_TURNPOLICY_MINORITY;
+	param->turdsize=1;
+
 
 	for(int l=0;l<page;l++)
 	  {
-	int working_resolution=resolution;
-	image.density("150x150");
-	stringstream pname;
-	pname<<input.getValue()<<"["<<l<<"]";
-	image.read(pname.str());
-	int totalColors=image.totalColors();
-	//cout<<totalColors<<endl;exit(0);
-	THRESHOLD_BOND=threshold.getValue();
-	if (THRESHOLD_BOND<0.0001)
-	  {
-	    if (totalColors<40 || (type=="PDF") || (type=="PS"))
+	    int working_resolution=resolution;
+	    image.density("150x150");
+	    stringstream pname;
+	    pname<<input.getValue()<<"["<<l<<"]";
+	    image.read(pname.str());
+	    int totalColors=image.totalColors();
+	    //cout<<totalColors<<endl;exit(0);
+	    THRESHOLD_BOND=threshold.getValue();
+	    if (THRESHOLD_BOND<0.0001)
 	      {
-		THRESHOLD_BOND=THRESHOLD_GLOBAL;
-	      }
-	    else if (totalColors>=40 && resolution<150)
-	      {
-		THRESHOLD_BOND=0.1;
-	      }
-	    else if (totalColors>=40 && totalColors<256)
-	      {
-		THRESHOLD_BOND=0.3;
-	      }
-	    else if (totalColors>=256)
-	      {
-		THRESHOLD_BOND=0.4;
-	      }
-	  }
-	THRESHOLD_CHAR=THRESHOLD_BOND;
-
-	image.type( GrayscaleType );
-	if (resolution>300)
-	  {
-	    int percent=(100*300)/resolution;
-	    stringstream scale;
-	    scale<<percent<<"%";
-	    image.scale(scale.str());
-	    working_resolution=300;
-	  }
-
-
-
-	bgColor=getBgColor(image,inv.getValue());
-	box_t trim=trim_page(image,THRESHOLD_BOND,bgColor);
-	image.crop(Geometry(trim.x2-trim.x1,trim.y2-trim.y1,trim.x1,trim.y1));
-	int width=image.columns();
-	int height=image.rows();
-	int max_font_height=2*MAX_FONT_HEIGHT;
-	int max_font_width=2*MAX_FONT_WIDTH;
-	int min_font_height=MIN_FONT_HEIGHT;
-	int mind=2;
-	int boundary=2*5;
-	int res=2*150;
-	double cornerd=4;
-	int dash_length=7;
-	bool thick=true;
-	if (resolution<300)
-	  {
-	    res=1*150;
-	    boundary=1*5;
-	  }
-	if (resolution<=150)
-	  {
-	    max_font_height=1*MAX_FONT_HEIGHT;
-	    max_font_width=1*MAX_FONT_WIDTH;
-	    cornerd=2;
-	    thick=false;
-	  }
-	n_boxes=find_boxes(boxes,image,THRESHOLD_BOND,bgColor,width,height,
-			   res,boundary,working_resolution);
-	qsort(boxes,n_boxes,sizeof(box_t),comp_boxes);
-	
-	for (int k=0;k<n_boxes;k++)
-	  {
-	    int n_atom=0,n_bond=0,n_letters=0,n_label=0;
-	    atom_t atom[MAX_ATOMS];
-	    bond_t bond[MAX_ATOMS];
-	    letters_t letters[MAX_ATOMS];
-	    label_t label[MAX_ATOMS];
-	    stringstream fname;
-	    if (output.getValue()!="") fname<<output.getValue()<<total_boxes<<".png";
-
-	    Image orig_box=image;
-
-
-	    orig_box.crop(Geometry(boxes[k].x2-boxes[k].x1,boxes[k].y2-boxes[k].y1,
-				    boxes[k].x1,boxes[k].y1));
-	    width=orig_box.columns();
-	    height=orig_box.rows();
-
-	    Image thick_box;
-
-
-	    if (resolution>=300)
-	      {
-		double nf=noise_factor(orig_box,width,height,bgColor,THRESHOLD_BOND);
-		if (nf<2.)
+		if (totalColors<40 || (type=="PDF") || (type=="PS"))
 		  {
-		    thick_box=anisotropic_smoothing(orig_box,width,height);
-		    THRESHOLD_BOND=adjust_threshold(thick_box);
+		    THRESHOLD_BOND=THRESHOLD_GLOBAL;
 		  }
-		else thick_box=orig_box;
+		else if (totalColors>=40 && resolution<150)
+		  {
+		    THRESHOLD_BOND=0.1;
+		  }
+		else if (totalColors>=40 && totalColors<256)
+		  {
+		    THRESHOLD_BOND=0.3;
+		  }
+		else if (totalColors>=256)
+		  {
+		    THRESHOLD_BOND=0.4;
+		  }
 	      }
-	    else if (resolution<300 && resolution>150)
+	    THRESHOLD_CHAR=THRESHOLD_BOND;
+
+	    image.type( GrayscaleType );
+	    if (resolution>300)
 	      {
-		int nw=width*300/resolution;
-		int nh=height*300/resolution;
-		thick_box=anisotropic_scaling(orig_box,width,height,nw,nh);
-		THRESHOLD_BOND=adjust_threshold(thick_box);
-		width=thick_box.columns();
-		height=thick_box.rows();
 		int percent=(100*300)/resolution;
 		stringstream scale;
 		scale<<percent<<"%";
-		orig_box.scale(scale.str());
+		image.scale(scale.str());
 		working_resolution=300;
 	      }
-	    else thick_box=orig_box;
-
-		    
-	    param->turnpolicy=POTRACE_TURNPOLICY_MINORITY;
-	    double c_width=1.*width*72/working_resolution;
-	    double c_height=1.*height*72/working_resolution;
-	    if (c_height*c_width<SMALL_PICTURE_AREA)
-	      param->turnpolicy=POTRACE_TURNPOLICY_BLACK;
-	
-
-	    Image box;
-	    if (thick)
-	      box=thin_image(thick_box,THRESHOLD_BOND,bgColor);
-	    else  box=thick_box;
-	   
-	    
-	    bm = bm_new(width,height);
-	    for(int i=0;i<width;i++)
-	      for(int j=0;j<height;j++)
-		BM_PUT(bm,i,j,getPixel(box,bgColor,i,j,THRESHOLD_BOND));
-	
-	    st = potrace_trace(param, bm);
-	    p = st->plist;
-	    n_atom=find_atoms(p,atom,bond,&n_bond,mind);
-	    n_letters=find_chars(p,orig_box,letters,atom,bond,n_atom,n_bond,
-				 height,width,bgColor,THRESHOLD_CHAR,
-				 max_font_height,max_font_width);
 
 
 
- 	    avg_bond=percentile75(bond,n_bond,atom);
-	    if (working_resolution==300)
+	    bgColor=getBgColor(image,inv.getValue());
+	    box_t trim=trim_page(image,THRESHOLD_BOND,bgColor);
+	    image.crop(Geometry(trim.x2-trim.x1,trim.y2-trim.y1,trim.x1,trim.y1));
+	    int width=image.columns();
+	    int height=image.rows();
+	    int max_font_height=2*MAX_FONT_HEIGHT;
+	    int max_font_width=2*MAX_FONT_WIDTH;
+	    int min_font_height=MIN_FONT_HEIGHT;
+	    int mind=2;
+	    int boundary=2*5;
+	    int res=2*150;
+	    double cornerd=4;
+	    int dash_length=7;
+	    bool thick=true;
+	    if (resolution<300)
 	      {
-		n_letters=find_fused_chars(bond,n_bond,atom,letters,n_letters,
-					   max_font_height,max_font_width,avg_bond/3,
-					   orig_box,bgColor,THRESHOLD_CHAR);
+		res=1*150;
+		boundary=1*5;
 	      }
-	    
-	    
-	    n_atom=find_dashed_bonds(p,atom,bond,n_atom,&n_bond,dash_length,avg_bond);
-
-	    double max_area=avg_bond*5;
-	    if (thick) max_area=avg_bond;
-	    n_letters=find_plus_minus(p,letters,atom,bond,n_atom,n_bond,
-				      height,width,max_font_height,
-				      max_font_width,n_letters,avg_bond);
-	   
-	    n_atom=find_small_bonds(p,atom,bond,n_atom,&n_bond,max_area,avg_bond/2);
-
-
-	    find_old_aromatic_bonds(p,bond,n_bond,atom,n_atom);
-	    
-	    skeletize(atom,bond,n_bond,box,THRESHOLD_BOND,bgColor);
-
-
-	    n_bond=double_triple_bonds(atom,bond,n_bond,avg_bond,n_atom);
-
-
-
-	    n_letters=remove_small_bonds(bond,n_bond,atom,letters,n_letters,
-	    				 max_font_height,min_font_height,avg_bond);
-	 
-	    remove_disconnected_atoms(atom,bond,n_atom,n_bond);
-	    
-	    find_wedge_bonds(thick_box,atom,bond,n_bond,bgColor,THRESHOLD_BOND,label,
-			     n_label,letters,n_letters,working_resolution);
-	    remove_bumps(bond,n_bond,atom,avg_bond);
-
-	    n_label=assign_atom_labels(atom,n_atom,letters,n_letters,avg_bond/4,
-				       bond,n_bond,cornerd,label);
-
-
-	    remove_duplicate_atoms(atom,bond,n_atom,n_bond,avg_bond/4); 
-
-	    for (int i=0;i<2;i++)
+	    if (resolution<=150)
 	      {
-		align_broken_bonds(atom,n_atom,bond,n_bond);
-		n_bond=fix_one_sided_bonds(bond,n_bond,atom);
-		remove_disconnected_bonds(bond,n_bond);
-		remove_disconnected_atoms(atom,bond,n_atom,n_bond);
+		max_font_height=1*MAX_FONT_HEIGHT;
+		max_font_width=1*MAX_FONT_WIDTH;
+		cornerd=2;
+		thick=false;
 	      }
-
-
-
-	    valency_check(atom,bond,n_atom,n_bond);
-
-	    //	    if (fname.str()!="") debug(thick_box,atom,n_atom,bond,n_bond,fname.str());     	      
-	    find_up_down_bonds(bond,n_bond,atom);
-	    int real_atoms=count_atoms(atom,n_atom);
-
-	    if ((real_atoms>MIN_A_COUNT) && (real_atoms<MAX_A_COUNT))
+	    n_boxes=find_boxes(boxes,image,THRESHOLD_BOND,bgColor,width,height,
+			       res,boundary,working_resolution);
+	    qsort(boxes,n_boxes,sizeof(box_t),comp_boxes);
+	    
+	    for (int k=0;k<n_boxes;k++)
 	      {
-		int f=resolve_bridge_bonds(atom,n_atom,bond,n_bond);
-		int rotors;
-		double confidence=0;
-		string smiles=get_smiles(atom,bond,n_bond,rotors,confidence);
-		//int f=count_fragments(smiles);
-		if (f<5 && smiles!="")
+		int n_atom=0,n_bond=0,n_letters=0,n_label=0;
+		atom_t atom[MAX_ATOMS];
+		bond_t bond[MAX_ATOMS];
+		letters_t letters[MAX_ATOMS];
+		label_t label[MAX_ATOMS];
+		//stringstream fname;
+		//if (output.getValue()!="") fname<<output.getValue()<<total_boxes<<".png";
+
+		Image orig_box=image;
+	    
+
+		orig_box.crop(Geometry(boxes[k].x2-boxes[k].x1,boxes[k].y2-boxes[k].y1,
+				       boxes[k].x1,boxes[k].y1));
+		width=orig_box.columns();
+		height=orig_box.rows();
+		
+		Image thick_box;
+
+
+		if (resolution>=300)
 		  {
-		    //cout<<smiles<<endl;
-		    array_of_smiles[res_iter].push_back(smiles);
-		    total_boxes++;
-		    total_confidence+=confidence;
-
-		    Image tmp=orig_box;
-		    if (fname.str()!="")
+		    double nf=noise_factor(orig_box,width,height,bgColor,THRESHOLD_BOND);
+		    if (nf<2.)
 		      {
-			if (resize.getValue()!="")
-			  {
-			    tmp.scale(resize.getValue());
-			  }
-			tmp.write(fname.str());
-			}
-		    
+			thick_box=anisotropic_smoothing(orig_box,width,height);
+			THRESHOLD_BOND=adjust_threshold(thick_box);
+		      }
+		    else thick_box=orig_box;
 		  }
-	      }
+		else if (resolution<300 && resolution>150)
+		  {
+		    int nw=width*300/resolution;
+		    int nh=height*300/resolution;
+		    thick_box=anisotropic_scaling(orig_box,width,height,nw,nh);
+		    THRESHOLD_BOND=adjust_threshold(thick_box);
+		    width=thick_box.columns();
+		    height=thick_box.rows();
+		    int percent=(100*300)/resolution;
+		    stringstream scale;
+		    scale<<percent<<"%";
+		    orig_box.scale(scale.str());
+		    working_resolution=300;
+		  }
+		else thick_box=orig_box;
+		
+		    
+		param->turnpolicy=POTRACE_TURNPOLICY_MINORITY;
+		double c_width=1.*width*72/working_resolution;
+		double c_height=1.*height*72/working_resolution;
+		if (c_height*c_width<SMALL_PICTURE_AREA)
+		  param->turnpolicy=POTRACE_TURNPOLICY_BLACK;
+	
 
-	    potrace_state_free(st);
-	    free(bm);
-	  }
+		Image box;
+		if (thick)
+		  box=thin_image(thick_box,THRESHOLD_BOND,bgColor);
+		else  box=thick_box;
+	   
+	    
+		bm = bm_new(width,height);
+		for(int i=0;i<width;i++)
+		  for(int j=0;j<height;j++)
+		    BM_PUT(bm,i,j,getPixel(box,bgColor,i,j,THRESHOLD_BOND));
+	
+		st = potrace_trace(param, bm);
+		p = st->plist;
+		n_atom=find_atoms(p,atom,bond,&n_bond,mind);
+		n_letters=find_chars(p,orig_box,letters,atom,bond,n_atom,n_bond,
+				     height,width,bgColor,THRESHOLD_CHAR,
+				     max_font_height,max_font_width);
+
+
+
+		double avg_bond=percentile75(bond,n_bond,atom);
+		if (working_resolution==300)
+		  {
+		    n_letters=find_fused_chars(bond,n_bond,atom,letters,n_letters,
+					       max_font_height,max_font_width,
+					       avg_bond/3,orig_box,bgColor,
+					       THRESHOLD_CHAR);
+		  }
+	    
+	    
+		n_atom=find_dashed_bonds(p,atom,bond,n_atom,&n_bond,dash_length,
+					 avg_bond);
+
+		double max_area=avg_bond*5;
+		if (thick) max_area=avg_bond;
+		n_letters=find_plus_minus(p,letters,atom,bond,n_atom,n_bond,
+					  height,width,max_font_height,
+					  max_font_width,n_letters,avg_bond);
+	   
+		n_atom=find_small_bonds(p,atom,bond,n_atom,&n_bond,max_area,avg_bond/2);
+
+
+		find_old_aromatic_bonds(p,bond,n_bond,atom,n_atom);
+		
+		skeletize(atom,bond,n_bond,box,THRESHOLD_BOND,bgColor);
+
+
+		n_bond=double_triple_bonds(atom,bond,n_bond,avg_bond,n_atom);
+
+
+
+		n_letters=remove_small_bonds(bond,n_bond,atom,letters,n_letters,
+					     max_font_height,min_font_height,avg_bond);
+	 
+		remove_disconnected_atoms(atom,bond,n_atom,n_bond);
+		
+		find_wedge_bonds(thick_box,atom,bond,n_bond,bgColor,THRESHOLD_BOND,
+				 label,n_label,letters,n_letters,working_resolution);
+		remove_bumps(bond,n_bond,atom,avg_bond);
+
+		n_label=assign_atom_labels(atom,n_atom,letters,n_letters,avg_bond/4,
+					   bond,n_bond,cornerd,label);
+
+
+		remove_duplicate_atoms(atom,bond,n_atom,n_bond,avg_bond/4); 
+		
+		for (int i=0;i<2;i++)
+		  {
+		    align_broken_bonds(atom,n_atom,bond,n_bond);
+		    n_bond=fix_one_sided_bonds(bond,n_bond,atom);
+		    remove_disconnected_bonds(bond,n_bond);
+		    remove_disconnected_atoms(atom,bond,n_atom,n_bond);
+		  }
+
+
+
+		valency_check(atom,bond,n_atom,n_bond);
+
+		//	    if (fname.str()!="") debug(thick_box,atom,n_atom,bond,n_bond,fname.str());     	      
+		find_up_down_bonds(bond,n_bond,atom);
+		int real_atoms=count_atoms(atom,n_atom);
+
+		if ((real_atoms>MIN_A_COUNT) && (real_atoms<MAX_A_COUNT))
+		  {
+		    int f=resolve_bridge_bonds(atom,n_atom,bond,n_bond);
+		    int rotors;
+		    double confidence=0;
+		    string smiles=get_smiles(atom,bond,n_bond,rotors,confidence);
+		    //int f=count_fragments(smiles);
+		    if (f<5 && smiles!="")
+		      {
+			//cout<<smiles<<endl;
+			array_of_smiles[res_iter].push_back(smiles);
+			total_boxes++;
+			total_confidence+=confidence;
+			array_of_images[res_iter].push_back(orig_box);
+		      }
+		  }
+
+		potrace_state_free(st);
+		free(bm);
+	      }
 	  }
 	if (total_boxes>0) array_of_confidence[res_iter]=total_confidence/total_boxes;
+	potrace_param_free(param);
       }
+ 
     double max_conf=0;
     int max_res=0;
     for (int i=0;i<num_resolutions;i++)
@@ -3558,11 +3557,21 @@ int main(int argc,char **argv)
 	  }
       }
     for (unsigned int i=0;i<array_of_smiles[max_res].size();i++)
-      cout<<array_of_smiles[max_res][i]<<endl;
+      {
+	cout<<array_of_smiles[max_res][i]<<endl;
+	stringstream fname;
+	if (output.getValue()!="") fname<<output.getValue()<<i<<".png";
+	if (fname.str()!="")
+	  {
+	    Image tmp=array_of_images[max_res][i];
+	    if (resize.getValue()!="")
+	      {
+		tmp.scale(resize.getValue());
+	      }
+	    tmp.write(fname.str());
+	  }
+      }
    
-    potrace_param_free(param);
-
-
   }
   catch( Exception &error_ )
     {
