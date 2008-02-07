@@ -23,7 +23,7 @@
 
 *********************************************************************/
 
-#define VERSION "0.9.4"
+#define VERSION "0.9.6"
 #define MAX_ATOMS 10000
 #define NUM_BOXES 50
 #define MAX_FONT_HEIGHT 17
@@ -49,7 +49,7 @@
 #define MAX_WIDTH 1000
 #define MIN_HEIGHT 50
 #define MIN_WIDTH 50
-
+#define NUM_RESOLUTIONS 4
 
 
 
@@ -2388,7 +2388,8 @@ int find_small_bonds(potrace_path_t *p, atom_t *atom,bond_t *bond,int n_atom,int
 int resolve_bridge_bonds(atom_t* atom,int n_atom,bond_t* bond,int n_bond)
 {
   int rotors1,rotors2;
-  string smiles1=get_smiles(atom,bond,n_bond,rotors1);
+  double confidence;
+  string smiles1=get_smiles(atom,bond,n_bond,rotors1,confidence);
   int f=count_fragments(smiles1);
   for (int i=0;i<n_atom;i++)
     if ((atom[i].exists) && (atom[i].label==" "))
@@ -2431,7 +2432,7 @@ int resolve_bridge_bonds(atom_t* atom,int n_atom,bond_t* bond,int n_bond)
 		    else if (bond[c].a==bond[d].b) bond[c].a=bond[d].a;
 		    else if (bond[c].b==bond[d].a) bond[c].b=bond[d].b;
 		    else if (bond[c].b==bond[d].b) bond[c].b=bond[d].a;
-		    string smiles2=get_smiles(atom,bond,n_bond,rotors2);
+		    string smiles2=get_smiles(atom,bond,n_bond,rotors2,confidence);
 		    int f1=count_fragments(smiles2);
 		    if (f!=f1 || rotors1!=rotors2)
 		      {
@@ -3249,11 +3250,11 @@ int main(int argc,char **argv)
   potrace_param_t *param;
   potrace_path_t *p;
   potrace_state_t *st;
-  int n_boxes=0,total_boxes=0;
   box_t boxes[NUM_BOXES];
   double avg_bond=0.;
   double THRESHOLD_BOND,THRESHOLD_CHAR;
   int page=0;
+
 
   try {
     fclose(stderr);
@@ -3266,7 +3267,7 @@ int main(int argc,char **argv)
     cmd.add(threshold);
     TCLAP::ValueArg<string> output("o","output","Write out images to files",false,"","filename prefix");
     cmd.add(output);
-    TCLAP::ValueArg<int> resolution_param("r","resolution","Resolution in dots per inch",false,300,"default: 300");
+    TCLAP::ValueArg<int> resolution_param("r","resolution","Resolution in dots per inch",false,0,"default: auto");
     cmd.add(resolution_param);
     TCLAP::SwitchArg inv("n","negate","Invert color (white on black)",false);
     cmd.add(inv);
@@ -3284,9 +3285,29 @@ int main(int argc,char **argv)
     param->alphamax=0.;
     //    param->turnpolicy=POTRACE_TURNPOLICY_MINORITY;
     param->turdsize=1;
+    int num_resolutions=NUM_RESOLUTIONS;
+    if (resolution!=0) num_resolutions=1;
+    vector<int> select_resolution(num_resolutions,resolution);
+    vector < vector <string> > array_of_smiles(num_resolutions);
+    vector<double> array_of_confidence(num_resolutions,0);
 
-    for(int l=0;l<page;l++)
+    if (resolution==0)
       {
+	select_resolution[0]=72;
+	select_resolution[1]=150;
+	select_resolution[2]=300;
+	select_resolution[3]=400;
+      }
+
+    for (int res_iter=0;res_iter<num_resolutions;res_iter++)
+      {
+	int n_boxes=0,total_boxes=0;
+	double total_confidence=0;
+
+	resolution=select_resolution[res_iter];
+
+	for(int l=0;l<page;l++)
+	  {
 	int working_resolution=resolution;
 	image.density("150x150");
 	stringstream pname;
@@ -3497,13 +3518,15 @@ int main(int argc,char **argv)
 	      {
 		int f=resolve_bridge_bonds(atom,n_atom,bond,n_bond);
 		int rotors;
-		string smiles=get_smiles(atom,bond,n_bond,rotors);
+		double confidence=0;
+		string smiles=get_smiles(atom,bond,n_bond,rotors,confidence);
 		//int f=count_fragments(smiles);
 		if (f<5 && smiles!="")
 		  {
-		    cout<<smiles;
+		    //cout<<smiles<<endl;
+		    array_of_smiles[res_iter].push_back(smiles);
 		    total_boxes++;
-
+		    total_confidence+=confidence;
 
 		    Image tmp=orig_box;
 		    if (fname.str()!="")
@@ -3521,7 +3544,22 @@ int main(int argc,char **argv)
 	    potrace_state_free(st);
 	    free(bm);
 	  }
+	  }
+	if (total_boxes>0) array_of_confidence[res_iter]=total_confidence/total_boxes;
       }
+    double max_conf=0;
+    int max_res=0;
+    for (int i=0;i<num_resolutions;i++)
+      {
+	if (array_of_confidence[i]>max_conf)
+	  {
+	    max_conf=array_of_confidence[i];
+	    max_res=i;
+	  }
+      }
+    for (unsigned int i=0;i<array_of_smiles[max_res].size();i++)
+      cout<<array_of_smiles[max_res][i]<<endl;
+   
     potrace_param_free(param);
 
 

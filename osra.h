@@ -91,4 +91,4 @@ typedef struct dash_s dash_t;
 
 string fix_atom_name(string s,int n);
 int getValency(string s);
-string get_smiles(atom_t *atom, bond_t *bond, int n_bond, int &rotors);
+string get_smiles(atom_t *atom, bond_t *bond, int n_bond, int &rotors, double &confidence);

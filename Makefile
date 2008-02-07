@@ -2,7 +2,7 @@
 RES = osra
 #X11LIBS=-L/usr/X11R6/lib
 X11LIBS=-L/usr/X11R6/lib64
-IMLIBS= $(X11LIBS) -lMagick++ -lWand -lMagick -ltiff -lfreetype -ljpeg -lXext -lSM -lICE -lX11 -lXt -lbz2 -llcms -lpthread
+IMLIBS= $(X11LIBS) -lMagick++ -lWand -lMagick -ltiff -lfreetype -ljpeg -lXext -lSM -lICE -lX11 -lXt -lbz2
 #IMLIBS=-L/usr/local/lib -lMagick++ -lWand -lMagick -lgdi32 -ljbig -llcms -ltiff -ljasper  -ljpeg  -lpng -lbz2 -lz 
 POTRACELIB=-L../../potrace-1.7/src/ -lpotrace
 POTRACEINC=-I../../potrace-1.7/src/

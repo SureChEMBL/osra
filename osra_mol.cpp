@@ -480,12 +480,12 @@ int getValency(string s)
   return(4);
 }
 
-string get_smiles(atom_t *atom, bond_t *bond, int n_bond, int &rotors)
+string get_smiles(atom_t *atom, bond_t *bond, int n_bond, int &rotors, double &confidence)
 {
  OBMol mol;
  OBAtom *a,*b;
- stringstream ss;
- OBConversion conv(NULL,&ss);
+ string str;
+ OBConversion conv;
  int n=1;
  int anum;
 
@@ -555,8 +555,32 @@ string get_smiles(atom_t *atom, bond_t *bond, int n_bond, int &rotors)
 	 }
        j++;
      }
+ int C_Count=0;
+ int N_Count=0;
+ int O_Count=0;
+ int F_Count=0;
+ int S_Count=0;
+ int Cl_Count=0;
+ for (unsigned int i=1;i<=mol.NumAtoms();i++)
+   {
+     OBAtom *a=mol.GetAtom(i);
+     if (a->IsCarbon()) C_Count++;
+     else if (a->IsNitrogen()) N_Count++;
+     else if (a->IsOxygen()) O_Count++;
+     else if (a->IsSulfur()) S_Count++;
+     else if (a->GetAtomicNum()==9) F_Count++;
+     else if (a->GetAtomicNum()==17) Cl_Count++;
+   }
 
- conv.Write(&mol);
+ vector<OBRing*> &vr=mol.GetSSSR();
+ vector<OBRing*>::iterator iter;
+ vector<int> Num_Rings(7,0);
+ int i;
+ for (i=0,iter = vr.begin();(iter!=vr.end()) && (i<7);++iter,i++)
+   Num_Rings[(*iter)->Size()]++;
+ confidence=0.223783-0.016725*C_Count+0.049824*N_Count+0.075914*O_Count+0.047727*F_Count+0.085106*S_Count+0.231207*Cl_Count+0.187126*Num_Rings[3]+0.150441*Num_Rings[4]+0.120475*Num_Rings[5]+0.175302*Num_Rings[6]+0.140259*Num_Rings[7];
+
+ str=conv.WriteString(&mol,true);
  for (int i=0;i<n_bond;i++)
    if (bond[i].exists) 
      {
@@ -564,5 +588,5 @@ string get_smiles(atom_t *atom, bond_t *bond, int n_bond, int &rotors)
        atom[bond[i].b].n=0;
      }
  rotors=mol.NumRotors();
- return(ss.str());
+ return(str);
 }
