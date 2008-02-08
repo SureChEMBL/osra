@@ -63,7 +63,8 @@
 #include <math.h>
 #include <list>
 
-#include <omp.h>
+#include <pthread.h>
+
 
 using namespace std;
 
@@ -101,7 +102,28 @@ using namespace OpenBabel;
 #include "CImg.h"
 using namespace cimg_library;
 using namespace Magick;
+
+struct data_s {
+  string input;
+  double threshold;
+  bool inv;
+  int resolution;
+  string  type;
+  int page;
+  vector < vector <string> > *array_of_smiles;
+  vector<double> *array_of_confidence;
+  vector < vector <Image> > *array_of_images;
+  int thread;
+};
+typedef struct data_s data_t;
+
+pthread_mutex_t mutex_JOB = PTHREAD_MUTEX_INITIALIZER;
+job_t *JOB;
+
 #define PI 3.14159265358979323846
+
+
+
 
 
 #define BM_WORDSIZE ((int)sizeof(potrace_word))
@@ -1348,9 +1370,8 @@ box_t trim_page(Image image,double THRESHOLD_BOND,ColorGray bgColor)
 
 char get_atom_label(Image image, ColorGray bg, int x1, int y1, int x2, int y2, double THRESHOLD)
 {
+  pthread_mutex_lock(&mutex_JOB);
   Control control;
-
-
   char c=0,c1=0;
   unsigned char* tmp;
   job_t job;
@@ -1479,15 +1500,15 @@ char get_atom_label(Image image, ColorGray bg, int x1, int y1, int x2, int y2, d
       //cout<<c<<endl<<"=========================="<<endl;
     }
       job_free(&job);
-    
-  if (isalnum(c))
-    {
-      return (c);
-    }
-  else
-    {
-      return(0);
-    }
+      pthread_mutex_unlock(&mutex_JOB);
+      if (isalnum(c))
+	{
+	  return (c);
+	}
+      else
+	{
+	  return(0);
+	}
 }
 
 
@@ -3241,60 +3262,17 @@ void  find_old_aromatic_bonds(potrace_path_t *p,bond_t *bond,int n_bond,
   
 }
 
-job_t *JOB;
 
-int main(int argc,char **argv)
+void *thread_resolution(void *data)
 {
+  data_t *arg=(data_t*) data;
   
-  try {
-    fclose(stderr);
-    srand(1);
-    TCLAP::CmdLine cmd("OSRA: Optical Structure Recognition, created by Igor Filippov, 2007",' ',VERSION);
-    TCLAP::UnlabeledValueArg<string>  input( "in", "input file",true,"", "filename"  );
-    cmd.add(input);
-    TCLAP::ValueArg<double> threshold("t","threshold","Gray level threshold",
-				      false,0,"0.2..0.8");
-    cmd.add(threshold);
-    TCLAP::ValueArg<string> output("o","output","Write out images to files",false,"","filename prefix");
-    cmd.add(output);
-    TCLAP::ValueArg<int> resolution_param("r","resolution","Resolution in dots per inch",false,0,"default: auto");
-    cmd.add(resolution_param);
-    TCLAP::SwitchArg inv("n","negate","Invert color (white on black)",false);
-    cmd.add(inv);
-    TCLAP::ValueArg<string> resize("s","size","Resize image on output",false,"","dimensions, 300x400");
-    cmd.add(resize);
-    cmd.parse( argc, argv );
-
-    int resolution=resolution_param.getValue();
-    string type=image_type(input.getValue());
-
-    if ((type=="PDF") || (type=="PS")) resolution=150;
-    int page=count_pages(input.getValue());
-
-    
-    int num_resolutions=NUM_RESOLUTIONS;
-    if (resolution!=0) num_resolutions=1;
-    vector<int> select_resolution(num_resolutions,resolution);
-    vector < vector <string> > array_of_smiles(num_resolutions);
-    vector<double> array_of_confidence(num_resolutions,0);
-    vector< vector <Image> >  array_of_images(num_resolutions);
-
-    if (resolution==0)
-      {
-	select_resolution[0]=72;
-	select_resolution[1]=150;
-	select_resolution[2]=300;
-	select_resolution[3]=400;
-      }
-    int res_iter;
-#pragma omp parallel for default(none) shared(input,threshold,inv,resolution,type,page,num_resolutions,select_resolution,array_of_smiles,array_of_confidence,array_of_images) private(res_iter,JOB)
-    for (res_iter=0;res_iter<num_resolutions;res_iter++)
-      {
+   
 	int n_boxes=0,total_boxes=0;
 	double total_confidence=0;
 
 
-	resolution=select_resolution[res_iter];
+	int resolution=arg->resolution;
 
 	Image image;
 	ColorGray bgColor;
@@ -3311,19 +3289,19 @@ int main(int argc,char **argv)
 	param->turdsize=1;
 
 
-	for(int l=0;l<page;l++)
+	for(int l=0;l<arg->page;l++)
 	  {
 	    int working_resolution=resolution;
 	    image.density("150x150");
 	    stringstream pname;
-	    pname<<input.getValue()<<"["<<l<<"]";
+	    pname<<arg->input<<"["<<l<<"]";
 	    image.read(pname.str());
 	    int totalColors=image.totalColors();
 	    //cout<<totalColors<<endl;exit(0);
-	    THRESHOLD_BOND=threshold.getValue();
+	    THRESHOLD_BOND=arg->threshold;
 	    if (THRESHOLD_BOND<0.0001)
 	      {
-		if (totalColors<40 || (type=="PDF") || (type=="PS"))
+		if (totalColors<40 || (arg->type=="PDF") || (arg->type=="PS"))
 		  {
 		    THRESHOLD_BOND=THRESHOLD_GLOBAL;
 		  }
@@ -3354,7 +3332,7 @@ int main(int argc,char **argv)
 
 
 
-	    bgColor=getBgColor(image,inv.getValue());
+	    bgColor=getBgColor(image,arg->inv);
 	    box_t trim=trim_page(image,THRESHOLD_BOND,bgColor);
 	    image.crop(Geometry(trim.x2-trim.x1,trim.y2-trim.y1,trim.x1,trim.y1));
 	    int width=image.columns();
@@ -3391,9 +3369,6 @@ int main(int argc,char **argv)
 		bond_t bond[MAX_ATOMS];
 		letters_t letters[MAX_ATOMS];
 		label_t label[MAX_ATOMS];
-		//stringstream fname;
-		//if (output.getValue()!="") fname<<output.getValue()<<total_boxes<<".png";
-
 		Image orig_box=image;
 	    
 
@@ -3407,7 +3382,8 @@ int main(int argc,char **argv)
 
 		if (resolution>=300)
 		  {
-		    double nf=noise_factor(orig_box,width,height,bgColor,THRESHOLD_BOND);
+		    double nf=noise_factor(orig_box,width,height,bgColor,
+					   THRESHOLD_BOND);
 		    if (nf<2.)
 		      {
 			thick_box=anisotropic_smoothing(orig_box,width,height);
@@ -3531,10 +3507,10 @@ int main(int argc,char **argv)
 		    if (f<5 && smiles!="")
 		      {
 			//cout<<smiles<<endl;
-			array_of_smiles[res_iter].push_back(smiles);
+			(*(arg->array_of_smiles))[arg->thread].push_back(smiles);
 			total_boxes++;
 			total_confidence+=confidence;
-			array_of_images[res_iter].push_back(orig_box);
+			(*(arg->array_of_images))[arg->thread].push_back(orig_box);
 		      }
 		  }
 
@@ -3542,10 +3518,86 @@ int main(int argc,char **argv)
 		free(bm);
 	      }
 	  }
-	if (total_boxes>0) array_of_confidence[res_iter]=total_confidence/total_boxes;
+	if (total_boxes>0) 
+	  (*(arg->array_of_confidence))[arg->thread]=total_confidence/total_boxes;
 	potrace_param_free(param);
+
+	return(NULL); 
+}
+
+
+
+int main(int argc,char **argv)
+{
+  
+  try {
+    fclose(stderr);
+    srand(1);
+    TCLAP::CmdLine cmd("OSRA: Optical Structure Recognition, created by Igor Filippov, 2007",' ',VERSION);
+    TCLAP::UnlabeledValueArg<string>  input( "in", "input file",true,"", "filename"  );
+    cmd.add(input);
+    TCLAP::ValueArg<double> threshold("t","threshold","Gray level threshold",
+				      false,0,"0.2..0.8");
+    cmd.add(threshold);
+    TCLAP::ValueArg<string> output("o","output","Write out images to files",false,"","filename prefix");
+    cmd.add(output);
+    TCLAP::ValueArg<int> resolution_param("r","resolution","Resolution in dots per inch",false,0,"default: auto");
+    cmd.add(resolution_param);
+    TCLAP::SwitchArg inv("n","negate","Invert color (white on black)",false);
+    cmd.add(inv);
+    TCLAP::ValueArg<string> resize("s","size","Resize image on output",false,"","dimensions, 300x400");
+    cmd.add(resize);
+    cmd.parse( argc, argv );
+
+    int resolution=resolution_param.getValue();
+    string type=image_type(input.getValue());
+
+    if ((type=="PDF") || (type=="PS")) resolution=150;
+    int page=count_pages(input.getValue());
+
+    
+    int num_resolutions=NUM_RESOLUTIONS;
+    if (resolution!=0) num_resolutions=1;
+    vector<int> select_resolution(num_resolutions,resolution);
+    vector < vector <string> > array_of_smiles(num_resolutions);
+    vector<double> array_of_confidence(num_resolutions,0);
+    vector< vector <Image> >  array_of_images(num_resolutions);
+    data_t data[num_resolutions];
+
+
+    if (resolution==0)
+      {
+	select_resolution[0]=72;
+	select_resolution[1]=150;
+	select_resolution[2]=300;
+	select_resolution[3]=400;
       }
- 
+
+
+for (int i=0;i<num_resolutions;i++)
+      {
+	data[i].input=input.getValue();
+	data[i].threshold=threshold.getValue();
+	data[i].inv=inv.getValue();
+	data[i].resolution=select_resolution[i];
+	data[i].type=type;
+	data[i].page=page;
+	data[i].array_of_smiles=&array_of_smiles;
+	data[i].array_of_images=&array_of_images;
+	data[i].array_of_confidence=&array_of_confidence;
+	data[i].thread=i;
+      }
+// vector<pthread_t> thr(num_resolutions);
+//vector<int> ret(num_resolutions);
+ for (int i=0;i<num_resolutions;i++)
+   // ret[i] = pthread_create( &(thr[i]),NULL,thread_resolution,(void*)(data+i));
+   thread_resolution((void *) (data+i));
+
+ // (*thread_resolution)((void*) data);
+
+ // for (int i=0;i<num_resolutions;i++)
+ // pthread_join(thr[i],NULL);
+
     double max_conf=0;
     int max_res=0;
     for (int i=0;i<num_resolutions;i++)
