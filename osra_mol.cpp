@@ -572,9 +572,9 @@ string get_smiles(atom_t *atom, bond_t *bond, int n_bond, int &rotors, double &c
      else if (a->GetAtomicNum()==17) Cl_Count++;
    }
 
- vector<OBRing*> &vr=mol.GetSSSR();
+ vector<OBRing*> vr=mol.GetSSSR();
  vector<OBRing*>::iterator iter;
- vector<int> Num_Rings(7,0);
+ vector<int> Num_Rings(8,0);
  int i;
  for (i=0,iter = vr.begin();(iter!=vr.end()) && (i<7);++iter,i++)
    Num_Rings[(*iter)->Size()]++;
