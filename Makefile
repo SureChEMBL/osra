@@ -18,8 +18,8 @@ OCRADOBJ = arg_parser.o common.o rational.o rectangle.o track.o ucs.o \
        character.o character_r11.o character_r12.o character_r13.o \
        textline.o textline_r2.o textblock.o textpage.o main.o
 
-CPP = g++ -fopenmp -pthread -O2 -I/usr/local/include -D_LIB -D_MT -Wall -DHAVE_CONFIG_H $(POTRACEINC) $(GOCRINC) $(OPENBABELINC) $(TCLAPINC)
-LD=g++ -fopenmp -O2 
+CPP = g++ -g -fopenmp -pthread -O2 -I/usr/local/include -D_LIB -D_MT -Wall -DHAVE_CONFIG_H $(POTRACEINC) $(GOCRINC) $(OPENBABELINC) $(TCLAPINC)
+LD=g++ -g -fopenmp -O2 
 
 LIBS=$(POTRACELIB) -lm  $(IMLIBS) $(GOCRLIB) $(OPENBABELLIB) -lz -lgomp -lpthread
 OBJ = osra.o osra_mol.o  $(OCRADOBJ)

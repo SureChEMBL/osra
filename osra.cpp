@@ -3287,7 +3287,7 @@ int main(int argc,char **argv)
 	select_resolution[3]=400;
       }
     int res_iter;
-    //#pragma omp parallel for default(none) shared(input,threshold,inv,resolution,type,page,num_resolutions,select_resolution,array_of_smiles,array_of_confidence,array_of_images) private(res_iter,JOB)
+#pragma omp parallel for default(none) shared(input,threshold,inv,resolution,type,page,num_resolutions,select_resolution,array_of_smiles,array_of_confidence,array_of_images) private(res_iter,JOB)
     for (res_iter=0;res_iter<num_resolutions;res_iter++)
       {
 	int n_boxes=0,total_boxes=0;

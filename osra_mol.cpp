@@ -485,11 +485,13 @@ string get_smiles(atom_t *atom, bond_t *bond, int n_bond, int &rotors, double &c
  OBMol mol;
  OBAtom *a,*b;
  string str;
+ //stringstream ss;
+ //OBConversion conv(NULL,&ss);
  OBConversion conv;
  int n=1;
  int anum;
 
- conv.SetOutFormat("can");
+ conv.SetOutFormat("smi");
  conv.Read(&mol);
  mol.SetDimension(2);
  for (int i=0;i<n_bond;i++)
@@ -575,12 +577,13 @@ string get_smiles(atom_t *atom, bond_t *bond, int n_bond, int &rotors, double &c
  vector<OBRing*> vr=mol.GetSSSR();
  vector<OBRing*>::iterator iter;
  vector<int> Num_Rings(8,0);
- int i;
- for (i=0,iter = vr.begin();(iter!=vr.end()) && (i<7);++iter,i++)
-   Num_Rings[(*iter)->Size()]++;
+ for (iter = vr.begin();iter!=vr.end();iter++)
+   if ((*iter)->Size()<8)
+     Num_Rings[(*iter)->Size()]++;
  confidence=0.223783-0.016725*C_Count+0.049824*N_Count+0.075914*O_Count+0.047727*F_Count+0.085106*S_Count+0.231207*Cl_Count+0.187126*Num_Rings[3]+0.150441*Num_Rings[4]+0.120475*Num_Rings[5]+0.175302*Num_Rings[6]+0.140259*Num_Rings[7];
 
  str=conv.WriteString(&mol,true);
+// conv.Write(&mol);
  for (int i=0;i<n_bond;i++)
    if (bond[i].exists) 
      {
