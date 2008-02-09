@@ -3570,6 +3570,8 @@ int main(int argc,char **argv)
 	select_resolution[2]=300;
 	select_resolution[3]=400;
       }
+    else
+      select_resolution[0]=resolution;
 
 
 for (int i=0;i<num_resolutions;i++)
@@ -3585,16 +3587,13 @@ for (int i=0;i<num_resolutions;i++)
 	data[i].array_of_confidence=&array_of_confidence;
 	data[i].thread=i;
       }
- int thread;
- if (num_resolutions>1)
-   {
-     omp_set_num_threads(num_resolutions);
-#pragma omp parallel for default(none) shared(data,num_resolutions) private(thread,JOB)
-     for (thread=0;thread<num_resolutions;thread++)
-       thread_resolution((void *) &(data[thread]));
-   }
- else
-   thread_resolution((void *) &(data[0]));
+ int my;
+ // int max_threads=min(omp_get_max_threads(),num_resolutions);
+ //omp_set_num_threads(max_threads);
+#pragma omp parallel for default(none) shared(data,num_resolutions) private(my,JOB)
+ for (my=0;my<num_resolutions;my++)
+   thread_resolution((void *) &(data[my]));
+
 
 
     double max_conf=0;
