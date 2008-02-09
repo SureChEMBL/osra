@@ -63,7 +63,7 @@
 #include <math.h>
 #include <list>
 
-#include <pthread.h>
+#include <omp.h>
 
 
 using namespace std;
@@ -117,7 +117,7 @@ struct data_s {
 };
 typedef struct data_s data_t;
 
-pthread_mutex_t mutex_JOB = PTHREAD_MUTEX_INITIALIZER;
+
 job_t *JOB;
 
 #define PI 3.14159265358979323846
@@ -1370,7 +1370,6 @@ box_t trim_page(Image image,double THRESHOLD_BOND,ColorGray bgColor)
 
 char get_atom_label(Image image, ColorGray bg, int x1, int y1, int x2, int y2, double THRESHOLD)
 {
-  pthread_mutex_lock(&mutex_JOB);
   Control control;
   char c=0,c1=0;
   unsigned char* tmp;
@@ -1500,7 +1499,6 @@ char get_atom_label(Image image, ColorGray bg, int x1, int y1, int x2, int y2, d
       //cout<<c<<endl<<"=========================="<<endl;
     }
       job_free(&job);
-      pthread_mutex_unlock(&mutex_JOB);
       if (isalnum(c))
 	{
 	  return (c);
@@ -3562,7 +3560,7 @@ int main(int argc,char **argv)
     vector < vector <string> > array_of_smiles(num_resolutions);
     vector<double> array_of_confidence(num_resolutions,0);
     vector< vector <Image> >  array_of_images(num_resolutions);
-    data_t data[num_resolutions];
+    vector<data_t> data(num_resolutions);
 
 
     if (resolution==0)
@@ -3587,16 +3585,17 @@ for (int i=0;i<num_resolutions;i++)
 	data[i].array_of_confidence=&array_of_confidence;
 	data[i].thread=i;
       }
-// vector<pthread_t> thr(num_resolutions);
-//vector<int> ret(num_resolutions);
- for (int i=0;i<num_resolutions;i++)
-   // ret[i] = pthread_create( &(thr[i]),NULL,thread_resolution,(void*)(data+i));
-   thread_resolution((void *) (data+i));
+ int thread;
+ if (num_resolutions>1)
+   {
+     omp_set_num_threads(num_resolutions);
+#pragma omp parallel for default(none) shared(data,num_resolutions) private(thread,JOB)
+     for (thread=0;thread<num_resolutions;thread++)
+       thread_resolution((void *) &(data[thread]));
+   }
+ else
+   thread_resolution((void *) &(data[0]));
 
- // (*thread_resolution)((void*) data);
-
- // for (int i=0;i<num_resolutions;i++)
- // pthread_join(thr[i],NULL);
 
     double max_conf=0;
     int max_res=0;

@@ -1,7 +1,7 @@
 ######################### GCC Setup ###################
 RES = osra
-#X11LIBS=-L/usr/X11R6/lib
-X11LIBS=-L/usr/X11R6/lib64
+X11LIBS=-L/usr/X11R6/lib
+#X11LIBS=-L/usr/X11R6/lib64
 IMLIBS= $(X11LIBS) -lMagick++ -lWand -lMagick -ltiff -lfreetype -ljpeg -lXext -lSM -lICE -lX11 -lXt -lbz2
 #IMLIBS=-L/usr/local/lib -lMagick++ -lWand -lMagick -lgdi32 -ljbig -llcms -ltiff -ljasper  -ljpeg  -lpng -lbz2 -lz 
 POTRACELIB=-L../../potrace-1.7/src/ -lpotrace
@@ -12,17 +12,16 @@ GOCRLIB= -L../../gocr-0.43/src/ -lPgm2asc -lnetpbm
 OPENBABELLIB=-L/usr/local/lib -lopenbabel   
 OPENBABELINC=-I/usr/local/include/openbabel-2.0/
 TCLAPINC=-I/usr/local/include/tclap/ -I/usr/local/include
-PTHREADS=-lpthread
 OCRADOBJ = arg_parser.o common.o rational.o rectangle.o track.o ucs.o \
        page_image.o page_image_io.o page_image_layout.o \
        bitmap.o block.o profile.o feats.o feats_test0.o feats_test1.o \
        character.o character_r11.o character_r12.o character_r13.o \
        textline.o textline_r2.o textblock.o textpage.o main.o
 
-CPP = g++  -O2 -I/usr/local/include -D_LIB -D_MT -Wall -DHAVE_CONFIG_H $(POTRACEINC) $(GOCRINC) $(OPENBABELINC) $(TCLAPINC)
-LD=g++ -O2 
+CPP = g++ -fopenmp -O2 -I/usr/local/include -D_LIB -D_MT -Wall -DHAVE_CONFIG_H $(POTRACEINC) $(GOCRINC) $(OPENBABELINC) $(TCLAPINC)
+LD=g++ -fopenmp -O2 
 
-LIBS=$(POTRACELIB) -lm  $(IMLIBS) $(GOCRLIB) $(OPENBABELLIB) -lz $(PTHREADS)
+LIBS=$(POTRACELIB) -lm  $(IMLIBS) $(GOCRLIB) $(OPENBABELLIB) -lz
 OBJ = osra.o osra_mol.o  $(OCRADOBJ)
 
 
