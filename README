@@ -207,6 +207,15 @@ the following commands:
 cd src/formats/
 g++ -DHAVE_CONFIG_H -I. -I../../src -I../../include -I../../data -I../../include -g -O2 -MT cansmilesformat.lo -MD -MP -MF .deps/cansmilesformat.Tpo -c cansmilesformat.cpp -o cansmilesformat.o
 
+To have OpenMP support:
+Install gcc and g++ 4.2 or later and pthreads-win32 libraries.
+Edit libgomp.spec to read:
+*Link_gomp: -lgomp -lpthread
+
+Copy include files from pthreads-win32 to /mingw/include
+Copy libpthreadGC2.a to /mingw/lib/libpthread.a
+Copy pthreadGC2.dll to the same directory as osra.exe
+
 Compiling osra:
 Edit the Makefile to comment out X11LIBS, choose the IMLIBS line containing
 gdi32 and OPENBABELLIB line containing cansmilesformat.o and
