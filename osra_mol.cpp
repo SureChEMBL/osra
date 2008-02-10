@@ -491,7 +491,7 @@ string get_smiles(atom_t *atom, bond_t *bond, int n_bond, int &rotors, double &c
  int n=1;
  int anum;
 
- conv.SetOutFormat("smi");
+ conv.SetOutFormat("can");
  conv.Read(&mol);
  mol.SetDimension(2);
  for (int i=0;i<n_bond;i++)
