@@ -1,7 +1,7 @@
 ######################### GCC Setup ###################
 RES = osra
-#X11LIBS=-L/usr/X11R6/lib
-X11LIBS=-L/usr/X11R6/lib64
+X11LIBS=-L/usr/X11R6/lib
+#X11LIBS=-L/usr/X11R6/lib64
 IMLIBS= $(X11LIBS) -lMagick++ -lWand -lMagick -ltiff -lfreetype -ljpeg -lXext -lSM -lICE -lX11 -lXt -lbz2
 #IMLIBS=-L/usr/local/lib -lMagick++ -lWand -lMagick -lgdi32 -ljbig -llcms -ltiff -ljasper  -ljpeg  -lpng -lbz2 -lz 
 POTRACELIB=-L../../potrace-1.7/src/ -lpotrace
@@ -18,8 +18,8 @@ OCRADOBJ = arg_parser.o common.o rational.o rectangle.o track.o ucs.o \
        character.o character_r11.o character_r12.o character_r13.o \
        textline.o textline_r2.o textblock.o textpage.o main.o
 
-CPP = g++ -g -fopenmp -O2 -I/usr/local/include -D_LIB -D_MT -Wall -DHAVE_CONFIG_H $(POTRACEINC) $(GOCRINC) $(OPENBABELINC) $(TCLAPINC)
-LD=g++ -g -fopenmp -O2 
+CPP = g++ -g -O2 -I/usr/local/include -D_LIB -D_MT -Wall -DHAVE_CONFIG_H $(POTRACEINC) $(GOCRINC) $(OPENBABELINC) $(TCLAPINC)
+LD=g++ -g -O2 
 
 LIBS=$(POTRACELIB) -lm  $(IMLIBS) $(GOCRLIB) $(OPENBABELLIB) -lz
 OBJ = osra.o osra_mol.o  $(OCRADOBJ)
