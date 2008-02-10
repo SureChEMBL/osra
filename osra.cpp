@@ -49,7 +49,7 @@
 #define MAX_WIDTH 1000
 #define MIN_HEIGHT 50
 #define MIN_WIDTH 50
-#define NUM_RESOLUTIONS 4
+#define NUM_RESOLUTIONS 3
 
 
 
@@ -3284,7 +3284,6 @@ int main(int argc,char **argv)
 	select_resolution[0]=72;
 	select_resolution[1]=150;
 	select_resolution[2]=300;
-	select_resolution[3]=600;
       }
     int res_iter;
 #pragma omp parallel for default(none) shared(input,threshold,inv,resolution,type,page,num_resolutions,select_resolution,array_of_smiles,array_of_confidence,array_of_images) private(res_iter,JOB)
