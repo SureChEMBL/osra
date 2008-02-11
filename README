@@ -1,6 +1,6 @@
                         OSRA: Optical Structure Recognition
 
-							Igor Filippov, 2007
+							Igor Filippov, 2007-2008
 							igorf@helix.nih.gov
 
 
@@ -84,6 +84,20 @@ should then generate the executable - osra.
 
 For compiling with MinGW or Cygwin environment see more detailed
 instructions at the end of this file.
+
+Using OpenMP (EXPERIMENTAL):
+For automatic resolution determination it is now possible to use parallel "for" loop
+with OpenMP-aware compiler. Note that I have had mixed results with gcc OpenMP
+implementation and cannot recommend it for OSRA other than as food for thought.
+Sometimes the parallel version crashes, other times the results are different from
+the serial version, yet other times it can be slower or faster than the serial version.
+The problem could be with gcc OpenMP implementation, with the underlying libraries
+(OpenBabel, ImageMagick, gocr etc.) or with OSRA itself. If you are able to figure it
+out and to make it work reliably do let me know!
+To use you need g++ version 4.1 or later. Uncomment "#include <omp.h>" line in
+osra.cpp and add "-fopenmp" flag in the Makefile for both compiler and linker.
+You will need to define environment variable OMP_NUM_THREADS to specify the number
+of threads to run before using OSRA.
 =============================================================================
 Usage:
 
@@ -116,9 +130,9 @@ will give you a list of available options with short descriptions.
 
 Most common use: ./osra [-r <resolution>] <filename>
 
-Resolution in dpi, default is 300 (unless it's a PS or PDF file as
-mentioned above), filename is the name of your image file (or
-PS/PDF document).
+Resolution in dpi, default is "0" for automatic resolution
+determination (NEW in version 0.9.6), unless it's a PS or PDF file as mentioned above. 
+Filename is the name of your image file (or PS/PDF document).
 
 Other options: 
 -t, --threshold: Gray level threshold, default is 0.2
@@ -133,6 +147,7 @@ Other options:
 -s, --size:      Resize images on output - can be useful for running OSRA
                  as a backend for a webservice. Example: "-s 300x400".
 
+=============================================================================
 Windows users:
 You can download and use the zip archive with the pre-compiled binary.
 The archive includes:
@@ -207,14 +222,6 @@ the following commands:
 cd src/formats/
 g++ -DHAVE_CONFIG_H -I. -I../../src -I../../include -I../../data -I../../include -g -O2 -MT cansmilesformat.lo -MD -MP -MF .deps/cansmilesformat.Tpo -c cansmilesformat.cpp -o cansmilesformat.o
 
-To have OpenMP support:
-Install gcc and g++ 4.2 or later and pthreads-win32 libraries.
-Edit libgomp.spec to read:
-*Link_gomp: -lgomp -lpthread
-
-Copy include files from pthreads-win32 to /mingw/include
-Copy libpthreadGC2.a to /mingw/lib/libpthread.a
-Copy pthreadGC2.dll to the same directory as osra.exe
 
 Compiling osra:
 Edit the Makefile to comment out X11LIBS, choose the IMLIBS line containing
@@ -226,9 +233,33 @@ correctly. You will still need delegates.xml from ImageMagick installation
 and a separately installed Ghostscript if you'd like to process PDF and
 PostScript files.
 
+Using OpenMP (EXPERIMENTAL):
+For automatic resolution determination it is now possible to use parallel "for" loop
+with OpenMP-aware compiler. Note that I have had mixed results with gcc OpenMP
+implementation and cannot recommend it for OSRA other than as food for thought.
+Sometimes the parallel version crashes, other times the results are different from
+the serial version, yet other times it can be slower or faster than the serial version.
+The problem could be with gcc OpenMP implementation, with the underlying libraries
+(OpenBabel, ImageMagick, gocr etc.) or with OSRA itself. If you are able to figure it
+out and to make it work reliably do let me know!
+To use you need g++ version 4.1 or later. Uncomment "#include <omp.h>" line in
+osra.cpp and add "-fopenmp" flag in the Makefile for both compiler and linker.
+You will need to define environment variable OMP_NUM_THREADS to specify the number
+of threads to run before using OSRA (osra.bat defines it as equal to 1 right now).
+
+Install gcc and g++ 4.1 or later and pthreads-win32 libraries.
+Edit libgomp.spec to read:
+*Link_gomp: -lgomp -lpthread
+
+Copy include files from pthreads-win32 to /mingw/include
+Copy libpthreadGC2.a to /mingw/lib/libpthread.a
+Copy pthreadGC2.dll and mingwm10.dll to the same directory as osra.exe
 ===============================================================
 Known bugs:
 
 - Some PDF files cause the program to crash. As a workaround you can
 try to first convert such problematic files to PostScript by using pdf2ps from
 Ghostscript installation or some other utility.
+
+- OpenMP doesn't seem to work as expected (crashes, slowdowns or results different
+from the serial version).
