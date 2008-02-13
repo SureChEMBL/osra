@@ -2955,9 +2955,10 @@ void remove_bumps(bond_t *bond,int n_bond,atom_t *atom,double avg)
 
 	  
 double noise_factor(Image image, int width, int height, ColorGray bgColor, 
-		     double THRESHOLD_BOND)
+		    double THRESHOLD_BOND, int resolution)
 {
-  int n2=0,n3=0;
+
+  int n1=0,n2=0,n3=0;
   for(int i=0;i<width;i++)
     {
       int j=0;
@@ -2970,7 +2971,8 @@ double noise_factor(Image image, int width, int height, ColorGray bgColor,
 	      l++;
 	      j++;
 	    }
-	  if (l==2) n2++;
+	  if (l==1) n1++;
+	  else if (l==2) n2++;
 	  else if (l==3) n3++;
 	}
     }
@@ -2986,11 +2988,15 @@ double noise_factor(Image image, int width, int height, ColorGray bgColor,
 	      l++;
 	      j++;
 	    }
-	  if (l==2) n2++;
+	  if (l==1) n1++;
+	  else if (l==2) n2++;
 	  else if (l==3) n3++;
 	}
     }
-  return(1.*n3/n2);
+  if (resolution>=150)
+    return(1.*n3/n2);
+  else
+    return(1.*n2/n1);
 }
 
 double thickness_hor(Image image,int x1,int y1, ColorGray bgColor, 
@@ -3334,10 +3340,9 @@ int main(int argc,char **argv)
 
 	Image image;
 	ColorGray bgColor;
-	potrace_bitmap_t *bm;
+	
 	potrace_param_t *param;
-	potrace_path_t *p;
-	potrace_state_t *st;
+
 	box_t boxes[NUM_BOXES];
 	double THRESHOLD_BOND,THRESHOLD_CHAR;
 
@@ -3422,11 +3427,7 @@ int main(int argc,char **argv)
 	    
 	    for (int k=0;k<n_boxes;k++)
 	      {
-		int n_atom=0,n_bond=0,n_letters=0,n_label=0;
-		atom_t atom[MAX_ATOMS];
-		bond_t bond[MAX_ATOMS];
-		letters_t letters[MAX_ATOMS];
-		label_t label[MAX_ATOMS];
+	
 		//stringstream fname;
 		//if (output.getValue()!="") fname<<output.getValue()<<total_boxes<<".png";
 
@@ -3443,7 +3444,8 @@ int main(int argc,char **argv)
 
 		if (resolution>=300)
 		  {
-		    double nf=noise_factor(orig_box,width,height,bgColor,THRESHOLD_BOND);
+		    double nf=noise_factor(orig_box,width,height,bgColor,THRESHOLD_BOND,
+					   resolution);
 		    if (nf<2.)
 		      {
 			thick_box=anisotropic_smoothing(orig_box,width,height);
@@ -3465,9 +3467,27 @@ int main(int argc,char **argv)
 		    orig_box.scale(scale.str());
 		    working_resolution=300;
 		  }
-		else thick_box=orig_box;
-		
-		    
+		else 
+		    thick_box=orig_box;
+		vector<double> thresholds;
+		/*		if (resolution>150)
+		  thresholds.push_back(THRESHOLD_BOND);
+		  else*/
+		    for(double i=0.1;i<0.5;i+=0.1)
+		      thresholds.push_back(i);
+		    unsigned int min_smiles=MAX_ATOMS;
+		    string out_smiles="";
+		    double out_confidence=0;
+		    for (unsigned int thi=0;thi<thresholds.size();thi++)
+		  {
+		    THRESHOLD_BOND=thresholds[thi];
+		    THRESHOLD_CHAR=THRESHOLD_BOND;
+		    int n_atom=0,n_bond=0,n_letters=0,n_label=0;
+		    atom_t atom[MAX_ATOMS];
+		    bond_t bond[MAX_ATOMS];
+		    letters_t letters[MAX_ATOMS];
+		    label_t label[MAX_ATOMS];
+
 		param->turnpolicy=POTRACE_TURNPOLICY_MINORITY;
 		double c_width=1.*width*72/working_resolution;
 		double c_height=1.*height*72/working_resolution;
@@ -3479,8 +3499,9 @@ int main(int argc,char **argv)
 		if (thick)
 		  box=thin_image(thick_box,THRESHOLD_BOND,bgColor);
 		else  box=thick_box;
-	   
-	    
+		potrace_bitmap_t *bm;	   
+		potrace_path_t *p;
+		potrace_state_t *st;	    
 		bm = bm_new(width,height);
 		for(int i=0;i<width;i++)
 		  for(int j=0;j<height;j++)
@@ -3563,19 +3584,25 @@ int main(int argc,char **argv)
 		    int rotors;
 		    double confidence=0;
 		    string smiles=get_smiles(atom,bond,n_bond,rotors,confidence);
-		    //int f=count_fragments(smiles);
-		    if (f<5 && smiles!="")
+		    if (f<5 && smiles!="" && smiles.length()<min_smiles)
 		      {
-			//cout<<smiles<<endl;
-			array_of_smiles[res_iter].push_back(smiles);
-			total_boxes++;
-			total_confidence+=confidence;
-			array_of_images[res_iter].push_back(orig_box);
+			out_smiles=smiles;
+			out_confidence=confidence;
+			min_smiles=smiles.length();
 		      }
 		  }
 
 		potrace_state_free(st);
 		free(bm);
+		  }
+		if (out_smiles!="")
+		  {
+		    array_of_smiles[res_iter].push_back(out_smiles);
+		    total_boxes++;
+		    total_confidence+=out_confidence;
+		    array_of_images[res_iter].push_back(orig_box);
+		  }
+
 	      }
 	  }
 	if (total_boxes>0) array_of_confidence[res_iter]=total_confidence/total_boxes;
