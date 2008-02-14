@@ -1466,7 +1466,10 @@ char get_atom_label(Image image, ColorGray bg, int x1, int y1, int x2, int y2, d
       */
       if (count>MIN_CHAR_POINTS && zeros>MIN_CHAR_POINTS)
 	{
-	  pgm2asc(&job);
+	  try {
+	    pgm2asc(&job);
+	  }
+	  catch(...){}
 	  char *l;
 	  l=(char *)job.res.linelist.start.next->data;
 	  if (l!=NULL)  c1=l[0];
@@ -3366,6 +3369,8 @@ int main(int argc,char **argv)
 		  ColorRGB c,b;
 		  b=image.pixelColor(i,j);
 		  double a=min(b.red(),min(b.green(),b.blue()));
+		  if (inv.getValue())
+		    a=max(b.red(),max(b.green(),b.blue()));
 		  c.red(a);c.green(a);c.blue(a);
 		  image.pixelColor(i,j,c);
 		}
