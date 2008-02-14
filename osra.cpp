@@ -3343,7 +3343,7 @@ int main(int argc,char **argv)
 	    stringstream pname;
 	    pname<<input.getValue()<<"["<<l<<"]";
 	    image.read(pname.str());
-	    int totalColors=image.totalColors();
+	    //int totalColors=image.totalColors();
 	    //cout<<totalColors<<endl;exit(0);
 	    THRESHOLD_BOND=threshold.getValue();
 	    if (THRESHOLD_BOND<0.0001)
@@ -3354,12 +3354,23 @@ int main(int argc,char **argv)
 		  }
 		else 
 		  {
-		    THRESHOLD_BOND=0.15;
+		    THRESHOLD_BOND=0.2;
 		  }
 	      }
 	    THRESHOLD_CHAR=THRESHOLD_BOND;
-
+	    image.type( TrueColorType );
+	    for (unsigned int i=0;i<image.columns();i++)
+	      for (unsigned int j=0;j<image.rows();j++)
+		{
+		  ColorRGB c,b;
+		  b=image.pixelColor(i,j);
+		  double a=min(b.red(),min(b.green(),b.blue()));
+		  c.red(a);c.green(a);c.blue(a);
+		  image.pixelColor(i,j,c);
+		}
+	    image.contrast(5);
 	    image.type( GrayscaleType );
+
 	    if (resolution>300)
 	      {
 		int percent=(100*300)/resolution;
