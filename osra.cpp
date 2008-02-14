@@ -3358,6 +3358,7 @@ int main(int argc,char **argv)
 		  }
 	      }
 	    THRESHOLD_CHAR=THRESHOLD_BOND;
+	    image.modifyImage();
 	    image.type( TrueColorType );
 	    for (unsigned int i=0;i<image.columns();i++)
 	      for (unsigned int j=0;j<image.rows();j++)
