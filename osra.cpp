@@ -3578,11 +3578,13 @@ int main(int argc,char **argv)
 	    max_res=i;
 	  }
       }
+    int image_count=0;
     for (unsigned int i=0;i<array_of_smiles[max_res].size();i++)
       {
 	cout<<array_of_smiles[max_res][i]<<endl;
 	stringstream fname;
-	if (output.getValue()!="") fname<<output.getValue()<<i<<".png";
+	if (output.getValue()!="") fname<<output.getValue()<<image_count<<".png";
+	image_count++;
 	if (fname.str()!="")
 	  {
 	    Image tmp=array_of_images[max_res][i];
