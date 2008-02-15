@@ -3308,6 +3308,7 @@ int main(int argc,char **argv)
 	//    param->turnpolicy=POTRACE_TURNPOLICY_MINORITY;
 	param->turdsize=1;
 
+	int image_count=0;
 
 	for(int l=0;l<page;l++)
 	  {
@@ -3578,7 +3579,7 @@ int main(int argc,char **argv)
 	    max_res=i;
 	  }
       }
-    int image_count=0;
+
     for (unsigned int i=0;i<array_of_smiles[max_res].size();i++)
       {
 	cout<<array_of_smiles[max_res][i]<<endl;
