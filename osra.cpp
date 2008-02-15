@@ -3298,40 +3298,10 @@ int main(int argc,char **argv)
     int page=count_pages(input.getValue());
 
     
-    int num_resolutions=NUM_RESOLUTIONS;
-    if (resolution!=0) num_resolutions=1;
-    vector<int> select_resolution(num_resolutions,resolution);
-    vector < vector <string> > array_of_smiles(num_resolutions);
-    vector<double> array_of_confidence(num_resolutions,0);
-    vector< vector <Image> >  array_of_images(num_resolutions);
-
-    if (resolution==0)
-      {
-	select_resolution[0]=72;
-	select_resolution[1]=150;
-	select_resolution[2]=300;
-      }
-    int res_iter;
-#pragma omp parallel for default(none) shared(input,threshold,inv,resolution,type,page,num_resolutions,select_resolution,array_of_smiles,array_of_confidence,array_of_images) private(res_iter,JOB)
-    for (res_iter=0;res_iter<num_resolutions;res_iter++)
-      {
   
-	try {
-
-	int n_boxes=0,total_boxes=0;
-	double total_confidence=0;
-
-
-	resolution=select_resolution[res_iter];
-
-	Image image;
-	ColorGray bgColor;
-	potrace_bitmap_t *bm;
-	potrace_param_t *param;
-	potrace_path_t *p;
-	potrace_state_t *st;
-	box_t boxes[NUM_BOXES];
+	
 	double THRESHOLD_BOND,THRESHOLD_CHAR;
+	potrace_param_t *param;
 
 	param = potrace_param_default();
 	param->alphamax=0.;
@@ -3341,13 +3311,12 @@ int main(int argc,char **argv)
 
 	for(int l=0;l<page;l++)
 	  {
-	    int working_resolution=resolution;
+	    Image image;
 	    image.density("150x150");
 	    stringstream pname;
 	    pname<<input.getValue()<<"["<<l<<"]";
 	    image.read(pname.str());
-	    //int totalColors=image.totalColors();
-	    //cout<<totalColors<<endl;exit(0);
+
 	    THRESHOLD_BOND=threshold.getValue();
 	    if (THRESHOLD_BOND<0.0001)
 	      {
@@ -3374,8 +3343,31 @@ int main(int argc,char **argv)
 		  c.red(a);c.green(a);c.blue(a);
 		  image.pixelColor(i,j,c);
 		}
-	    image.contrast(5);
+	    image.contrast(2);
 	    image.type( GrayscaleType );
+	    int num_resolutions=NUM_RESOLUTIONS;
+	    if (resolution!=0) num_resolutions=1;
+	    vector<int> select_resolution(num_resolutions,resolution);
+	    vector < vector <string> > array_of_smiles(num_resolutions);
+	    vector<double> array_of_confidence(num_resolutions,0);
+	    vector< vector <Image> >  array_of_images(num_resolutions);
+	    
+	    if (resolution==0)
+	      {
+		select_resolution[0]=72;
+		select_resolution[1]=150;
+		select_resolution[2]=300;
+	      }
+	    int res_iter;
+#pragma omp parallel for default(none) shared(input,threshold,inv,resolution,type,page,num_resolutions,select_resolution,array_of_smiles,array_of_confidence,array_of_images) private(res_iter,JOB)
+    for (res_iter=0;res_iter<num_resolutions;res_iter++)
+      {
+	int n_boxes=0,total_boxes=0;
+	double total_confidence=0;
+	box_t boxes[NUM_BOXES];
+
+	resolution=select_resolution[res_iter];
+	int working_resolution=resolution;
 
 	    if (resolution>300)
 	      {
@@ -3386,9 +3378,7 @@ int main(int argc,char **argv)
 		working_resolution=300;
 	      }
 
-
-
-	    bgColor=getBgColor(image,inv.getValue());
+	    ColorGray bgColor=getBgColor(image,inv.getValue());
 	    box_t trim=trim_page(image,THRESHOLD_BOND,bgColor);
 	    image.crop(Geometry(trim.x2-trim.x1,trim.y2-trim.y1,trim.x1,trim.y1));
 	    int width=image.columns();
@@ -3425,8 +3415,9 @@ int main(int argc,char **argv)
 		bond_t bond[MAX_ATOMS];
 		letters_t letters[MAX_ATOMS];
 		label_t label[MAX_ATOMS];
-		//stringstream fname;
-		//if (output.getValue()!="") fname<<output.getValue()<<total_boxes<<".png";
+		potrace_bitmap_t *bm;
+		potrace_path_t *p;
+		potrace_state_t *st;
 
 		Image orig_box=image;
 	    
@@ -3562,10 +3553,8 @@ int main(int argc,char **argv)
 		    int rotors;
 		    double confidence=0;
 		    string smiles=get_smiles(atom,bond,n_bond,rotors,confidence);
-		    //int f=count_fragments(smiles);
 		    if (f<5 && smiles!="")
 		      {
-			//cout<<smiles<<endl;
 			array_of_smiles[res_iter].push_back(smiles);
 			total_boxes++;
 			total_confidence+=confidence;
@@ -3576,17 +3565,9 @@ int main(int argc,char **argv)
 		potrace_state_free(st);
 		free(bm);
 	      }
-	  }
-	if (total_boxes>0) array_of_confidence[res_iter]=total_confidence/total_boxes;
-	potrace_param_free(param);
-	}
-    catch(...)
-      {
-	//return 1;
+	    if (total_boxes>0) 
+	      array_of_confidence[res_iter]=total_confidence/total_boxes;
       }
-
-      }
- 
     double max_conf=0;
     int max_res=0;
     for (int i=0;i<num_resolutions;i++)
@@ -3612,6 +3593,10 @@ int main(int argc,char **argv)
 	    tmp.write(fname.str());
 	  }
       }
+   
+
+	  }
+    potrace_param_free(param); 
    
 
   return 0;
