@@ -2995,6 +2995,7 @@ double noise_factor(Image image, int width, int height, ColorGray bgColor,
 	  else if (l==3) n3++;
 	}
     }
+  //  cout<<n1<<" "<<n2<<" "<<n3<<endl;
   return(1.*n3/n2);
 }
 
@@ -3318,19 +3319,7 @@ int main(int argc,char **argv)
 	    pname<<input.getValue()<<"["<<l<<"]";
 	    image.read(pname.str());
 
-	    THRESHOLD_BOND=threshold.getValue();
-	    if (THRESHOLD_BOND<0.0001)
-	      {
-		if (resolution>=150)
-		  {
-		    THRESHOLD_BOND=THRESHOLD_GLOBAL;
-		  }
-		else 
-		  {
-		    THRESHOLD_BOND=0.2;
-		  }
-	      }
-	    THRESHOLD_CHAR=THRESHOLD_BOND;
+	   
 	    image.modifyImage();
 	    image.type( TrueColorType );
 	    for (unsigned int i=0;i<image.columns();i++)
@@ -3346,6 +3335,7 @@ int main(int argc,char **argv)
 		}
 	    image.contrast(2);
 	    image.type( GrayscaleType );
+
 	    int num_resolutions=NUM_RESOLUTIONS;
 	    if (resolution!=0) num_resolutions=1;
 	    vector<int> select_resolution(num_resolutions,resolution);
@@ -3370,6 +3360,20 @@ int main(int argc,char **argv)
 	resolution=select_resolution[res_iter];
 	int working_resolution=resolution;
 
+	THRESHOLD_BOND=threshold.getValue();
+	if (THRESHOLD_BOND<0.0001)
+	  {
+	    if (resolution>=150)
+	      {
+		THRESHOLD_BOND=THRESHOLD_GLOBAL;
+	      }
+	    else 
+	      {
+		THRESHOLD_BOND=0.2;
+	      }
+	  }
+	THRESHOLD_CHAR=THRESHOLD_BOND;
+
 	    if (resolution>300)
 	      {
 		int percent=(100*300)/resolution;
@@ -3380,8 +3384,11 @@ int main(int argc,char **argv)
 	      }
 
 	    ColorGray bgColor=getBgColor(image,inv.getValue());
+	    try {
 	    box_t trim=trim_page(image,THRESHOLD_BOND,bgColor);
 	    image.crop(Geometry(trim.x2-trim.x1,trim.y2-trim.y1,trim.x1,trim.y1));
+	    }
+	    catch(...) {}
 	    int width=image.columns();
 	    int height=image.rows();
 	    int max_font_height=2*MAX_FONT_HEIGHT;
