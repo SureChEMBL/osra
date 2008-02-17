@@ -758,18 +758,19 @@ int double_triple_bonds(atom_t *atom,bond_t *bond,int n_bond,double avg,int &n_a
 		    }
 		  else
 		    {
-		      //if (l1>l2)
+		      if (l1>l2)
 			{
 			  bond[j].exists=false;
 			  if (l2>l1/2)  bond[i].type+=bond[j].type;
 			  if (bond[j].arom) bond[i].arom=true;
 			}
-			/* else
+		      else
 			{
 			  bond[i].exists=false;
 			  if (l1>l2/2)  bond[j].type+=bond[i].type;
+			  if (bond[i].arom) bond[j].arom=true;
 			  break;
-			  }*/
+			}
 		    }
 		}
 	    }
@@ -3504,7 +3505,7 @@ int main(int argc,char **argv)
 	    
 		n_atom=find_dashed_bonds(p,atom,bond,n_atom,&n_bond,dash_length,
 					 1.2*avg_bond);
-		
+
 
 		double max_area=avg_bond*5;
 		if (thick) max_area=avg_bond;
@@ -3521,8 +3522,9 @@ int main(int argc,char **argv)
 
 
 		n_bond=double_triple_bonds(atom,bond,n_bond,avg_bond,n_atom);
+		//debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");	   		
 
-		debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");	   
+
 
 		n_letters=remove_small_bonds(bond,n_bond,atom,letters,n_letters,
 					     max_font_height,min_font_height,avg_bond);
