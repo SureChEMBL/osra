@@ -899,7 +899,7 @@ int assign_atom_labels(atom_t *atom,int n_atom,letters_t *letters,int n_letters,
 	    ((fabs(letters[i].y-letters[j].y)<(letters[i].r+letters[j].r)) &&
 	     (((letters[i].y<letters[j].y) && (isdigit(letters[j].a))) ||
 	      ((letters[j].y<letters[i].y) && (isdigit(letters[i].a))))))) ||
-	   (distance(letters[i].x,letters[i].y,letters[j].x,letters[j].y)<2*(letters[i].r+letters[j].r) && 
+	   (distance(letters[i].x,letters[i].y,letters[j].x,letters[j].y)<1.5*(letters[i].r+letters[j].r) && 
 	    (letters[i].a=='-' || letters[i].a=='+' || letters[j].a=='-' || letters[j].a=='+')))
 	{
 	  lbond[n_lbond].a=i;
@@ -2197,7 +2197,7 @@ void extend_dashed_bond(int a,int b,int n,atom_t *atom,double avg)
   double ky=(atom[b].y-atom[a].y)/l;
   double x0=atom[a].x;
   double y0=atom[a].y;
-  double e=max(avg,l+1.5*l/(n-1));
+  double e=max(0.3*avg,l+1.5*l/(n-1));
   atom[b].x=kx*e+x0;
   atom[b].y=ky*e+y0;
   atom[a].x=kx*(-1.5*l/(n-1))+x0;
@@ -3195,8 +3195,9 @@ int find_plus_minus(potrace_path_t *p,letters_t *letters,
 
 
 	    if (((bottom-top)<=max_font_height) && 
-		((right-left)<=max_font_width) && (right-left>1) &&
-		(right-left)<avg/3)
+		((right-left)<=max_font_width) && (right-left>1)
+		&& (right-left)<avg
+		)
 	    {
 	      double aspect=1.*(bottom-top)/(right-left);
 	      double fill=1.*p->area/((bottom-top)*(right-left));
@@ -3210,13 +3211,14 @@ int find_plus_minus(potrace_path_t *p,letters_t *letters,
 		      && letters[j].a!='-' && letters[j].a!='+')
 		    char_to_right=true;
 		}
-	      //	      cout<<left<<","<<y1<<" "<<right<<","<<y2<<" "<<top<<","<<x1<<" "<<bottom<<","<<x2<<endl;
+	      //cout<<left<<","<<y1<<" "<<right<<","<<y2<<" "<<top<<","<<x1<<" "<<bottom<<","<<x2<<endl;
 
 	      if (aspect<0.7 && fill>0.9 && !char_to_right)  c='-';
 	      else if (aspect>0.7 && aspect<1./0.7 
 		       && abs(y1-y2)<3 && abs(y1+y2-bottom-top)/2<3
 		       && abs(x1-x2)<3 && abs(x1+x2-right-left)/2<3
-		       && !char_to_right)
+		       //&& !char_to_right
+		       )
 		c='+';
 	      if (c!=' ')
 		{
@@ -3502,7 +3504,8 @@ int main(int argc,char **argv)
 					       THRESHOLD_CHAR);
 		  }
 	    
-	    
+
+
 		n_atom=find_dashed_bonds(p,atom,bond,n_atom,&n_bond,dash_length,
 					 1.2*avg_bond);
 
@@ -3514,50 +3517,38 @@ int main(int argc,char **argv)
 					  max_font_width,n_letters,avg_bond);
 
 		n_atom=find_small_bonds(p,atom,bond,n_atom,&n_bond,max_area,avg_bond/2);
-
-
 		find_old_aromatic_bonds(p,bond,n_bond,atom,n_atom);
-		
 		skeletize(atom,bond,n_bond,box,THRESHOLD_BOND,bgColor);
-
-
 		n_bond=double_triple_bonds(atom,bond,n_bond,avg_bond,n_atom);
-
-
-
 
 		n_letters=remove_small_bonds(bond,n_bond,atom,letters,n_letters,
 					     max_font_height,min_font_height,avg_bond);
 	 
 		remove_disconnected_atoms(atom,bond,n_atom,n_bond);
+
 		
 		find_wedge_bonds(thick_box,atom,bond,n_bond,bgColor,THRESHOLD_BOND,
 				 label,n_label,letters,n_letters,working_resolution);
+
 		remove_bumps(bond,n_bond,atom,avg_bond);
 
 		n_label=assign_atom_labels(atom,n_atom,letters,n_letters,avg_bond/4,
 					   bond,n_bond,cornerd,label);
 
-
 		remove_duplicate_atoms(atom,bond,n_atom,n_bond,avg_bond/4); 
 	
-
 		for (int i=0;i<2;i++)
 		  {
+		    n_bond=fix_one_sided_bonds(bond,n_bond,atom);
 		    align_broken_bonds(atom,n_atom,bond,n_bond);
 		    n_bond=fix_one_sided_bonds(bond,n_bond,atom);
-		    if (i==0)
-		      debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");     
 		    remove_disconnected_bonds(bond,n_bond);
 		    remove_disconnected_atoms(atom,bond,n_atom,n_bond);
 		  }
 
-	
-
+		//debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");     
 
 		valency_check(atom,bond,n_atom,n_bond);
-
-
 		find_up_down_bonds(bond,n_bond,atom);
 		int real_atoms=count_atoms(atom,n_atom);
 
