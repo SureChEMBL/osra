@@ -294,6 +294,7 @@ double distance_between_bonds(bond_t *bond,int i,int j,atom_t *atom)
   double sin=(atom[bond[i].b].y-atom[bond[i].a].y)/d1;
   double y3=-(atom[bond[j].a].x-atom[bond[i].a].x)*sin+(atom[bond[j].a].y-atom[bond[i].a].y)*cos;
   double y4=-(atom[bond[j].b].x-atom[bond[i].a].x)*sin+(atom[bond[j].b].y-atom[bond[i].a].y)*cos;
+  if (fabs(y3-y4)>V_DISPLACEMENT) return(FLT_MAX);
   return((fabs(y3)+fabs(y4))/2);
 }
 
@@ -1480,7 +1481,6 @@ char get_atom_label(Image image, ColorGray bg, int x1, int y1, int x2, int y2, d
 	      char c2=0;
 	      b->find_holes();
 	      Character a(b);
-	      //Rectangle::Rectangle r;
 	      a.recognize1(control.charset,Rectangle::Rectangle( a.left(), a.top(), a.right(), a.bottom()));
 	      c2=a.result(control);
 	      //cout<<"c2="<<c2<<endl;
@@ -3512,7 +3512,6 @@ int main(int argc,char **argv)
 					  height,width,max_font_height,
 					  max_font_width,n_letters,avg_bond);
 
-		//debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");	   
 		n_atom=find_small_bonds(p,atom,bond,n_atom,&n_bond,max_area,avg_bond/2);
 
 
@@ -3523,7 +3522,7 @@ int main(int argc,char **argv)
 
 		n_bond=double_triple_bonds(atom,bond,n_bond,avg_bond,n_atom);
 
-
+		debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");	   
 
 		n_letters=remove_small_bonds(bond,n_bond,atom,letters,n_letters,
 					     max_font_height,min_font_height,avg_bond);
@@ -3540,6 +3539,7 @@ int main(int argc,char **argv)
 
 		remove_duplicate_atoms(atom,bond,n_atom,n_bond,avg_bond/4); 
 
+
 		for (int i=0;i<2;i++)
 		  {
 		    align_broken_bonds(atom,n_atom,bond,n_bond);
@@ -3548,6 +3548,7 @@ int main(int argc,char **argv)
 		    remove_disconnected_atoms(atom,bond,n_atom,n_bond);
 		  }
 
+	
 
 
 		valency_check(atom,bond,n_atom,n_bond);
