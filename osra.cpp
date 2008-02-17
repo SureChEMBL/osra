@@ -3522,7 +3522,7 @@ int main(int argc,char **argv)
 
 
 		n_bond=double_triple_bonds(atom,bond,n_bond,avg_bond,n_atom);
-		//debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");	   		
+
 
 
 
@@ -3540,12 +3540,14 @@ int main(int argc,char **argv)
 
 
 		remove_duplicate_atoms(atom,bond,n_atom,n_bond,avg_bond/4); 
-
+	
 
 		for (int i=0;i<2;i++)
 		  {
 		    align_broken_bonds(atom,n_atom,bond,n_bond);
 		    n_bond=fix_one_sided_bonds(bond,n_bond,atom);
+		    if (i==0)
+		      debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");     
 		    remove_disconnected_bonds(bond,n_bond);
 		    remove_disconnected_atoms(atom,bond,n_atom,n_bond);
 		  }
