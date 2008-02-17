@@ -42,7 +42,7 @@
 #define MIN_A_COUNT 8
 #define MAX_A_COUNT 75
 #define MIN_CHAR_POINTS 10
-#define WHITE_SPACE_FRACTION 0.3 //0.5
+#define WHITE_SPACE_FRACTION 0.3 //0.3
 #define MAX_BOND_THICKNESS 10
 #define SMALL_PICTURE_AREA 6000
 #define MAX_HEIGHT 1000
@@ -3535,7 +3535,7 @@ int main(int argc,char **argv)
 		n_label=assign_atom_labels(atom,n_atom,letters,n_letters,avg_bond/4,
 					   bond,n_bond,cornerd,label);
 
-		remove_duplicate_atoms(atom,bond,n_atom,n_bond,avg_bond/4); 
+		remove_duplicate_atoms(atom,bond,n_atom,n_bond,avg_bond/3); 
 	
 		for (int i=0;i<2;i++)
 		  {
