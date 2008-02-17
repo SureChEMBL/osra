@@ -2253,6 +2253,7 @@ int find_dashed_bonds(potrace_path_t *p, atom_t *atom,bond_t *bond,int n_atom,in
 	  }
 	p = p->next;
       }
+
   for(int i=0;i<n_dot;i++)
     if (dot[i].free)
       {
@@ -2260,7 +2261,7 @@ int find_dashed_bonds(potrace_path_t *p, atom_t *atom,bond_t *bond,int n_atom,in
 	int n=0;
 	dash[n]=dot[i];
 	n++;
-	if (n>=100) n--;
+
 	dot[i].free=false;
 	double l=dot[i].x;
 	double r=dot[i].x;
@@ -2278,6 +2279,7 @@ int find_dashed_bonds(potrace_path_t *p, atom_t *atom,bond_t *bond,int n_atom,in
 	      if (dot[j].y<t) t=dot[j].y;
 	      if (dot[j].y>b) b=dot[j].y;
 	    }
+
 	if (n>2) 
 	  {
 	    if((r-l)>(b-t))
@@ -3134,7 +3136,9 @@ bool detect_curve(bond_t *bond,int n_bond, potrace_path_t *curve)
 {
   bool res=false;
   for(int i=0;i<n_bond;i++)
-    if (bond[i].exists && bond[i].curve==curve) res=true;
+    if (bond[i].exists && bond[i].curve==curve && bond[i].type==1 
+	&& !bond[i].wedge && !bond[i].hash) 
+      res=true;
   return(res);
 }
 
@@ -3292,74 +3296,69 @@ int main(int argc,char **argv)
     cmd.add(resize);
     cmd.parse( argc, argv );
 
-    int resolution=resolution_param.getValue();
+    int input_resolution=resolution_param.getValue();
     string type=image_type(input.getValue());
 
-    if ((type=="PDF") || (type=="PS")) resolution=150;
+    if ((type=="PDF") || (type=="PS")) input_resolution=150;
     int page=count_pages(input.getValue());
 
-    
-  
+    int image_count=0;
+
+    for(int l=0;l<page;l++)
+      {
+	Image image;
+	image.density("150x150");
+	stringstream pname;
+	pname<<input.getValue()<<"["<<l<<"]";
+	image.read(pname.str());
 	
-	double THRESHOLD_BOND,THRESHOLD_CHAR;
-	potrace_param_t *param;
-
-	param = potrace_param_default();
-	param->alphamax=0.;
-	//    param->turnpolicy=POTRACE_TURNPOLICY_MINORITY;
-	param->turdsize=1;
-
-	int image_count=0;
-
-	for(int l=0;l<page;l++)
-	  {
-	    Image image;
-	    image.density("150x150");
-	    stringstream pname;
-	    pname<<input.getValue()<<"["<<l<<"]";
-	    image.read(pname.str());
-
-	   
-	    image.modifyImage();
-	    image.type( TrueColorType );
-	    for (unsigned int i=0;i<image.columns();i++)
-	      for (unsigned int j=0;j<image.rows();j++)
-		{
-		  ColorRGB c,b;
-		  b=image.pixelColor(i,j);
-		  double a=min(b.red(),min(b.green(),b.blue()));
-		  if (inv.getValue())
-		    a=max(b.red(),max(b.green(),b.blue()));
-		  c.red(a);c.green(a);c.blue(a);
-		  image.pixelColor(i,j,c);
-		}
-	    image.contrast(2);
-	    image.type( GrayscaleType );
-
-	    int num_resolutions=NUM_RESOLUTIONS;
-	    if (resolution!=0) num_resolutions=1;
-	    vector<int> select_resolution(num_resolutions,resolution);
-	    vector < vector <string> > array_of_smiles(num_resolutions);
-	    vector<double> array_of_confidence(num_resolutions,0);
-	    vector< vector <Image> >  array_of_images(num_resolutions);
+	image.modifyImage();
+	image.type( TrueColorType );
+	for (unsigned int i=0;i<image.columns();i++)
+	  for (unsigned int j=0;j<image.rows();j++)
+	    {
+	      ColorRGB c,b;
+	      b=image.pixelColor(i,j);
+	      double a=min(b.red(),min(b.green(),b.blue()));
+	      if (inv.getValue())
+		a=max(b.red(),max(b.green(),b.blue()));
+	      c.red(a);c.green(a);c.blue(a);
+	      image.pixelColor(i,j,c);
+	    }
+	image.contrast(2);
+	image.type( GrayscaleType );
+	
+	int num_resolutions=NUM_RESOLUTIONS;
+	if (input_resolution!=0) num_resolutions=1;
+	vector<int> select_resolution(num_resolutions,input_resolution);
+	vector < vector <string> > array_of_smiles(num_resolutions);
+	vector<double> array_of_confidence(num_resolutions,0);
+	vector< vector <Image> >  array_of_images(num_resolutions);
 	    
-	    if (resolution==0)
-	      {
-		select_resolution[0]=72;
-		select_resolution[1]=150;
-		select_resolution[2]=300;
-	      }
-	    int res_iter;
-#pragma omp parallel for default(none) shared(input,threshold,inv,resolution,type,page,num_resolutions,select_resolution,array_of_smiles,array_of_confidence,array_of_images) private(res_iter,JOB)
+	if (input_resolution==0)
+	  {
+	    select_resolution[0]=72;
+	    select_resolution[1]=150;
+	    select_resolution[2]=300;
+	  }
+	int res_iter;
+#pragma omp parallel for default(none) shared(threshold,inv,output,resize,type,page,l,num_resolutions,select_resolution,array_of_smiles,array_of_confidence,array_of_images,image,image_count) private(res_iter,JOB)
     for (res_iter=0;res_iter<num_resolutions;res_iter++)
       {
 	int n_boxes=0,total_boxes=0;
 	double total_confidence=0;
 	box_t boxes[NUM_BOXES];
 
-	resolution=select_resolution[res_iter];
+	int resolution=select_resolution[res_iter];
 	int working_resolution=resolution;
 
+	potrace_param_t *param;
+	param = potrace_param_default();
+	param->alphamax=0.;
+	//    param->turnpolicy=POTRACE_TURNPOLICY_MINORITY;
+	param->turdsize=1;
+
+	double THRESHOLD_BOND,THRESHOLD_CHAR;
 	THRESHOLD_BOND=threshold.getValue();
 	if (THRESHOLD_BOND<0.0001)
 	  {
@@ -3398,7 +3397,7 @@ int main(int argc,char **argv)
 	    int boundary=2*5;
 	    int res=2*150;
 	    double cornerd=4;
-	    int dash_length=7;
+	    int dash_length=10;
 	    bool thick=true;
 	    if (resolution<300)
 	      {
@@ -3504,14 +3503,16 @@ int main(int argc,char **argv)
 	    
 	    
 		n_atom=find_dashed_bonds(p,atom,bond,n_atom,&n_bond,dash_length,
-					 avg_bond);
+					 1.2*avg_bond);
+		
 
 		double max_area=avg_bond*5;
 		if (thick) max_area=avg_bond;
 		n_letters=find_plus_minus(p,letters,atom,bond,n_atom,n_bond,
 					  height,width,max_font_height,
 					  max_font_width,n_letters,avg_bond);
-	   
+
+		//debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");	   
 		n_atom=find_small_bonds(p,atom,bond,n_atom,&n_bond,max_area,avg_bond/2);
 
 
@@ -3538,7 +3539,7 @@ int main(int argc,char **argv)
 
 
 		remove_duplicate_atoms(atom,bond,n_atom,n_bond,avg_bond/4); 
-		
+
 		for (int i=0;i<2;i++)
 		  {
 		    align_broken_bonds(atom,n_atom,bond,n_bond);
@@ -3551,7 +3552,7 @@ int main(int argc,char **argv)
 
 		valency_check(atom,bond,n_atom,n_bond);
 
-		//	    if (fname.str()!="") debug(thick_box,atom,n_atom,bond,n_bond,fname.str());     	      
+
 		find_up_down_bonds(bond,n_bond,atom);
 		int real_atoms=count_atoms(atom,n_atom);
 
@@ -3575,6 +3576,7 @@ int main(int argc,char **argv)
 	      }
 	    if (total_boxes>0) 
 	      array_of_confidence[res_iter]=total_confidence/total_boxes;
+	    potrace_param_free(param); 
       }
     double max_conf=0;
     int max_res=0;
@@ -3604,9 +3606,8 @@ int main(int argc,char **argv)
 	  }
       }
    
+   }
 
-	  }
-    potrace_param_free(param); 
    
 
   return 0;
