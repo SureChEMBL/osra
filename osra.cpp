@@ -23,7 +23,7 @@
 
 *********************************************************************/
 
-#define VERSION "0.9.6"
+#define VERSION "0.9.7"
 #define MAX_ATOMS 10000
 #define NUM_BOXES 100
 #define MAX_FONT_HEIGHT 17
@@ -3400,7 +3400,7 @@ int main(int argc,char **argv)
 	    int boundary=2*5;
 	    int res=2*150;
 	    double cornerd=4;
-	    int dash_length=10;
+	    int dash_length=7;
 	    bool thick=true;
 	    if (resolution<300)
 	      {
@@ -3535,7 +3535,7 @@ int main(int argc,char **argv)
 		n_label=assign_atom_labels(atom,n_atom,letters,n_letters,avg_bond/4,
 					   bond,n_bond,cornerd,label);
 
-		remove_duplicate_atoms(atom,bond,n_atom,n_bond,avg_bond/3); 
+		remove_duplicate_atoms(atom,bond,n_atom,n_bond,avg_bond/4); 
 	
 		for (int i=0;i<2;i++)
 		  {
