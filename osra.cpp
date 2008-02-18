@@ -2295,47 +2295,67 @@ int find_dashed_bonds(potrace_path_t *p, atom_t *atom,bond_t *bond,int n_atom,in
 	      {
 		qsort(dash,n,sizeof(dash_t),comp_dashes_y);
 	      }
-	    for(int j=0;j<n;j++)   
-	      delete_curve(atom,bond,n_atom,*n_bond,dash[j].curve);
-	    atom[n_atom].x=dash[0].x;
-	    atom[n_atom].y=dash[0].y;
-	    atom[n_atom].label=" ";
-	    atom[n_atom].exists=true;
-	    atom[n_atom].curve=dash[0].curve;
-	    atom[n_atom].n=0;
-	    atom[n_atom].corner=false;
-	    n_atom++;
-	    if (n_atom>=MAX_ATOMS) n_atom--;
-	    atom[n_atom].x=dash[n-1].x;
-	    atom[n_atom].y=dash[n-1].y;
-	    atom[n_atom].label=" ";
-	    atom[n_atom].exists=true;
-	    atom[n_atom].curve=dash[n-1].curve;
-	    atom[n_atom].n=0;
-	    atom[n_atom].corner=false;
-	    n_atom++;
-	    if (n_atom>=MAX_ATOMS) n_atom--;
-	    bond[*n_bond].a=n_atom-2;
-	    bond[*n_bond].exists=true;
-	    bond[*n_bond].type=1;
-	    bond[*n_bond].b=n_atom-1;
-	    bond[*n_bond].curve=dash[0].curve;
-	    potrace_path_t *pa=atom[bond[*n_bond].a].curve;
-	    potrace_path_t *pb=atom[bond[*n_bond].b].curve;
-	    if (pa->area>pb->area)
+	    bool one_line=true;
+	    double dx=dash[n-1].x-dash[0].x;
+	    double dy=dash[n-1].y-dash[0].y;
+	    double k=0;
+	    if (fabs(dx)>fabs(dy)) k=dy/dx;
+	    else k=dx/dy;
+	    for(int j=1;j<n-1;j++)
 	      {
-		int t=bond[*n_bond].a;
-		bond[*n_bond].a=bond[*n_bond].b;
-		bond[*n_bond].b=t;
+		double nx=dash[j].x-dash[0].x;
+		double ny=dash[j].y-dash[0].y;
+		double diff=0;
+		if (fabs(dx)>fabs(dy))
+		  diff=k*nx-ny;
+		else
+		  diff=k*ny-nx;
+		if (fabs(diff)>0.5*max) one_line=false;
 	      }
-	    bond[*n_bond].hash=true;
-	    bond[*n_bond].wedge=false;
-	    bond[*n_bond].up=false;
-	    bond[*n_bond].down=false;
-	    bond[*n_bond].Small=false;
-	    extend_dashed_bond(bond[*n_bond].a,bond[*n_bond].b,n,atom,avg);
-	    (*n_bond)++;
-	    if ((*n_bond)>=MAX_ATOMS) (*n_bond)--;
+	    if (one_line)
+	      {
+		for(int j=0;j<n;j++)   
+		  delete_curve(atom,bond,n_atom,*n_bond,dash[j].curve);
+		atom[n_atom].x=dash[0].x;
+		atom[n_atom].y=dash[0].y;
+		atom[n_atom].label=" ";
+		atom[n_atom].exists=true;
+		atom[n_atom].curve=dash[0].curve;
+		atom[n_atom].n=0;
+		atom[n_atom].corner=false;
+		n_atom++;
+		if (n_atom>=MAX_ATOMS) n_atom--;
+		atom[n_atom].x=dash[n-1].x;
+		atom[n_atom].y=dash[n-1].y;
+		atom[n_atom].label=" ";
+		atom[n_atom].exists=true;
+		atom[n_atom].curve=dash[n-1].curve;
+		atom[n_atom].n=0;
+		atom[n_atom].corner=false;
+		n_atom++;
+		if (n_atom>=MAX_ATOMS) n_atom--;
+		bond[*n_bond].a=n_atom-2;
+		bond[*n_bond].exists=true;
+		bond[*n_bond].type=1;
+		bond[*n_bond].b=n_atom-1;
+		bond[*n_bond].curve=dash[0].curve;
+		potrace_path_t *pa=atom[bond[*n_bond].a].curve;
+		potrace_path_t *pb=atom[bond[*n_bond].b].curve;
+		if (pa->area>pb->area)
+		  {
+		    int t=bond[*n_bond].a;
+		    bond[*n_bond].a=bond[*n_bond].b;
+		    bond[*n_bond].b=t;
+		  }
+		bond[*n_bond].hash=true;
+		bond[*n_bond].wedge=false;
+		bond[*n_bond].up=false;
+		bond[*n_bond].down=false;
+		bond[*n_bond].Small=false;
+		extend_dashed_bond(bond[*n_bond].a,bond[*n_bond].b,n,atom,avg);
+		(*n_bond)++;
+		if ((*n_bond)>=MAX_ATOMS) (*n_bond)--;
+	      }
 	  }
       }
 	     
@@ -3404,7 +3424,7 @@ int main(int argc,char **argv)
 	    int boundary=2*5;
 	    int res=2*150;
 	    double cornerd=4;
-	    int dash_length=7;
+	    int dash_length=14;
 	    bool thick=true;
 	    if (resolution<300)
 	      {
@@ -3538,7 +3558,6 @@ int main(int argc,char **argv)
 
 		n_label=assign_atom_labels(atom,n_atom,letters,n_letters,avg_bond/4,
 					   bond,n_bond,cornerd,label);
-		//debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");     
 		remove_duplicate_atoms(atom,bond,n_atom,n_bond,avg_bond/4); 
 	
 		for (int i=0;i<2;i++)
@@ -3550,7 +3569,7 @@ int main(int argc,char **argv)
 		    remove_disconnected_atoms(atom,bond,n_atom,n_bond);
 		  }
 
-
+		//debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");     
 
 		valency_check(atom,bond,n_atom,n_bond);
 		find_up_down_bonds(bond,n_bond,atom);
