@@ -858,7 +858,11 @@ bool not_corner(int a,bond_t *bond,int n_bond,double r,atom_t *atom,double d)
 			  atom[bond[j].b].x,atom[bond[j].b].y)<d &&
 		 distance(atom[bond[i].b].x,atom[bond[i].b].y,
 			  atom[a].x,atom[a].y)<d))
-		res=false;
+	      {
+		double ang=180*acos(angle_between_bonds(bond,i,j,atom))/PI;
+		if (ang>TOLERANCE_PLUS && ang<180-TOLERANCE_PLUS)
+		  res=false;
+	      }
 
   return(res);
 }
@@ -885,7 +889,7 @@ int comp_letters(const void *a,const void *b)
 }
 
 int assign_atom_labels(atom_t *atom,int n_atom,letters_t *letters,int n_letters,
-			double r,bond_t *bond, int n_bond, double d, label_t *label)
+			double radius,bond_t *bond, int n_bond, double dist, label_t *label)
 {
   lbond_t lbond[MAX_ATOMS];
   int n_lbond=0;
@@ -957,7 +961,7 @@ int assign_atom_labels(atom_t *atom,int n_atom,letters_t *letters,int n_letters,
 	 if (n_label>=MAX_ATOMS) n_label--;
       }
   for (int j=0;j<n_atom;j++)
-    if (atom[j].exists && not_corner(j,bond,n_bond,r,atom,d))
+    if (atom[j].exists && not_corner(j,bond,n_bond,radius,atom,dist))
       {
 	double md=FLT_MAX;
 	bool found=false;
@@ -966,7 +970,7 @@ int assign_atom_labels(atom_t *atom,int n_atom,letters_t *letters,int n_letters,
 	  {
 	    double d1=distance(atom[j].x,atom[j].y,label[i].x1,label[i].y1);
 	    double d2=distance(atom[j].x,atom[j].y,label[i].x2,label[i].y2);
-	    if (((d1<label[i].r1+r) || (d2<label[i].r2+r))
+	    if (((d1<label[i].r1+radius) || (d2<label[i].r2+radius))
 		&& (min(d1,d2)<md))
 		{
 		  md=min(d1,d2);
@@ -984,7 +988,7 @@ int assign_atom_labels(atom_t *atom,int n_atom,letters_t *letters,int n_letters,
       }
 
     for (int j=0;j<n_atom;j++)
-      if (atom[j].exists && not_corner(j,bond,n_bond,r,atom,d))
+      if (atom[j].exists && not_corner(j,bond,n_bond,radius,atom,dist))
 	{
 	  double md=FLT_MAX;
 	  int lab=0;
@@ -993,7 +997,7 @@ int assign_atom_labels(atom_t *atom,int n_atom,letters_t *letters,int n_letters,
 	    if (letters[i].free)
 	      {
 		double d=distance(atom[j].x,atom[j].y,letters[i].x,letters[i].y);
-		if ((d<letters[i].r+r) && 
+		if ((d<letters[i].r+radius) && 
 		    (d<md))
 		  {
 		    md=d;
@@ -3534,7 +3538,7 @@ int main(int argc,char **argv)
 
 		n_label=assign_atom_labels(atom,n_atom,letters,n_letters,avg_bond/4,
 					   bond,n_bond,cornerd,label);
-
+		//debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");     
 		remove_duplicate_atoms(atom,bond,n_atom,n_bond,avg_bond/4); 
 	
 		for (int i=0;i<2;i++)
@@ -3546,7 +3550,7 @@ int main(int argc,char **argv)
 		    remove_disconnected_atoms(atom,bond,n_atom,n_bond);
 		  }
 
-		//debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");     
+
 
 		valency_check(atom,bond,n_atom,n_bond);
 		find_up_down_bonds(bond,n_bond,atom);
