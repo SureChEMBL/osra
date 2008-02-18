@@ -2310,7 +2310,7 @@ int find_dashed_bonds(potrace_path_t *p, atom_t *atom,bond_t *bond,int n_atom,in
 		  diff=k*nx-ny;
 		else
 		  diff=k*ny-nx;
-		if (fabs(diff)>0.5*max) one_line=false;
+		if (fabs(diff)>V_DISPLACEMENT) one_line=false;
 	      }
 	    if (one_line)
 	      {
@@ -3227,6 +3227,7 @@ int find_plus_minus(potrace_path_t *p,letters_t *letters,
 	      double fill=1.*p->area/((bottom-top)*(right-left));
 	      char c=' ';
 	      bool char_to_right=false;
+	      bool inside_char=false;
 	      for(int j=0;j<n_letters;j++)
 		{
 		  if (letters[j].x>right && (top+bottom)/2>letters[j].y-letters[j].r
@@ -3234,13 +3235,19 @@ int find_plus_minus(potrace_path_t *p,letters_t *letters,
 		      && right>letters[j].x-2*letters[j].r
 		      && letters[j].a!='-' && letters[j].a!='+')
 		    char_to_right=true;
+		  if (letters[j].x-letters[j].r<=left 
+		      && letters[j].x+letters[j].r>=right
+		      && letters[j].y-letters[j].r<=top 
+		      && letters[j].y+letters[j].r>=bottom)
+		    inside_char=true;
 		}
 	      //cout<<left<<","<<y1<<" "<<right<<","<<y2<<" "<<top<<","<<x1<<" "<<bottom<<","<<x2<<endl;
 
-	      if (aspect<0.7 && fill>0.9 && !char_to_right)  c='-';
+	      if (aspect<0.7 && fill>0.9 && !char_to_right && !inside_char)  c='-';
 	      else if (aspect>0.7 && aspect<1./0.7 
 		       && abs(y1-y2)<3 && abs(y1+y2-bottom-top)/2<3
 		       && abs(x1-x2)<3 && abs(x1+x2-right-left)/2<3
+		       && !inside_char
 		       //&& !char_to_right
 		       )
 		c='+';
@@ -3533,12 +3540,12 @@ int main(int argc,char **argv)
 		n_atom=find_dashed_bonds(p,atom,bond,n_atom,&n_bond,dash_length,
 					 1.2*avg_bond);
 
-
 		double max_area=avg_bond*5;
 		if (thick) max_area=avg_bond;
 		n_letters=find_plus_minus(p,letters,atom,bond,n_atom,n_bond,
 					  height,width,max_font_height,
 					  max_font_width,n_letters,avg_bond);
+		//debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");     
 
 		n_atom=find_small_bonds(p,atom,bond,n_atom,&n_bond,max_area,avg_bond/2);
 		find_old_aromatic_bonds(p,bond,n_bond,atom,n_atom);
@@ -3569,7 +3576,6 @@ int main(int argc,char **argv)
 		    remove_disconnected_atoms(atom,bond,n_atom,n_bond);
 		  }
 
-		//debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");     
 
 		valency_check(atom,bond,n_atom,n_bond);
 		find_up_down_bonds(bond,n_bond,atom);
@@ -3583,6 +3589,7 @@ int main(int argc,char **argv)
 		    string smiles=get_smiles(atom,bond,n_bond,rotors,confidence);
 		    if (f<5 && smiles!="")
 		      {
+		
 			array_of_smiles[res_iter].push_back(smiles);
 			total_boxes++;
 			total_confidence+=confidence;
