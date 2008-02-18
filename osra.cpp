@@ -2481,9 +2481,29 @@ int resolve_bridge_bonds(atom_t* atom,int n_atom,bond_t* bond,int n_bond)
 		con.pop_front();
 		int d=con.front();
 		con.pop_front();
+		vector<int> term;
+		term.push_back(a);term.push_back(b);term.push_back(c);term.push_back(d);
+		bool terminal=false;
+		for (unsigned int k=0;k<term.size();k++)
+		  {
+		    bool terminal_a=true;
+		    bool terminal_b=true;
+		    for (int l=0;l<n_bond;l++)
+		      {
+			if (l!=term[k] && bond[l].exists && 
+			    (bond[l].a==bond[term[k]].a || bond[l].b==bond[term[k]].a))
+			  terminal_a=false;
+			if (l!=term[k] && bond[l].exists && 
+			    (bond[l].a==bond[term[k]].b || bond[l].b==bond[term[k]].b))
+			  terminal_b=false;
+		      }
+		    if (terminal_a || terminal_b) terminal=true;
+		  }
 		if (bond[a].type==1 && bond[b].type==1 &&
 		    bond[c].type==1 && bond[d].type==1 &&
-		    angle_between_connected_bonds(bond,c,d,atom)>FLAT_TOLERANCE)
+		    angle_between_connected_bonds(bond,c,d,atom)>FLAT_TOLERANCE
+		    && !terminal
+		    )
 		  {
 		    bond[b].exists=false;
 		    bond[d].exists=false;
@@ -3545,7 +3565,7 @@ int main(int argc,char **argv)
 		n_letters=find_plus_minus(p,letters,atom,bond,n_atom,n_bond,
 					  height,width,max_font_height,
 					  max_font_width,n_letters,avg_bond);
-		//debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");     
+
 
 		n_atom=find_small_bonds(p,atom,bond,n_atom,&n_bond,max_area,avg_bond/2);
 		find_old_aromatic_bonds(p,bond,n_bond,atom,n_atom);
@@ -3576,7 +3596,6 @@ int main(int argc,char **argv)
 		    remove_disconnected_atoms(atom,bond,n_atom,n_bond);
 		  }
 
-
 		valency_check(atom,bond,n_atom,n_bond);
 		find_up_down_bonds(bond,n_bond,atom);
 		int real_atoms=count_atoms(atom,n_atom);
@@ -3589,7 +3608,7 @@ int main(int argc,char **argv)
 		    string smiles=get_smiles(atom,bond,n_bond,rotors,confidence);
 		    if (f<5 && smiles!="")
 		      {
-		
+			//debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");     
 			array_of_smiles[res_iter].push_back(smiles);
 			total_boxes++;
 			total_confidence+=confidence;
