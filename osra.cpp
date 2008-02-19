@@ -3361,7 +3361,7 @@ void  find_old_aromatic_bonds(potrace_path_t *p,bond_t *bond,int n_bond,
 		    }
 		  center_x/=num;
 		  center_y/=num;
-		  if (circum<PI*diameter && diameter>avg/2)
+		  if (circum<PI*diameter && diameter>avg/2 && diameter<3*avg)
 		    {
 		      delete_curve(atom,bond,n_atom,n_bond,p1);
 		      potrace_path_t *child=p1->childlist;
