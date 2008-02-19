@@ -3298,6 +3298,7 @@ int find_plus_minus(potrace_path_t *p,letters_t *letters,
 void  find_old_aromatic_bonds(potrace_path_t *p,bond_t *bond,int n_bond,
 			      atom_t *atom,int n_atom)
 {
+  potrace_path_t *p1=p;
   for(int i=0;i<n_bond;i++)
     if (bond[i].exists)
       bond[i].arom=false;
@@ -3324,6 +3325,55 @@ void  find_old_aromatic_bonds(potrace_path_t *p,bond_t *bond,int n_bond,
 	    }
 	}
       p = p->next;
+    }
+
+  while (p1 != NULL) 
+    {
+      if (detect_curve(bond,n_bond,p1))
+	{
+	  potrace_path_t *child=p1->childlist;
+	  if (child != NULL && child->sign == int('-'))
+	    {
+	      vector<int> vert;
+	      double circum=0;
+	      for(int i=0;i<n_bond;i++)
+		if (bond[i].exists && bond[i].curve==p1)
+		  circum+=bond_length(bond,i,atom);
+	      for(int i=0;i<n_atom;i++)
+		if (atom[i].exists && atom[i].curve==p1)
+		  vert.push_back(i);
+	      double diameter=0,center_x=0,center_y=0;
+	      int num=0;
+	      for(unsigned int i=0;i<vert.size();i++)
+		{
+		  for(unsigned int j=i+1;j<vert.size();j++)
+		    {
+		      double dist=distance(atom[vert[i]].x,atom[vert[i]].y,
+					   atom[vert[j]].x,atom[vert[j]].y);
+		      if(dist>diameter)
+			diameter=dist;
+		    }
+		  center_x+=atom[i].x;
+		  center_y+=atom[i].y;
+		  num++;
+		}
+	      center_x/=num;
+	      center_y/=num;
+	      cout<<circum<<" "<<PI*diameter<<endl;
+	      if (circum<PI*diameter)
+		{
+		  delete_curve(atom,bond,n_atom,n_bond,p1);
+		  potrace_path_t *child=p1->childlist;
+		  while (child !=NULL)
+		    {
+		      delete_curve(atom,bond,n_atom,n_bond,child);
+		      child=child->sibling;
+		    }
+		}
+		
+	    }
+	}
+      p1 = p1->next;
     }
   
 }
@@ -3569,6 +3619,8 @@ int main(int argc,char **argv)
 
 		n_atom=find_small_bonds(p,atom,bond,n_atom,&n_bond,max_area,avg_bond/2);
 		find_old_aromatic_bonds(p,bond,n_bond,atom,n_atom);
+		debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");     
+
 		skeletize(atom,bond,n_bond,box,THRESHOLD_BOND,bgColor);
 		n_bond=double_triple_bonds(atom,bond,n_bond,avg_bond,n_atom);
 
@@ -3608,7 +3660,6 @@ int main(int argc,char **argv)
 		    string smiles=get_smiles(atom,bond,n_bond,rotors,confidence);
 		    if (f<5 && smiles!="")
 		      {
-			//debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");     
 			array_of_smiles[res_iter].push_back(smiles);
 			total_boxes++;
 			total_confidence+=confidence;

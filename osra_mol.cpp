@@ -555,6 +555,8 @@ string get_smiles(atom_t *atom, bond_t *bond, int n_bond, int &rotors, double &c
 	   b->UnsetUp();
 	   b->UnsetDown();
 	 }
+       else if (b!=NULL && !b->IsInRing())
+	 b->UnsetAromatic();
        j++;
      }
  int C_Count=0;
