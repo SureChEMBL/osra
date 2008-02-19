@@ -3296,7 +3296,7 @@ int find_plus_minus(potrace_path_t *p,letters_t *letters,
 }
 
 void  find_old_aromatic_bonds(potrace_path_t *p,bond_t *bond,int n_bond,
-			      atom_t *atom,int n_atom)
+			      atom_t *atom,int n_atom, double avg)
 {
   potrace_path_t *p1=p;
   for(int i=0;i<n_bond;i++)
@@ -3326,10 +3326,10 @@ void  find_old_aromatic_bonds(potrace_path_t *p,bond_t *bond,int n_bond,
 	}
       p = p->next;
     }
-
+  
   while (p1 != NULL) 
     {
-      if (detect_curve(bond,n_bond,p1))
+      if (p1->sign == int('+') && detect_curve(bond,n_bond,p1))
 	{
 	  potrace_path_t *child=p1->childlist;
 	  if (child != NULL && child->sign == int('-'))
@@ -3342,35 +3342,54 @@ void  find_old_aromatic_bonds(potrace_path_t *p,bond_t *bond,int n_bond,
 	      for(int i=0;i<n_atom;i++)
 		if (atom[i].exists && atom[i].curve==p1)
 		  vert.push_back(i);
-	      double diameter=0,center_x=0,center_y=0;
-	      int num=0;
-	      for(unsigned int i=0;i<vert.size();i++)
+	      if (vert.size()>4)
 		{
-		  for(unsigned int j=i+1;j<vert.size();j++)
+		  double diameter=0,center_x=0,center_y=0;
+		  int num=0;
+		  for(unsigned int i=0;i<vert.size();i++)
 		    {
-		      double dist=distance(atom[vert[i]].x,atom[vert[i]].y,
-					   atom[vert[j]].x,atom[vert[j]].y);
-		      if(dist>diameter)
-			diameter=dist;
+		      for(unsigned int j=i+1;j<vert.size();j++)
+			{
+			  double dist=distance(atom[vert[i]].x,atom[vert[i]].y,
+					       atom[vert[j]].x,atom[vert[j]].y);
+			  if(dist>diameter)
+			    diameter=dist;
+			}
+		      center_x+=atom[vert[i]].x;
+		      center_y+=atom[vert[i]].y;
+		      num++;
 		    }
-		  center_x+=atom[i].x;
-		  center_y+=atom[i].y;
-		  num++;
-		}
-	      center_x/=num;
-	      center_y/=num;
-	      cout<<circum<<" "<<PI*diameter<<endl;
-	      if (circum<PI*diameter)
-		{
-		  delete_curve(atom,bond,n_atom,n_bond,p1);
-		  potrace_path_t *child=p1->childlist;
-		  while (child !=NULL)
+		  center_x/=num;
+		  center_y/=num;
+		  if (circum<PI*diameter && diameter>avg/2)
 		    {
-		      delete_curve(atom,bond,n_atom,n_bond,child);
-		      child=child->sibling;
+		      delete_curve(atom,bond,n_atom,n_bond,p1);
+		      potrace_path_t *child=p1->childlist;
+		      while (child !=NULL)
+			{
+			  delete_curve(atom,bond,n_atom,n_bond,child);
+			  child=child->sibling;
+			}
+		      for(int i=0;i<n_bond;i++)
+			if (bond[i].exists)
+			  {
+			    double dist=distance(
+					 (atom[bond[i].a].x+atom[bond[i].b].x)/2,
+					 (atom[bond[i].a].y+atom[bond[i].b].y)/2,
+					 center_x,center_y);
+			    double ang=angle4(atom[bond[i].b].x,atom[bond[i].b].y,
+					      atom[bond[i].a].x,atom[bond[i].a].y,
+					      center_x,center_y,
+					      atom[bond[i].a].x,atom[bond[i].a].y);
+			    ang=acos(ang)* 180.0 / PI;
+			    if (ang<90 && dist<(avg/3+diameter/2))
+			      {
+				bond[i].arom=true;
+			      }
+			  }
 		    }
-		}
 		
+		}
 	    }
 	}
       p1 = p1->next;
@@ -3618,8 +3637,8 @@ int main(int argc,char **argv)
 
 
 		n_atom=find_small_bonds(p,atom,bond,n_atom,&n_bond,max_area,avg_bond/2);
-		find_old_aromatic_bonds(p,bond,n_bond,atom,n_atom);
-		debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");     
+		find_old_aromatic_bonds(p,bond,n_bond,atom,n_atom,avg_bond);
+		//debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");     
 
 		skeletize(atom,bond,n_bond,box,THRESHOLD_BOND,bgColor);
 		n_bond=double_triple_bonds(atom,bond,n_bond,avg_bond,n_atom);
