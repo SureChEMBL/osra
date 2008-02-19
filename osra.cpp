@@ -2201,7 +2201,7 @@ void extend_dashed_bond(int a,int b,int n,atom_t *atom,double avg)
   double x0=atom[a].x;
   double y0=atom[a].y;
   //double e=max(0.3*avg,l+1.5*l/(n-1));
-  double e=avg;
+  double e=max(avg,l);
   atom[b].x=kx*e+x0;
   atom[b].y=ky*e+y0;
   atom[a].x=kx*(-1.5*l/(n-1))+x0;
