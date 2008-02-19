@@ -3361,7 +3361,17 @@ void  find_old_aromatic_bonds(potrace_path_t *p,bond_t *bond,int n_bond,
 		    }
 		  center_x/=num;
 		  center_y/=num;
-		  if (circum<PI*diameter && diameter>avg/2 && diameter<3*avg)
+		  bool centered=true;
+		  for(unsigned int i=0;i<vert.size();i++)
+		    {
+		      double dist=distance(atom[vert[i]].x,atom[vert[i]].y,
+					   center_x,center_y);
+		      if(fabs(dist-diameter/2)>V_DISPLACEMENT)
+			centered=false;
+		    }
+
+		  if (circum<PI*diameter && diameter>avg/2 && diameter<3*avg
+		      && centered)
 		    {
 		      delete_curve(atom,bond,n_atom,n_bond,p1);
 		      potrace_path_t *child=p1->childlist;
