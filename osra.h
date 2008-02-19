@@ -1,16 +1,15 @@
 /*********************************************************************
   OSRA: Optical Structure Recognition
+
+  This is a U.S. Government work (year) and is therefore not subject to copyright.  
+  However, portions of this work were obtained from a GPL or GPL-compatiple source.   
+  Created by Igor Filippov, 2007-2008 (igorf@helix.nih.gov)
+
+  This program is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
   
-  Created by Igor Filippov, 2007 (igorf@helix.nih.gov)
-
-  This program is free software; the part of the software that was written 
-  at the National Cancer Institute is in the public domain.  This does not
-  preclude, however, that components such as specific libraries used in the
-  software may be covered by specific licenses, including but not limited
-  to the GNU General Public License as published by the Free Software Foundation; 
-  either version 2 of the License, or (at your option) any later version; 
-  which may impose specific terms for redistribution or modification.
-
   This program is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU

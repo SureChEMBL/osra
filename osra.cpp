@@ -1,15 +1,14 @@
 /*********************************************************************
   OSRA: Optical Structure Recognition
   
-  Created by Igor Filippov, 2007 (igorf@helix.nih.gov)
+  This is a U.S. Government work (year) and is therefore not subject to copyright.  
+  However, portions of this work were obtained from a GPL or GPL-compatiple source.   
+  Created by Igor Filippov, 2007-2008 (igorf@helix.nih.gov)
 
-  This program is free software; the part of the software that was written 
-  at the National Cancer Institute is in the public domain.  This does not
-  preclude, however, that components such as specific libraries used in the
-  software may be covered by specific licenses, including but not limited
-  to the GNU General Public License as published by the Free Software Foundation; 
-  either version 2 of the License, or (at your option) any later version; 
-  which may impose specific terms for redistribution or modification.
+  This program is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
  
   This program is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -2201,15 +2200,16 @@ void extend_dashed_bond(int a,int b,int n,atom_t *atom,double avg)
   double ky=(atom[b].y-atom[a].y)/l;
   double x0=atom[a].x;
   double y0=atom[a].y;
-  double e=max(0.3*avg,l+1.5*l/(n-1));
+  //double e=max(0.3*avg,l+1.5*l/(n-1));
+  double e=avg;
   atom[b].x=kx*e+x0;
   atom[b].y=ky*e+y0;
   atom[a].x=kx*(-1.5*l/(n-1))+x0;
   atom[a].y=ky*(-1.5*l/(n-1))+y0;
 }
 
-int find_dashed_bonds(potrace_path_t *p, atom_t *atom,bond_t *bond,int n_atom,int *n_bond,
-		      int max,double avg)
+int find_dashed_bonds(potrace_path_t *p, atom_t *atom,bond_t *bond,int n_atom,
+		      int *n_bond,int max,double avg)
 {
   int n,n_dot=0;
   potrace_dpoint_t (*c)[3];
@@ -2273,7 +2273,7 @@ int find_dashed_bonds(potrace_path_t *p, atom_t *atom,bond_t *bond,int n_atom,in
 	double t=dot[i].y;
 	double b=dot[i].y;
 	for(int j=i+1;j<n_dot;j++)
-	  if ((dot[j].free) && (distance(dot[i].x,dot[i].y,dot[j].x,dot[j].y)<=avg))
+	  if ((dot[j].free) && (distance(dot[i].x,dot[i].y,dot[j].x,dot[j].y)<=1.2*avg))
 	    {
 	      dash[n]=dot[j];
 	      n++;
@@ -3240,7 +3240,7 @@ int find_plus_minus(potrace_path_t *p,letters_t *letters,
 
 	    if (((bottom-top)<=max_font_height) && 
 		((right-left)<=max_font_width) && (right-left>1)
-		&& (right-left)<avg
+		&& (right-left)<avg/2
 		)
 	    {
 	      double aspect=1.*(bottom-top)/(right-left);
@@ -3326,7 +3326,7 @@ void  find_old_aromatic_bonds(potrace_path_t *p,bond_t *bond,int n_bond,
 	}
       p = p->next;
     }
-  
+    
   while (p1 != NULL) 
     {
       if (p1->sign == int('+') && detect_curve(bond,n_bond,p1))
@@ -3637,7 +3637,7 @@ int main(int argc,char **argv)
 
 
 		n_atom=find_dashed_bonds(p,atom,bond,n_atom,&n_bond,dash_length,
-					 1.2*avg_bond);
+					 avg_bond);
 
 		double max_area=avg_bond*5;
 		if (thick) max_area=avg_bond;
@@ -3648,7 +3648,7 @@ int main(int argc,char **argv)
 
 		n_atom=find_small_bonds(p,atom,bond,n_atom,&n_bond,max_area,avg_bond/2);
 		find_old_aromatic_bonds(p,bond,n_bond,atom,n_atom,avg_bond);
-		//debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");     
+
 
 		skeletize(atom,bond,n_bond,box,THRESHOLD_BOND,bgColor);
 		n_bond=double_triple_bonds(atom,bond,n_bond,avg_bond,n_atom);
@@ -3676,7 +3676,7 @@ int main(int argc,char **argv)
 		    remove_disconnected_bonds(bond,n_bond);
 		    remove_disconnected_atoms(atom,bond,n_atom,n_bond);
 		  }
-
+		//debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");     
 		valency_check(atom,bond,n_atom,n_bond);
 		find_up_down_bonds(bond,n_bond,atom);
 		int real_atoms=count_atoms(atom,n_atom);
