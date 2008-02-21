@@ -22,7 +22,7 @@
 
 *********************************************************************/
 
-#define VERSION "0.9.7"
+#define OSRA_VERSION "0.9.8"
 #define MAX_ATOMS 10000
 #define NUM_BOXES 100
 #define MAX_FONT_HEIGHT 17
@@ -3413,7 +3413,7 @@ int main(int argc,char **argv)
 {
     fclose(stderr);
     srand(1);
-    TCLAP::CmdLine cmd("OSRA: Optical Structure Recognition, created by Igor Filippov, 2007",' ',VERSION);
+    TCLAP::CmdLine cmd("OSRA: Optical Structure Recognition, created by Igor Filippov, 2007",' ',OSRA_VERSION);
     TCLAP::UnlabeledValueArg<string>  input( "in", "input file",true,"", "filename"  );
     cmd.add(input);
     TCLAP::ValueArg<double> threshold("t","threshold","Gray level threshold",
@@ -3431,7 +3431,7 @@ int main(int argc,char **argv)
 
     int input_resolution=resolution_param.getValue();
     string type=image_type(input.getValue());
-
+    bool invert=inv.getValue();
     if ((type=="PDF") || (type=="PS")) input_resolution=150;
     int page=count_pages(input.getValue());
 
@@ -3447,13 +3447,27 @@ int main(int argc,char **argv)
 	
 	image.modifyImage();
 	image.type( TrueColorType );
+	if (!invert)
+	  {
+	    double a=0;
+	    ColorRGB c;
+	    for (int i=0;i<BG_PICK_POINTS;i++)
+	      {
+		int x=(image.columns()*rand())/RAND_MAX;
+		int y=(image.rows()*rand())/RAND_MAX;
+		c=image.pixelColor(x,y);
+		a+=(c.red()+c.green()+c.blue())/3;
+	      }
+	    a/=BG_PICK_POINTS;
+	    if (a<0.5) invert=true;
+	  }
 	for (unsigned int i=0;i<image.columns();i++)
 	  for (unsigned int j=0;j<image.rows();j++)
 	    {
 	      ColorRGB c,b;
 	      b=image.pixelColor(i,j);
 	      double a=min(b.red(),min(b.green(),b.blue()));
-	      if (inv.getValue())
+	      if (invert)
 		a=max(b.red(),max(b.green(),b.blue()));
 	      c.red(a);c.green(a);c.blue(a);
 	      image.pixelColor(i,j,c);
@@ -3475,7 +3489,7 @@ int main(int argc,char **argv)
 	    select_resolution[2]=300;
 	  }
 	int res_iter;
-#pragma omp parallel for default(none) shared(threshold,inv,output,resize,type,page,l,num_resolutions,select_resolution,array_of_smiles,array_of_confidence,array_of_images,image,image_count) private(res_iter,JOB)
+#pragma omp parallel for default(none) shared(threshold,invert,output,resize,type,page,l,num_resolutions,select_resolution,array_of_smiles,array_of_confidence,array_of_images,image,image_count) private(res_iter,JOB)
     for (res_iter=0;res_iter<num_resolutions;res_iter++)
       {
 	int n_boxes=0,total_boxes=0;
@@ -3515,7 +3529,7 @@ int main(int argc,char **argv)
 		working_resolution=300;
 	      }
 
-	    ColorGray bgColor=getBgColor(image,inv.getValue());
+	    ColorGray bgColor=getBgColor(image,invert);
 	    try {
 	    box_t trim=trim_page(image,THRESHOLD_BOND,bgColor);
 	    image.crop(Geometry(trim.x2-trim.x1,trim.y2-trim.y1,trim.x1,trim.y1));
