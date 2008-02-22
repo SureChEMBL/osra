@@ -3427,6 +3427,10 @@ int main(int argc,char **argv)
     cmd.add(inv);
     TCLAP::ValueArg<string> resize("s","size","Resize image on output",false,"","dimensions, 300x400");
     cmd.add(resize);
+    TCLAP::SwitchArg conf("p","print","Print out confidence estimate",false);
+    cmd.add(conf);
+    TCLAP::SwitchArg guess("g","guess","Print out resolution guess",false);
+    cmd.add(guess);
     cmd.parse( argc, argv );
 
     int input_resolution=resolution_param.getValue();
@@ -3489,7 +3493,7 @@ int main(int argc,char **argv)
 	    select_resolution[2]=300;
 	  }
 	int res_iter;
-#pragma omp parallel for default(none) shared(threshold,invert,output,resize,type,page,l,num_resolutions,select_resolution,array_of_smiles,array_of_confidence,array_of_images,image,image_count) private(res_iter,JOB)
+#pragma omp parallel for default(none) shared(threshold,invert,output,resize,type,page,l,num_resolutions,select_resolution,array_of_smiles,array_of_confidence,array_of_images,image,image_count,conf,guess) private(res_iter,JOB)
     for (res_iter=0;res_iter<num_resolutions;res_iter++)
       {
 	int n_boxes=0,total_boxes=0;
@@ -3730,7 +3734,10 @@ int main(int argc,char **argv)
 
     for (unsigned int i=0;i<array_of_smiles[max_res].size();i++)
       {
-	cout<<array_of_smiles[max_res][i]<<endl;
+	cout<<array_of_smiles[max_res][i];
+	if (guess.getValue()) cout<<" "<<select_resolution[max_res];
+	if (conf.getValue()) cout<<" "<<max_conf;
+	cout<<endl;
 	stringstream fname;
 	if (output.getValue()!="") fname<<output.getValue()<<image_count<<".png";
 	image_count++;
