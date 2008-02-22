@@ -62,7 +62,7 @@
 #include <math.h>
 #include <list>
 
-//#include <omp.h>
+#include <omp.h>
 
 using namespace std;
 
@@ -3493,7 +3493,7 @@ int main(int argc,char **argv)
 	    select_resolution[2]=300;
 	  }
 	int res_iter;
-#pragma omp parallel for default(none) shared(threshold,invert,output,resize,type,page,l,num_resolutions,select_resolution,array_of_smiles,array_of_confidence,array_of_images,image,image_count,conf,guess) private(res_iter,JOB)
+#pragma omp parallel for default(shared) shared(threshold,invert,output,resize,type,page,l,num_resolutions,select_resolution,array_of_smiles,array_of_confidence,array_of_images,image,image_count,conf,guess) private(res_iter,JOB)
     for (res_iter=0;res_iter<num_resolutions;res_iter++)
       {
 	int n_boxes=0,total_boxes=0;
