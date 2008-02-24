@@ -62,7 +62,7 @@
 #include <math.h>
 #include <list>
 
-#include <omp.h>
+//#include <omp.h>
 
 using namespace std;
 
@@ -1454,15 +1454,17 @@ char get_atom_label(Image image, ColorGray bg, int x1, int y1, int x2, int y2, d
 		  if (tmp[(i-y1)*(x2-x1+1)+j-x1]==0) 
 		    {
 		      b->set_bit(y,x,true);
-		      count++;
+		      if(x>0 && x<job.src.p.x-1 && y>0 && y<job.src.p.y-1) count++;
 		    }
-		  else zeros++;
+		  else 
+		    if(x>0 && x<job.src.p.x-1 && y>0 && y<job.src.p.y-1)
+		      zeros++;
 		}
 
 	    }
 	}
-      
-      /*      for (int i=0;i<job.src.p.y;i++)
+           
+      /* for (int i=0;i<job.src.p.y;i++)
 	{
 	  for(int j=0;j<job.src.p.x;j++)
 	    cout<<job.src.p.p[i*job.src.p.x+j]/255;
