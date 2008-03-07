@@ -22,7 +22,7 @@
 
 *********************************************************************/
 
-#define OSRA_VERSION "0.9.8"
+#define OSRA_VERSION "0.9.9"
 #define MAX_ATOMS 10000
 #define NUM_BOXES 100
 #define MAX_FONT_HEIGHT 17
@@ -33,15 +33,15 @@
 #define D_T_TOLERANCE 0.95
 #define V_DISPLACEMENT 3
 #define THRESHOLD_GLOBAL 0.4
-#define TOLERANCE_PLUS 20   //30
+#define TOLERANCE_PLUS 20  
 #define TOLERANCE_MINUS 20
 #define MAX_RATIO 0.2
 #define MIN_ASPECT 0.2
 #define MAX_ASPECT 5.
 #define MIN_A_COUNT 8
 #define MAX_A_COUNT 75
-#define MIN_CHAR_POINTS 10
-#define WHITE_SPACE_FRACTION 0.3 //0.3
+#define MIN_CHAR_POINTS 2
+#define WHITE_SPACE_FRACTION 0.3 
 #define MAX_BOND_THICKNESS 10
 #define SMALL_PICTURE_AREA 6000
 #define MAX_HEIGHT 1000
@@ -2882,7 +2882,7 @@ Image anisotropic_smoothing(Image image,int width,int height)
   //  const float gfact = (sizeof(T)==2)?1.0f/256:1.0f;
   const float gfact=1.;
   const float amplitude=20.; // 40 20!
-  const float sharpness=0.2; // 0.2! 0.3
+  const float sharpness=0.3; // 0.2! 0.3
   const float anisotropy=1.;
   const float alpha=.6; //0.6! 0.8
   const float sigma=2.; //1.1 2.!
@@ -3593,19 +3593,17 @@ int main(int argc,char **argv)
 		if (resolution>=300)
 		  {
 		    double nf=noise_factor(orig_box,width,height,bgColor,THRESHOLD_BOND);
-		    if (nf<2.)
+		    if (nf<2. && nf>1.)
 		      {
 			thick_box=anisotropic_smoothing(orig_box,width,height);
-			//THRESHOLD_BOND=adjust_threshold(thick_box);
 		      }
-		    else thick_box=orig_box;
+		      else thick_box=orig_box;
 		  }
 		else if (resolution<300 && resolution>150)
 		  {
 		    int nw=width*300/resolution;
 		    int nh=height*300/resolution;
 		    thick_box=anisotropic_scaling(orig_box,width,height,nw,nh);
-		    //THRESHOLD_BOND=adjust_threshold(thick_box);
 		    width=thick_box.columns();
 		    height=thick_box.rows();
 		    int percent=(100*300)/resolution;
