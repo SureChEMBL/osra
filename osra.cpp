@@ -38,8 +38,8 @@
 #define MAX_RATIO 0.2
 #define MIN_ASPECT 0.2
 #define MAX_ASPECT 5.
-#define MIN_A_COUNT 8
-#define MAX_A_COUNT 75
+#define MIN_A_COUNT 6
+#define MAX_A_COUNT 100
 #define MIN_CHAR_POINTS 2
 #define WHITE_SPACE_FRACTION 0.3 
 #define MAX_BOND_THICKNESS 10
@@ -1894,11 +1894,11 @@ int find_boxes(box_t *boxes,Image image,double THRESHOLD_BOND,ColorGray bgColor,
 	      {
 		adjust_box(image,THRESHOLD_BOND,bgColor,width,height,boundary, 
 			   0,top,left,bottom,right,height,width);
-		//left=0;top=0;right=width-1;bottom=height-1;
+		//left=0;top=0;right=width;bottom=height;
 		if (left<0) left=0;
 		if (top<0) top=0;
-		if (right>width-1) right=width-1;
-		if (bottom>height-1) bottom=height-1;
+		if (right>width) right=width;
+		if (bottom>height) bottom=height;
 
 		if ((right-left)*300/working_resolution<MAX_WIDTH 
 		    && (bottom-top)*300/working_resolution<MAX_HEIGHT 
@@ -3536,11 +3536,13 @@ int main(int argc,char **argv)
 	      }
 
 	    ColorGray bgColor=getBgColor(image,invert);
+
 	    try {
-	    box_t trim=trim_page(image,THRESHOLD_BOND,bgColor);
-	    image.crop(Geometry(trim.x2-trim.x1,trim.y2-trim.y1,trim.x1,trim.y1));
+	      box_t trim=trim_page(image,THRESHOLD_BOND,bgColor);
+	      image.crop(Geometry(trim.x2-trim.x1,trim.y2-trim.y1,trim.x1,trim.y1));
 	    }
 	    catch(...) {}
+	    
 	    int width=image.columns();
 	    int height=image.rows();
 	    int max_font_height=2*MAX_FONT_HEIGHT;
@@ -3567,7 +3569,6 @@ int main(int argc,char **argv)
 	    n_boxes=find_boxes(boxes,image,THRESHOLD_BOND,bgColor,width,height,
 			       res,boundary,working_resolution);
 	    qsort(boxes,n_boxes,sizeof(box_t),comp_boxes);
-	    
 	    for (int k=0;k<n_boxes;k++)
 	      {
 		int n_atom=0,n_bond=0,n_letters=0,n_label=0;
@@ -3580,19 +3581,27 @@ int main(int argc,char **argv)
 		potrace_state_t *st;
 
 		Image orig_box=image;
-	    
 
-		orig_box.crop(Geometry(boxes[k].x2-boxes[k].x1,boxes[k].y2-boxes[k].y1,
-				       boxes[k].x1,boxes[k].y1));
 		width=orig_box.columns();
 		height=orig_box.rows();
-		
+
+
+		if (boxes[k].x1>MIN_FONT_HEIGHT 
+		    || boxes[k].y1>MIN_FONT_HEIGHT 
+		    || width-boxes[k].x2>MIN_FONT_HEIGHT 
+		    || height-boxes[k].y2>MIN_FONT_HEIGHT)
+		  orig_box.crop(Geometry(boxes[k].x2-boxes[k].x1,
+					 boxes[k].y2-boxes[k].y1,
+					 boxes[k].x1,boxes[k].y1));
+		width=orig_box.columns();
+		height=orig_box.rows();
 		Image thick_box;
 
 
 		if (resolution>=300)
 		  {
-		    double nf=noise_factor(orig_box,width,height,bgColor,THRESHOLD_BOND);
+		    double nf=noise_factor(orig_box,width,height,bgColor,
+					   THRESHOLD_BOND);
 		    if (nf<2. && nf>1.)
 		      {
 			thick_box=anisotropic_smoothing(orig_box,width,height);
