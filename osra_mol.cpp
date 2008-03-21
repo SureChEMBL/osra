@@ -578,10 +578,16 @@ string get_smiles(atom_t *atom, bond_t *bond, int n_bond, int &rotors, double &c
  vector<OBRing*> vr=mol.GetSSSR();
  vector<OBRing*>::iterator iter;
  vector<int> Num_Rings(8,0);
+ int num_rings=0,num_aromatic=0;
  for (iter = vr.begin();iter!=vr.end();iter++)
-   if ((*iter)->Size()<8)
-     Num_Rings[(*iter)->Size()]++;
- confidence=0.223783-0.016725*C_Count+0.049824*N_Count+0.075914*O_Count+0.047727*F_Count+0.085106*S_Count+0.231207*Cl_Count+0.187126*Num_Rings[3]+0.150441*Num_Rings[4]+0.120475*Num_Rings[5]+0.175302*Num_Rings[6]+0.140259*Num_Rings[7];
+   {
+     num_rings++;
+     if ((*iter)->IsAromatic())
+       num_aromatic++;
+     if ((*iter)->Size()<8)
+       Num_Rings[(*iter)->Size()]++;
+   }
+ confidence=0.252867-0.018512*C_Count+0.032893*N_Count+0.065282*O_Count+0.034093*F_Count+0.069519*S_Count+0.202079*Cl_Count-0.183504*num_rings+0.083272*num_aromatic+0.324456*Num_Rings[3]+0.397955*Num_Rings[4]+0.306363*Num_Rings[5]+0.327634*Num_Rings[6]+0.325800*Num_Rings[7];
 
  str=conv.WriteString(&mol,true);
 // conv.Write(&mol);

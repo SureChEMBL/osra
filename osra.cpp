@@ -3537,12 +3537,13 @@ int main(int argc,char **argv)
 
 	    ColorGray bgColor=getBgColor(image,invert);
 
-	    try {
+	    /*	    try {
 	      box_t trim=trim_page(image,THRESHOLD_BOND,bgColor);
 	      image.crop(Geometry(trim.x2-trim.x1,trim.y2-trim.y1,trim.x1,trim.y1));
 	    }
 	    catch(...) {}
-	    
+	    */
+
 	    int width=image.columns();
 	    int height=image.rows();
 	    int max_font_height=2*MAX_FONT_HEIGHT;
