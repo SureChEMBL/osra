@@ -25,7 +25,7 @@ CP=cp
 SED=sed
 
 LIBS=$(POTRACELIB) -lm  $(IMLIBS) $(GOCRLIB) $(OPENBABELLIB) -lz
-OBJ = osra.o osra_mol.o  $(OCRADOBJ)
+OBJ = osra.o osra_mol.o  osra_anisotropic.o $(OCRADOBJ)
 
 
 all:	$(OBJ)
@@ -37,6 +37,9 @@ osra.o:	osra.cpp osra.h pgm2asc.h output.h list.h unicode.h gocr.h
 
 osra_mol.o: osra_mol.cpp osra.h
 	    $(CPP) -c osra_mol.cpp
+
+osra_anisotropic.o:	osra_anisotropic.cpp osra.h
+	$(CPP) -c osra_anisotropic.cpp
 
 #${EVG_THIN}.o:	${EVG_THIN}.cc
 #	$(CPP) -c ${EVG_THIN}.cc
