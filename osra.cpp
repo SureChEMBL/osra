@@ -1825,8 +1825,8 @@ int find_boxes(box_t *boxes,Image image,double THRESHOLD_BOND,ColorGray bgColor,
   param->alphamax=0.;
   //param->turnpolicy=POTRACE_TURNPOLICY_MINORITY;
   bm = bm_new(width,height);
-  //param->turdsize=res;
-  param->turdsize=1;
+  param->turdsize=res;
+  //param->turdsize=1;
 
     for(int i=0;i<width;i++)
       for(int j=0;j<height;j++)
@@ -3443,7 +3443,7 @@ int main(int argc,char **argv)
 	    int min_font_height=MIN_FONT_HEIGHT;
 	    int mind=2;
 	    int boundary=2*5;
-	    int res=10;
+	    int res=100;
 	    double cornerd=4;
 	    int dash_length=14;
 	    bool thick=true;

@@ -41,13 +41,16 @@ string fix_atom_name(string s,int n)
   if (s=="OH" || s=="oH" || s=="Ho" || s=="HO" || s=="ol"
       || s=="On" || s=="on" || s=="no" || s=="nO") r="O";
   if (s=="Meo" || s=="oMe" || s=="oMg" || s=="omg" || s=="Mgo"
-      || s=="leo" || s=="ohle" || s=="lleo" || s=="olllle")   r="MeO";
+      || s=="leo" || s=="ohle" || s=="lleo" || s=="olllle" 
+      || s=="OMe" || s=="OM8")   r="MeO";
   if (s=="FC")  r="CF";
   if (s=="NC")  r="CN";
   if ((s=="nBU") || (s=="neU") ||(s=="ngU")) r="nBu";
-  if ((s=="Eto") || (s=="oEt") || (s=="Elo") || (s=="oEl")) r="EtO";
-  if ((s=="olgU") || (s=="oleU")) r="OiBu";
-  if ((s=="npr") || (s=="llpll") || (s=="lpl") || (s=="npl")) r="iPr";
+  if ((s=="Eto") || (s=="oEt") || (s=="Elo") || (s=="oEl")
+      || s=="ElO") r="EtO";
+  if ((s=="olgU") || (s=="oleU") || s=="OlBU") r="OiBu";
+  if ((s=="npr") || (s=="llpll") || (s=="lpl") || (s=="npl")
+      || s=="lPl") r="iPr";
   if ((s=="tBU") || (s=="BU") || (s=="llBU") || (s=="lBU")) r="tBu";
   if (s=="CooH" || s=="HooC" || s=="Co2H" || s=="CO2H") r="COOH";
   if (s=="AC") r="Ac";
