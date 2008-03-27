@@ -39,7 +39,7 @@
 #define MAX_RATIO 0.2
 #define MIN_ASPECT 0.2
 #define MAX_ASPECT 5.
-#define MIN_A_COUNT 6
+#define MIN_A_COUNT 5
 #define MAX_A_COUNT 100
 #define MIN_CHAR_POINTS 2
 #define WHITE_SPACE_FRACTION 0.3 
@@ -1825,8 +1825,8 @@ int find_boxes(box_t *boxes,Image image,double THRESHOLD_BOND,ColorGray bgColor,
   param->alphamax=0.;
   //param->turnpolicy=POTRACE_TURNPOLICY_MINORITY;
   bm = bm_new(width,height);
-  param->turdsize=res;
- 
+  //param->turdsize=res;
+  param->turdsize=1;
 
     for(int i=0;i<width;i++)
       for(int j=0;j<height;j++)
@@ -1885,6 +1885,7 @@ int find_boxes(box_t *boxes,Image image,double THRESHOLD_BOND,ColorGray bgColor,
 	    double ratio=0,aspect=0;
 	    if ((bottom!=top) && (right!=left)) ratio=1.*area/((bottom-top)*(right-left));
 	    if (right!=left)  aspect=1.*(bottom-top)/(right-left);
+
 	    if ((ratio<MAX_RATIO) && (ratio>0) && (aspect>MIN_ASPECT) && 
 		(aspect<MAX_ASPECT) &&
 		(!check_boxes(left,top,right,bottom,boxes,n_boxes)))
@@ -1896,7 +1897,6 @@ int find_boxes(box_t *boxes,Image image,double THRESHOLD_BOND,ColorGray bgColor,
 		if (top<0) top=0;
 		if (right>width) right=width;
 		if (bottom>height) bottom=height;
-
 		if ((right-left)*300/working_resolution<MAX_WIDTH 
 		    && (bottom-top)*300/working_resolution<MAX_HEIGHT 
 		    && (right-left)>MIN_WIDTH && (bottom-top)>MIN_HEIGHT
@@ -3443,13 +3443,12 @@ int main(int argc,char **argv)
 	    int min_font_height=MIN_FONT_HEIGHT;
 	    int mind=2;
 	    int boundary=2*5;
-	    int res=2*150;
+	    int res=10;
 	    double cornerd=4;
 	    int dash_length=14;
 	    bool thick=true;
 	    if (resolution<300)
 	      {
-		res=1*150;
 		boundary=1*5;
 	      }
 	    if (resolution<=150)
