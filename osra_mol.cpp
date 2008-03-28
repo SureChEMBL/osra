@@ -42,7 +42,7 @@ string fix_atom_name(string s,int n)
       || s=="On" || s=="on" || s=="no" || s=="nO") r="O";
   if (s=="Meo" || s=="oMe" || s=="oMg" || s=="omg" || s=="Mgo"
       || s=="leo" || s=="ohle" || s=="lleo" || s=="olllle" 
-      || s=="OMe" || s=="OM8")   r="MeO";
+      || s=="OMe" || s=="OM8" || s=="OMo")   r="MeO";
   if (s=="FC")  r="CF";
   if (s=="NC")  r="CN";
   if ((s=="nBU") || (s=="neU") ||(s=="ngU")) r="nBu";
@@ -62,7 +62,7 @@ string fix_atom_name(string s,int n)
       || s=="Y" || s=="2") r="X";
   if (s=="pl" || s=="nl") r="Ar";
   if (s=="oX") r="Ox";
-  if (s=="NoZ" || s=="o2N" || s=="No2" || s=="No") r="NO2";
+  if (s=="NoZ" || s=="o2N" || s=="No2" || s=="No" || s=="O2N") r="NO2";
   if (s=="ph") r="Ph";
   if (s=="F3C") r="CF3";
   if (s=="F3Co") r="F3CN";
