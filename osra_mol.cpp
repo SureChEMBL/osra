@@ -64,7 +64,7 @@ string fix_atom_name(string s,int n)
   if (s=="oX") r="Ox";
   if (s=="NoZ" || s=="o2N" || s=="No2" || s=="No" || s=="O2N") r="NO2";
   if (s=="ph") r="Ph";
-  if (s=="F3C") r="CF3";
+  if (s=="F3C" || s=="CF" || s=="FC") r="CF3";
   if (s=="F3Co") r="F3CN";
   if (s=="S3" || s=="Se") r="S";
   return(r);

@@ -1371,7 +1371,7 @@ char get_atom_label(Image image, ColorGray bg, int x1, int y1, int x2, int y2, d
   double f=1.;
   JOB=&job;
   job_init(&job);
-  job.cfg.cfilter="oOcCnNHFsSBuUgMeEXYZRPp23568h";
+  job.cfg.cfilter="oOcCnNHFsSBuUgMeEXYZRPp2568h";
 
   //job.cfg.cs=160;
   //job.cfg.certainty=80;
@@ -1461,7 +1461,7 @@ char get_atom_label(Image image, ColorGray bg, int x1, int y1, int x2, int y2, d
 	    }
 	}
            
-      /* for (int i=0;i<job.src.p.y;i++)
+      /*for (int i=0;i<job.src.p.y;i++)
 	{
 	  for(int j=0;j<job.src.p.x;j++)
 	    cout<<job.src.p.p[i*job.src.p.x+j]/255;
