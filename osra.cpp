@@ -2159,17 +2159,6 @@ Image thin_image_evg(Image box,double THRESHOLD_BOND,ColorGray bgColor)
 }
 */
 
-int count_fragments(string input)
-{
-  int r=1;
-  for(string::size_type i = input.find(".", 0); i != string::npos; i = input.find(".", i))
-    {
-      r++;
-      i++;
-    }
-  return(r);
-}
-
 
 int comp_dashes_x(const void *a,const void *b)
 {
@@ -2450,10 +2439,9 @@ int find_small_bonds(potrace_path_t *p, atom_t *atom,bond_t *bond,int n_atom,int
 
 int resolve_bridge_bonds(atom_t* atom,int n_atom,bond_t* bond,int n_bond)
 {
-  int rotors1,rotors2;
+  int rotors1,rotors2,f;
   double confidence;
-  string smiles1=get_smiles(atom,bond,n_bond,rotors1,confidence);
-  int f=count_fragments(smiles1);
+  string smiles1=get_smiles(atom,bond,n_bond,rotors1,confidence,f);
   for (int i=0;i<n_atom;i++)
     if ((atom[i].exists) && (atom[i].label==" "))
       {
@@ -2515,8 +2503,8 @@ int resolve_bridge_bonds(atom_t* atom,int n_atom,bond_t* bond,int n_bond)
 		    else if (bond[c].a==bond[d].b) bond[c].a=bond[d].a;
 		    else if (bond[c].b==bond[d].a) bond[c].b=bond[d].b;
 		    else if (bond[c].b==bond[d].b) bond[c].b=bond[d].a;
-		    string smiles2=get_smiles(atom,bond,n_bond,rotors2,confidence);
-		    int f1=count_fragments(smiles2);
+		    int f1;
+		    string smiles2=get_smiles(atom,bond,n_bond,rotors2,confidence,f1);
 		    if (f!=f1 || rotors1!=rotors2)
 		      {
 			bond[b].exists=true;
@@ -3605,7 +3593,7 @@ int main(int argc,char **argv)
 		    int f=resolve_bridge_bonds(atom,n_atom,bond,n_bond);
 		    int rotors;
 		    double confidence=0;
-		    string smiles=get_smiles(atom,bond,n_bond,rotors,confidence);
+		    string smiles=get_smiles(atom,bond,n_bond,rotors,confidence,f);
 		    if (f<5 && smiles!="")
 		      {
 			array_of_smiles[res_iter].push_back(smiles);

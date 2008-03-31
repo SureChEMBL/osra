@@ -92,6 +92,7 @@ using namespace Magick;
 
 string fix_atom_name(string s,int n);
 int getValency(string s);
-string get_smiles(atom_t *atom, bond_t *bond, int n_bond, int &rotors, double &confidence);
+string get_smiles(atom_t *atom, bond_t *bond, int n_bond, int &rotors, double &confidence, int &num_fragments);
 Image anisotropic_smoothing(Image image,int width,int height);
 Image anisotropic_scaling(Image image,int width,int height, int nw, int nh);
+int count_fragments(string input);

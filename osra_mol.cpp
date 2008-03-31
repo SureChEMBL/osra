@@ -483,7 +483,19 @@ int getValency(string s)
   return(4);
 }
 
-string get_smiles(atom_t *atom, bond_t *bond, int n_bond, int &rotors, double &confidence)
+int count_fragments(string input)
+{
+  int r=1;
+  for(string::size_type i = input.find(".", 0); i != string::npos; i = input.find(".", i))
+    {
+      r++;
+      i++;
+    }
+  return(r);
+}
+
+string get_smiles(atom_t *atom, bond_t *bond, int n_bond, int &rotors, 
+		  double &confidence, int &num_fragments)
 {
  OBMol mol;
  OBAtom *a,*b;
@@ -591,9 +603,26 @@ string get_smiles(atom_t *atom, bond_t *bond, int n_bond, int &rotors, double &c
      if ((*iter)->Size()<8)
        Num_Rings[(*iter)->Size()]++;
    }
- confidence=0.252867-0.018512*C_Count+0.032893*N_Count+0.065282*O_Count+0.034093*F_Count+0.069519*S_Count+0.202079*Cl_Count-0.183504*num_rings+0.083272*num_aromatic+0.324456*Num_Rings[3]+0.397955*Num_Rings[4]+0.306363*Num_Rings[5]+0.327634*Num_Rings[6]+0.325800*Num_Rings[7];
-
+ rotors=mol.NumRotors();
  str=conv.WriteString(&mol,true);
+ num_fragments=count_fragments(str);
+ confidence=0.316030
+   -0.016315*C_Count
+   +0.034336*N_Count
+   +0.066810*O_Count
+   +0.035674*F_Count
+   +0.065504*S_Count
+   +0.198795*Cl_Count
+   -0.212739*num_rings
+   +0.071300*num_aromatic
+   +0.339289*Num_Rings[3]
+   +0.422291*Num_Rings[4]
+   +0.329922*Num_Rings[5]
+   +0.342865*Num_Rings[6]
+   +0.350747*Num_Rings[7]
+   -0.037796*num_fragments;
+
+
 // conv.Write(&mol);
  for (int i=0;i<n_bond;i++)
    if (bond[i].exists) 
@@ -601,6 +630,5 @@ string get_smiles(atom_t *atom, bond_t *bond, int n_bond, int &rotors, double &c
        atom[bond[i].a].n=0;
        atom[bond[i].b].n=0;
      }
- rotors=mol.NumRotors();
  return(str);
 }
