@@ -34,39 +34,43 @@ string fix_atom_name(string s,int n)
   string r=s;
   //cout<<s<<endl;
   if (s.length()==1) r=toupper(s.at(0));
-  if (s=="Ci" || s=="Cf" || s=="Cll") r="Cl";
-  if (s=="H" && n>1) r="N";
-  if (s=="HN" || s=="NH" || s=="M" || s=="Hm" || s=="MN" || s=="N2"
+  else if (s=="Ci" || s=="Cf" || s=="Cll") r="Cl";
+  else if (s=="H" && n>1) r="N";
+  else if (s=="HN" || s=="NH" || s=="M" || s=="Hm" || s=="MN" || s=="N2"
       || s=="NM" || s=="NH2" || s=="H2N" || s=="NHZ" || s=="HZN" || s=="NH3")   r="N";
-  if (s=="OH" || s=="oH" || s=="Ho" || s=="HO" || s=="ol"
+  else if (s=="OH" || s=="oH" || s=="Ho" || s=="HO" || s=="ol"
       || s=="On" || s=="on" || s=="no" || s=="nO") r="O";
-  if (s=="Meo" || s=="oMe" || s=="oMg" || s=="omg" || s=="Mgo"
+  else if (s=="Meo" || s=="oMe" || s=="oMg" || s=="omg" || s=="Mgo"
       || s=="leo" || s=="ohle" || s=="lleo" || s=="olllle" 
       || s=="OMe" || s=="OM8" || s=="OMo" || s=="OMB")   r="MeO";
   // if (s=="FC")  r="CF";
-  if (s=="NC")  r="CN";
-  if ((s=="nBU") || (s=="neU") ||(s=="ngU")) r="nBu";
-  if ((s=="Eto") || (s=="oEt") || (s=="Elo") || (s=="oEl")
+  else if (s=="NC")  r="CN";
+  else if ((s=="nBU") || (s=="neU") ||(s=="ngU")) r="nBu";
+  else if ((s=="Eto") || (s=="oEt") || (s=="Elo") || (s=="oEl")
       || s=="ElO") r="EtO";
-  if ((s=="olgU") || (s=="oleU") || s=="OlBU") r="OiBu";
-  if ((s=="npr") || (s=="llpll") || (s=="lpl") || (s=="npl")
+  else if ((s=="olgU") || (s=="oleU") || s=="OlBU") r="OiBu";
+  else if ((s=="npr") || (s=="llpll") || (s=="lpl") || (s=="npl")
       || s=="lPl") r="iPr";
-  if ((s=="tBU") || (s=="BU") || (s=="llBU") || (s=="lBU")) r="tBu";
-  if (s=="CooH" || s=="HooC" || s=="Co2H" || s=="CO2H") r="COOH";
-  if (s=="AC") r="Ac";
-  if (s=="ACo" || s=="opC" || s=="pcO") r="AcO";
-  if (s=="Bl" || s=="el") r="Br";
-  if (s=="CH3" || s=="H3C") r="C";
-  if (s=="R" || s=="Rl" || s=="Rlo" || s=="R2" || s=="R3" || s=="Rg"
+  else if ((s=="tBU") || (s=="BU") || (s=="llBU") || (s=="lBU")) r="tBu";
+  else if (s=="CooH" || s=="HooC" || s=="Co2H" || s=="CO2H" || s=="HOOC") r="COOH";
+  else if (s=="AC") r="Ac";
+  else if (s=="ACo" || s=="opC" || s=="pcO") r="AcO";
+  else if (s=="Bl" || s=="el") r="Br";
+  else if (s=="CH3" || s=="H3C") r="C";
+  else if (s=="R" || s=="Rl" || s=="Rlo" || s=="R2" || s=="R3" || s=="Rg"
       || s=="R4" || s=="R5" || s=="R6" || s=="R7" || s=="R8" || s=="Z" 
       || s=="Y" || s=="2") r="X";
-  if (s=="pl" || s=="nl") r="Ar";
-  if (s=="oX") r="Ox";
-  if (s=="NoZ" || s=="o2N" || s=="No2" || s=="No" || s=="O2N") r="NO2";
-  if (s=="ph") r="Ph";
-  if (s=="F3C" || s=="CF" || s=="FC" || s=="Co" || s=="F8l") r="CF3";
-  if (s=="F3Co") r="F3CN";
-  if (s=="S3" || s=="Se" || s=="lS") r="S";
+  else if (s=="pl" || s=="nl") r="Ar";
+  else if (s=="oX") r="Ox";
+  else if (s=="NoZ" || s=="o2N" || s=="No2" || s=="No" || s=="O2N") r="NO2";
+  else if (s=="ph") r="Ph";
+  else if (s=="F3C" || s=="CF" || s=="FC" || s=="Co" || s=="F8l" || s=="CFS"
+      || s=="FSC") r="CF3";
+  else if (s=="F3Co") r="F3CN";
+  else if (s=="S3" || s=="Se" || s=="lS") r="S";
+  else if (s=="lH") r="H";
+  else if (s=="NHnC") r="NHAc";
+  else if (s=="OCHS") r="OC";
   return(r);
 }
 
