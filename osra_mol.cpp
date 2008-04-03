@@ -32,9 +32,9 @@ using namespace OpenBabel;
 string fix_atom_name(string s,int n)
 {
   string r=s;
-  //cout<<s<<endl;
+  //cout<<s<<"-->";
   if (s.length()==1) r=toupper(s.at(0));
-  else if (s=="Ci" || s=="Cf" || s=="Cll") r="Cl";
+  if (s=="Ci" || s=="Cf" || s=="Cll") r="Cl";
   else if (s=="H" && n>1) r="N";
   else if (s=="HN" || s=="NH" || s=="M" || s=="Hm" || s=="MN" || s=="N2"
       || s=="NM" || s=="NH2" || s=="H2N" || s=="NHZ" || s=="HZN" || s=="NH3")   r="N";
@@ -43,7 +43,6 @@ string fix_atom_name(string s,int n)
   else if (s=="Meo" || s=="oMe" || s=="oMg" || s=="omg" || s=="Mgo"
       || s=="leo" || s=="ohle" || s=="lleo" || s=="olllle" 
       || s=="OMe" || s=="OM8" || s=="OMo" || s=="OMB")   r="MeO";
-  // if (s=="FC")  r="CF";
   else if (s=="NC")  r="CN";
   else if ((s=="nBU") || (s=="neU") ||(s=="ngU")) r="nBu";
   else if ((s=="Eto") || (s=="oEt") || (s=="Elo") || (s=="oEl")
@@ -54,15 +53,16 @@ string fix_atom_name(string s,int n)
   else if ((s=="tBU") || (s=="BU") || (s=="llBU") || (s=="lBU")) r="tBu";
   else if (s=="CooH" || s=="HooC" || s=="Co2H" || s=="CO2H" || s=="HOOC") r="COOH";
   else if (s=="AC") r="Ac";
-  else if (s=="ACo" || s=="opC" || s=="pcO") r="AcO";
+  else if (s=="ACo" || s=="opC" || s=="pcO" || s=="ACO") r="AcO";
   else if (s=="Bl" || s=="el") r="Br";
   else if (s=="CH3" || s=="H3C") r="C";
   else if (s=="R" || s=="Rl" || s=="Rlo" || s=="R2" || s=="R3" || s=="Rg"
-      || s=="R4" || s=="R5" || s=="R6" || s=="R7" || s=="R8" || s=="Z" 
-      || s=="Y" || s=="2") r="X";
+      || s=="R4" || s=="R5" || s=="R6" || s=="R7" || s=="R8" || s=="Z"  || s=="Y" 
+      || s=="2" || s=="RlO") r="X";
   else if (s=="pl" || s=="nl") r="Ar";
   else if (s=="oX") r="Ox";
-  else if (s=="NoZ" || s=="o2N" || s=="No2" || s=="No" || s=="O2N") r="NO2";
+  else if (s=="NoZ" || s=="o2N" || s=="No2" || s=="No" || s=="O2N"
+      || s=="NOZ" || s=="NO") r="NO2";
   else if (s=="ph") r="Ph";
   else if (s=="F3C" || s=="CF" || s=="FC" || s=="Co" || s=="F8l" || s=="CFS"
       || s=="FSC") r="CF3";
@@ -71,6 +71,7 @@ string fix_atom_name(string s,int n)
   else if (s=="lH") r="H";
   else if (s=="NHnC") r="NHAc";
   else if (s=="OCHS") r="OC";
+  //cout<<r<<endl;
   return(r);
 }
 
