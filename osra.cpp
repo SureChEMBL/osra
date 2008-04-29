@@ -2707,7 +2707,8 @@ void align_broken_bonds(atom_t* atom,int n_atom,bond_t* bond,int n_bond)
       }
 }
 
-void remove_duplicate_atoms(atom_t *atom, bond_t *bond, int n_atom,int n_bond,double r)
+void remove_duplicate_atoms(atom_t *atom, bond_t *bond, int n_atom,int n_bond,
+			    double r, double avg)
 {
   for (int i=0;i<n_atom;i++)
       {
@@ -2769,6 +2770,101 @@ void remove_duplicate_atoms(atom_t *atom, bond_t *bond, int n_atom,int n_bond,do
 	      }
 	  }
       }
+
+ for (int i=0;i<n_bond;i++)
+    if (bond[i].exists && bond[i].type<3)
+      for (int j=0;j<n_bond;j++)
+	if (bond[j].exists && bond[j].type<3 && j!=i
+	    && bond[i].a!=bond[j].a && bond[i].a!=bond[j].b
+	    && bond[i].b!=bond[j].a && bond[i].b!=bond[j].b)
+	  {
+	    double d1=distance(atom[bond[i].a].x,atom[bond[i].a].y,
+			       atom[bond[j].a].x,atom[bond[j].a].y);
+	    double d2=distance(atom[bond[i].a].x,atom[bond[i].a].y,
+			       atom[bond[j].b].x,atom[bond[j].b].y);
+	    double d3=distance(atom[bond[i].b].x,atom[bond[i].b].y,
+			       atom[bond[j].a].x,atom[bond[j].a].y);
+	    double d4=distance(atom[bond[i].b].x,atom[bond[i].b].y,
+			       atom[bond[j].b].x,atom[bond[j].b].y);
+	    double dd1=min(d1,d2);
+	    double dd2=min(d3,d4);
+	    double nb=FLT_MAX;
+	    double ang=FLT_MAX;
+	    if (dd1<dd2)   // i_a closer
+	      {
+		if (d1<d2)   // j_a closer
+		  {
+		    nb=d3;   // distance i_b and j_a
+		    ang=angle4(atom[bond[i].b].x,atom[bond[i].b].y,
+			       atom[bond[i].a].x,atom[bond[i].a].y,
+			       atom[bond[i].b].x,atom[bond[i].b].y,
+			       atom[bond[j].a].x,atom[bond[j].a].y);
+		    if (nb<1.5*avg && ang>0.99)
+		      {
+			atom[bond[i].a].exists=false;
+			for (int k=0;k<n_bond;k++)
+			  if (bond[k].exists)
+			    if (bond[k].a==bond[i].a) {bond[k].a=bond[j].a;}
+			    else if (bond[k].b==bond[i].a) {bond[k].b=bond[j].a;}
+			bond[i].a=bond[j].a;
+		      }
+		  }
+		else         // j_b closer
+		  {
+		    nb=d4;   // distance i_b and j_b
+		    ang=angle4(atom[bond[i].b].x,atom[bond[i].b].y,
+			       atom[bond[i].a].x,atom[bond[i].a].y,
+			       atom[bond[i].b].x,atom[bond[i].b].y,
+			       atom[bond[j].b].x,atom[bond[j].b].y);
+		    if (nb<1.5*avg && ang>0.99)
+		      {
+			atom[bond[i].a].exists=false;
+			for (int k=0;k<n_bond;k++)
+			  if (bond[k].exists)
+			    if (bond[k].a==bond[i].a) {bond[k].a=bond[j].b;}
+			    else if (bond[k].b==bond[i].a) {bond[k].b=bond[j].b;}
+			bond[i].a=bond[j].b;
+		      }
+		  }
+	      }
+	    else             // i_b closer
+	      {
+		if (d3<d4)   // j_a closer
+		  {
+		    nb=d1;   // distance i_a and j_a
+		    ang=angle4(atom[bond[i].a].x,atom[bond[i].a].y,
+			       atom[bond[i].b].x,atom[bond[i].b].y,
+			       atom[bond[i].a].x,atom[bond[i].a].y,
+			       atom[bond[j].a].x,atom[bond[j].a].y);
+		    if (nb<1.5*avg && ang>0.99)
+		      {
+			atom[bond[i].b].exists=false;
+			for (int k=0;k<n_bond;k++)
+			  if (bond[k].exists)
+			    if (bond[k].a==bond[i].b) {bond[k].a=bond[j].a;}
+			    else if (bond[k].b==bond[i].b) {bond[k].b=bond[j].a;}
+			bond[i].b=bond[j].a;
+		      }
+		  }
+		else         // j_b closer
+		  {
+		    nb=d2;   // distance i_a and j_b
+		    ang=angle4(atom[bond[i].a].x,atom[bond[i].a].y,
+			       atom[bond[i].b].x,atom[bond[i].b].y,
+			       atom[bond[i].a].x,atom[bond[i].a].y,
+			       atom[bond[j].b].x,atom[bond[j].b].y);
+		    if (nb<1.5*avg && ang>0.99)
+		      {
+			atom[bond[i].b].exists=false;
+			for (int k=0;k<n_bond;k++)
+			  if (bond[k].exists)
+			    if (bond[k].a==bond[i].b) {bond[k].a=bond[j].b;}
+			    else if (bond[k].b==bond[i].b) {bond[k].b=bond[j].b;}
+			bond[i].b=bond[j].b;
+		      }
+		  }
+	      }
+	  }
 }
 
 int fix_one_sided_bonds(bond_t *bond,int n_bond,atom_t *atom)
@@ -3691,7 +3787,7 @@ int main(int argc,char **argv)
 
 		n_label=assign_atom_labels(atom,n_atom,letters,n_letters,avg_bond/4,
 					   bond,n_bond,cornerd,label,avg_bond);
-		remove_duplicate_atoms(atom,bond,n_atom,n_bond,avg_bond/4); 
+		remove_duplicate_atoms(atom,bond,n_atom,n_bond,avg_bond/4,avg_bond); 
 	
 		for (int i=0;i<2;i++)
 		  {
