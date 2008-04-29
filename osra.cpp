@@ -2361,7 +2361,6 @@ int find_dashed_bonds(potrace_path_t *p, atom_t *atom,bond_t *bond,int n_atom,
 	  }
 	p = p->next;
       }
-
   for(int i=0;i<n_dot;i++)
     if (dot[i].free)
       {
@@ -2375,8 +2374,10 @@ int find_dashed_bonds(potrace_path_t *p, atom_t *atom,bond_t *bond,int n_atom,
 	double r=dot[i].x;
 	double t=dot[i].y;
 	double b=dot[i].y;
+	double mx=l;
+	double my=t;
 	for(int j=i+1;j<n_dot;j++)
-	  if ((dot[j].free) && (distance(dot[i].x,dot[i].y,dot[j].x,dot[j].y)<=1.2*avg))
+	  if ((dot[j].free) && (distance(mx,my,dot[j].x,dot[j].y)<=1.8*avg))
 	    {
 	      dash[n]=dot[j];
 	      n++;
@@ -2386,8 +2387,9 @@ int find_dashed_bonds(potrace_path_t *p, atom_t *atom,bond_t *bond,int n_atom,
 	      if (dot[j].x>r) r=dot[j].x;
 	      if (dot[j].y<t) t=dot[j].y;
 	      if (dot[j].y>b) b=dot[j].y;
+	      mx=(mx+dot[j].x)/2;
+	      my=(my+dot[j].y)/2;
 	    }
-
 	if (n>2) 
 	  {
 	    if((r-l)>(b-t))
@@ -3775,9 +3777,10 @@ int main(int argc,char **argv)
 	    
 
 
-		n_atom=find_dashed_bonds(p,atom,bond,n_atom,&n_bond,dash_length,
+		n_atom=find_dashed_bonds(p,atom,bond,n_atom,&n_bond,
+					 max(dash_length,int(avg_bond/3)),
 					 avg_bond);
-
+		//debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");     	
 		double max_area=avg_bond*5;
 		if (thick) max_area=avg_bond;
 		n_letters=find_plus_minus(p,letters,atom,bond,n_atom,n_bond,
@@ -3814,7 +3817,7 @@ int main(int argc,char **argv)
 		    remove_disconnected_bonds(bond,n_bond);
 		    remove_disconnected_atoms(atom,bond,n_atom,n_bond);
 		  }
-		debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");     	
+		
 		valency_check(atom,bond,n_atom,n_bond);
 		find_up_down_bonds(bond,n_bond,atom);
 		int real_atoms=count_atoms(atom,n_atom);
