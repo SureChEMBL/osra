@@ -2643,6 +2643,8 @@ void remove_duplicate_atoms(atom_t *atom, bond_t *bond, int n_atom,int n_bond,do
 		    if (allow)
 		      {
 			atom[j].exists=false;
+			atom[i].x=(atom[i].x+atom[j].x)/2;
+			atom[i].y=(atom[i].y+atom[j].y)/2;
 			for (int k=0;k<n_bond;k++)
 			  if (bond[k].exists)
 			    if (bond[k].a==j) {bond[k].a=i;}
