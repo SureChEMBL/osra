@@ -2548,12 +2548,13 @@ void align_broken_bonds(atom_t* atom,int n_atom,bond_t* bond,int n_bond)
 	      }
 	    con.pop_front();
 	    if (angle_between_connected_bonds(bond,a,b,atom)>FLAT_TOLERANCE 
-		&& bond[a].type==bond[b].type
+		&& bond[a].type<3 && bond[b].type<3
 		&& bond_length(bond,a,atom)>1 &&
 		bond_length(bond,b,atom)>1)
 		  {
 		    bond[b].exists=false;
 		    atom[i].exists=false;
+		    bond[a].type=max(bond[a].type,bond[b].type);
 		    if (bond[b].arom) bond[a].arom=true;
 
 		    int olda=bond[a].a;
