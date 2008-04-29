@@ -885,7 +885,8 @@ int comp_letters(const void *a,const void *b)
 }
 
 int assign_atom_labels(atom_t *atom,int n_atom,letters_t *letters,int n_letters,
-			double radius,bond_t *bond, int n_bond, double dist, label_t *label)
+		       double radius,bond_t *bond, int n_bond, double dist, 
+		       label_t *label,double avg)
 {
   lbond_t lbond[MAX_ATOMS];
   int n_lbond=0;
@@ -983,6 +984,76 @@ int assign_atom_labels(atom_t *atom,int n_atom,letters_t *letters,int n_letters,
 	  }
       }
 
+  for (int j=0;j<n_bond;j++)
+    if (bond[j].exists)
+      	for (int i=0;i<n_label;i++)
+	  {
+	    double d1=distance(atom[bond[j].a].x,atom[bond[j].a].y,
+			       label[i].x1,label[i].y1);
+	    double d2=distance(atom[bond[j].a].x,atom[bond[j].a].y,
+			       label[i].x2,label[i].y2);
+	    double d3=distance(atom[bond[j].b].x,atom[bond[j].b].y,
+			       label[i].x1,label[i].y1);
+	    double d4=distance(atom[bond[j].b].x,atom[bond[j].b].y,
+			       label[i].x2,label[i].y2);
+	    double dd1=min(d1,d2);
+	    double dd2=min(d3,d4);
+	    double nb=FLT_MAX;
+	    double ang=FLT_MAX;
+	    if (dd1<dd2)   // bond end "a" closer
+	      {
+		if (d1<d2)   // 1st side of label closer
+		  {
+		    nb=d3;   // distance between end "b" and 1st side
+		    ang=angle4(atom[bond[j].b].x,atom[bond[j].b].y,
+			       atom[bond[j].a].x,atom[bond[j].a].y,
+			       atom[bond[j].b].x,atom[bond[j].b].y,
+			       label[i].x1,label[i].y1);
+		  }
+		else         // 2nd side closer
+		  {
+		    nb=d4;   // distance between end "b" and 2nd side
+		    ang=angle4(atom[bond[j].b].x,atom[bond[j].b].y,
+			       atom[bond[j].a].x,atom[bond[j].a].y,
+			       atom[bond[j].b].x,atom[bond[j].b].y,
+			       label[i].x2,label[i].y2);
+		  }
+		if (nb<1.5*avg && ang>0.99
+		    && not_corner(bond[j].a,bond,n_bond,radius,atom,dist))
+		  {
+		    atom[bond[j].a].label=label[i].a;
+		    atom[bond[j].a].x=(label[i].x1+label[i].x2)/2;
+		    atom[bond[j].a].y=(label[i].y1+label[i].y2)/2;
+		  }
+	      }
+	    else             // end "b" closer
+	      {
+		if (d3<d4)   // 1st side of label closer
+		  {
+		    nb=d1;   // distance between end "a" and 1st side
+		    ang=angle4(atom[bond[j].a].x,atom[bond[j].a].y,
+			       atom[bond[j].b].x,atom[bond[j].b].y,
+			       atom[bond[j].a].x,atom[bond[j].a].y,
+			       label[i].x1,label[i].y1);
+		  }
+		else         // 2nd side closer
+		  {
+		    nb=d2;   // distance between end "a" and 2nd side
+		    ang=angle4(atom[bond[j].a].x,atom[bond[j].a].y,
+			       atom[bond[j].b].x,atom[bond[j].b].y,
+			       atom[bond[j].a].x,atom[bond[j].a].y,
+			       label[i].x2,label[i].y2);
+		  }
+		if (nb<1.5*avg && ang>0.99 
+		    && not_corner(bond[j].b,bond,n_bond,radius,atom,dist))
+		  {
+		    atom[bond[j].b].label=label[i].a;
+		    atom[bond[j].b].x=(label[i].x1+label[i].x2)/2;
+		    atom[bond[j].b].y=(label[i].y1+label[i].y2)/2;
+		  }
+	      }
+	  }
+
     for (int j=0;j<n_atom;j++)
       if (atom[j].exists && not_corner(j,bond,n_bond,radius,atom,dist))
 	{
@@ -1010,6 +1081,50 @@ int assign_atom_labels(atom_t *atom,int n_atom,letters_t *letters,int n_letters,
 	      atom[j].y=letters[lab].y;
 	    }
 	}
+
+    for (int j=0;j<n_bond;j++)
+      if (bond[j].exists)
+      	for (int i=0;i<n_letters;i++)
+	  if (letters[i].free)
+	    {
+	      double d1=distance(atom[bond[j].a].x,atom[bond[j].a].y,
+				 letters[i].x,letters[i].y);
+	      double d2=distance(atom[bond[j].b].x,atom[bond[j].b].y,
+				 letters[i].x,letters[i].y);
+	      double nb=FLT_MAX;
+	      double ang=FLT_MAX;
+	      if (d1<d2)   // bond end "a" closer
+		{
+		  nb=d2;   // distance between end "b" and letter
+		  ang=angle4(atom[bond[j].b].x,atom[bond[j].b].y,
+			     atom[bond[j].a].x,atom[bond[j].a].y,
+			     atom[bond[j].b].x,atom[bond[j].b].y,
+			     letters[i].x,letters[i].y);
+		  if (nb<1.5*avg && ang>0.99
+		      && not_corner(bond[j].a,bond,n_bond,radius,atom,dist))
+		    {
+		      atom[bond[j].a].label=toupper(letters[i].a);;
+		      atom[bond[j].a].x=letters[i].x;
+		      atom[bond[j].a].y=letters[i].y;
+		    }
+		}
+	      else             // end "b" closer
+		{
+		  nb=d1;   // distance between end "a" and 1st side
+		  ang=angle4(atom[bond[j].a].x,atom[bond[j].a].y,
+			     atom[bond[j].b].x,atom[bond[j].b].y,
+			     atom[bond[j].a].x,atom[bond[j].a].y,
+			     letters[i].x,letters[i].y);
+		  if (nb<1.5*avg && ang>0.99 
+		      && not_corner(bond[j].b,bond,n_bond,radius,atom,dist))
+		    {
+		      atom[bond[j].b].label=toupper(letters[i].a);;
+		      atom[bond[j].b].x=letters[i].x;
+		      atom[bond[j].b].y=letters[i].y;
+		    }
+		}
+	    }
+
     return(n_label);
 }
 
@@ -1371,7 +1486,7 @@ char get_atom_label(Image image, ColorGray bg, int x1, int y1, int x2, int y2, d
   double f=1.;
   JOB=&job;
   job_init(&job);
-  job.cfg.cfilter="oOcCnNHFsSBuUgMeEXYZRPp2568h";
+  job.cfg.cfilter="oOcCnNHFsSBuUgMeEXYZRPp23568h";
 
   //job.cfg.cs=160;
   //job.cfg.certainty=80;
@@ -3575,7 +3690,7 @@ int main(int argc,char **argv)
 		remove_bumps(bond,n_bond,atom,avg_bond);
 
 		n_label=assign_atom_labels(atom,n_atom,letters,n_letters,avg_bond/4,
-					   bond,n_bond,cornerd,label);
+					   bond,n_bond,cornerd,label,avg_bond);
 		remove_duplicate_atoms(atom,bond,n_atom,n_bond,avg_bond/4); 
 	
 		for (int i=0;i<2;i++)
