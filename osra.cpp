@@ -2388,10 +2388,7 @@ int find_dashed_bonds(potrace_path_t *p, atom_t *atom,bond_t *bond,int n_atom,
     if (dot[i].free)
       {
 	dash_t dash[100];
-	int n=0;
-	dash[n]=dot[i];
-	n++;
-
+	dash[0]=dot[i];
 	dot[i].free=false;
 	double l=dot[i].x;
 	double r=dot[i].x;
@@ -2399,20 +2396,61 @@ int find_dashed_bonds(potrace_path_t *p, atom_t *atom,bond_t *bond,int n_atom,
 	double b=dot[i].y;
 	double mx=l;
 	double my=t;
+	double dist_next=FLT_MAX;
+	int next_dot=i;
 	for(int j=i+1;j<n_dot;j++)
-	  if ((dot[j].free) && (distance(mx,my,dot[j].x,dot[j].y)<=1.8*avg))
-	    {
-	      dash[n]=dot[j];
-	      n++;
-	      if (n>=100) n--;
-	      dot[j].free=false;
-	      if (dot[j].x<l) l=dot[j].x;
-	      if (dot[j].x>r) r=dot[j].x;
-	      if (dot[j].y<t) t=dot[j].y;
-	      if (dot[j].y>b) b=dot[j].y;
-	      mx=(mx+dot[j].x)/2;
-	      my=(my+dot[j].y)/2;
+	  if (dot[j].free
+	      && distance(dash[0].x,dash[0].y,dot[j].x,dot[j].y)<=1.8*avg
+	      && distance(dash[0].x,dash[0].y,dot[j].x,dot[j].y)<dist_next)
+		{
+		  dash[1]=dot[j];
+		  dist_next=distance(dash[0].x,dash[0].y,dot[j].x,dot[j].y);
+		  next_dot=j;
+		}
+
+	int n=1;
+	if (next_dot!=i)
+	  {
+	    dot[next_dot].free=false;
+	    if (dash[1].x<l) l=dash[1].x;
+	    if (dash[1].x>r) r=dash[1].x;
+	    if (dash[1].y<t) t=dash[1].y;
+	    if (dash[1].y>b) b=dash[1].y;
+	    mx=(mx+dash[1].x)/2;
+	    my=(my+dash[1].y)/2;
+	    n=2;
+	  }
+	bool found=true;
+	while (n>1 && found)
+	  {
+	    dist_next=FLT_MAX;
+	    found=false;
+	    int minj=next_dot;
+	    for(int j=next_dot+1;j<n_dot;j++)
+	      if (dot[j].free && distance(mx,my,dot[j].x,dot[j].y)<=1.8*avg
+		  && distance(mx,my,dot[j].x,dot[j].y)<dist_next
+		  && fabs(angle4(dash[0].x,dash[0].y,dash[n-1].x,dash[n-1].y,
+				 dash[0].x,dash[0].y,dot[j].x,dot[j].y))>D_T_TOLERANCE)
+		{
+		  dash[n]=dot[j];
+		  dist_next=distance(mx,my,dot[j].x,dot[j].y);
+		  found=true;
+		  minj=j;
+		}
+	    if (found) 
+	      {
+		dot[minj].free=false;
+		if (dash[n].x<l) l=dash[n].x;
+		if (dash[n].x>r) r=dash[n].x;
+		if (dash[n].y<t) t=dash[n].y;
+		if (dash[n].y>b) b=dash[n].y;
+		mx=(mx+dash[n].x)/2;
+		my=(my+dash[n].y)/2;
+		n++;
+	      }
 	    }
+      
+	cout<<n<<endl;
 	if (n>2) 
 	  {
 	    if((r-l)>(b-t))
@@ -3803,7 +3841,8 @@ int main(int argc,char **argv)
 		n_atom=find_dashed_bonds(p,atom,bond,n_atom,&n_bond,
 					 max(dash_length,int(avg_bond/3)),
 					 avg_bond);
-
+		//debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png"); 		
+		//exit(0);
 
 		double max_area=avg_bond*5;
 		if (thick) max_area=avg_bond;
@@ -3818,8 +3857,7 @@ int main(int argc,char **argv)
 
 		skeletize(atom,bond,n_bond,box,THRESHOLD_BOND,bgColor);
 		n_bond=double_triple_bonds(atom,bond,n_bond,avg_bond,n_atom);
-		//debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png"); 		
-
+		
 		n_letters=remove_small_bonds(bond,n_bond,atom,letters,n_letters,
 					     max_font_height,min_font_height,avg_bond);
 	 
@@ -3842,7 +3880,7 @@ int main(int argc,char **argv)
 		    remove_disconnected_bonds(bond,n_bond);
 		    remove_disconnected_atoms(atom,bond,n_atom,n_bond);
 		  }
-
+		
 		valency_check(atom,bond,n_atom,n_bond);
 		find_up_down_bonds(bond,n_bond,atom);
 		int real_atoms=count_atoms(atom,n_atom);
