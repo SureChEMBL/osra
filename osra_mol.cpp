@@ -42,7 +42,7 @@ string fix_atom_name(string s,int n)
       || s=="On" || s=="on" || s=="no" || s=="nO") r="O";
   else if (s=="Meo" || s=="oMe" || s=="oMg" || s=="omg" || s=="Mgo"
       || s=="leo" || s=="ohle" || s=="lleo" || s=="olllle" 
-      || s=="OMe" || s=="OM8" || s=="OMo" || s=="OMB" || s=="eO")   r="MeO";
+      || s=="OMe" || s=="OM8" || s=="OMo" || s=="OMB")   r="MeO";
   else if (s=="NC")  r="CN";
   else if ((s=="nBU") || (s=="neU") ||(s=="ngU")) r="nBu";
   else if ((s=="Eto") || (s=="oEt") || (s=="Elo") || (s=="oEl")

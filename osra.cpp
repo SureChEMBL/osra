@@ -913,7 +913,8 @@ int assign_atom_labels(atom_t *atom,int n_atom,letters_t *letters,int n_letters,
   for (int i=0;i<n_letters;i++)
     {
      for (int j=i+1;j<n_letters;j++)
-       if ((distance(letters[i].x,letters[i].y,letters[j].x,letters[j].y)<(letters[i].r+letters[j].r) && 
+       if (
+	   (distance(letters[i].x,letters[i].y,letters[j].x,letters[j].y)<2*max(letters[i].r,letters[j].r) && 
 	   (((fabs(letters[i].y-letters[j].y)<min(letters[i].r,letters[j].r))) ||
 	    ((fabs(letters[i].y-letters[j].y)<(letters[i].r+letters[j].r)) &&
 	     (((letters[i].y<letters[j].y) && (isdigit(letters[j].a))) ||
