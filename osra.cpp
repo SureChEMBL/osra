@@ -558,20 +558,21 @@ int double_triple_bonds(atom_t *atom,bond_t *bond,int n_bond,double avg,int &n_a
   for (int i=0;i<n_bond;i++)
     if (bond[i].exists)
       {
-	double l1=bond_length(bond,i,atom);
+	//double l1=bond_length(bond,i,atom);
 	for (int j=i+1;j<n_bond;j++)
 	  if ((bond[j].exists) 
 	      && (fabs(angle_between_bonds(bond,i,j,atom))>D_T_TOLERANCE))
 	    {
-	      double l2=bond_length(bond,j,atom);
+	      //double l2=bond_length(bond,j,atom);
 	      double dbb=distance_between_bonds(bond,i,j,atom,thickness);
-	      if ((dbb<min(max(l1,l2),avg/2)) && bonds_within_each_other(bond,i,j,atom))
+	      if (dbb<avg && bonds_within_each_other(bond,i,j,atom))
 		{
 		  if (dbb>max_dist_double_bond)
 		    max_dist_double_bond=dbb;
 		}
 	    }
       }
+  max_dist_double_bond++;  //increment by 1 to get rid of rounding problems
   for (int i=0;i<n_bond;i++)
     if (bond[i].exists)
       {
@@ -758,6 +759,12 @@ int double_triple_bonds(atom_t *atom,bond_t *bond,int n_bond,double avg,int &n_a
       }
   for (int i=0;i<n_bond;i++)
     bond[i].type=bond[i].type/2+bond[i].type%2;
+  //  for(int i=205;i<208;i++)
+  //    bond[205].exists=false;
+  //  cout<<fabs(angle_between_bonds(bond,198,205,atom))<<" ";
+  //cout<<distance_between_bonds(bond,198,205,atom,thickness)<<" ";
+  //cout<<(bonds_within_each_other(bond,198,205,atom)?1:0)<<endl;
+  //cout<<avg/2<<endl;
   return(n_bond);
 }
 
@@ -2856,6 +2863,7 @@ void remove_duplicate_atoms(atom_t *atom, bond_t *bond, int n_atom,int n_bond,
 		  b_connected=true;
 		}
 	    }
+	double bl=bond_length(bond,i,atom);
 
 	for (int j=0;j<n_bond;j++)
 	  if (bond[j].exists && bond[j].type<3 && j!=i
@@ -2883,7 +2891,8 @@ void remove_duplicate_atoms(atom_t *atom, bond_t *bond, int n_atom,int n_bond,
 				 atom[bond[i].a].x,atom[bond[i].a].y,
 				 atom[bond[i].b].x,atom[bond[i].b].y,
 				 atom[bond[j].a].x,atom[bond[j].a].y);
-		      if (nb<1.5*avg && ang>0.99 && !a_connected)
+		      if ( (nb<1.5*avg || nb<1.5*bl)  
+			   && ang>D_T_TOLERANCE && !a_connected)
 			{
 			  atom[bond[i].a].exists=false;
 			  for (int k=0;k<n_bond;k++)
@@ -2900,7 +2909,8 @@ void remove_duplicate_atoms(atom_t *atom, bond_t *bond, int n_atom,int n_bond,
 				 atom[bond[i].a].x,atom[bond[i].a].y,
 				 atom[bond[i].b].x,atom[bond[i].b].y,
 				 atom[bond[j].b].x,atom[bond[j].b].y);
-		      if (nb<1.5*avg && ang>0.99 && !a_connected)
+		      if ( (nb<=1.5*avg ||  nb<=1.5*bl)  
+			   && ang>D_T_TOLERANCE && !a_connected)
 			{
 			  atom[bond[i].a].exists=false;
 			  for (int k=0;k<n_bond;k++)
@@ -2920,7 +2930,8 @@ void remove_duplicate_atoms(atom_t *atom, bond_t *bond, int n_atom,int n_bond,
 				 atom[bond[i].b].x,atom[bond[i].b].y,
 				 atom[bond[i].a].x,atom[bond[i].a].y,
 				 atom[bond[j].a].x,atom[bond[j].a].y);
-		      if (nb<1.5*avg && ang>0.99 && !b_connected)
+		      if ( (nb<=1.5*avg ||  nb<=1.5*bl)  
+			   && ang>D_T_TOLERANCE && !b_connected)
 			{
 			  atom[bond[i].b].exists=false;
 			  for (int k=0;k<n_bond;k++)
@@ -2937,7 +2948,8 @@ void remove_duplicate_atoms(atom_t *atom, bond_t *bond, int n_atom,int n_bond,
 				 atom[bond[i].b].x,atom[bond[i].b].y,
 				 atom[bond[i].a].x,atom[bond[i].a].y,
 				 atom[bond[j].b].x,atom[bond[j].b].y);
-		      if (nb<1.5*avg && ang>0.99 && !b_connected)
+		      if ( (nb<=1.5*avg ||  nb<=1.5*bl)  
+			   && ang>D_T_TOLERANCE && !b_connected)
 			{
 			  atom[bond[i].b].exists=false;
 			  for (int k=0;k<n_bond;k++)
@@ -3859,7 +3871,9 @@ int main(int argc,char **argv)
 
 		double thickness=skeletize(atom,bond,n_bond,box,THRESHOLD_BOND,bgColor);
 		n_bond=double_triple_bonds(atom,bond,n_bond,avg_bond,n_atom,thickness);
-		
+		//debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png"); 		
+		//exit(0);		
+
 		n_letters=remove_small_bonds(bond,n_bond,atom,letters,n_letters,
 					     max_font_height,min_font_height,avg_bond);
 	 
@@ -3882,8 +3896,7 @@ int main(int argc,char **argv)
 		    remove_disconnected_bonds(bond,n_bond);
 		    remove_disconnected_atoms(atom,bond,n_atom,n_bond);
 		  }
-		//debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png"); 		
-		//exit(0);
+
 		valency_check(atom,bond,n_atom,n_bond);
 		find_up_down_bonds(bond,n_bond,atom);
 		int real_atoms=count_atoms(atom,n_atom);
