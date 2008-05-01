@@ -2326,7 +2326,6 @@ void extend_dashed_bond(int a,int b,int n,atom_t *atom,double avg)
   double ky=(atom[b].y-atom[a].y)/l;
   double x0=atom[a].x;
   double y0=atom[a].y;
-  //double e=max(0.3*avg,l+1.5*l/(n-1));
   double e=max(avg,l);
   atom[b].x=kx*e+x0;
   atom[b].y=ky*e+y0;
@@ -2334,12 +2333,52 @@ void extend_dashed_bond(int a,int b,int n,atom_t *atom,double avg)
   atom[a].y=ky*(-1.5*l/(n-1))+y0;
 }
 
+int count_area(vector < vector<int> > *box, int x, int y)
+{
+  int a=0;
+  int w=(*box).size();
+  int h=(*box)[0].size();
+  if ((*box)[x][y]==1)
+    {
+      (*box)[x][y]=2;
+      list<int> cx;
+      list<int> cy;
+      cx.push_back(x);
+      cy.push_back(y);
+      while(!cx.empty())
+	{
+	  x=cx.front();
+	  y=cy.front();
+	  cx.pop_front();
+	  cy.pop_front();
+	  (*box)[x][y]=0;
+	  a++;
+	  for(int i=x-1;i<x+2;i++)
+	    for (int j=y-1;j<y+2;j++)
+	      if (i<w && j<h && i>=0 && j>=0 && (*box)[i][j]==1)
+		{
+		  cx.push_back(i);
+		  cy.push_back(j);
+		  (*box)[i][j]=2;
+		}
+	}
+    }
+  else return(0);
+  return(a);
+}
+
 int find_dashed_bonds(potrace_path_t *p, atom_t *atom,bond_t *bond,int n_atom,
-		      int *n_bond,int max,double avg)
+		      int *n_bond,int max,double avg,Image img,ColorGray bg,  
+		      double THRESHOLD)
 {
   int n,n_dot=0;
   potrace_dpoint_t (*c)[3];
   dash_t dot[100];
+  vector < vector<int> > box(img.columns());
+
+  for (unsigned int i=0;i<img.columns();i++)
+    for (unsigned int j=0;j<img.rows();j++)
+      box[i].push_back(getPixel(img,bg,i,j,THRESHOLD));
 
   while (p != NULL) 
       {
@@ -2448,9 +2487,8 @@ int find_dashed_bonds(potrace_path_t *p, atom_t *atom,bond_t *bond,int n_atom,
 		my=(my+dash[n].y)/2;
 		n++;
 	      }
-	    }
+	  }
       
-	cout<<n<<endl;
 	if (n>2) 
 	  {
 	    if((r-l)>(b-t))
@@ -2505,9 +2543,9 @@ int find_dashed_bonds(potrace_path_t *p, atom_t *atom,bond_t *bond,int n_atom,
 		bond[*n_bond].type=1;
 		bond[*n_bond].b=n_atom-1;
 		bond[*n_bond].curve=dash[0].curve;
-		potrace_path_t *pa=atom[bond[*n_bond].a].curve;
-		potrace_path_t *pb=atom[bond[*n_bond].b].curve;
-		if (pa->area>pb->area)
+		int pa=count_area(&box,int(dash[0].x),int(dash[0].y));
+		int pb=count_area(&box,int(dash[n-1].x),int(dash[n-1].y));
+		if (pa>pb)
 		  {
 		    int t=bond[*n_bond].a;
 		    bond[*n_bond].a=bond[*n_bond].b;
@@ -3840,10 +3878,9 @@ int main(int argc,char **argv)
 
 		n_atom=find_dashed_bonds(p,atom,bond,n_atom,&n_bond,
 					 max(dash_length,int(avg_bond/3)),
-					 avg_bond);
+					 avg_bond,orig_box,bgColor,THRESHOLD_BOND);
 		//debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png"); 		
 		//exit(0);
-
 		double max_area=avg_bond*5;
 		if (thick) max_area=avg_bond;
 		n_letters=find_plus_minus(p,letters,atom,bond,n_atom,n_bond,
@@ -3880,7 +3917,7 @@ int main(int argc,char **argv)
 		    remove_disconnected_bonds(bond,n_bond);
 		    remove_disconnected_atoms(atom,bond,n_atom,n_bond);
 		  }
-		
+	
 		valency_check(atom,bond,n_atom,n_bond);
 		find_up_down_bonds(bond,n_bond,atom);
 		int real_atoms=count_atoms(atom,n_atom);
