@@ -32,7 +32,7 @@ using namespace OpenBabel;
 string fix_atom_name(string s,int n)
 {
   string r=s;
-  //cout<<s<<"-->";
+  cout<<s<<"-->";
   if (s.length()==1) r=toupper(s.at(0));
   if (s=="Ci" || s=="Cf" || s=="Cll") r="Cl";
   else if (s=="H" && n>1) r="N";
@@ -71,7 +71,7 @@ string fix_atom_name(string s,int n)
   else if (s=="lH") r="H";
   else if (s=="NHnC") r="NHAc";
   else if (s=="OCHS") r="OC";
-  //cout<<r<<endl;
+  cout<<r<<endl;
   return(r);
 }
 

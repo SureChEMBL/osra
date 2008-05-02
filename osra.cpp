@@ -982,6 +982,7 @@ int assign_atom_labels(atom_t *atom,int n_atom,letters_t *letters,int n_letters,
       {
 	bool not_corner_a=not_corner(bond[j].a,bond,n_bond,radius,atom,dist);
 	bool not_corner_b=not_corner(bond[j].b,bond,n_bond,radius,atom,dist);
+	double bl=bond_length(bond,j,atom);
       	for (int i=0;i<n_label;i++)
 	  {
 	    double d1=distance(atom[bond[j].a].x,atom[bond[j].a].y,
@@ -1014,7 +1015,7 @@ int assign_atom_labels(atom_t *atom,int n_atom,letters_t *letters,int n_letters,
 			       atom[bond[j].b].x,atom[bond[j].b].y,
 			       label[i].x2,label[i].y2);
 		  }
-		if (nb<1.5*avg && ang>0.99 && not_corner_a)
+		if ((nb<1.5*avg || nb<1.5*bl) && ang>D_T_TOLERANCE && not_corner_a)
 		  {
 		    atom[bond[j].a].label=label[i].a;
 		    atom[bond[j].a].x=(label[i].x1+label[i].x2)/2;
@@ -1039,7 +1040,7 @@ int assign_atom_labels(atom_t *atom,int n_atom,letters_t *letters,int n_letters,
 			       atom[bond[j].a].x,atom[bond[j].a].y,
 			       label[i].x2,label[i].y2);
 		  }
-		if (nb<1.5*avg && ang>0.99 && not_corner_b)
+		if ((nb<1.5*avg || nb<1.5*bl) && ang>D_T_TOLERANCE && not_corner_b)
 		  {
 		    atom[bond[j].b].label=label[i].a;
 		    atom[bond[j].b].x=(label[i].x1+label[i].x2)/2;
@@ -1082,6 +1083,7 @@ int assign_atom_labels(atom_t *atom,int n_atom,letters_t *letters,int n_letters,
 	{
 	  bool not_corner_a=not_corner(bond[j].a,bond,n_bond,radius,atom,dist);
 	  bool not_corner_b=not_corner(bond[j].b,bond,n_bond,radius,atom,dist);
+	  double bl=bond_length(bond,j,atom);
 	  for (int i=0;i<n_letters;i++)
 	    if (letters[i].free)
 	      {
@@ -1098,7 +1100,8 @@ int assign_atom_labels(atom_t *atom,int n_atom,letters_t *letters,int n_letters,
 			       atom[bond[j].a].x,atom[bond[j].a].y,
 			       atom[bond[j].b].x,atom[bond[j].b].y,
 			       letters[i].x,letters[i].y);
-		    if (nb<1.5*avg && ang>0.99 && not_corner_a)
+
+		    if ((nb<1.5*avg || nb<1.5*bl) && ang>D_T_TOLERANCE && not_corner_a)
 		      {
 			atom[bond[j].a].label=toupper(letters[i].a);;
 			atom[bond[j].a].x=letters[i].x;
@@ -1112,7 +1115,7 @@ int assign_atom_labels(atom_t *atom,int n_atom,letters_t *letters,int n_letters,
 			       atom[bond[j].b].x,atom[bond[j].b].y,
 			       atom[bond[j].a].x,atom[bond[j].a].y,
 			       letters[i].x,letters[i].y);
-		    if (nb<1.5*avg && ang>0.99 && not_corner_b)
+		    if ((nb<1.5*avg || nb<1.5*bl) && ang>D_T_TOLERANCE && not_corner_b)
 		      {
 			atom[bond[j].b].label=toupper(letters[i].a);;
 			atom[bond[j].b].x=letters[i].x;
@@ -1623,11 +1626,14 @@ char get_atom_label(Image image, ColorGray bg, int x1, int y1, int x2, int y2, d
 
 int find_chars(potrace_path_t *p,Image orig,letters_t *letters,
 	       atom_t *atom,bond_t *bond,int n_atom,int n_bond,int height,int width,
-	       ColorGray bgColor, double THRESHOLD, int max_font_height, int max_font_width)
+	       ColorGray bgColor, double THRESHOLD, 
+	       int max_font_width, int max_font_height,
+	       int &real_font_width, int &real_font_height)
 {
   int n, *tag,n_letters=0;
   potrace_dpoint_t (*c)[3];
-
+  real_font_width=0;
+  real_font_height=0;
 
   while (p != NULL) 
       {
@@ -1720,6 +1726,10 @@ int find_chars(potrace_path_t *p,Image orig,letters_t *letters,
 		    letters[n_letters].x=(left+right)/2;
 		    letters[n_letters].y=(top+bottom)/2;
 		    letters[n_letters].r=distance(left,top,right,bottom)/2;
+		    if (right-left>real_font_width)
+		      real_font_width=right-left;
+		    if (bottom-top>real_font_height)
+		      real_font_height=bottom-top;
 		    letters[n_letters].free=true;
 		    n_letters++;
 		    if (n_letters>=MAX_ATOMS) n_letters--;
@@ -1750,6 +1760,10 @@ int find_chars(potrace_path_t *p,Image orig,letters_t *letters,
 		    letters[n_letters].x=(left+right)/2;
 		    letters[n_letters].y=(newtop+bottom)/2;
 		    letters[n_letters].r=distance(left,newtop,right,bottom)/2;
+		    if (right-left>real_font_width)
+		      real_font_width=right-left;
+		    if (bottom-newtop>real_font_height)
+		      real_font_height=bottom-newtop;
 		    letters[n_letters].free=true;
 		    n_letters++;
 		    if (n_letters>=MAX_ATOMS) n_letters--;
@@ -1757,6 +1771,8 @@ int find_chars(potrace_path_t *p,Image orig,letters_t *letters,
 		    letters[n_letters].x=(left+right)/2;
 		    letters[n_letters].y=(top+newbottom)/2;
 		    letters[n_letters].r=distance(left,top,right,newbottom)/2;
+		    if (newbottom-top>real_font_height)
+		      real_font_height=newbottom-top;
 		    letters[n_letters].free=true;
 		    n_letters++;
 		    if (n_letters>=MAX_ATOMS) n_letters--;
@@ -1787,6 +1803,10 @@ int find_chars(potrace_path_t *p,Image orig,letters_t *letters,
 		    letters[n_letters].x=(left+newright)/2;
 		    letters[n_letters].y=(top+bottom)/2;
 		    letters[n_letters].r=distance(left,top,newright,bottom)/2;
+		    if (newright-left>real_font_width)
+		      real_font_width=newright-left;
+		    if (bottom-top>real_font_height)
+		      real_font_height=bottom-top;
 		    letters[n_letters].free=true;
 		    n_letters++;
 		    if (n_letters>=MAX_ATOMS) n_letters--;
@@ -1794,6 +1814,8 @@ int find_chars(potrace_path_t *p,Image orig,letters_t *letters,
 		    letters[n_letters].x=(newleft+right)/2;
 		    letters[n_letters].y=(top+bottom)/2;
 		    letters[n_letters].r=distance(newleft,top,right,bottom)/2;
+		    if (right-newleft>real_font_width)
+		      real_font_width=right-newleft;
 		    letters[n_letters].free=true;
 		    n_letters++;
 		    if (n_letters>=MAX_ATOMS) n_letters--;
@@ -1810,6 +1832,10 @@ int find_chars(potrace_path_t *p,Image orig,letters_t *letters,
 	  }
 	p = p->next;
       }
+  if (real_font_width<1) real_font_width=max_font_width;
+  else real_font_width++;
+  if (real_font_height<1) real_font_height=max_font_height;
+  else real_font_height++;
   return(n_letters);
 }
 
@@ -3838,9 +3864,11 @@ int main(int argc,char **argv)
 		st = potrace_trace(param, bm);
 		p = st->plist;
 		n_atom=find_atoms(p,atom,bond,&n_bond,mind);
+		int real_font_width,real_font_height;
 		n_letters=find_chars(p,orig_box,letters,atom,bond,n_atom,n_bond,
 				     height,width,bgColor,THRESHOLD_CHAR,
-				     max_font_height,max_font_width);
+				     max_font_width,max_font_height,
+				     real_font_width,real_font_height);
 
 
 
@@ -3848,7 +3876,7 @@ int main(int argc,char **argv)
 		if (working_resolution==300)
 		  {
 		    n_letters=find_fused_chars(bond,n_bond,atom,letters,n_letters,
-					       max_font_height,max_font_width,
+					       real_font_height,real_font_width,
 					       avg_bond/3,orig_box,bgColor,
 					       THRESHOLD_CHAR);
 		  }
@@ -3861,8 +3889,8 @@ int main(int argc,char **argv)
 		double max_area=avg_bond*5;
 		if (thick) max_area=avg_bond;
 		n_letters=find_plus_minus(p,letters,atom,bond,n_atom,n_bond,
-					  height,width,max_font_height,
-					  max_font_width,n_letters,avg_bond);
+					  height,width,real_font_height,
+					  real_font_width,n_letters,avg_bond);
 
 
 		n_atom=find_small_bonds(p,atom,bond,n_atom,&n_bond,max_area,avg_bond/2);
@@ -3871,11 +3899,10 @@ int main(int argc,char **argv)
 
 		double thickness=skeletize(atom,bond,n_bond,box,THRESHOLD_BOND,bgColor);
 		n_bond=double_triple_bonds(atom,bond,n_bond,avg_bond,n_atom,thickness);
-		//debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png"); 		
-		//exit(0);		
+
 
 		n_letters=remove_small_bonds(bond,n_bond,atom,letters,n_letters,
-					     max_font_height,min_font_height,avg_bond);
+					     real_font_height,min_font_height,avg_bond);
 	 
 		remove_disconnected_atoms(atom,bond,n_atom,n_bond);
 
@@ -3884,6 +3911,7 @@ int main(int argc,char **argv)
 				 label,n_label,letters,n_letters,working_resolution);
 
 		remove_bumps(bond,n_bond,atom,avg_bond);
+
 		n_label=assign_atom_labels(atom,n_atom,letters,n_letters,avg_bond/4,
 					   bond,n_bond,cornerd,label,avg_bond);
 		remove_duplicate_atoms(atom,bond,n_atom,n_bond,avg_bond/4,avg_bond); 
@@ -3897,6 +3925,7 @@ int main(int argc,char **argv)
 		    remove_disconnected_atoms(atom,bond,n_atom,n_bond);
 		  }
 
+		//debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png"); 	      
 		valency_check(atom,bond,n_atom,n_bond);
 		find_up_down_bonds(bond,n_bond,atom);
 		int real_atoms=count_atoms(atom,n_atom);
