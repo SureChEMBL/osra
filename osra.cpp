@@ -552,9 +552,9 @@ double skeletize(atom_t *atom,bond_t *bond,int n_bond,Image image,
 
 
 int double_triple_bonds(atom_t *atom,bond_t *bond,int n_bond,double avg,int &n_atom,
-			double thickness)
+			double thickness, double &max_dist_double_bond)
 {
-  double max_dist_double_bond=0;
+  max_dist_double_bond=0;
   for (int i=0;i<n_bond;i++)
     if (bond[i].exists)
       {
@@ -3898,7 +3898,9 @@ int main(int argc,char **argv)
 
 
 		double thickness=skeletize(atom,bond,n_bond,box,THRESHOLD_BOND,bgColor);
-		n_bond=double_triple_bonds(atom,bond,n_bond,avg_bond,n_atom,thickness);
+		double max_dist_double_bond;
+		n_bond=double_triple_bonds(atom,bond,n_bond,avg_bond,n_atom,
+					   thickness,max_dist_double_bond);
 
 
 		n_letters=remove_small_bonds(bond,n_bond,atom,letters,n_letters,
@@ -3912,9 +3914,12 @@ int main(int argc,char **argv)
 
 		remove_bumps(bond,n_bond,atom,avg_bond);
 
-		n_label=assign_atom_labels(atom,n_atom,letters,n_letters,avg_bond/4,
+		n_label=assign_atom_labels(atom,n_atom,letters,n_letters,
+					   max(avg_bond/4,thickness),
 					   bond,n_bond,cornerd,label,avg_bond);
-		remove_duplicate_atoms(atom,bond,n_atom,n_bond,avg_bond/4,avg_bond); 
+		remove_duplicate_atoms(atom,bond,n_atom,n_bond,
+				       max(avg_bond/4,thickness),
+				       avg_bond); 
 
 		for (int i=0;i<2;i++)
 		  {
