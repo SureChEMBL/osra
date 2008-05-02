@@ -878,7 +878,7 @@ int comp_letters(const void *a,const void *b)
 
 int assign_atom_labels(atom_t *atom,int n_atom,letters_t *letters,int n_letters,
 		       double radius,bond_t *bond, int n_bond, double dist, 
-		       label_t *label,double avg)
+		       label_t *label,double avg,double max_dist_double_bond)
 {
   lbond_t lbond[MAX_ATOMS];
   int n_lbond=0;
@@ -956,11 +956,18 @@ int assign_atom_labels(atom_t *atom,int n_atom,letters_t *letters,int n_letters,
 	double md=FLT_MAX;
 	bool found=false;
 	int lab=0;
+	bool a_double=false;
+	for (int k=0;k<n_bond;k++)
+	  if (bond[k].exists && bond[k].type==2 &&
+	      (bond[k].a==j || bond[k].b==j))
+	    a_double=true;
 	for (int i=0;i<n_label;i++)
 	  {
 	    double d1=distance(atom[j].x,atom[j].y,label[i].x1,label[i].y1);
 	    double d2=distance(atom[j].x,atom[j].y,label[i].x2,label[i].y2);
-	    if (((d1<label[i].r1+radius) || (d2<label[i].r2+radius))
+	    double dist=radius;
+	    if (a_double) dist+=1.5*max_dist_double_bond;
+	    if (((d1<label[i].r1+dist) || (d2<label[i].r2+dist))
 		&& (min(d1,d2)<md))
 		{
 		  md=min(d1,d2);
@@ -1001,7 +1008,7 @@ int assign_atom_labels(atom_t *atom,int n_atom,letters_t *letters,int n_letters,
 	      {
 		if (d1<d2)   // 1st side of label closer
 		  {
-		    nb=d3;   // distance between end "b" and 1st side
+		    nb=d3-label[i].r1;   // distance between end "b" and 1st side
 		    ang=angle4(atom[bond[j].b].x,atom[bond[j].b].y,
 			       atom[bond[j].a].x,atom[bond[j].a].y,
 			       atom[bond[j].b].x,atom[bond[j].b].y,
@@ -1009,7 +1016,7 @@ int assign_atom_labels(atom_t *atom,int n_atom,letters_t *letters,int n_letters,
 		  }
 		else         // 2nd side closer
 		  {
-		    nb=d4;   // distance between end "b" and 2nd side
+		    nb=d4-label[i].r2;   // distance between end "b" and 2nd side
 		    ang=angle4(atom[bond[j].b].x,atom[bond[j].b].y,
 			       atom[bond[j].a].x,atom[bond[j].a].y,
 			       atom[bond[j].b].x,atom[bond[j].b].y,
@@ -1026,7 +1033,7 @@ int assign_atom_labels(atom_t *atom,int n_atom,letters_t *letters,int n_letters,
 	      {
 		if (d3<d4)   // 1st side of label closer
 		  {
-		    nb=d1;   // distance between end "a" and 1st side
+		    nb=d1-label[i].r1;   // distance between end "a" and 1st side
 		    ang=angle4(atom[bond[j].a].x,atom[bond[j].a].y,
 			       atom[bond[j].b].x,atom[bond[j].b].y,
 			       atom[bond[j].a].x,atom[bond[j].a].y,
@@ -1034,7 +1041,7 @@ int assign_atom_labels(atom_t *atom,int n_atom,letters_t *letters,int n_letters,
 		  }
 		else         // 2nd side closer
 		  {
-		    nb=d2;   // distance between end "a" and 2nd side
+		    nb=d2-label[i].r2;   // distance between end "a" and 2nd side
 		    ang=angle4(atom[bond[j].a].x,atom[bond[j].a].y,
 			       atom[bond[j].b].x,atom[bond[j].b].y,
 			       atom[bond[j].a].x,atom[bond[j].a].y,
@@ -1056,11 +1063,18 @@ int assign_atom_labels(atom_t *atom,int n_atom,letters_t *letters,int n_letters,
 	  double md=FLT_MAX;
 	  int lab=0;
 	  bool found=false;
+	  bool a_double=false;
+	  for (int k=0;k<n_bond;k++)
+	    if (bond[k].exists && bond[k].type==2 &&
+		(bond[k].a==j || bond[k].b==j))
+	      a_double=true;
 	  for (int i=0;i<n_letters;i++)
 	    if (letters[i].free)
 	      {
 		double d=distance(atom[j].x,atom[j].y,letters[i].x,letters[i].y);
-		if ((d<letters[i].r+radius) && 
+		double dist=radius;
+		if (a_double) dist+=1.5*max_dist_double_bond;
+		if ((d<letters[i].r+dist) && 
 		    (d<md))
 		  {
 		    md=d;
@@ -1095,7 +1109,7 @@ int assign_atom_labels(atom_t *atom,int n_atom,letters_t *letters,int n_letters,
 		double ang=FLT_MAX;
 		if (d1<d2)   // bond end "a" closer
 		  {
-		    nb=d2;   // distance between end "b" and letter
+		    nb=d2-letters[i].r;   // distance between end "b" and letter
 		    ang=angle4(atom[bond[j].b].x,atom[bond[j].b].y,
 			       atom[bond[j].a].x,atom[bond[j].a].y,
 			       atom[bond[j].b].x,atom[bond[j].b].y,
@@ -1110,7 +1124,7 @@ int assign_atom_labels(atom_t *atom,int n_atom,letters_t *letters,int n_letters,
 		  }
 		else             // end "b" closer
 		  {
-		    nb=d1;   // distance between end "a" and 1st side
+		    nb=d1-letters[i].r;   // distance between end "a" and letter
 		    ang=angle4(atom[bond[j].a].x,atom[bond[j].a].y,
 			       atom[bond[j].b].x,atom[bond[j].b].y,
 			       atom[bond[j].a].x,atom[bond[j].a].y,
@@ -2809,7 +2823,7 @@ void align_broken_bonds(atom_t* atom,int n_atom,bond_t* bond,int n_bond)
 }
 
 void remove_duplicate_atoms(atom_t *atom, bond_t *bond, int n_atom,int n_bond,
-			    double r, double avg)
+			    double r, double avg, double max_dist_double_bond)
 {
   for (int i=0;i<n_atom;i++)
       {
@@ -2988,7 +3002,28 @@ void remove_duplicate_atoms(atom_t *atom, bond_t *bond, int n_atom,int n_bond,
 		}
 	    }
       }
-  
+ for (int i=0;i<n_bond;i++)
+   if (bond[i].exists && bond[i].type==2)
+     for (int j=0;j<n_atom;j++)
+       if ((atom[j].exists) && j!=bond[i].a && j!=bond[i].b)
+	 {
+	   if (distance(atom[bond[i].a].x,atom[bond[i].a].y,atom[j].x,atom[j].y)<1.5*max_dist_double_bond)
+	     {
+	       atom[j].exists=false;
+	       for (int k=0;k<n_bond;k++)
+		 if (bond[k].exists)
+		   if (bond[k].a==j) {bond[k].a=bond[i].a;}
+		   else if (bond[k].b==j) {bond[k].b=bond[i].a;}
+	     }
+	   else if (distance(atom[bond[i].b].x,atom[bond[i].b].y,atom[j].x,atom[j].y)<1.5*max_dist_double_bond)
+	     {
+	       atom[j].exists=false;
+	       for (int k=0;k<n_bond;k++)
+		 if (bond[k].exists)
+		   if (bond[k].a==j) {bond[k].a=bond[i].b;}
+		   else if (bond[k].b==j) {bond[k].b=bond[i].b;}
+	     } 
+	 }
 }
 
 int fix_one_sided_bonds(bond_t *bond,int n_bond,atom_t *atom)
@@ -3916,10 +3951,11 @@ int main(int argc,char **argv)
 
 		n_label=assign_atom_labels(atom,n_atom,letters,n_letters,
 					   max(avg_bond/4,thickness),
-					   bond,n_bond,cornerd,label,avg_bond);
+					   bond,n_bond,cornerd,label,avg_bond,
+					   max_dist_double_bond);
 		remove_duplicate_atoms(atom,bond,n_atom,n_bond,
 				       max(avg_bond/4,thickness),
-				       avg_bond); 
+				       avg_bond,max_dist_double_bond); 
 
 		for (int i=0;i<2;i++)
 		  {
