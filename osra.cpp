@@ -876,6 +876,17 @@ int comp_letters(const void *a,const void *b)
   return(0);
 }
 
+bool terminal_bond(int a,int b,bond_t *bond,int n_bond)
+{
+  bool terminal=true;
+  for (int l=0;l<n_bond;l++)
+    if (l!=b && bond[l].exists && 
+	(bond[l].a==a || bond[l].b==a))
+      terminal=false;
+  return(terminal);
+}
+
+
 int assign_atom_labels(atom_t *atom,int n_atom,letters_t *letters,int n_letters,
 		       double radius,bond_t *bond, int n_bond, double dist, 
 		       label_t *label,double avg,double max_dist_double_bond)
@@ -986,8 +997,8 @@ int assign_atom_labels(atom_t *atom,int n_atom,letters_t *letters,int n_letters,
   for (int j=0;j<n_bond;j++)
     if (bond[j].exists)
       {
-	bool not_corner_a=not_corner(bond[j].a,bond,n_bond,radius,atom,dist);
-	bool not_corner_b=not_corner(bond[j].b,bond,n_bond,radius,atom,dist);
+	bool not_corner_a=terminal_bond(bond[j].a,j,bond,n_bond);
+	bool not_corner_b=terminal_bond(bond[j].b,j,bond,n_bond);
 	double bl=bond_length(bond,j,atom);
       	for (int i=0;i<n_label;i++)
 	  {
@@ -1093,8 +1104,8 @@ int assign_atom_labels(atom_t *atom,int n_atom,letters_t *letters,int n_letters,
     for (int j=0;j<n_bond;j++)
       if (bond[j].exists)
 	{
-	  bool not_corner_a=not_corner(bond[j].a,bond,n_bond,radius,atom,dist);
-	  bool not_corner_b=not_corner(bond[j].b,bond,n_bond,radius,atom,dist);
+	  bool not_corner_a=terminal_bond(bond[j].a,j,bond,n_bond);
+	  bool not_corner_b=terminal_bond(bond[j].b,j,bond,n_bond);
 	  double bl=bond_length(bond,j,atom);
 	  double xa=atom[bond[j].a].x;
 	  double ya=atom[bond[j].a].y;
@@ -1114,8 +1125,9 @@ int assign_atom_labels(atom_t *atom,int n_atom,letters_t *letters,int n_letters,
 		    nb=d2-letters[i].r;   // distance between end "b" and letter
 		    ang=angle4(xb,yb,xa,ya,
 			       xb,yb,letters[i].x,letters[i].y);
-		    if ((nb<=avg || nb<=bl) && ang>0.99 && not_corner_a)
+		    if ((nb<=avg+2 || nb<=bl+2) && ang>0.99 && not_corner_a)
 		      {
+			//			if (nb>avg) cout<<letters[i].a<<" "<<nb<<" "<<avg<<" "<<d2<<" "<<letters[i].r<<endl;
 			atom[bond[j].a].label=toupper(letters[i].a);;
 			atom[bond[j].a].x=letters[i].x;
 			atom[bond[j].a].y=letters[i].y;
@@ -1126,8 +1138,9 @@ int assign_atom_labels(atom_t *atom,int n_atom,letters_t *letters,int n_letters,
 		    nb=d1-letters[i].r;   // distance between end "a" and letter
 		    ang=angle4(xa,ya,xb,yb,
 			       xa,ya,letters[i].x,letters[i].y);
-		    if ((nb<=avg || nb<=bl) && ang>0.99 && not_corner_b)
+		    if ((nb<=avg+2 || nb<=bl+2) && ang>0.99 && not_corner_b)
 		      {
+			//if (nb>avg) cout<<letters[i].a<<" "<<nb<<" "<<avg<<" "<<d1<<" "<<letters[i].r<<endl;
 			atom[bond[j].b].label=toupper(letters[i].a);;
 			atom[bond[j].b].x=letters[i].x;
 			atom[bond[j].b].y=letters[i].y;
@@ -2699,17 +2712,8 @@ int resolve_bridge_bonds(atom_t* atom,int n_atom,bond_t* bond,int n_bond)
 		bool terminal=false;
 		for (unsigned int k=0;k<term.size();k++)
 		  {
-		    bool terminal_a=true;
-		    bool terminal_b=true;
-		    for (int l=0;l<n_bond;l++)
-		      {
-			if (l!=term[k] && bond[l].exists && 
-			    (bond[l].a==bond[term[k]].a || bond[l].b==bond[term[k]].a))
-			  terminal_a=false;
-			if (l!=term[k] && bond[l].exists && 
-			    (bond[l].a==bond[term[k]].b || bond[l].b==bond[term[k]].b))
-			  terminal_b=false;
-		      }
+		    bool terminal_a=terminal_bond(bond[term[k]].a,term[k],bond,n_bond);
+		    bool terminal_b=terminal_bond(bond[term[k]].b,term[k],bond,n_bond);
 		    if (terminal_a || terminal_b) terminal=true;
 		  }
 		if (bond[a].type==1 && bond[b].type==1 &&
@@ -2885,20 +2889,8 @@ void remove_duplicate_atoms(atom_t *atom, bond_t *bond, int n_atom,int n_bond,
  for (int i=0;i<n_bond;i++)
     if (bond[i].exists && bond[i].type<3)
       {
-	bool a_connected=false;
-	bool b_connected=false;
-	for (int j=0;j<n_bond;j++)
-	  if (bond[j].exists && j!=i)
-	    {
-	      if (bond[i].a==bond[j].a || bond[i].a==bond[j].b)
-		{
-		  a_connected=true;
-		}
-	      if (bond[i].b==bond[j].a || bond[i].b==bond[j].b)
-		{
-		  b_connected=true;
-		}
-	    }
+	bool a_connected=!terminal_bond(bond[i].a,i,bond,n_bond);
+	bool b_connected=!terminal_bond(bond[i].b,i,bond,n_bond);
 	double bl=bond_length(bond,i,atom);
 
 	for (int j=0;j<n_bond;j++)
