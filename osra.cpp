@@ -1035,7 +1035,7 @@ void assign_atom_labels(atom_t *atom,int n_atom,letters_t *letters,int n_letters
 }
 
 
-void extend_terminal_bond(atom_t *atom,letters_t *letters,int n_letters,
+void extend_terminal_bond_to_label(atom_t *atom,letters_t *letters,int n_letters,
 			  bond_t *bond, int n_bond,label_t *label,int n_label,
 			  double avg)
 {
@@ -2829,7 +2829,7 @@ void align_broken_bonds(atom_t* atom,int n_atom,bond_t* bond,int n_bond)
 }
 
 void remove_duplicate_atoms(atom_t *atom, bond_t *bond, int n_atom,int n_bond,
-			    double r, double avg)
+			    double r)
 {
   for (int i=0;i<n_atom;i++)
       {
@@ -2891,7 +2891,12 @@ void remove_duplicate_atoms(atom_t *atom, bond_t *bond, int n_atom,int n_bond,
 	      }
 	  }
       }
-  
+}
+
+
+void extend_terminal_bond_to_bond(atom_t *atom, bond_t *bond, int n_atom,int n_bond,
+				  double avg)
+{  
  for (int i=0;i<n_bond;i++)
     if (bond[i].exists && bond[i].type<3)
       {
@@ -2925,7 +2930,7 @@ void remove_duplicate_atoms(atom_t *atom, bond_t *bond, int n_atom,int n_bond,
 				 atom[bond[i].a].x,atom[bond[i].a].y,
 				 atom[bond[i].b].x,atom[bond[i].b].y,
 				 atom[bond[j].a].x,atom[bond[j].a].y);
-		      if ( (nb<=avg || nb<=bl)  
+		      if ( (nb<=2*avg || nb<=bl+2)  
 			   && ang>0.99 && !a_connected)
 			{
 			  atom[bond[i].a].exists=false;
@@ -2943,7 +2948,7 @@ void remove_duplicate_atoms(atom_t *atom, bond_t *bond, int n_atom,int n_bond,
 				 atom[bond[i].a].x,atom[bond[i].a].y,
 				 atom[bond[i].b].x,atom[bond[i].b].y,
 				 atom[bond[j].b].x,atom[bond[j].b].y);
-		      if ( (nb<=avg ||  nb<=bl)  
+		      if ( (nb<=2*avg ||  nb<=bl+2)  
 			   && ang>0.99 && !a_connected)
 			{
 			  atom[bond[i].a].exists=false;
@@ -2964,7 +2969,7 @@ void remove_duplicate_atoms(atom_t *atom, bond_t *bond, int n_atom,int n_bond,
 				 atom[bond[i].b].x,atom[bond[i].b].y,
 				 atom[bond[i].a].x,atom[bond[i].a].y,
 				 atom[bond[j].a].x,atom[bond[j].a].y);
-		      if ( (nb<=avg ||  nb<=bl)  
+		      if ( (nb<=2*avg ||  nb<=bl+2)  
 			   && ang>0.99 && !b_connected)
 			{
 			  atom[bond[i].b].exists=false;
@@ -2982,7 +2987,7 @@ void remove_duplicate_atoms(atom_t *atom, bond_t *bond, int n_atom,int n_bond,
 				 atom[bond[i].b].x,atom[bond[i].b].y,
 				 atom[bond[i].a].x,atom[bond[i].a].y,
 				 atom[bond[j].b].x,atom[bond[j].b].y);
-		      if ( (nb<=avg ||  nb<=bl)  
+		      if ( (nb<=2*avg ||  nb<=bl+2)  
 			   && ang>0.99 && !b_connected)
 			{
 			  atom[bond[i].b].exists=false;
@@ -3952,8 +3957,7 @@ int main(int argc,char **argv)
 				   bond,n_bond,cornerd,label,n_label,
 				   avg_bond, max_dist_double_bond);
 		remove_duplicate_atoms(atom,bond,n_atom,n_bond,
-				       max(avg_bond/4,thickness),
-				       avg_bond);
+				       max(avg_bond/4,thickness));
 		for (int i=0;i<2;i++)
 		  {
 		    n_bond=fix_one_sided_bonds(bond,n_bond,atom);
@@ -3962,11 +3966,12 @@ int main(int argc,char **argv)
 		    remove_disconnected_bonds(bond,n_bond);
 		    remove_disconnected_atoms(atom,bond,n_atom,n_bond);
 		  }
-		extend_terminal_bond(atom,letters,n_letters,bond,n_bond,
-				     label,n_label,avg_bond);
-		remove_duplicate_atoms(atom,bond,n_atom,n_bond,2,avg_bond);
+		extend_terminal_bond_to_label(atom,letters,n_letters,bond,n_bond,
+					      label,n_label,avg_bond);
+		extend_terminal_bond_to_bond(atom,bond,n_atom,n_bond,avg_bond);
+		remove_duplicate_atoms(atom,bond,n_atom,n_bond,2);
 		fix_double_bond_ends(atom,bond,n_atom,n_bond,max_dist_double_bond);
-		//debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png"); 	      
+		debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png"); 	      
 
 		valency_check(atom,bond,n_atom,n_bond);
 		find_up_down_bonds(bond,n_bond,atom);
