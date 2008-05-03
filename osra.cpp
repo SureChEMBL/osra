@@ -3665,6 +3665,19 @@ void  find_old_aromatic_bonds(potrace_path_t *p,bond_t *bond,int n_bond,
     }
   
 }
+ 
+int smooth_kinks(bond_t *bond,int n_bond,atom_t *atom,int n_atom)
+{
+  for (int i=0;i<2;i++)
+    {
+      n_bond=fix_one_sided_bonds(bond,n_bond,atom);
+      align_broken_bonds(atom,n_atom,bond,n_bond);
+      n_bond=fix_one_sided_bonds(bond,n_bond,atom);
+      remove_disconnected_bonds(bond,n_bond);
+      remove_disconnected_atoms(atom,bond,n_atom,n_bond);
+    }
+  return(n_bond);
+}
 
 job_t *JOB;
 
@@ -3958,20 +3971,14 @@ int main(int argc,char **argv)
 				   avg_bond, max_dist_double_bond);
 		remove_duplicate_atoms(atom,bond,n_atom,n_bond,
 				       max(avg_bond/4,thickness));
-		for (int i=0;i<2;i++)
-		  {
-		    n_bond=fix_one_sided_bonds(bond,n_bond,atom);
-		    align_broken_bonds(atom,n_atom,bond,n_bond);
-		    n_bond=fix_one_sided_bonds(bond,n_bond,atom);
-		    remove_disconnected_bonds(bond,n_bond);
-		    remove_disconnected_atoms(atom,bond,n_atom,n_bond);
-		  }
+		n_bond=smooth_kinks(bond,n_bond,atom,n_atom);
 		extend_terminal_bond_to_label(atom,letters,n_letters,bond,n_bond,
 					      label,n_label,avg_bond);
 		extend_terminal_bond_to_bond(atom,bond,n_atom,n_bond,avg_bond);
 		remove_duplicate_atoms(atom,bond,n_atom,n_bond,2);
 		fix_double_bond_ends(atom,bond,n_atom,n_bond,max_dist_double_bond);
-		debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png"); 	      
+		n_bond=smooth_kinks(bond,n_bond,atom,n_atom);
+		//debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png"); 	      
 
 		valency_check(atom,bond,n_atom,n_bond);
 		find_up_down_bonds(bond,n_bond,atom);
