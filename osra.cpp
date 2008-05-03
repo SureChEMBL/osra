@@ -886,10 +886,7 @@ bool terminal_bond(int a,int b,bond_t *bond,int n_bond)
   return(terminal);
 }
 
-
-int assign_atom_labels(atom_t *atom,int n_atom,letters_t *letters,int n_letters,
-		       double radius,bond_t *bond, int n_bond, double dist, 
-		       label_t *label,double avg,double max_dist_double_bond)
+int assemble_labels(letters_t *letters,int n_letters,label_t *label)
 {
   lbond_t lbond[MAX_ATOMS];
   int n_lbond=0;
@@ -960,7 +957,14 @@ int assign_atom_labels(atom_t *atom,int n_atom,letters_t *letters,int n_letters,
 	 n_label++;
 	 if (n_label>=MAX_ATOMS) n_label--;
       }
+  return(n_label);
+}
 
+void assign_atom_labels(atom_t *atom,int n_atom,letters_t *letters,int n_letters,
+			double radius,bond_t *bond, int n_bond, double dist, 
+			label_t *label,int n_label,double avg,
+			double max_dist_double_bond)
+{
   for (int j=0;j<n_atom;j++)
     if (atom[j].exists && not_corner(j,bond,n_bond,radius,atom,dist))
       {
@@ -994,7 +998,48 @@ int assign_atom_labels(atom_t *atom,int n_atom,letters_t *letters,int n_letters,
 	  }
       }
 
-  for (int j=0;j<n_bond;j++)
+    for (int j=0;j<n_atom;j++)
+      if (atom[j].exists && not_corner(j,bond,n_bond,radius,atom,dist))
+	{
+	  double md=FLT_MAX;
+	  int lab=0;
+	  bool found=false;
+	  bool a_double=false;
+	  for (int k=0;k<n_bond;k++)
+	    if (bond[k].exists && bond[k].type==2 &&
+		(bond[k].a==j || bond[k].b==j))
+	      a_double=true;
+	  for (int i=0;i<n_letters;i++)
+	    if (letters[i].free)
+	      {
+		double d=distance(atom[j].x,atom[j].y,letters[i].x,letters[i].y);
+		double dd=radius+1;
+		if (a_double) dd+=max_dist_double_bond;
+		if ((d<=letters[i].r+dd) && 
+		    (d<md))
+		  {
+		    md=d;
+		    lab=i;
+		    found=true;
+		  }
+	      }
+
+	  if (found)
+	    {
+	      atom[j].label=toupper(letters[lab].a);
+	      atom[j].x=letters[lab].x;
+	      atom[j].y=letters[lab].y;
+	    }
+	}
+ 
+}
+
+
+void extend_terminal_bond(atom_t *atom,letters_t *letters,int n_letters,
+			  bond_t *bond, int n_bond,label_t *label,int n_label,
+			  double avg)
+{
+ for (int j=0;j<n_bond;j++)
     if (bond[j].exists)
       {
 	bool not_corner_a=terminal_bond(bond[j].a,j,bond,n_bond);
@@ -1032,7 +1077,7 @@ int assign_atom_labels(atom_t *atom,int n_atom,letters_t *letters,int n_letters,
 			       atom[bond[j].b].x,atom[bond[j].b].y,
 			       label[i].x2,label[i].y2);
 		  }
-		if ((nb<=avg || nb<=bl) && ang>0.99 && not_corner_a)
+		if ((nb<=2*avg || nb<=bl+2) && ang>0.99 && not_corner_a)
 		  {
 		    atom[bond[j].a].label=label[i].a;
 		    atom[bond[j].a].x=(label[i].x1+label[i].x2)/2;
@@ -1057,7 +1102,7 @@ int assign_atom_labels(atom_t *atom,int n_atom,letters_t *letters,int n_letters,
 			       atom[bond[j].a].x,atom[bond[j].a].y,
 			       label[i].x2,label[i].y2);
 		  }
-		if ((nb<=avg || nb<=bl) && ang>0.99 && not_corner_b)
+		if ((nb<=2*avg || nb<=bl+2) && ang>0.99 && not_corner_b)
 		  {
 		    atom[bond[j].b].label=label[i].a;
 		    atom[bond[j].b].x=(label[i].x1+label[i].x2)/2;
@@ -1066,41 +1111,7 @@ int assign_atom_labels(atom_t *atom,int n_atom,letters_t *letters,int n_letters,
 	      }
 	  }
       }
-  
-    for (int j=0;j<n_atom;j++)
-      if (atom[j].exists && not_corner(j,bond,n_bond,radius,atom,dist))
-	{
-	  double md=FLT_MAX;
-	  int lab=0;
-	  bool found=false;
-	  bool a_double=false;
-	  for (int k=0;k<n_bond;k++)
-	    if (bond[k].exists && bond[k].type==2 &&
-		(bond[k].a==j || bond[k].b==j))
-	      a_double=true;
-	  for (int i=0;i<n_letters;i++)
-	    if (letters[i].free)
-	      {
-		double d=distance(atom[j].x,atom[j].y,letters[i].x,letters[i].y);
-		double dd=radius+1;
-		if (a_double) dd+=max_dist_double_bond;
-		if ((d<=letters[i].r+dd) && 
-		    (d<md))
-		  {
-		    md=d;
-		    lab=i;
-		    found=true;
-		  }
-	      }
-
-	  if (found)
-	    {
-	      atom[j].label=toupper(letters[lab].a);
-	      atom[j].x=letters[lab].x;
-	      atom[j].y=letters[lab].y;
-	    }
-	}
-    
+   
     for (int j=0;j<n_bond;j++)
       if (bond[j].exists)
 	{
@@ -1125,9 +1136,8 @@ int assign_atom_labels(atom_t *atom,int n_atom,letters_t *letters,int n_letters,
 		    nb=d2-letters[i].r;   // distance between end "b" and letter
 		    ang=angle4(xb,yb,xa,ya,
 			       xb,yb,letters[i].x,letters[i].y);
-		    if ((nb<=avg+2 || nb<=bl+2) && ang>0.99 && not_corner_a)
+		    if ((nb<=2*avg || nb<=bl+2) && ang>0.99 && not_corner_a)
 		      {
-			//			if (nb>avg) cout<<letters[i].a<<" "<<nb<<" "<<avg<<" "<<d2<<" "<<letters[i].r<<endl;
 			atom[bond[j].a].label=toupper(letters[i].a);;
 			atom[bond[j].a].x=letters[i].x;
 			atom[bond[j].a].y=letters[i].y;
@@ -1138,9 +1148,8 @@ int assign_atom_labels(atom_t *atom,int n_atom,letters_t *letters,int n_letters,
 		    nb=d1-letters[i].r;   // distance between end "a" and letter
 		    ang=angle4(xa,ya,xb,yb,
 			       xa,ya,letters[i].x,letters[i].y);
-		    if ((nb<=avg+2 || nb<=bl+2) && ang>0.99 && not_corner_b)
+		    if ((nb<=2*avg || nb<=bl+2) && ang>0.99 && not_corner_b)
 		      {
-			//if (nb>avg) cout<<letters[i].a<<" "<<nb<<" "<<avg<<" "<<d1<<" "<<letters[i].r<<endl;
 			atom[bond[j].b].label=toupper(letters[i].a);;
 			atom[bond[j].b].x=letters[i].x;
 			atom[bond[j].b].y=letters[i].y;
@@ -1148,10 +1157,7 @@ int assign_atom_labels(atom_t *atom,int n_atom,letters_t *letters,int n_letters,
 		  }
 	      }
 	}
-    return(n_label);
 }
-
-
 
 void valency_check(atom_t *atom, bond_t *bond, int n_atom,int n_bond)
 {
@@ -3940,11 +3946,11 @@ int main(int argc,char **argv)
 				 label,n_label,letters,n_letters,working_resolution);
 
 		remove_bumps(bond,n_bond,atom,avg_bond);
-
-		n_label=assign_atom_labels(atom,n_atom,letters,n_letters,
-					   max(avg_bond/4,thickness),
-					   bond,n_bond,cornerd,label,avg_bond,
-					   max_dist_double_bond);
+		n_label=assemble_labels(letters,n_letters,label);
+		assign_atom_labels(atom,n_atom,letters,n_letters,
+				   max(avg_bond/4,thickness),
+				   bond,n_bond,cornerd,label,n_label,
+				   avg_bond, max_dist_double_bond);
 		remove_duplicate_atoms(atom,bond,n_atom,n_bond,
 				       max(avg_bond/4,thickness),
 				       avg_bond);
@@ -3956,6 +3962,9 @@ int main(int argc,char **argv)
 		    remove_disconnected_bonds(bond,n_bond);
 		    remove_disconnected_atoms(atom,bond,n_atom,n_bond);
 		  }
+		extend_terminal_bond(atom,letters,n_letters,bond,n_bond,
+				     label,n_label,avg_bond);
+		remove_duplicate_atoms(atom,bond,n_atom,n_bond,2,avg_bond);
 		fix_double_bond_ends(atom,bond,n_atom,n_bond,max_dist_double_bond);
 		//debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png"); 	      
 
