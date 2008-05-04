@@ -558,21 +558,23 @@ int double_triple_bonds(atom_t *atom,bond_t *bond,int n_bond,double avg,int &n_a
   for (int i=0;i<n_bond;i++)
     if (bond[i].exists)
       {
-	//double l1=bond_length(bond,i,atom);
+	double l1=bond_length(bond,i,atom);
 	for (int j=i+1;j<n_bond;j++)
 	  if ((bond[j].exists) 
 	      && (fabs(angle_between_bonds(bond,i,j,atom))>D_T_TOLERANCE))
 	    {
-	      //double l2=bond_length(bond,j,atom);
+	      double l2=bond_length(bond,j,atom);
 	      double dbb=distance_between_bonds(bond,i,j,atom,thickness);
-	      if (dbb<avg && bonds_within_each_other(bond,i,j,atom))
+	      if (dbb<avg && l1>avg/3 && l2>avg/3 && 
+		  bonds_within_each_other(bond,i,j,atom))
 		{
 		  if (dbb>max_dist_double_bond)
 		    max_dist_double_bond=dbb;
 		}
 	    }
       }
-  max_dist_double_bond++;  //increment by 1 to get rid of rounding problems
+  if (max_dist_double_bond<1) max_dist_double_bond=avg/3;
+  else max_dist_double_bond++;  //increment by 1 to get rid of rounding problems
   for (int i=0;i<n_bond;i++)
     if (bond[i].exists)
       {
@@ -743,13 +745,15 @@ int double_triple_bonds(atom_t *atom,bond_t *bond,int n_bond,double avg,int &n_a
 		      if (l1>l2)
 			{
 			  bond[j].exists=false;
-			  if (l2>l1/2)  bond[i].type+=bond[j].type;
+			  if (l2>l1/2)  
+			      bond[i].type+=bond[j].type;
 			  if (bond[j].arom) bond[i].arom=true;
 			}
 		      else
 			{
 			  bond[i].exists=false;
-			  if (l1>l2/2)  bond[j].type+=bond[i].type;
+			  if (l1>l2/2)  
+			    bond[j].type+=bond[i].type;
 			  if (bond[i].arom) bond[j].arom=true;
 			  break;
 			}
@@ -759,12 +763,6 @@ int double_triple_bonds(atom_t *atom,bond_t *bond,int n_bond,double avg,int &n_a
       }
   for (int i=0;i<n_bond;i++)
     bond[i].type=bond[i].type/2+bond[i].type%2;
-  //  for(int i=205;i<208;i++)
-  //    bond[205].exists=false;
-  //  cout<<fabs(angle_between_bonds(bond,198,205,atom))<<" ";
-  //cout<<distance_between_bonds(bond,198,205,atom,thickness)<<" ";
-  //cout<<(bonds_within_each_other(bond,198,205,atom)?1:0)<<endl;
-  //cout<<avg/2<<endl;
   return(n_bond);
 }
 
@@ -2784,7 +2782,7 @@ void align_broken_bonds(atom_t* atom,int n_atom,bond_t* bond,int n_bond)
 	      }
 	    con.pop_front();
 	    if (bond[a].type<3 && bond[b].type<3 &&
-		(angle_between_connected_bonds(bond,a,b,atom)>155 
+		(angle_between_connected_bonds(bond,a,b,atom)>155
 		&& bond_length(bond,a,atom)>4 && bond_length(bond,b,atom)>4
 		|| bond_length(bond,a,atom)<=4 || bond_length(bond,b,atom)<=4)
 		)
@@ -3955,6 +3953,7 @@ int main(int argc,char **argv)
 		double max_dist_double_bond;
 		n_bond=double_triple_bonds(atom,bond,n_bond,avg_bond,n_atom,
 					   thickness,max_dist_double_bond);
+		//debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png"); 	  
 
 		n_letters=remove_small_bonds(bond,n_bond,atom,letters,n_letters,
 					     real_font_height,min_font_height,avg_bond);
@@ -3966,13 +3965,18 @@ int main(int argc,char **argv)
 				 label,n_label,letters,n_letters,working_resolution);
 
 		remove_bumps(bond,n_bond,atom,avg_bond);
+
+
 		n_label=assemble_labels(letters,n_letters,label);
+
 		assign_atom_labels(atom,n_atom,letters,n_letters,
 				   max(avg_bond/4,thickness),
 				   bond,n_bond,cornerd,label,n_label,
 				   avg_bond, max_dist_double_bond);
+
 		remove_duplicate_atoms(atom,bond,n_atom,n_bond,
 				       max(avg_bond/4,thickness));
+
 		n_bond=smooth_kinks(bond,n_bond,atom,n_atom);
 		extend_terminal_bond_to_label(atom,letters,n_letters,bond,n_bond,
 					      label,n_label,avg_bond);
@@ -3980,7 +3984,7 @@ int main(int argc,char **argv)
 		remove_duplicate_atoms(atom,bond,n_atom,n_bond,2);
 		fix_double_bond_ends(atom,bond,n_atom,n_bond,max_dist_double_bond);
 
-		/*	double angles[200];
+		/*		double angles[200];
 		int n_angles=0;
 		for(int ii=0;ii<n_bond;ii++)
 		  if (bond[ii].exists)
@@ -4002,9 +4006,9 @@ int main(int argc,char **argv)
 		    }
 		qsort(aa,nn,sizeof(double),num_comp);
 		for(int ii=0;ii<nn;ii++)
-		  cout<<aa[ii]<<endl;
+		cout<<aa[ii]<<endl;
+		*/
 
-		  debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");*/ 	      
 
 		valency_check(atom,bond,n_atom,n_bond);
 		find_up_down_bonds(bond,n_bond,atom);
