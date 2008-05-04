@@ -2783,10 +2783,12 @@ void align_broken_bonds(atom_t* atom,int n_atom,bond_t* bond,int n_bond)
 		a=con.front();
 	      }
 	    con.pop_front();
-	    if (angle_between_connected_bonds(bond,a,b,atom)>FLAT_TOLERANCE 
-		&& bond[a].type<3 && bond[b].type<3
-		&& bond_length(bond,a,atom)>1 &&
-		bond_length(bond,b,atom)>1)
+	    if (bond[a].type<3 && bond[b].type<3 &&
+		(angle_between_connected_bonds(bond,a,b,atom)>155 
+		&& bond_length(bond,a,atom)>4 && bond_length(bond,b,atom)>4
+		|| bond_length(bond,a,atom)<=4 || bond_length(bond,b,atom)<=4)
+		)
+
 		  {
 		    bond[b].exists=false;
 		    atom[i].exists=false;
@@ -3977,8 +3979,32 @@ int main(int argc,char **argv)
 		extend_terminal_bond_to_bond(atom,bond,n_atom,n_bond,avg_bond);
 		remove_duplicate_atoms(atom,bond,n_atom,n_bond,2);
 		fix_double_bond_ends(atom,bond,n_atom,n_bond,max_dist_double_bond);
-		n_bond=smooth_kinks(bond,n_bond,atom,n_atom);
-		//debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png"); 	      
+
+		/*	double angles[200];
+		int n_angles=0;
+		for(int ii=0;ii<n_bond;ii++)
+		  if (bond[ii].exists)
+		    for (int jj=ii+1;jj<n_bond;jj++)
+		      if (bond[jj].exists && 
+			  (bond[ii].a==bond[jj].a || bond[ii].a==bond[jj].b ||
+			   bond[ii].b==bond[jj].a || bond[ii].b==bond[jj].b))
+			angles[n_angles++]=angle_between_connected_bonds(bond,ii,jj,atom);
+		qsort(angles,n_angles,sizeof(double),num_comp);
+		for (int ii=0;ii<n_angles;ii++)
+		  cout<<angles[ii]<<endl;
+		cout<<"================================="<<endl;
+		double aa[MAX_ATOMS];
+		int nn=0;
+		for(int ii=0;ii<n_bond;ii++)
+		  if (bond[ii].exists)
+		    {
+		      aa[nn++]=bond_length(bond,ii,atom);
+		    }
+		qsort(aa,nn,sizeof(double),num_comp);
+		for(int ii=0;ii<nn;ii++)
+		  cout<<aa[ii]<<endl;
+
+		  debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");*/ 	      
 
 		valency_check(atom,bond,n_atom,n_bond);
 		find_up_down_bonds(bond,n_bond,atom);
