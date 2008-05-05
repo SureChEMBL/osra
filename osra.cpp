@@ -226,6 +226,15 @@ void delete_curve(atom_t *atom,bond_t *bond,int n_atom,int n_bond, potrace_path_
     }
 }
 
+int find_bond_by_curve(bond_t *bond,int n_bond, potrace_path_t *curve)
+{
+  for(int i=0;i<n_bond;i++)
+    {
+      if (bond[i].curve==curve) return(i);
+    }
+  return(n_bond);
+}
+
 double angle_between_bonds(bond_t *bond,int i,int j,atom_t *atom)
 {
   return(angle4(atom[bond[i].a].x,atom[bond[i].a].y,atom[bond[i].b].x,atom[bond[i].b].y,
@@ -555,6 +564,9 @@ int double_triple_bonds(atom_t *atom,bond_t *bond,int n_bond,double avg,int &n_a
 			double thickness, double &max_dist_double_bond)
 {
   max_dist_double_bond=0;
+  double a[MAX_ATOMS];
+  int n=0;
+  
   for (int i=0;i<n_bond;i++)
     if (bond[i].exists)
       {
@@ -567,14 +579,13 @@ int double_triple_bonds(atom_t *atom,bond_t *bond,int n_bond,double avg,int &n_a
 	      double dbb=distance_between_bonds(bond,i,j,atom,thickness);
 	      if (dbb<2*avg/3 && l1>avg/3 && l2>avg/3 && 
 		  bonds_within_each_other(bond,i,j,atom))
-		{
-		  if (dbb>max_dist_double_bond)
-		    max_dist_double_bond=dbb;
-		}
+		a[n++]=dbb;
 	    }
       }
+  qsort(a,n,sizeof(double),num_comp);
+  max_dist_double_bond=a[int(0.5*n)];
   if (max_dist_double_bond<1) max_dist_double_bond=avg/3;
-  else max_dist_double_bond++;  //increment by 1 to get rid of rounding problems
+  else max_dist_double_bond+=thickness; 
   for (int i=0;i<n_bond;i++)
     if (bond[i].exists)
       {
@@ -2474,14 +2485,19 @@ int find_dashed_bonds(potrace_path_t *p, atom_t *atom,bond_t *bond,int n_atom,
 	double my=t;
 	double dist_next=FLT_MAX;
 	int next_dot=i;
+	int b1=find_bond_by_curve(bond,*n_bond,dash[0].curve);
 	for(int j=i+1;j<n_dot;j++)
 	  if (dot[j].free
 	      && distance(dash[0].x,dash[0].y,dot[j].x,dot[j].y)<=1.8*avg
 	      && distance(dash[0].x,dash[0].y,dot[j].x,dot[j].y)<dist_next)
 		{
-		  dash[1]=dot[j];
-		  dist_next=distance(dash[0].x,dash[0].y,dot[j].x,dot[j].y);
-		  next_dot=j;
+		  int b2=find_bond_by_curve(bond,*n_bond,dot[j].curve);
+		  if (angle_between_bonds(bond,b1,b2,atom)>D_T_TOLERANCE)
+		    {
+		      dash[1]=dot[j];
+		      dist_next=distance(dash[0].x,dash[0].y,dot[j].x,dot[j].y);
+		      next_dot=j;
+		    }
 		}
 
 	int n=1;
@@ -2508,10 +2524,14 @@ int find_dashed_bonds(potrace_path_t *p, atom_t *atom,bond_t *bond,int n_atom,
 		  && fabs(angle4(dash[0].x,dash[0].y,dash[n-1].x,dash[n-1].y,
 				 dash[0].x,dash[0].y,dot[j].x,dot[j].y))>D_T_TOLERANCE)
 		{
-		  dash[n]=dot[j];
-		  dist_next=distance(mx,my,dot[j].x,dot[j].y);
-		  found=true;
-		  minj=j;
+		  int b2=find_bond_by_curve(bond,*n_bond,dot[j].curve);
+		  if (angle_between_bonds(bond,b1,b2,atom)>D_T_TOLERANCE)
+		    {
+		      dash[n]=dot[j];
+		      dist_next=distance(mx,my,dot[j].x,dot[j].y);
+		      found=true;
+		      minj=j;
+		    }
 		}
 	    if (found) 
 	      {
@@ -3722,6 +3742,7 @@ int main(int argc,char **argv)
     int page=count_pages(input.getValue());
 
     int image_count=0;
+    int ttt=1;
 
     for(int l=0;l<page;l++)
       {
@@ -3974,14 +3995,19 @@ int main(int argc,char **argv)
 				 label,n_label,letters,n_letters,working_resolution);
 	
 		remove_bumps(bond,n_bond,atom,avg_bond);
-
-
+		/*	if (ttt++==27)
+		  {
+		    debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png"); 	  
+		    exit(0);
+		  }
+		*/
 		n_label=assemble_labels(letters,n_letters,label);
 	
 		assign_atom_labels(atom,n_atom,letters,n_letters,
 				   max(avg_bond/4,thickness),
 				   bond,n_bond,cornerd,label,n_label,
 				   avg_bond, max_dist_double_bond);
+
 		
 		remove_duplicate_atoms(atom,bond,n_atom,n_bond,
 				       max(avg_bond/4,thickness));
@@ -3991,11 +4017,7 @@ int main(int argc,char **argv)
 					      label,n_label,avg_bond);
 
 		extend_terminal_bond_to_bond(atom,bond,n_atom,n_bond,avg_bond);
-		/*if (total_boxes==3)
-		  {
-		    debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png"); 	  
-		    exit(0);
-		    }*/
+	
 		remove_duplicate_atoms(atom,bond,n_atom,n_bond,2);
 
 		fix_double_bond_ends(atom,bond,n_atom,n_bond,max_dist_double_bond);
@@ -4026,6 +4048,7 @@ int main(int argc,char **argv)
 		*/
 
 		//cout<<max_dist_double_bond<<" "<<avg_bond<<" "<<thickness<<endl;
+	
 		
 		valency_check(atom,bond,n_atom,n_bond);
 		find_up_down_bonds(bond,n_bond,atom);
