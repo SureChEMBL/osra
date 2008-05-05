@@ -2485,20 +2485,15 @@ int find_dashed_bonds(potrace_path_t *p, atom_t *atom,bond_t *bond,int n_atom,
 	double my=t;
 	double dist_next=FLT_MAX;
 	int next_dot=i;
-	int b1=find_bond_by_curve(bond,*n_bond,dash[0].curve);
 	for(int j=i+1;j<n_dot;j++)
 	  if (dot[j].free
 	      && distance(dash[0].x,dash[0].y,dot[j].x,dot[j].y)<=1.8*avg
 	      && distance(dash[0].x,dash[0].y,dot[j].x,dot[j].y)<dist_next)
-		{
-		  int b2=find_bond_by_curve(bond,*n_bond,dot[j].curve);
-		  if (angle_between_bonds(bond,b1,b2,atom)>D_T_TOLERANCE)
-		    {
-		      dash[1]=dot[j];
-		      dist_next=distance(dash[0].x,dash[0].y,dot[j].x,dot[j].y);
-		      next_dot=j;
-		    }
-		}
+	    {
+	      dash[1]=dot[j];
+	      dist_next=distance(dash[0].x,dash[0].y,dot[j].x,dot[j].y);
+	      next_dot=j;
+	    }
 
 	int n=1;
 	if (next_dot!=i)
@@ -2522,16 +2517,13 @@ int find_dashed_bonds(potrace_path_t *p, atom_t *atom,bond_t *bond,int n_atom,
 	      if (dot[j].free && distance(mx,my,dot[j].x,dot[j].y)<=1.8*avg
 		  && distance(mx,my,dot[j].x,dot[j].y)<dist_next
 		  && fabs(angle4(dash[0].x,dash[0].y,dash[n-1].x,dash[n-1].y,
-				 dash[0].x,dash[0].y,dot[j].x,dot[j].y))>D_T_TOLERANCE)
+				 dash[0].x,dash[0].y,dot[j].x,dot[j].y))>D_T_TOLERANCE
+		  && fabs(distance(dot[j].x,dot[j].y,dash[n-1].x,dash[n-1].y)-distance(dash[0].x,dash[0].y,dash[1].x,dash[1].y))<2)
 		{
-		  int b2=find_bond_by_curve(bond,*n_bond,dot[j].curve);
-		  if (angle_between_bonds(bond,b1,b2,atom)>D_T_TOLERANCE)
-		    {
-		      dash[n]=dot[j];
-		      dist_next=distance(mx,my,dot[j].x,dot[j].y);
-		      found=true;
-		      minj=j;
-		    }
+		  dash[n]=dot[j];
+		  dist_next=distance(mx,my,dot[j].x,dot[j].y);
+		  found=true;
+		  minj=j;
 		}
 	    if (found) 
 	      {
@@ -3969,6 +3961,11 @@ int main(int argc,char **argv)
 		n_atom=find_dashed_bonds(p,atom,bond,n_atom,&n_bond,
 					 max(dash_length,int(avg_bond/3)),
 					 avg_bond,orig_box,bgColor,THRESHOLD_BOND);
+		/*if (ttt++==25)
+		  {
+		    debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png"); 	  
+		    exit(0);
+		    }*/
 		double max_area=avg_bond*5;
 		if (thick) max_area=avg_bond;
 		n_letters=find_plus_minus(p,letters,atom,bond,n_atom,n_bond,
@@ -3995,12 +3992,8 @@ int main(int argc,char **argv)
 				 label,n_label,letters,n_letters,working_resolution);
 	
 		remove_bumps(bond,n_bond,atom,avg_bond);
-		/*	if (ttt++==27)
-		  {
-		    debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png"); 	  
-		    exit(0);
-		  }
-		*/
+	
+		
 		n_label=assemble_labels(letters,n_letters,label);
 	
 		assign_atom_labels(atom,n_atom,letters,n_letters,
