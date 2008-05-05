@@ -980,6 +980,7 @@ void assign_atom_labels(atom_t *atom,int n_atom,letters_t *letters,int n_letters
 	    double d2=distance(atom[j].x,atom[j].y,label[i].x2,label[i].y2);
 	    double dd=radius+1;
 	    if (a_double) dd+=max_dist_double_bond;
+	    dd=min(dd,avg/2);
 	    if (((d1<=label[i].r1+dd) || (d2<=label[i].r2+dd))
 		&& (min(d1,d2)<md))
 		{
@@ -1013,6 +1014,7 @@ void assign_atom_labels(atom_t *atom,int n_atom,letters_t *letters,int n_letters
 		double d=distance(atom[j].x,atom[j].y,letters[i].x,letters[i].y);
 		double dd=radius+1;
 		if (a_double) dd+=max_dist_double_bond;
+		dd=min(dd,avg/2);
 		if ((d<=letters[i].r+dd) && 
 		    (d<md))
 		  {
@@ -3953,7 +3955,6 @@ int main(int argc,char **argv)
 		double max_dist_double_bond;
 		n_bond=double_triple_bonds(atom,bond,n_bond,avg_bond,n_atom,
 					   thickness,max_dist_double_bond);
-		//debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png"); 	  
 
 		n_letters=remove_small_bonds(bond,n_bond,atom,letters,n_letters,
 					     real_font_height,min_font_height,avg_bond);
@@ -3973,7 +3974,7 @@ int main(int argc,char **argv)
 				   max(avg_bond/4,thickness),
 				   bond,n_bond,cornerd,label,n_label,
 				   avg_bond, max_dist_double_bond);
-
+		//debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png"); 	  
 		remove_duplicate_atoms(atom,bond,n_atom,n_bond,
 				       max(avg_bond/4,thickness));
 
@@ -3982,6 +3983,7 @@ int main(int argc,char **argv)
 					      label,n_label,avg_bond);
 		extend_terminal_bond_to_bond(atom,bond,n_atom,n_bond,avg_bond);
 		remove_duplicate_atoms(atom,bond,n_atom,n_bond,2);
+
 		fix_double_bond_ends(atom,bond,n_atom,n_bond,max_dist_double_bond);
 
 		/*double angles[200];
@@ -4008,6 +4010,8 @@ int main(int argc,char **argv)
 		for(int ii=0;ii<nn;ii++)
 		cout<<aa[ii]<<endl;
 		*/
+
+		//cout<<max_dist_double_bond<<" "<<avg_bond<<" "<<thickness<<endl;
 
 
 		valency_check(atom,bond,n_atom,n_bond);
