@@ -565,7 +565,7 @@ int double_triple_bonds(atom_t *atom,bond_t *bond,int n_bond,double avg,int &n_a
 	    {
 	      double l2=bond_length(bond,j,atom);
 	      double dbb=distance_between_bonds(bond,i,j,atom,thickness);
-	      if (dbb<avg && l1>avg/3 && l2>avg/3 && 
+	      if (dbb<2*avg/3 && l1>avg/3 && l2>avg/3 && 
 		  bonds_within_each_other(bond,i,j,atom))
 		{
 		  if (dbb>max_dist_double_bond)
@@ -2782,7 +2782,7 @@ void align_broken_bonds(atom_t* atom,int n_atom,bond_t* bond,int n_bond)
 	      }
 	    con.pop_front();
 	    if (bond[a].type<3 && bond[b].type<3 &&
-		(angle_between_connected_bonds(bond,a,b,atom)>155
+		(angle_between_connected_bonds(bond,a,b,atom)>157
 		&& bond_length(bond,a,atom)>4 && bond_length(bond,b,atom)>4
 		|| bond_length(bond,a,atom)<=4 || bond_length(bond,b,atom)<=4)
 		)
@@ -3984,7 +3984,7 @@ int main(int argc,char **argv)
 		remove_duplicate_atoms(atom,bond,n_atom,n_bond,2);
 		fix_double_bond_ends(atom,bond,n_atom,n_bond,max_dist_double_bond);
 
-		/*		double angles[200];
+		/*double angles[200];
 		int n_angles=0;
 		for(int ii=0;ii<n_bond;ii++)
 		  if (bond[ii].exists)
