@@ -1085,7 +1085,7 @@ void extend_terminal_bond_to_label(atom_t *atom,letters_t *letters,int n_letters
 			       atom[bond[j].b].x,atom[bond[j].b].y,
 			       label[i].x2,label[i].y2);
 		  }
-		if ((nb<=2*avg || nb<=bl+2) && ang>0.99 && not_corner_a)
+		if ((nb<=2*avg || nb<=bl+2) && ang>0.99 && not_corner_a && nb<2*bl)
 		  {
 		    atom[bond[j].a].label=label[i].a;
 		    atom[bond[j].a].x=(label[i].x1+label[i].x2)/2;
@@ -1110,7 +1110,7 @@ void extend_terminal_bond_to_label(atom_t *atom,letters_t *letters,int n_letters
 			       atom[bond[j].a].x,atom[bond[j].a].y,
 			       label[i].x2,label[i].y2);
 		  }
-		if ((nb<=2*avg || nb<=bl+2) && ang>0.99 && not_corner_b)
+		if ((nb<=2*avg || nb<=bl+2) && ang>0.99 && not_corner_b && nb<2*bl)
 		  {
 		    atom[bond[j].b].label=label[i].a;
 		    atom[bond[j].b].x=(label[i].x1+label[i].x2)/2;
@@ -1144,7 +1144,7 @@ void extend_terminal_bond_to_label(atom_t *atom,letters_t *letters,int n_letters
 		    nb=d2-letters[i].r;   // distance between end "b" and letter
 		    ang=angle4(xb,yb,xa,ya,
 			       xb,yb,letters[i].x,letters[i].y);
-		    if ((nb<=2*avg || nb<=bl+2) && ang>0.99 && not_corner_a)
+		    if ((nb<=2*avg || nb<=bl+2) && ang>0.99 && not_corner_a && nb<2*bl)
 		      {
 			atom[bond[j].a].label=toupper(letters[i].a);;
 			atom[bond[j].a].x=letters[i].x;
@@ -1156,7 +1156,7 @@ void extend_terminal_bond_to_label(atom_t *atom,letters_t *letters,int n_letters
 		    nb=d1-letters[i].r;   // distance between end "a" and letter
 		    ang=angle4(xa,ya,xb,yb,
 			       xa,ya,letters[i].x,letters[i].y);
-		    if ((nb<=2*avg || nb<=bl+2) && ang>0.99 && not_corner_b)
+		    if ((nb<=2*avg || nb<=bl+2) && ang>0.99 && not_corner_b && nb<2*bl)
 		      {
 			atom[bond[j].b].label=toupper(letters[i].a);;
 			atom[bond[j].b].x=letters[i].x;
@@ -2941,7 +2941,7 @@ void extend_terminal_bond_to_bond(atom_t *atom, bond_t *bond, int n_atom,int n_b
 				 atom[bond[i].b].x,atom[bond[i].b].y,
 				 atom[bond[j].a].x,atom[bond[j].a].y);
 		      if ( (nb<=2*avg || nb<=bl+2)  
-			   && ang>0.99 && !a_connected)
+			   && ang>0.99 && !a_connected && nb<2*bl)
 			{
 			  atom[bond[i].a].exists=false;
 			  for (int k=0;k<n_bond;k++)
@@ -2959,7 +2959,7 @@ void extend_terminal_bond_to_bond(atom_t *atom, bond_t *bond, int n_atom,int n_b
 				 atom[bond[i].b].x,atom[bond[i].b].y,
 				 atom[bond[j].b].x,atom[bond[j].b].y);
 		      if ( (nb<=2*avg ||  nb<=bl+2)  
-			   && ang>0.99 && !a_connected)
+			   && ang>0.99 && !a_connected && nb<2*bl)
 			{
 			  atom[bond[i].a].exists=false;
 			  for (int k=0;k<n_bond;k++)
@@ -2980,7 +2980,7 @@ void extend_terminal_bond_to_bond(atom_t *atom, bond_t *bond, int n_atom,int n_b
 				 atom[bond[i].a].x,atom[bond[i].a].y,
 				 atom[bond[j].a].x,atom[bond[j].a].y);
 		      if ( (nb<=2*avg ||  nb<=bl+2)  
-			   && ang>0.99 && !b_connected)
+			   && ang>0.99 && !b_connected && nb<2*bl)
 			{
 			  atom[bond[i].b].exists=false;
 			  for (int k=0;k<n_bond;k++)
@@ -2998,7 +2998,7 @@ void extend_terminal_bond_to_bond(atom_t *atom, bond_t *bond, int n_atom,int n_b
 				 atom[bond[i].a].x,atom[bond[i].a].y,
 				 atom[bond[j].b].x,atom[bond[j].b].y);
 		      if ( (nb<=2*avg ||  nb<=bl+2)  
-			   && ang>0.99 && !b_connected)
+			   && ang>0.99 && !b_connected && nb<2*bl)
 			{
 			  atom[bond[i].b].exists=false;
 			  for (int k=0;k<n_bond;k++)
@@ -3972,28 +3972,34 @@ int main(int argc,char **argv)
 		
 		find_wedge_bonds(thick_box,atom,bond,n_bond,bgColor,THRESHOLD_BOND,
 				 label,n_label,letters,n_letters,working_resolution);
-
+	
 		remove_bumps(bond,n_bond,atom,avg_bond);
 
 
 		n_label=assemble_labels(letters,n_letters,label);
-
+	
 		assign_atom_labels(atom,n_atom,letters,n_letters,
 				   max(avg_bond/4,thickness),
 				   bond,n_bond,cornerd,label,n_label,
 				   avg_bond, max_dist_double_bond);
-
+		
 		remove_duplicate_atoms(atom,bond,n_atom,n_bond,
 				       max(avg_bond/4,thickness));
 
 		n_bond=smooth_kinks(bond,n_bond,atom,n_atom);
 		extend_terminal_bond_to_label(atom,letters,n_letters,bond,n_bond,
 					      label,n_label,avg_bond);
+
 		extend_terminal_bond_to_bond(atom,bond,n_atom,n_bond,avg_bond);
+		/*if (total_boxes==3)
+		  {
+		    debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png"); 	  
+		    exit(0);
+		    }*/
 		remove_duplicate_atoms(atom,bond,n_atom,n_bond,2);
 
 		fix_double_bond_ends(atom,bond,n_atom,n_bond,max_dist_double_bond);
-
+	
 		/*double angles[200];
 		int n_angles=0;
 		for(int ii=0;ii<n_bond;ii++)
@@ -4020,12 +4026,11 @@ int main(int argc,char **argv)
 		*/
 
 		//cout<<max_dist_double_bond<<" "<<avg_bond<<" "<<thickness<<endl;
-		//debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png"); 	  
-		//exit(0);
+		
 		valency_check(atom,bond,n_atom,n_bond);
 		find_up_down_bonds(bond,n_bond,atom);
 		int real_atoms=count_atoms(atom,n_atom);
-		if ((real_atoms>MIN_A_COUNT)) //&& (real_atoms<MAX_A_COUNT))
+		if ((real_atoms>MIN_A_COUNT) && (real_atoms<MAX_A_COUNT))
 		  {
 		    int f=resolve_bridge_bonds(atom,n_atom,bond,n_bond);
 		    int rotors;
