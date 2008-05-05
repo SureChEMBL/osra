@@ -967,71 +967,79 @@ void assign_atom_labels(atom_t *atom,int n_atom,letters_t *letters,int n_letters
     if (atom[j].exists && not_corner(j,bond,n_bond,radius,atom,dist))
       {
 	double md=FLT_MAX;
-	bool found=false;
+	bool found_label=false;
 	int lab=0;
 	bool a_double=false;
+	double x_orig,y_orig,x_old,y_old;
 	for (int k=0;k<n_bond;k++)
-	  if (bond[k].exists && bond[k].type==2 &&
-	      (bond[k].a==j || bond[k].b==j))
-	    a_double=true;
+	  if (bond[k].exists)
+	    {
+	      if (bond[k].type==2 &&
+		  (bond[k].a==j || bond[k].b==j))
+		a_double=true;
+	      if (bond[k].a==j)
+		{
+		  x_orig=atom[bond[k].b].x;
+		  y_orig=atom[bond[k].b].y;
+		  x_old=atom[j].x;
+		  y_old=atom[j].y;
+		}
+	      else if (bond[k].b==j)
+		{
+		  x_orig=atom[bond[k].a].x;
+		  y_orig=atom[bond[k].a].y;
+		  x_old=atom[j].x;
+		  y_old=atom[j].y;
+		}
+	    }
+	double dd=radius+1;
+	if (a_double) dd+=max_dist_double_bond;
 	for (int i=0;i<n_label;i++)
 	  {
 	    double d1=distance(atom[j].x,atom[j].y,label[i].x1,label[i].y1);
 	    double d2=distance(atom[j].x,atom[j].y,label[i].x2,label[i].y2);
-	    double dd=radius+1;
-	    if (a_double) dd+=max_dist_double_bond;
-	    dd=min(dd,avg/2);
-	    if (((d1<=label[i].r1+dd) || (d2<=label[i].r2+dd))
-		&& (min(d1,d2)<md))
+	    if ( d1<=label[i].r1+dd && d1<md && 
+		 angle4(x_orig,y_orig,x_old,y_old,x_orig,y_orig,label[i].x1,label[i].y1)>D_T_TOLERANCE)
 		{
-		  md=min(d1,d2);
+		  md=d1;
 		  lab=i;
-		  found=true;
+		  found_label=true;
 		}
+	    if ( d2<=label[i].r2+dd && d2<md && 
+		 angle4(x_orig,y_orig,x_old,y_old,x_orig,y_orig,label[i].x2,label[i].y2)>D_T_TOLERANCE)
+		{
+		  md=d2;
+		  lab=i;
+		  found_label=true;
+		}
+
 	  }
-	if (found)
+	bool found_letter=false;
+	for (int i=0;i<n_letters;i++)
+	  if (letters[i].free)
+	    {
+	      double d=distance(atom[j].x,atom[j].y,letters[i].x,letters[i].y);
+	      if (d<=letters[i].r+dd && d<md &&
+		  angle4(x_orig,y_orig,x_old,y_old,x_orig,y_orig,letters[i].x,letters[i].y)>D_T_TOLERANCE)
+		  {
+		    md=d;
+		    lab=i;
+		    found_letter=true;
+		  }
+            }
+	if (found_letter)
+	  {
+	    atom[j].label=toupper(letters[lab].a);
+	    atom[j].x=letters[lab].x;
+	    atom[j].y=letters[lab].y;
+	  }
+	else if (found_label)
 	  {
 	    atom[j].label=label[lab].a;
 	    atom[j].x=(label[lab].x1+label[lab].x2)/2;
 	    atom[j].y=(label[lab].y1+label[lab].y2)/2;
 	  }
       }
-
-    for (int j=0;j<n_atom;j++)
-      if (atom[j].exists && not_corner(j,bond,n_bond,radius,atom,dist))
-	{
-	  double md=FLT_MAX;
-	  int lab=0;
-	  bool found=false;
-	  bool a_double=false;
-	  for (int k=0;k<n_bond;k++)
-	    if (bond[k].exists && bond[k].type==2 &&
-		(bond[k].a==j || bond[k].b==j))
-	      a_double=true;
-	  for (int i=0;i<n_letters;i++)
-	    if (letters[i].free)
-	      {
-		double d=distance(atom[j].x,atom[j].y,letters[i].x,letters[i].y);
-		double dd=radius+1;
-		if (a_double) dd+=max_dist_double_bond;
-		dd=min(dd,avg/2);
-		if ((d<=letters[i].r+dd) && 
-		    (d<md))
-		  {
-		    md=d;
-		    lab=i;
-		    found=true;
-		  }
-	      }
-
-	  if (found)
-	    {
-	      atom[j].label=toupper(letters[lab].a);
-	      atom[j].x=letters[lab].x;
-	      atom[j].y=letters[lab].y;
-	    }
-	}
- 
 }
 
 
@@ -3974,7 +3982,7 @@ int main(int argc,char **argv)
 				   max(avg_bond/4,thickness),
 				   bond,n_bond,cornerd,label,n_label,
 				   avg_bond, max_dist_double_bond);
-		//debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png"); 	  
+
 		remove_duplicate_atoms(atom,bond,n_atom,n_bond,
 				       max(avg_bond/4,thickness));
 
@@ -4012,13 +4020,12 @@ int main(int argc,char **argv)
 		*/
 
 		//cout<<max_dist_double_bond<<" "<<avg_bond<<" "<<thickness<<endl;
-
-
+		//debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png"); 	  
+		//exit(0);
 		valency_check(atom,bond,n_atom,n_bond);
 		find_up_down_bonds(bond,n_bond,atom);
 		int real_atoms=count_atoms(atom,n_atom);
-
-		if ((real_atoms>MIN_A_COUNT) && (real_atoms<MAX_A_COUNT))
+		if ((real_atoms>MIN_A_COUNT)) //&& (real_atoms<MAX_A_COUNT))
 		  {
 		    int f=resolve_bridge_bonds(atom,n_atom,bond,n_bond);
 		    int rotors;
