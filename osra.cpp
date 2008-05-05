@@ -585,7 +585,7 @@ int double_triple_bonds(atom_t *atom,bond_t *bond,int n_bond,double avg,int &n_a
   qsort(a,n,sizeof(double),num_comp);
   max_dist_double_bond=a[int(0.5*n)];
   if (max_dist_double_bond<1) max_dist_double_bond=avg/3;
-  else max_dist_double_bond+=thickness; 
+  else max_dist_double_bond+=2; 
   for (int i=0;i<n_bond;i++)
     if (bond[i].exists)
       {
@@ -4014,6 +4014,8 @@ int main(int argc,char **argv)
 		remove_duplicate_atoms(atom,bond,n_atom,n_bond,2);
 
 		fix_double_bond_ends(atom,bond,n_atom,n_bond,max_dist_double_bond);
+		debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");		
+
 	
 		/*double angles[200];
 		int n_angles=0;
@@ -4041,8 +4043,8 @@ int main(int argc,char **argv)
 		*/
 
 		//cout<<max_dist_double_bond<<" "<<avg_bond<<" "<<thickness<<endl;
-	
-		
+
+
 		valency_check(atom,bond,n_atom,n_bond);
 		find_up_down_bonds(bond,n_bond,atom);
 		int real_atoms=count_atoms(atom,n_atom);
