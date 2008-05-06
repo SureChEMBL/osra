@@ -1063,6 +1063,9 @@ void extend_terminal_bond_to_label(atom_t *atom,letters_t *letters,int n_letters
       {
 	bool not_corner_a=terminal_bond(bond[j].a,j,bond,n_bond);
 	bool not_corner_b=terminal_bond(bond[j].b,j,bond,n_bond);
+	if (atom[bond[j].a].label!=" ") not_corner_a=false;
+	if (atom[bond[j].b].label!=" ") not_corner_b=false;
+
 	double bl=bond_length(bond,j,atom);
       	for (int i=0;i<n_label;i++)
 	  {
@@ -2924,6 +2927,8 @@ void extend_terminal_bond_to_bond(atom_t *atom, bond_t *bond, int n_atom,int n_b
       {
 	bool a_connected=!terminal_bond(bond[i].a,i,bond,n_bond);
 	bool b_connected=!terminal_bond(bond[i].b,i,bond,n_bond);
+	if (atom[bond[i].a].label!=" ") a_connected=true;
+	if (atom[bond[i].b].label!=" ") b_connected=true;
 	double bl=bond_length(bond,i,atom);
 
 	for (int j=0;j<n_bond;j++)
