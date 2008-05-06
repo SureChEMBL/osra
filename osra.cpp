@@ -26,8 +26,8 @@
 #define OSRA_VERSION "0.9.9"
 #define MAX_ATOMS 10000
 #define NUM_BOXES 100
-#define MAX_FONT_HEIGHT 17
-#define MAX_FONT_WIDTH 17
+#define MAX_FONT_HEIGHT 22
+#define MAX_FONT_WIDTH 22
 #define MIN_FONT_HEIGHT 5
 #define FLAT_TOLERANCE 160
 #define BG_PICK_POINTS 100
@@ -3940,11 +3940,12 @@ int main(int argc,char **argv)
 		p = st->plist;
 		n_atom=find_atoms(p,atom,bond,&n_bond,mind);
 		int real_font_width,real_font_height;
+
+
 		n_letters=find_chars(p,orig_box,letters,atom,bond,n_atom,n_bond,
 				     height,width,bgColor,THRESHOLD_CHAR,
 				     max_font_width,max_font_height,
 				     real_font_width,real_font_height);
-
 
 
 		double avg_bond=percentile75(bond,n_bond,atom);
@@ -3956,7 +3957,6 @@ int main(int argc,char **argv)
 					       THRESHOLD_CHAR);
 		  }
 		
-
 
 		n_atom=find_dashed_bonds(p,atom,bond,n_atom,&n_bond,
 					 max(dash_length,int(avg_bond/3)),
@@ -3995,17 +3995,18 @@ int main(int argc,char **argv)
 	
 		
 		n_label=assemble_labels(letters,n_letters,label);
-	
+
 		assign_atom_labels(atom,n_atom,letters,n_letters,
 				   max(avg_bond/4,thickness),
 				   bond,n_bond,cornerd,label,n_label,
 				   avg_bond, max_dist_double_bond);
-
 		
 		remove_duplicate_atoms(atom,bond,n_atom,n_bond,
 				       max(avg_bond/4,thickness));
 
+
 		n_bond=smooth_kinks(bond,n_bond,atom,n_atom);
+
 		extend_terminal_bond_to_label(atom,letters,n_letters,bond,n_bond,
 					      label,n_label,avg_bond);
 
@@ -4014,7 +4015,7 @@ int main(int argc,char **argv)
 		remove_duplicate_atoms(atom,bond,n_atom,n_bond,2);
 
 		fix_double_bond_ends(atom,bond,n_atom,n_bond,max_dist_double_bond);
-		debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");		
+
 
 	
 		/*double angles[200];
