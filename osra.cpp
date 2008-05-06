@@ -2420,7 +2420,7 @@ int count_area(vector < vector<int> > *box, int x, int y)
 
 int find_dashed_bonds(potrace_path_t *p, atom_t *atom,bond_t *bond,int n_atom,
 		      int *n_bond,int max,double avg,Image img,ColorGray bg,  
-		      double THRESHOLD)
+		      double THRESHOLD, bool flag)
 {
   int n,n_dot=0;
   potrace_dpoint_t (*c)[3];
@@ -2521,7 +2521,7 @@ int find_dashed_bonds(potrace_path_t *p, atom_t *atom,bond_t *bond,int n_atom,
 		  && distance(mx,my,dot[j].x,dot[j].y)<dist_next
 		  && fabs(angle4(dash[0].x,dash[0].y,dash[n-1].x,dash[n-1].y,
 				 dash[0].x,dash[0].y,dot[j].x,dot[j].y))>D_T_TOLERANCE
-		  && fabs(distance(dot[j].x,dot[j].y,dash[n-1].x,dash[n-1].y)-distance(dash[0].x,dash[0].y,dash[1].x,dash[1].y))<2)
+		  && (fabs(distance(dot[j].x,dot[j].y,dash[n-1].x,dash[n-1].y)-distance(dash[0].x,dash[0].y,dash[1].x,dash[1].y))<2 || flag))
 		{
 		  dash[n]=dot[j];
 		  dist_next=distance(mx,my,dot[j].x,dot[j].y);
@@ -3965,12 +3965,9 @@ int main(int argc,char **argv)
 
 		n_atom=find_dashed_bonds(p,atom,bond,n_atom,&n_bond,
 					 max(dash_length,int(avg_bond/3)),
-					 avg_bond,orig_box,bgColor,THRESHOLD_BOND);
-		/*if (ttt++==25)
-		  {
-		    debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png"); 	  
-		    exit(0);
-		    }*/
+					 avg_bond,orig_box,bgColor,
+					 THRESHOLD_BOND,false);
+		
 		double max_area=avg_bond*5;
 		if (thick) max_area=avg_bond;
 		n_letters=find_plus_minus(p,letters,atom,bond,n_atom,n_bond,
@@ -3986,7 +3983,16 @@ int main(int argc,char **argv)
 		double max_dist_double_bond;
 		n_bond=double_triple_bonds(atom,bond,n_bond,avg_bond,n_atom,
 					   thickness,max_dist_double_bond);
-
+		n_atom=find_dashed_bonds(p,atom,bond,n_atom,&n_bond,
+					 max(dash_length,int(avg_bond/3)),
+					 avg_bond,orig_box,bgColor,
+					 THRESHOLD_BOND,true);
+		/*if (ttt++==6)
+		  {
+		    debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png"); 	  
+		    exit(0);
+		    }*/
+		
 		n_letters=remove_small_bonds(bond,n_bond,atom,letters,n_letters,
 					     real_font_height,min_font_height,avg_bond);
 	 
@@ -4005,7 +4011,7 @@ int main(int argc,char **argv)
 				   max(avg_bond/4,thickness),
 				   bond,n_bond,cornerd,label,n_label,
 				   avg_bond, max_dist_double_bond);
-		
+	
 		remove_duplicate_atoms(atom,bond,n_atom,n_bond,
 				       max(avg_bond/4,thickness));
 
@@ -4021,6 +4027,7 @@ int main(int argc,char **argv)
 		remove_duplicate_atoms(atom,bond,n_atom,n_bond,2);
 
 		fix_double_bond_ends(atom,bond,n_atom,n_bond,max_dist_double_bond);
+	
 
 		valency_check(atom,bond,n_atom,n_bond);
 		find_up_down_bonds(bond,n_bond,atom);
