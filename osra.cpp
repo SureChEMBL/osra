@@ -4006,6 +4006,7 @@ int main(int argc,char **argv)
 
 
 		n_bond=smooth_kinks(bond,n_bond,atom,n_atom);
+		avg_bond=percentile75(bond,n_bond,atom);
 
 		extend_terminal_bond_to_label(atom,letters,n_letters,bond,n_bond,
 					      label,n_label,avg_bond);
@@ -4016,8 +4017,6 @@ int main(int argc,char **argv)
 
 		fix_double_bond_ends(atom,bond,n_atom,n_bond,max_dist_double_bond);
 
-		//debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");
-	
 		valency_check(atom,bond,n_atom,n_bond);
 		find_up_down_bonds(bond,n_bond,atom);
 		int real_atoms=count_atoms(atom,n_atom);
