@@ -1192,12 +1192,12 @@ void valency_check(atom_t *atom, bond_t *bond, int n_atom,int n_bond)
       {
 	int n=0;
 	int m=0;
-	/*for (int j=0;j<n_bond;j++)
+	for (int j=0;j<n_bond;j++)
 	  if (bond[j].exists && (bond[j].a==i || bond[j].b==i))
 	    {
 	      n+=bond[j].type;
 	      if (bond[j].type>1) m++;
-	      }*/
+	    }
 	atom[i].charge=0;
 	bool cont=true;
 	while (cont)
@@ -3983,6 +3983,8 @@ int main(int argc,char **argv)
 		double max_dist_double_bond;
 		n_bond=double_triple_bonds(atom,bond,n_bond,avg_bond,n_atom,
 					   thickness,max_dist_double_bond);
+		debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png"); 
+
 		n_atom=find_dashed_bonds(p,atom,bond,n_atom,&n_bond,
 					 max(dash_length,int(avg_bond/3)),
 					 avg_bond,orig_box,bgColor,
