@@ -585,7 +585,7 @@ int double_triple_bonds(atom_t *atom,bond_t *bond,int n_bond,double avg,int &n_a
   qsort(a,n,sizeof(double),num_comp);
   max_dist_double_bond=a[int(0.5*n)];
   if (max_dist_double_bond<1) max_dist_double_bond=avg/3;
-  else max_dist_double_bond+=2; 
+  else max_dist_double_bond+=3; 
   for (int i=0;i<n_bond;i++)
     if (bond[i].exists)
       {
@@ -4016,36 +4016,8 @@ int main(int argc,char **argv)
 
 		fix_double_bond_ends(atom,bond,n_atom,n_bond,max_dist_double_bond);
 
-
+		//debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");
 	
-		/*double angles[200];
-		int n_angles=0;
-		for(int ii=0;ii<n_bond;ii++)
-		  if (bond[ii].exists)
-		    for (int jj=ii+1;jj<n_bond;jj++)
-		      if (bond[jj].exists && 
-			  (bond[ii].a==bond[jj].a || bond[ii].a==bond[jj].b ||
-			   bond[ii].b==bond[jj].a || bond[ii].b==bond[jj].b))
-			angles[n_angles++]=angle_between_connected_bonds(bond,ii,jj,atom);
-		qsort(angles,n_angles,sizeof(double),num_comp);
-		for (int ii=0;ii<n_angles;ii++)
-		  cout<<angles[ii]<<endl;
-		cout<<"================================="<<endl;
-		double aa[MAX_ATOMS];
-		int nn=0;
-		for(int ii=0;ii<n_bond;ii++)
-		  if (bond[ii].exists)
-		    {
-		      aa[nn++]=bond_length(bond,ii,atom);
-		    }
-		qsort(aa,nn,sizeof(double),num_comp);
-		for(int ii=0;ii<nn;ii++)
-		cout<<aa[ii]<<endl;
-		*/
-
-		//cout<<max_dist_double_bond<<" "<<avg_bond<<" "<<thickness<<endl;
-
-
 		valency_check(atom,bond,n_atom,n_bond);
 		find_up_down_bonds(bond,n_bond,atom);
 		int real_atoms=count_atoms(atom,n_atom);
