@@ -23,7 +23,7 @@
 
 *********************************************************************/
 
-#define OSRA_VERSION "0.9.9"
+#define OSRA_VERSION "1.0.0"
 #define MAX_ATOMS 10000
 #define NUM_BOXES 100
 #define MAX_FONT_HEIGHT 22
@@ -40,13 +40,13 @@
 #define MIN_ASPECT 0.2
 #define MAX_ASPECT 5.
 #define MIN_A_COUNT 5
-#define MAX_A_COUNT 100
+#define MAX_A_COUNT 200
 #define MIN_CHAR_POINTS 2
 #define WHITE_SPACE_FRACTION 0.3 
 #define MAX_BOND_THICKNESS 10
 #define SMALL_PICTURE_AREA 6000
-#define MAX_HEIGHT 1000
-#define MAX_WIDTH 1000
+#define MAX_HEIGHT 1100
+#define MAX_WIDTH 1700
 #define MIN_HEIGHT 50
 #define MIN_WIDTH 50
 #define NUM_RESOLUTIONS 3
@@ -1192,12 +1192,12 @@ void valency_check(atom_t *atom, bond_t *bond, int n_atom,int n_bond)
       {
 	int n=0;
 	int m=0;
-	for (int j=0;j<n_bond;j++)
+	/*for (int j=0;j<n_bond;j++)
 	  if (bond[j].exists && (bond[j].a==i || bond[j].b==i))
 	    {
 	      n+=bond[j].type;
 	      if (bond[j].type>1) m++;
-	    }
+	      }*/
 	atom[i].charge=0;
 	bool cont=true;
 	while (cont)
@@ -1226,7 +1226,7 @@ void valency_check(atom_t *atom, bond_t *bond, int n_atom,int n_bond)
             atom[i].charge=0;
                                                                                   
 	atom[i].label=fix_atom_name(atom[i].label,n);
-	if ((n>getValency(atom[i].label)-atom[i].charge) && (m>0))
+	/*	if ((n>getValency(atom[i].label)-atom[i].charge) && (m>0))
 	  {
 	    int t=1+(m*rand())/RAND_MAX;
 	    int k=0;
@@ -1240,7 +1240,7 @@ void valency_check(atom_t *atom, bond_t *bond, int n_atom,int n_bond)
 		      break;
 		    }
 		}
-	  }
+		}*/
       }
 }
 
@@ -4004,13 +4004,14 @@ int main(int argc,char **argv)
 	
 		remove_bumps(bond,n_bond,atom,avg_bond);
 	
-		
+
 		n_label=assemble_labels(letters,n_letters,label);
 
 		assign_atom_labels(atom,n_atom,letters,n_letters,
 				   max(avg_bond/4,thickness),
 				   bond,n_bond,cornerd,label,n_label,
 				   avg_bond, max_dist_double_bond);
+		
 	
 		remove_duplicate_atoms(atom,bond,n_atom,n_bond,
 				       max(avg_bond/4,thickness));
@@ -4027,7 +4028,8 @@ int main(int argc,char **argv)
 		remove_duplicate_atoms(atom,bond,n_atom,n_bond,2);
 
 		fix_double_bond_ends(atom,bond,n_atom,n_bond,max_dist_double_bond);
-	
+
+
 
 		valency_check(atom,bond,n_atom,n_bond);
 		find_up_down_bonds(bond,n_bond,atom);

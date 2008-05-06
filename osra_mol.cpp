@@ -39,10 +39,11 @@ string fix_atom_name(string s,int n)
   else if (s=="HN" || s=="NH" || s=="M" || s=="Hm" || s=="MN" || s=="N2"
       || s=="NM" || s=="NH2" || s=="H2N" || s=="NHZ" || s=="HZN" || s=="NH3")   r="N";
   else if (s=="OH" || s=="oH" || s=="Ho" || s=="HO" || s=="ol"
-      || s=="On" || s=="on" || s=="no" || s=="nO") r="O";
+      || s=="On" || s=="on" || s=="no" || s=="nO" || s=="OR" || s=="RO") r="O";
   else if (s=="Meo" || s=="oMe" || s=="oMg" || s=="omg" || s=="Mgo"
-      || s=="leo" || s=="ohle" || s=="lleo" || s=="olllle" 
-      || s=="OMe" || s=="OM8" || s=="OMo" || s=="OMB")   r="MeO";
+	   || s=="leo" || s=="ohle" || s=="lleo" || s=="olllle" 
+	   || s=="OMe" || s=="OM8" || s=="OMo" || s=="OMB" || s=="OCH3" 
+	   || s=="OCHS")   r="MeO";
   else if (s=="NC")  r="CN";
   else if ((s=="nBU") || (s=="neU") ||(s=="ngU")) r="nBu";
   else if ((s=="Eto") || (s=="oEt") || (s=="Elo") || (s=="oEl")
@@ -53,7 +54,8 @@ string fix_atom_name(string s,int n)
   else if ((s=="tBU") || (s=="BU") || (s=="llBU") || (s=="lBU")) r="tBu";
   else if (s=="CooH" || s=="HooC" || s=="Co2H" || s=="CO2H" || s=="HOOC") r="COOH";
   else if (s=="AC") r="Ac";
-  else if (s=="ACo" || s=="opC" || s=="pcO" || s=="ACO") r="AcO";
+  else if (s=="ACo" || s=="opC" || s=="pcO" || s=="ACO" || s=="oCO" 
+	   || s=="OoC") r="AcO";
   else if (s=="Bl" || s=="el") r="Br";
   else if (s=="CH3" || s=="H3C") r="C";
   else if (s=="R" || s=="Rl" || s=="Rlo" || s=="R2" || s=="R3" || s=="Rg"
@@ -70,7 +72,10 @@ string fix_atom_name(string s,int n)
   else if (s=="S3" || s=="Se" || s=="lS") r="S";
   else if (s=="lH") r="H";
   else if (s=="NHnC") r="NHAc";
-  else if (s=="OCHS") r="OC";
+  else if (s=="OlHP" || s=="lHPO") r="THPO";
+  else if (s=="NlOHCH3") r="NOHCH3";
+  else if (s=="HO3S") r="SO3H";
+  else if (s=="NMe") r="MeN";
   //cout<<r<<endl;
   return(r);
 }
@@ -188,6 +193,27 @@ void addNO2(OBMol *mol,int *n)
   mol->AddBond((*n)-2,(*n),2);
   mol->AddBond((*n)-1,(*n),2);
 }
+
+void addSO3H(OBMol *mol,int *n)
+{
+  OBAtom *a;
+  a=mol->CreateAtom();
+  a->SetAtomicNum(8);
+  mol->AddAtom(*a);
+  (*n)++;
+  a=mol->CreateAtom();
+  a->SetAtomicNum(8);
+  mol->AddAtom(*a);
+  (*n)++;
+  a=mol->CreateAtom();
+  a->SetAtomicNum(8);
+  mol->AddAtom(*a);
+  (*n)++;
+  mol->AddBond((*n)-3,(*n),1);
+  mol->AddBond((*n)-2,(*n),2);
+  mol->AddBond((*n)-1,(*n),2);
+}
+
 
 void addNC(OBMol *mol,int *n)
 {
@@ -468,6 +494,11 @@ int getAnum(string s, OBMol *mol,int *n)
     {
       addMeX(mol,n);
       return(7);
+    }
+  if (s=="SO3H") 
+    {
+      addSO3H(mol,n);
+      return(16);
     }
   return(6);
 }
