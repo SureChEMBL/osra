@@ -103,8 +103,8 @@ int getPixel(Image image, ColorGray bg,unsigned int x, unsigned int y, double TH
 #define OSRA_VERSION "1.0.0"
 #define MAX_ATOMS 10000
 #define NUM_BOXES 100
-#define MAX_FONT_HEIGHT 22
-#define MAX_FONT_WIDTH 22
+#define MAX_FONT_HEIGHT 20
+#define MAX_FONT_WIDTH 17
 #define MIN_FONT_HEIGHT 5
 #define FLAT_TOLERANCE 160
 #define BG_PICK_POINTS 100
