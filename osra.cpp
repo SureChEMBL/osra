@@ -1097,6 +1097,8 @@ void extend_terminal_bond_to_label(atom_t *atom,letters_t *letters,int n_letters
 	{
 	  bool not_corner_a=terminal_bond(bond[j].a,j,bond,n_bond);
 	  bool not_corner_b=terminal_bond(bond[j].b,j,bond,n_bond);
+	  if (atom[bond[j].a].label!=" ") not_corner_a=false;
+	  if (atom[bond[j].b].label!=" ") not_corner_b=false;
 	  double bl=bond_length(bond,j,atom);
 	  double xa=atom[bond[j].a].x;
 	  double ya=atom[bond[j].a].y;
@@ -3762,7 +3764,7 @@ int main(int argc,char **argv)
 				     height,width,bgColor,THRESHOLD_CHAR,
 				     max_font_width,max_font_height,
 				     real_font_width,real_font_height);
-
+	
 
 		double avg_bond=percentile75(bond,n_bond,atom);
 		if (working_resolution==300)
@@ -3773,7 +3775,12 @@ int main(int argc,char **argv)
 					       THRESHOLD_CHAR);
 		  }
 		
-
+		/*if (ttt++==5)
+		  {
+		    debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png"); 	  
+		    exit(0);
+		  }
+		*/
 		n_atom=find_dashed_bonds(p,atom,bond,n_atom,&n_bond,
 					 max(dash_length,int(avg_bond/3)),
 					 avg_bond,orig_box,bgColor,
@@ -3794,7 +3801,6 @@ int main(int argc,char **argv)
 		double max_dist_double_bond;
 		n_bond=double_triple_bonds(atom,bond,n_bond,avg_bond,n_atom,
 					   thickness,max_dist_double_bond);
-		debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png"); 
 
 		n_atom=find_dashed_bonds(p,atom,bond,n_atom,&n_bond,
 					 max(dash_length,int(avg_bond/3)),
@@ -3828,22 +3834,19 @@ int main(int argc,char **argv)
 
 		n_bond=smooth_kinks(bond,n_bond,atom,n_atom);
 		avg_bond=percentile75(bond,n_bond,atom);
-
+	
 		extend_terminal_bond_to_label(atom,letters,n_letters,bond,n_bond,
 					      label,n_label,avg_bond);
-
+		
 		extend_terminal_bond_to_bond(atom,bond,n_atom,n_bond,avg_bond);
 	
 		remove_duplicate_atoms(atom,bond,n_atom,n_bond,2);
 
 		fix_double_bond_ends(atom,bond,n_atom,n_bond,max_dist_double_bond);
+	
+	
+		
 
-		/*if (ttt++==2)
-		  {
-		    debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png"); 	  
-		    exit(0);
-		  }
-		*/
 		valency_check(atom,bond,n_atom,n_bond);
 		find_up_down_bonds(bond,n_bond,atom);
 		int real_atoms=count_atoms(atom,n_atom);
