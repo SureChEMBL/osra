@@ -616,6 +616,7 @@ string get_smiles(atom_t *atom, bond_t *bond, int n_bond, int &rotors,
  int F_Count=0;
  int S_Count=0;
  int Cl_Count=0;
+ int R_Count=0;
  for (unsigned int i=1;i<=mol.NumAtoms();i++)
    {
      OBAtom *a=mol.GetAtom(i);
@@ -625,6 +626,7 @@ string get_smiles(atom_t *atom, bond_t *bond, int n_bond, int &rotors,
      else if (a->IsSulfur()) S_Count++;
      else if (a->GetAtomicNum()==9) F_Count++;
      else if (a->GetAtomicNum()==17) Cl_Count++;
+     else if (a->GetAtomicNum()==0) R_Count++;
    }
 
  vector<OBRing*> vr=mol.GetSSSR();
@@ -649,6 +651,7 @@ string get_smiles(atom_t *atom, bond_t *bond, int n_bond, int &rotors,
    +0.035674*F_Count
    +0.065504*S_Count
    +0.198795*Cl_Count
+   +0.1*R_Count
    -0.212739*num_rings
    +0.071300*num_aromatic
    +0.339289*Num_Rings[3]

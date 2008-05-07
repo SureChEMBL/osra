@@ -1057,7 +1057,7 @@ void extend_terminal_bond_to_label(atom_t *atom,letters_t *letters,int n_letters
 			       atom[bond[j].b].x,atom[bond[j].b].y,
 			       label[i].x2,label[i].y2);
 		  }
-		if ((nb<=2*avg || nb<=bl+2) && ang>0.99 && not_corner_a && nb<2*bl)
+		if (nb<=1.2*avg && ang>0.99 && not_corner_a)
 		  {
 		    atom[bond[j].a].label=label[i].a;
 		    atom[bond[j].a].x=(label[i].x1+label[i].x2)/2;
@@ -1082,7 +1082,7 @@ void extend_terminal_bond_to_label(atom_t *atom,letters_t *letters,int n_letters
 			       atom[bond[j].a].x,atom[bond[j].a].y,
 			       label[i].x2,label[i].y2);
 		  }
-		if ((nb<=2*avg || nb<=bl+2) && ang>0.99 && not_corner_b && nb<2*bl)
+		if (nb<=1.2*avg && ang>0.99 && not_corner_b)
 		  {
 		    atom[bond[j].b].label=label[i].a;
 		    atom[bond[j].b].x=(label[i].x1+label[i].x2)/2;
@@ -1118,7 +1118,7 @@ void extend_terminal_bond_to_label(atom_t *atom,letters_t *letters,int n_letters
 		    nb=d2-letters[i].r;   // distance between end "b" and letter
 		    ang=angle4(xb,yb,xa,ya,
 			       xb,yb,letters[i].x,letters[i].y);
-		    if ((nb<=2*avg || nb<=bl+2) && ang>0.99 && not_corner_a && nb<2*bl)
+		    if (nb<=1.2*avg && ang>0.99 && not_corner_a)
 		      {
 			atom[bond[j].a].label=toupper(letters[i].a);;
 			atom[bond[j].a].x=letters[i].x;
@@ -1130,7 +1130,7 @@ void extend_terminal_bond_to_label(atom_t *atom,letters_t *letters,int n_letters
 		    nb=d1-letters[i].r;   // distance between end "a" and letter
 		    ang=angle4(xa,ya,xb,yb,
 			       xa,ya,letters[i].x,letters[i].y);
-		    if ((nb<=2*avg || nb<=bl+2) && ang>0.99 && not_corner_b && nb<2*bl)
+		    if (nb<=1.2*avg && ang>0.99 && not_corner_b)
 		      {
 			atom[bond[j].b].label=toupper(letters[i].a);;
 			atom[bond[j].b].x=letters[i].x;
@@ -2731,6 +2731,32 @@ void remove_duplicate_atoms(atom_t *atom, bond_t *bond, int n_atom,int n_bond,
       }
 }
 
+void collapse_atoms(atom_t *atom, bond_t *bond, int n_atom,int n_bond,
+			    double r)
+{
+  for (int i=0;i<n_atom;i++)
+      {
+	if (atom[i].exists)
+	  {
+	    for (int j=0;j<n_atom;j++)
+	      {
+		if ((atom[j].exists) && j!=i &&
+		    (distance(atom[i].x,atom[i].y,atom[j].x,atom[j].y)<r) &&
+		    atom[j].label==" ")
+		  {
+		    atom[j].exists=false;
+		    atom[i].x=(atom[i].x+atom[j].x)/2;
+		    atom[i].y=(atom[i].y+atom[j].y)/2;
+		    for (int k=0;k<n_bond;k++)
+		      if (bond[k].exists)
+			if (bond[k].a==j) {bond[k].a=i;}
+			else if (bond[k].b==j) {bond[k].b=i;}
+		  }
+	      }
+	  }
+      }
+}
+
 
 void extend_terminal_bond_to_bond(atom_t *atom, bond_t *bond, int n_atom,int n_bond,
 				  double avg)
@@ -2770,8 +2796,7 @@ void extend_terminal_bond_to_bond(atom_t *atom, bond_t *bond, int n_atom,int n_b
 				 atom[bond[i].a].x,atom[bond[i].a].y,
 				 atom[bond[i].b].x,atom[bond[i].b].y,
 				 atom[bond[j].a].x,atom[bond[j].a].y);
-		      if ( (nb<=2*avg || nb<=bl+2)  
-			   && ang>0.99 && !a_connected && nb<2*bl)
+		      if (nb<=1.2*avg && ang>0.99 && !a_connected)
 			{
 			  atom[bond[i].a].exists=false;
 			  for (int k=0;k<n_bond;k++)
@@ -2788,8 +2813,7 @@ void extend_terminal_bond_to_bond(atom_t *atom, bond_t *bond, int n_atom,int n_b
 				 atom[bond[i].a].x,atom[bond[i].a].y,
 				 atom[bond[i].b].x,atom[bond[i].b].y,
 				 atom[bond[j].b].x,atom[bond[j].b].y);
-		      if ( (nb<=2*avg ||  nb<=bl+2)  
-			   && ang>0.99 && !a_connected && nb<2*bl)
+		      if (nb<=1.2*avg && ang>0.99 && !a_connected)
 			{
 			  atom[bond[i].a].exists=false;
 			  for (int k=0;k<n_bond;k++)
@@ -2809,8 +2833,7 @@ void extend_terminal_bond_to_bond(atom_t *atom, bond_t *bond, int n_atom,int n_b
 				 atom[bond[i].b].x,atom[bond[i].b].y,
 				 atom[bond[i].a].x,atom[bond[i].a].y,
 				 atom[bond[j].a].x,atom[bond[j].a].y);
-		      if ( (nb<=2*avg ||  nb<=bl+2)  
-			   && ang>0.99 && !b_connected && nb<2*bl)
+		      if (nb<=1.2*avg && ang>0.99 && !b_connected)
 			{
 			  atom[bond[i].b].exists=false;
 			  for (int k=0;k<n_bond;k++)
@@ -2827,8 +2850,7 @@ void extend_terminal_bond_to_bond(atom_t *atom, bond_t *bond, int n_atom,int n_b
 				 atom[bond[i].b].x,atom[bond[i].b].y,
 				 atom[bond[i].a].x,atom[bond[i].a].y,
 				 atom[bond[j].b].x,atom[bond[j].b].y);
-		      if ( (nb<=2*avg ||  nb<=bl+2)  
-			   && ang>0.99 && !b_connected && nb<2*bl)
+		      if (nb<=1.2*avg && ang>0.99 && !b_connected)
 			{
 			  atom[bond[i].b].exists=false;
 			  for (int k=0;k<n_bond;k++)
@@ -3837,14 +3859,12 @@ int main(int argc,char **argv)
 	
 		extend_terminal_bond_to_label(atom,letters,n_letters,bond,n_bond,
 					      label,n_label,avg_bond);
-		
 		extend_terminal_bond_to_bond(atom,bond,n_atom,n_bond,avg_bond);
-	
-		remove_duplicate_atoms(atom,bond,n_atom,n_bond,2);
-
 		fix_double_bond_ends(atom,bond,n_atom,n_bond,max_dist_double_bond);
-	
-	
+
+		avg_bond=percentile75(bond,n_bond,atom);
+		collapse_atoms(atom,bond,n_atom,n_bond,avg_bond/4);
+		n_bond=smooth_kinks(bond,n_bond,atom,n_atom);
 		
 
 		valency_check(atom,bond,n_atom,n_bond);
