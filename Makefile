@@ -1,5 +1,4 @@
 ######################### GCC Setup ###################
-RES = osra
 X11LIBS=-L/usr/X11R6/lib
 #X11LIBS=-L/usr/X11R6/lib64
 IMLIBS= $(X11LIBS) -lMagick++ -lWand -lMagick -ltiff -lfreetype -ljpeg -lXext -lSM -lICE -lX11 -lXt -lbz2
@@ -25,11 +24,11 @@ CP=cp
 SED=sed
 
 LIBS=$(POTRACELIB) -lm  $(IMLIBS) $(GOCRLIB) $(OPENBABELLIB) -lz
-OBJ = osra.o osra_mol.o  osra_anisotropic.o $(OCRADOBJ)
+OBJ = osra.o osra_mol.o  osra_anisotropic.o osra_ocr.o $(OCRADOBJ)
 
 
 all:	$(OBJ)
-	${LD}  -o ${RES} $(OPTS) $(OBJ) $(LIBS)
+	${LD}  -o osra $(OPTS) $(OBJ) $(LIBS)
 
 
 osra.o:	osra.cpp osra.h pgm2asc.h output.h list.h unicode.h gocr.h
@@ -41,11 +40,11 @@ osra_mol.o: osra_mol.cpp osra.h
 osra_anisotropic.o:	osra_anisotropic.cpp osra.h
 	$(CPP) -c osra_anisotropic.cpp
 
-#${EVG_THIN}.o:	${EVG_THIN}.cc
-#	$(CPP) -c ${EVG_THIN}.cc
-
+osra_ocr.o:	osra_ocr.cpp osra.h
+	$(CPP) -c osra_ocr.cpp
+	
 clean:	
-	rm -f *.o ${RES} pgm2asc.h output.h list.h unicode.h gocr.h
+	rm -f *.o osra pgm2asc.h output.h list.h unicode.h gocr.h
 
 pgm2asc.h:
 	$(CP) $(GOCRSRC)/pgm2asc.h ./

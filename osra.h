@@ -96,3 +96,34 @@ string get_smiles(atom_t *atom, bond_t *bond, int n_bond, int &rotors, double &c
 Image anisotropic_smoothing(Image image,int width,int height);
 Image anisotropic_scaling(Image image,int width,int height, int nw, int nh);
 int count_fragments(string input);
+char get_atom_label(Image image, ColorGray bg, int x1, int y1, int x2, int y2, double THRESHOLD);
+int getPixel(Image image, ColorGray bg,unsigned int x, unsigned int y, double THRESHOLD);
+
+
+#define OSRA_VERSION "1.0.0"
+#define MAX_ATOMS 10000
+#define NUM_BOXES 100
+#define MAX_FONT_HEIGHT 22
+#define MAX_FONT_WIDTH 22
+#define MIN_FONT_HEIGHT 5
+#define FLAT_TOLERANCE 160
+#define BG_PICK_POINTS 100
+#define D_T_TOLERANCE 0.95
+#define V_DISPLACEMENT 3
+#define THRESHOLD_GLOBAL 0.4
+#define TOLERANCE_PLUS 20  
+#define TOLERANCE_MINUS 20
+#define MAX_RATIO 0.2
+#define MIN_ASPECT 0.2
+#define MAX_ASPECT 5.
+#define MIN_A_COUNT 5
+#define MAX_A_COUNT 200
+#define MIN_CHAR_POINTS 2
+#define WHITE_SPACE_FRACTION 0.3 
+#define MAX_BOND_THICKNESS 10
+#define SMALL_PICTURE_AREA 6000
+#define MAX_HEIGHT 1100
+#define MAX_WIDTH 1700
+#define MIN_HEIGHT 50
+#define MIN_WIDTH 50
+#define NUM_RESOLUTIONS 3
