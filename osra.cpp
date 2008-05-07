@@ -271,6 +271,7 @@ double distance_from_bond(double x0,double y0,double x1,double y1,double x,doubl
 }
 
 
+
 bool bonds_within_each_other(bond_t *bond,int ii,int jj,atom_t *atom)
 {
   int i,j;
@@ -2233,7 +2234,7 @@ int count_area(vector < vector<int> > *box, int x, int y)
 
 int find_dashed_bonds(potrace_path_t *p, atom_t *atom,bond_t *bond,int n_atom,
 		      int *n_bond,int max,double avg,Image img,ColorGray bg,  
-		      double THRESHOLD, bool flag)
+		      double THRESHOLD)
 {
   int n,n_dot=0;
   potrace_dpoint_t (*c)[3];
@@ -2333,8 +2334,7 @@ int find_dashed_bonds(potrace_path_t *p, atom_t *atom,bond_t *bond,int n_atom,
 	      if (dot[j].free && distance(mx,my,dot[j].x,dot[j].y)<=1.8*avg
 		  && distance(mx,my,dot[j].x,dot[j].y)<dist_next
 		  && fabs(angle4(dash[0].x,dash[0].y,dash[n-1].x,dash[n-1].y,
-				 dash[0].x,dash[0].y,dot[j].x,dot[j].y))>D_T_TOLERANCE
-		  && (fabs(distance(dot[j].x,dot[j].y,dash[n-1].x,dash[n-1].y)-distance(dash[0].x,dash[0].y,dash[1].x,dash[1].y))<2 || flag))
+				 dash[0].x,dash[0].y,dot[j].x,dot[j].y))>D_T_TOLERANCE)
 		{
 		  dash[n]=dot[j];
 		  dist_next=distance(mx,my,dot[j].x,dot[j].y);
@@ -2431,8 +2431,8 @@ int find_dashed_bonds(potrace_path_t *p, atom_t *atom,bond_t *bond,int n_atom,
   return(n_atom);
 }
 
-int find_small_bonds(potrace_path_t *p, atom_t *atom,bond_t *bond,int n_atom,int *n_bond,
-		      double max_area,double Small)
+int find_small_bonds(potrace_path_t *p, atom_t *atom,bond_t *bond,int n_atom,
+		     int *n_bond,double max_area,double Small,double thickness)
 {
 
   while (p != NULL) 
@@ -2477,7 +2477,7 @@ int find_small_bonds(potrace_path_t *p, atom_t *atom,bond_t *bond,int n_atom,int
 		for (int i=1;i<n_dot-1;i++)
 		  d=max(d,distance_from_bond(dot[0].x,dot[0].y,dot[n_dot-1].x,
 					     dot[n_dot-1].y,dot[i].x,dot[i].y));
-		if (d<5 || p->area<Small)
+		if (d<thickness || p->area<Small)
 		  {
 		    delete_curve(atom,bond,n_atom,*n_bond,p);
 		    atom[n_atom].x=dot[0].x;
@@ -2591,7 +2591,6 @@ int resolve_bridge_bonds(atom_t* atom,int n_atom,bond_t* bond,int n_bond)
 			else if (bond[c].b==bond[d].a) bond[c].b=bond[d].b;
 			else if (bond[c].b==bond[d].b) bond[c].b=bond[d].a;
 		      }
-		    
 		  }
 	      }
 	  }
@@ -3541,6 +3540,89 @@ int smooth_kinks(bond_t *bond,int n_bond,atom_t *atom,int n_atom)
   return(n_bond);
 }
 
+
+void glue_bond_ends(bond_t *bond,int n_bond,atom_t *atom, double r,double maxh)
+{
+  for (int i=0;i<n_bond;i++)
+    if (bond[i].exists)
+      {
+	bool a_i_terminal=terminal_bond(bond[i].a,i,bond,n_bond);
+	bool b_i_terminal=terminal_bond(bond[i].b,i,bond,n_bond);
+	if (atom[bond[i].a].label!=" ") a_i_terminal=false;
+	if (atom[bond[i].b].label!=" ") b_i_terminal=false;
+	for (int j=0;j<n_bond;j++)
+	  if (bond[j].exists && j!=i
+	      && bond[i].a!=bond[j].a && bond[i].a!=bond[j].b
+	      && bond[i].b!=bond[j].a && bond[i].b!=bond[j].b)
+	    {
+	      bool a_j_terminal=terminal_bond(bond[i].a,i,bond,n_bond);
+	      bool b_j_terminal=terminal_bond(bond[i].b,i,bond,n_bond);
+	      if (atom[bond[i].a].label!=" ") a_j_terminal=false;
+	      if (atom[bond[i].b].label!=" ") b_j_terminal=false;
+
+	      double d1=distance(atom[bond[i].a].x,atom[bond[i].a].y,
+				 atom[bond[j].a].x,atom[bond[j].a].y);
+	      double d2=distance(atom[bond[i].a].x,atom[bond[i].a].y,
+				 atom[bond[j].b].x,atom[bond[j].b].y);
+	      double d3=distance(atom[bond[i].b].x,atom[bond[i].b].y,
+				 atom[bond[j].a].x,atom[bond[j].a].y);
+	      double d4=distance(atom[bond[i].b].x,atom[bond[i].b].y,
+				 atom[bond[j].b].x,atom[bond[j].b].y);
+	      double dd1=min(d1,d2);
+	      double dd2=min(d3,d4);
+
+	      if (dd1<dd2 && a_i_terminal)   // i_a closer
+		if (d1<d2 && a_j_terminal && d1<r)   // j_a closer
+		  {
+		    double h=distance_from_bond(atom[bond[i].a].x,atom[bond[i].a].y,
+						atom[bond[i].b].x,atom[bond[i].b].y,
+						atom[bond[j].a].x,atom[bond[j].a].y);
+		    if (h<maxh)
+		      {
+			atom[bond[j].a].exists=false;
+			bond[j].a=bond[i].a;
+		      }
+		  }
+		else if (b_j_terminal && d2<r)    // j_b closer
+		  {
+		    double h=distance_from_bond(atom[bond[i].a].x,atom[bond[i].a].y,
+						atom[bond[i].b].x,atom[bond[i].b].y,
+						atom[bond[j].b].x,atom[bond[j].b].y);
+		    if (h<maxh)
+		      {
+			atom[bond[j].b].exists=false;
+			bond[j].b=bond[i].a;
+		      }
+		  }
+		else if (b_i_terminal) // b_i closer
+		  if (d3<d4 && a_j_terminal && d3<r)   // j_a closer
+		    {
+		      double h=distance_from_bond(atom[bond[i].a].x,atom[bond[i].a].y,
+						  atom[bond[i].b].x,atom[bond[i].b].y,
+						  atom[bond[j].a].x,atom[bond[j].a].y);
+		      if (h<maxh)
+			{
+			  atom[bond[j].a].exists=false;
+			  bond[j].a=bond[i].b;
+			}
+		    }
+		  else if (b_j_terminal && d4<r)    // j_b closer
+		    {
+		      double h=distance_from_bond(atom[bond[i].a].x,atom[bond[i].a].y,
+						  atom[bond[i].b].x,atom[bond[i].b].y,
+						  atom[bond[j].b].x,atom[bond[j].b].y);
+		      if (h<maxh)
+			{
+			  atom[bond[j].b].exists=false;
+			  bond[j].b=bond[i].a;
+			}
+		    }
+		
+	    }
+      }
+}
+
+
 job_t *JOB;
 
 int main(int argc,char **argv)
@@ -3797,17 +3879,6 @@ int main(int argc,char **argv)
 					       THRESHOLD_CHAR);
 		  }
 		
-		/*if (ttt++==5)
-		  {
-		    debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png"); 	  
-		    exit(0);
-		  }
-		*/
-		n_atom=find_dashed_bonds(p,atom,bond,n_atom,&n_bond,
-					 max(dash_length,int(avg_bond/3)),
-					 avg_bond,orig_box,bgColor,
-					 THRESHOLD_BOND,false);
-		
 		double max_area=avg_bond*5;
 		if (thick) max_area=avg_bond;
 		n_letters=find_plus_minus(p,letters,atom,bond,n_atom,n_bond,
@@ -3815,7 +3886,8 @@ int main(int argc,char **argv)
 					  real_font_width,n_letters,avg_bond);
 
 
-		n_atom=find_small_bonds(p,atom,bond,n_atom,&n_bond,max_area,avg_bond/2);
+		n_atom=find_small_bonds(p,atom,bond,n_atom,&n_bond,
+					max_area,avg_bond/2,5);
 		find_old_aromatic_bonds(p,bond,n_bond,atom,n_atom,avg_bond);
 
 
@@ -3827,7 +3899,7 @@ int main(int argc,char **argv)
 		n_atom=find_dashed_bonds(p,atom,bond,n_atom,&n_bond,
 					 max(dash_length,int(avg_bond/3)),
 					 avg_bond,orig_box,bgColor,
-					 THRESHOLD_BOND,true);
+					 THRESHOLD_BOND);
 		
 		
 		n_letters=remove_small_bonds(bond,n_bond,atom,letters,n_letters,
@@ -3835,37 +3907,39 @@ int main(int argc,char **argv)
 	 
 		remove_disconnected_atoms(atom,bond,n_atom,n_bond);
 
-		
+
 		find_wedge_bonds(thick_box,atom,bond,n_bond,bgColor,THRESHOLD_BOND,
 				 label,n_label,letters,n_letters,working_resolution);
-	
-		remove_bumps(bond,n_bond,atom,avg_bond);
-	
 
+	
 		n_label=assemble_labels(letters,n_letters,label);
+		
+		glue_bond_ends(bond,n_bond,atom,2.,2.);
+		debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");
+		exit(0);
 
 		assign_atom_labels(atom,n_atom,letters,n_letters,
 				   max(avg_bond/4,thickness),
 				   bond,n_bond,cornerd,label,n_label,
 				   avg_bond, max_dist_double_bond);
-		
+
 	
-		remove_duplicate_atoms(atom,bond,n_atom,n_bond,
-				       max(avg_bond/4,thickness));
-
-
+		collapse_atoms(atom,bond,n_atom,n_bond,max(2.,thickness));
 		n_bond=smooth_kinks(bond,n_bond,atom,n_atom);
+
 		avg_bond=percentile75(bond,n_bond,atom);
-	
+
 		extend_terminal_bond_to_label(atom,letters,n_letters,bond,n_bond,
 					      label,n_label,avg_bond);
+
 		extend_terminal_bond_to_bond(atom,bond,n_atom,n_bond,avg_bond);
 		fix_double_bond_ends(atom,bond,n_atom,n_bond,max_dist_double_bond);
+
 
 		avg_bond=percentile75(bond,n_bond,atom);
 		collapse_atoms(atom,bond,n_atom,n_bond,avg_bond/4);
 		n_bond=smooth_kinks(bond,n_bond,atom,n_atom);
-		
+
 
 		valency_check(atom,bond,n_atom,n_bond);
 		find_up_down_bonds(bond,n_bond,atom);
