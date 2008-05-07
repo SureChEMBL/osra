@@ -1537,7 +1537,7 @@ char get_atom_label(Image image, ColorGray bg, int x1, int y1, int x2, int y2, d
   double f=1.;
   JOB=&job;
   job_init(&job);
-  job.cfg.cfilter="oOcCnNHFsSBuUgMeEXYZRPp23568h";
+  job.cfg.cfilter="oOcCnNHFsSBuUgMeEXYZRPp235689h";
 
   //job.cfg.cs=160;
   //job.cfg.certainty=80;
@@ -3989,11 +3989,7 @@ int main(int argc,char **argv)
 					 max(dash_length,int(avg_bond/3)),
 					 avg_bond,orig_box,bgColor,
 					 THRESHOLD_BOND,true);
-		/*if (ttt++==6)
-		  {
-		    debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png"); 	  
-		    exit(0);
-		    }*/
+		
 		
 		n_letters=remove_small_bonds(bond,n_bond,atom,letters,n_letters,
 					     real_font_height,min_font_height,avg_bond);
@@ -4031,8 +4027,12 @@ int main(int argc,char **argv)
 
 		fix_double_bond_ends(atom,bond,n_atom,n_bond,max_dist_double_bond);
 
-
-
+		/*if (ttt++==2)
+		  {
+		    debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png"); 	  
+		    exit(0);
+		  }
+		*/
 		valency_check(atom,bond,n_atom,n_bond);
 		find_up_down_bonds(bond,n_bond,atom);
 		int real_atoms=count_atoms(atom,n_atom);
