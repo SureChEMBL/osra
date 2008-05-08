@@ -2709,31 +2709,37 @@ void remove_duplicate_atoms(atom_t *atom, bond_t *bond, int n_atom,int n_bond,
 void collapse_atoms(atom_t *atom, bond_t *bond, int n_atom,int n_bond,
 		    double r, double max_dist_double_bond)
 {
-  for (int i=0;i<n_atom;i++)
-      {
-	if (atom[i].exists)
-	  {
-	    double dist=r;
-	    for (int k=0;k<n_bond;k++)
-	      if (bond[k].exists && bond[k].type==2 &&
-		  (bond[k].a==i || bond[k].b==i))
-		dist+=max_dist_double_bond;
-	    for (int j=0;j<n_atom;j++)
-	      {
-		if (atom[j].exists && j!=i &&
-		    distance(atom[i].x,atom[i].y,atom[j].x,atom[j].y)<dist)
-		  {
-		    atom[j].exists=false;
-		    atom[i].x=(atom[i].x+atom[j].x)/2;
-		    atom[i].y=(atom[i].y+atom[j].y)/2;
-		    for (int k=0;k<n_bond;k++)
-		      if (bond[k].exists)
-			if (bond[k].a==j) {bond[k].a=i;}
-			else if (bond[k].b==j) {bond[k].b=i;}
-		  }
-	      }
-	  }
-      }
+  bool found=true;
+  while (found)
+    {
+      found=false;
+      for (int i=0;i<n_atom;i++)
+	{
+	  if (atom[i].exists)
+	    {
+	      double dist=r;
+	      for (int k=0;k<n_bond;k++)
+		if (bond[k].exists && bond[k].type==2 &&
+		    (bond[k].a==i || bond[k].b==i))
+		  dist+=max_dist_double_bond;
+	      for (int j=0;j<n_atom;j++)
+		{
+		  if (atom[j].exists && j!=i &&
+		      distance(atom[i].x,atom[i].y,atom[j].x,atom[j].y)<dist)
+		    {
+		      atom[j].exists=false;
+		      atom[i].x=(atom[i].x+atom[j].x)/2;
+		      atom[i].y=(atom[i].y+atom[j].y)/2;
+		      for (int k=0;k<n_bond;k++)
+			if (bond[k].exists)
+			  if (bond[k].a==j) {bond[k].a=i;}
+			  else if (bond[k].b==j) {bond[k].b=i;}
+		      found=true;
+		    }
+		}
+	    }
+	}
+    }
 }
 
 
@@ -3539,137 +3545,144 @@ int smooth_kinks(bond_t *bond,int n_bond,atom_t *atom,int n_atom)
 
 void flatten_bonds(bond_t *bond,int n_bond,atom_t *atom,int n_atom,double maxh)
 {
-  for (int i=0;i<n_bond;i++)
-    if (bond[i].exists && bond[i].type<3)
-      {
-	int n=0;
-	int f=i;
-	for (int j=0;j<n_bond;j++)
-	  if (j!=i && bond[j].exists && bond[j].type<3 &&
-	      (bond[i].a==bond[j].a || bond[i].a==bond[j].b))
-	    {
-	      n++;
-	      f=j;
-	    }
-	if (n==1)
+  bool found=true;
+  while (found)
+    {
+      found=false;
+      for (int i=0;i<n_bond;i++)
+	if (bond[i].exists && bond[i].type<3)
 	  {
-	    if (bond[f].a!=bond[i].a)
+	    int n=0;
+	    int f=i;
+	    for (int j=0;j<n_bond;j++)
+	      if (j!=i && bond[j].exists && bond[j].type<3 &&
+		  (bond[i].a==bond[j].a || bond[i].a==bond[j].b))
+		{
+		  n++;
+		  f=j;
+		}
+	    if (n==1)
 	      {
-		double h=distance_from_bond(atom[bond[i].a].x,atom[bond[i].a].y,
-					    atom[bond[i].b].x,atom[bond[i].b].y,
-					    atom[bond[f].a].x,atom[bond[f].a].y);
-		if (h<=maxh)
+		if (bond[f].a!=bond[i].a)
 		  {
-		    bond[f].exists=false;
-		    atom[bond[f].b].exists=false;
-		    if ((bond[f].hash || bond[f].wedge) &&
-			bond[f].b==bond[i].b)
+		    double h=distance_from_bond(atom[bond[i].a].x,atom[bond[i].a].y,
+						atom[bond[i].b].x,atom[bond[i].b].y,
+						atom[bond[f].a].x,atom[bond[f].a].y);
+		    if (h<=maxh)
 		      {
-			int t=bond[i].a;
-			bond[i].a=bond[i].b;
-			bond[i].b=t;
+			bond[f].exists=false;
+			atom[bond[f].b].exists=false;
+			if ((bond[f].hash || bond[f].wedge) &&
+			    bond[f].b==bond[i].b)
+			  {
+			    int t=bond[i].a;
+			    bond[i].a=bond[i].b;
+			    bond[i].b=t;
+			  }
+			if (bond[f].b==bond[i].a) bond[i].a=bond[f].a;
+			else bond[i].b=bond[f].a;
+			bond[i].type=max(bond[i].type,bond[f].type);
+			if (bond[f].arom) bond[i].arom=true;
+			if (bond[f].hash) bond[i].hash=true;
+			if (bond[f].wedge) bond[i].wedge=true;
+			found=true;
 		      }
-		    if (bond[f].b==bond[i].a) bond[i].a=bond[f].a;
-		    else bond[i].b=bond[f].a;
-		    bond[i].type=max(bond[i].type,bond[f].type);
-		    if (bond[f].arom) bond[i].arom=true;
-		    if (bond[f].hash) bond[i].hash=true;
-		    if (bond[f].wedge) bond[i].wedge=true;
-		   
+		  }
+		else 
+		  {
+		    double h=distance_from_bond(atom[bond[i].a].x,atom[bond[i].a].y,
+						atom[bond[i].b].x,atom[bond[i].b].y,
+						atom[bond[f].b].x,atom[bond[f].b].y);
+		    if (h<=maxh)
+		      {
+			bond[f].exists=false;
+			atom[bond[f].a].exists=false;
+			
+			if ((bond[f].hash || bond[f].wedge) &&
+			    bond[f].a==bond[i].a)
+			  {
+			    int t=bond[i].a;
+			    bond[i].a=bond[i].b;
+			    bond[i].b=t;
+			  }
+			if (bond[f].a==bond[i].a) bond[i].a=bond[f].b;
+			else bond[i].b=bond[f].b;
+			bond[i].type=max(bond[i].type,bond[f].type);
+			if (bond[f].arom) bond[i].arom=true;
+			if (bond[f].hash) bond[i].hash=true;
+			if (bond[f].wedge) bond[i].wedge=true;
+			found=true;
+		      }
 		  }
 	      }
-	    else 
-	      {
-		double h=distance_from_bond(atom[bond[i].a].x,atom[bond[i].a].y,
-					    atom[bond[i].b].x,atom[bond[i].b].y,
-					    atom[bond[f].b].x,atom[bond[f].b].y);
-		if (h<=maxh)
-		  {
-		    bond[f].exists=false;
-		    atom[bond[f].a].exists=false;
 
-		    if ((bond[f].hash || bond[f].wedge) &&
-			bond[f].a==bond[i].a)
+	    n=0;
+	    f=i;
+	    for (int j=0;j<n_bond;j++)
+	      if (j!=i && bond[j].exists && bond[j].type<3 &&
+		  (bond[i].b==bond[j].a || bond[i].b==bond[j].b))
+		{
+		  n++;
+		  f=j;
+		}
+	    if (n==1)
+	      {
+		if (bond[f].a!=bond[i].b)
+		  {
+		    double h=distance_from_bond(atom[bond[i].a].x,atom[bond[i].a].y,
+						atom[bond[i].b].x,atom[bond[i].b].y,
+						atom[bond[f].a].x,atom[bond[f].a].y);
+		    if (h<=maxh)
 		      {
-			int t=bond[i].a;
-			bond[i].a=bond[i].b;
-			bond[i].b=t;
+			bond[f].exists=false;
+			atom[bond[f].b].exists=false;
+			if ((bond[f].hash || bond[f].wedge) &&
+			    bond[f].b==bond[i].b)
+			  {
+			    int t=bond[i].a;
+			    bond[i].a=bond[i].b;
+			    bond[i].b=t;
+			  }
+			if (bond[f].b==bond[i].a) bond[i].a=bond[f].a;
+			else bond[i].b=bond[f].a;
+			bond[i].type=max(bond[i].type,bond[f].type);
+			if (bond[f].arom) bond[i].arom=true;
+			if (bond[f].hash) bond[i].hash=true;
+			if (bond[f].wedge) bond[i].wedge=true;
+			found=true;
 		      }
-		    if (bond[f].a==bond[i].a) bond[i].a=bond[f].b;
-		    else bond[i].b=bond[f].b;
-		    bond[i].type=max(bond[i].type,bond[f].type);
-		    if (bond[f].arom) bond[i].arom=true;
-		    if (bond[f].hash) bond[i].hash=true;
-		    if (bond[f].wedge) bond[i].wedge=true;
+		  }
+		else 
+		  {
+		    double h=distance_from_bond(atom[bond[i].a].x,atom[bond[i].a].y,
+						atom[bond[i].b].x,atom[bond[i].b].y,
+						atom[bond[f].b].x,atom[bond[f].b].y);
+		    if (h<=maxh)
+		      {
+			bond[f].exists=false;
+			atom[bond[f].a].exists=false;
+			
+			if ((bond[f].hash || bond[f].wedge) &&
+			    bond[f].a==bond[i].a)
+			  {
+			    int t=bond[i].a;
+			    bond[i].a=bond[i].b;
+			    bond[i].b=t;
+			  }
+			if (bond[f].a==bond[i].a) bond[i].a=bond[f].b;
+			else bond[i].b=bond[f].b;
+			bond[i].type=max(bond[i].type,bond[f].type);
+			if (bond[f].arom) bond[i].arom=true;
+			if (bond[f].hash) bond[i].hash=true;
+			if (bond[f].wedge) bond[i].wedge=true;
+			found=true;
+		      }
 		  }
 	      }
+
+	  
 	  }
-
-	n=0;
-	f=i;
-	for (int j=0;j<n_bond;j++)
-	  if (j!=i && bond[j].exists && bond[j].type<3 &&
-	      (bond[i].b==bond[j].a || bond[i].b==bond[j].b))
-	    {
-	      n++;
-	      f=j;
-	    }
-	if (n==1)
-	  {
-	    if (bond[f].a!=bond[i].b)
-	      {
-		double h=distance_from_bond(atom[bond[i].a].x,atom[bond[i].a].y,
-					    atom[bond[i].b].x,atom[bond[i].b].y,
-					    atom[bond[f].a].x,atom[bond[f].a].y);
-		if (h<=maxh)
-		  {
-		    bond[f].exists=false;
-		    atom[bond[f].b].exists=false;
-		    if ((bond[f].hash || bond[f].wedge) &&
-			bond[f].b==bond[i].b)
-		      {
-			int t=bond[i].a;
-			bond[i].a=bond[i].b;
-			bond[i].b=t;
-		      }
-		    if (bond[f].b==bond[i].a) bond[i].a=bond[f].a;
-		    else bond[i].b=bond[f].a;
-		    bond[i].type=max(bond[i].type,bond[f].type);
-		    if (bond[f].arom) bond[i].arom=true;
-		    if (bond[f].hash) bond[i].hash=true;
-		    if (bond[f].wedge) bond[i].wedge=true;
-		   
-		  }
-	      }
-	    else 
-	      {
-		double h=distance_from_bond(atom[bond[i].a].x,atom[bond[i].a].y,
-					    atom[bond[i].b].x,atom[bond[i].b].y,
-					    atom[bond[f].b].x,atom[bond[f].b].y);
-		if (h<=maxh)
-		  {
-		    bond[f].exists=false;
-		    atom[bond[f].a].exists=false;
-
-		    if ((bond[f].hash || bond[f].wedge) &&
-			bond[f].a==bond[i].a)
-		      {
-			int t=bond[i].a;
-			bond[i].a=bond[i].b;
-			bond[i].b=t;
-		      }
-		    if (bond[f].a==bond[i].a) bond[i].a=bond[f].b;
-		    else bond[i].b=bond[f].b;
-		    bond[i].type=max(bond[i].type,bond[f].type);
-		    if (bond[f].arom) bond[i].arom=true;
-		    if (bond[f].hash) bond[i].hash=true;
-		    if (bond[f].wedge) bond[i].wedge=true;
-		  }
-	      }
-	  }
-
-
-      }
+    }
 }
 
 
@@ -3969,12 +3982,13 @@ int main(int argc,char **argv)
 		collapse_atoms(atom,bond,n_atom,n_bond,max(2.,thickness),
 			       max_dist_double_bond);
 		flatten_bonds(bond,n_bond,atom,n_atom,max(5.,thickness));
+		debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");
+		exit(0);
 		avg_bond=percentile75(bond,n_bond,atom);
 		extend_terminal_bond_to_label(atom,letters,n_letters,bond,n_bond,
 					      label,n_label,avg_bond,max(5.,thickness));
-		debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");
-		exit(0);
 
+		//####################3
 		assign_atom_labels(atom,n_atom,letters,n_letters,
 				   max(avg_bond/4,thickness),
 				   bond,n_bond,cornerd,label,n_label,
