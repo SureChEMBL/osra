@@ -170,6 +170,19 @@ void delete_curve(atom_t *atom,bond_t *bond,int n_atom,int n_bond, potrace_path_
     }
 }
 
+void delete_curve_with_children(atom_t *atom,bond_t *bond,int n_atom,int n_bond, 
+				potrace_path_t *p)
+{
+  delete_curve(atom,bond,n_atom,n_bond,p);
+  potrace_path_t *child=p->childlist;
+  while (child !=NULL)
+    {
+      delete_curve(atom,bond,n_atom,n_bond,child);
+      child=child->sibling;
+    }
+}
+
+
 void  delete_bonds_in_char(bond_t *bond,int n_bond,atom_t *atom,
 			   double left,double top,double right,double bottom)
 {
@@ -1020,6 +1033,68 @@ void extend_terminal_bond_to_label(atom_t *atom,letters_t *letters,int n_letters
    
 }
 
+void extend_terminal_bond_to_bonds(atom_t *atom,bond_t *bond, int n_bond,
+				   double avg, double maxh)
+{
+ for (int j=0;j<n_bond;j++)
+    if (bond[j].exists)
+      {
+	bool not_corner_a=terminal_bond(bond[j].a,j,bond,n_bond);
+	bool not_corner_b=terminal_bond(bond[j].b,j,bond,n_bond);
+	double xa=atom[bond[j].a].x;
+	double ya=atom[bond[j].a].y;
+	double xb=atom[bond[j].b].x;
+	double yb=atom[bond[j].b].y;
+	double minb=FLT_MAX;
+	bool found1=false,found2=false;
+	int l1=-1,l2=-1;
+	if (not_corner_a)
+	  for (int i=0;i<n_bond;i++)
+	    if (bond[i].exists)
+	      {
+		double d1=fabs(distance_from_bond_x_a(xa,ya,xb,yb,
+						      atom[bond[i].a].x,
+						      atom[bond[i].a].y));
+		  double d2=fabs(distance_from_bond_x_a(xa,ya,xb,yb,
+							atom[bond[i].b].x,
+							atom[bond[i].b].y));
+		  double nb=FLT_MAX;
+		  double h1=fabs(distance_from_bond_y(xa,ya,xb,yb,
+						      atom[bond[i].a].x,
+						      atom[bond[i].a].y));
+		  double h2=fabs(distance_from_bond_y(xa,ya,xb,yb,
+						      atom[bond[i].b].x,
+						      atom[bond[i].b].y));
+		  double y_dist=maxh;
+		  double h=FLT_MAX;
+		  if (d1<d2)   // a side closer
+		    {
+		      nb=d1;
+		      h=h1;
+		      l=bond[i].a;
+		    }
+		  else         // b side closer
+		    {
+		      nb=d2
+		      h=h2;
+		    }
+		  if (nb<=avg/2 && h<=y_dist && nb<minb)
+		    {
+		      found=true;
+		      l=i;
+		      minb=nb;
+		    }
+	      }	      
+	    
+	if (found)
+	      {
+		atom[bond[j].a].x=atom[l].x;
+		atom[bond[j].a].y=atom[l].y;
+	      }
+      }
+}
+
+
 
 void assign_charge(atom_t *atom, bond_t *bond, int n_atom,int n_bond)
 {
@@ -1402,6 +1477,7 @@ int find_chars(potrace_path_t *p,Image orig,letters_t *letters,
 		    n_letters++;
 		    if (n_letters>=MAX_ATOMS) n_letters--;
 		    delete_bonds_in_char(bond,n_bond,atom,left,top,right,bottom);
+		    delete_curve_with_children(atom,bond,n_atom,n_bond,p);
 		  }
 	    }
 	    else  if (((bottom-top)<=2*max_font_height) && 
@@ -1439,6 +1515,7 @@ int find_chars(potrace_path_t *p,Image orig,letters_t *letters,
 		    n_letters++;
 		    if (n_letters>=MAX_ATOMS) n_letters--;
 		    delete_bonds_in_char(bond,n_bond,atom,left,top,right,bottom);
+		    delete_curve_with_children(atom,bond,n_atom,n_bond,p);
 		  }
 	    }
 	    else  if (((bottom-top)<=max_font_height) && 
@@ -1476,6 +1553,7 @@ int find_chars(potrace_path_t *p,Image orig,letters_t *letters,
 		    n_letters++;
 		    if (n_letters>=MAX_ATOMS) n_letters--;
 		    delete_bonds_in_char(bond,n_bond,atom,left,top,right,bottom);
+		    delete_curve_with_children(atom,bond,n_atom,n_bond,p);
 		  }
 	    }
 
@@ -2474,7 +2552,6 @@ int find_fused_chars(bond_t *bond,int n_bond,atom_t *atom,
 	    double cx=0;
 	    double cy=0;
 	    int n=0;
-	    //list<int> tt=t;
 	    while (!t.empty())
 	      {
 		int k=t.front();
@@ -2506,15 +2583,9 @@ int find_fused_chars(bond_t *bond,int n_bond,atom_t *atom,
 		    if (distance((left+right)/2,(top+bottom)/2,
 				 letters[j].x,letters[j].y)<letters[j].r)
 		      overlap=true;
-		    //		    cout<<distance((left+right)/2,(top+bottom)/2,letters[j].x,letters[j].y)<<" "<<letters[j].r<<" "<<letters[j].a<<endl;
 		  }
 		if (!overlap)
 		  {
-		    /*orig.modifyImage();
-		    orig.type(TrueColorType);
-		    draw_square(&orig,left,top,right,bottom,"blue");
-		    orig.write("tmp.png");
-		    cout<<label<<endl;*/
 		    letters[n_letters].a=label;
 		    letters[n_letters].x=(left+right)/2;
 		    letters[n_letters].y=(top+bottom)/2;
@@ -2859,13 +2930,7 @@ int find_plus_minus(potrace_path_t *p,letters_t *letters,
 		  letters[n_letters].free=true;
 		  n_letters++;
 		  if (n_letters>=MAX_ATOMS) n_letters--;
-		  delete_curve(atom,bond,n_atom,n_bond,p);
-		  potrace_path_t *child=p->childlist;
-		  while (child !=NULL)
-		    {
-		      delete_curve(atom,bond,n_atom,n_bond,child);
-		      child=child->sibling;
-		    }
+		  delete_curve_with_children(atom,bond,n_atom,n_bond,p);
 		}
 	    }
 	  }
@@ -2894,12 +2959,7 @@ void  find_old_aromatic_bonds(potrace_path_t *p,bond_t *bond,int n_bond,
 		  for(int i=0;i<n_bond;i++)
 		    if (bond[i].exists && bond[i].curve==p)
 		      bond[i].arom=true;
-		  delete_curve(atom,bond,n_atom,n_bond,child);
-		  while (gchild !=NULL)
-		    {
-		      delete_curve(atom,bond,n_atom,n_bond,gchild);
-		      gchild=gchild->sibling;
-		    }
+		  delete_curve_with_children(atom,bond,n_atom,n_bond,child);
 		}
 	    }
 	}
@@ -2952,13 +3012,7 @@ void  find_old_aromatic_bonds(potrace_path_t *p,bond_t *bond,int n_bond,
 		  if (circum<PI*diameter && diameter>avg/2 && diameter<3*avg
 		      && centered)
 		    {
-		      delete_curve(atom,bond,n_atom,n_bond,p1);
-		      potrace_path_t *child=p1->childlist;
-		      while (child !=NULL)
-			{
-			  delete_curve(atom,bond,n_atom,n_bond,child);
-			  child=child->sibling;
-			}
+		      delete_curve_with_children(atom,bond,n_atom,n_bond,p1);
 		      for(int i=0;i<n_bond;i++)
 			if (bond[i].exists)
 			  {
@@ -3157,7 +3211,7 @@ void clean_unrecognized_characters(bond_t *bond,int n_bond,atom_t *atom,
 	  if (atom[bond[k].a].y>b) b=atom[bond[k].a].y;
 	  if (atom[bond[k].b].y>b) b=atom[bond[k].b].y;
 	}
-      if ((r-l)<real_font_width && (b-t)<real_font_height)
+      if ((r-l)<real_font_width && (b-t)<real_font_height && trash.size()>1)
 	while (!trash.empty())
 	  {
 	    int k=trash.front();
@@ -3403,7 +3457,6 @@ int main(int argc,char **argv)
 				     max_font_width,max_font_height,
 				     real_font_width,real_font_height);
 	
-		cout<<"+++++++++++++++++++++++++++++++++++++++"<<endl;
 		double avg_bond=percentile75(bond,n_bond,atom);
 		if (working_resolution==300)
 		  {
@@ -3412,7 +3465,6 @@ int main(int argc,char **argv)
 					       avg_bond/3,orig_box,bgColor,
 					       THRESHOLD_CHAR);
 		  }
-		
 		double max_area=avg_bond*5;
 		if (thick) max_area=avg_bond;
 
@@ -3438,7 +3490,9 @@ int main(int argc,char **argv)
 
 		n_bond=double_triple_bonds(atom,bond,n_bond,avg_bond,n_atom,
 					   2*thickness,max_dist_double_bond);
-		flatten_bonds(bond,n_bond,atom,n_atom,2*thickness);
+		collapse_atoms(atom,bond,n_atom,n_bond,max_dist_double_bond,0);
+		remove_zero_bonds(bond,n_bond,atom);
+		flatten_bonds(bond,n_bond,atom,n_atom,max_dist_double_bond);
 		remove_zero_bonds(bond,n_bond,atom);
 
 		avg_bond=percentile75(bond,n_bond,atom);
@@ -3450,6 +3504,7 @@ int main(int argc,char **argv)
 		
 		n_letters=remove_small_bonds(bond,n_bond,atom,letters,n_letters,
 					     real_font_height,min_font_height,avg_bond);
+
 		clean_unrecognized_characters(bond,n_bond,atom,
 					      real_font_height,real_font_width);
 		avg_bond=percentile75(bond,n_bond,atom);
@@ -3457,7 +3512,7 @@ int main(int argc,char **argv)
 
 		find_wedge_bonds(thick_box,atom,n_atom,bond,n_bond,bgColor,
 				 THRESHOLD_BOND,label,n_label,letters,n_letters,
-				 working_resolution,thickness);
+				 working_resolution,2*thickness);
 
 		n_label=assemble_labels(letters,n_letters,label);
 		
@@ -3475,8 +3530,7 @@ int main(int argc,char **argv)
 		remove_zero_bonds(bond,n_bond,atom);
 		flatten_bonds(bond,n_bond,atom,n_atom,thickness);
 		remove_zero_bonds(bond,n_bond,atom);
-		
-		debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");
+		debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");		
 
 
 

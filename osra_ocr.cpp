@@ -116,14 +116,14 @@ char get_atom_label(Image image, ColorGray bg, int x1, int y1, int x2, int y2, d
 
 	    }
 	}
-           
+      /*      cout<<x1<<" "<<y1<<" "<<x2<<" "<<y2<<endl;           
       for (int i=0;i<job.src.p.y;i++)
 	{
 	  for(int j=0;j<job.src.p.x;j++)
 	    cout<<job.src.p.p[i*job.src.p.x+j]/255;
 	  cout<<endl;
 	  }
-      
+      */
       if (count>MIN_CHAR_POINTS && zeros>MIN_CHAR_POINTS)
 	{
 	  try {
@@ -150,7 +150,7 @@ char get_atom_label(Image image, ColorGray bg, int x1, int y1, int x2, int y2, d
 
 
 	}
-      cout<<c<<endl<<"=========================="<<endl;
+      //cout<<c<<endl<<"=========================="<<endl;
     }
       job_free(&job);
     
