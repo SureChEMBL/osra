@@ -2680,12 +2680,12 @@ void find_wedge_bonds(Image image,atom_t* atom, int n_atom,bond_t* bond,int n_bo
 		      thickness_hor(image,int((x1+x2)/2),int((y1+y2)/2),bgColor,
 				    THRESHOLD_BOND));
 
-	if (w2-w3>1 && w3-w1>1 && w2<20) 
+	if (w2-w3>1 && w3-w1>1 && w2<2*MAX_BOND_THICKNESS) 
 	  {
 	    bond[i].wedge=true;
 	    
 	  }
-	if (w1-w3>1 && w3-w2>1 && w1<20)
+	if (w1-w3>1 && w3-w2>1 && w1<2*MAX_BOND_THICKNESS)
 	  {
 	    int t=bond[i].a;
 	    bond[i].a=bond[i].b;
@@ -3183,7 +3183,7 @@ int main(int argc,char **argv)
 {
     fclose(stderr);
     srand(1);
-    TCLAP::CmdLine cmd("OSRA: Optical Structure Recognition, created by Igor Filippov, 2007",' ',OSRA_VERSION);
+    TCLAP::CmdLine cmd("OSRA: Optical Structure Recognition, created by Igor Filippov, 2007-2008",' ',OSRA_VERSION);
     TCLAP::UnlabeledValueArg<string>  input( "in", "input file",true,"", "filename"  );
     cmd.add(input);
     TCLAP::ValueArg<double> threshold("t","threshold","Gray level threshold",
