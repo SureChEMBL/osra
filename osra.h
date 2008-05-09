@@ -111,8 +111,6 @@ int getPixel(Image image, ColorGray bg,unsigned int x, unsigned int y, double TH
 #define D_T_TOLERANCE 0.95
 #define V_DISPLACEMENT 3
 #define THRESHOLD_GLOBAL 0.4
-#define TOLERANCE_PLUS 20  
-#define TOLERANCE_MINUS 20
 #define MAX_RATIO 0.2
 #define MIN_ASPECT 0.2
 #define MAX_ASPECT 5.

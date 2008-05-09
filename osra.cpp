@@ -792,42 +792,6 @@ int remove_small_bonds(bond_t *bond, int n_bond,atom_t *atom,
   return(n_letters);
 } 
 
-bool not_corner(int a,bond_t *bond,int n_bond,double r,atom_t *atom,double d)
-{
-  bool res=true;
-  for (int i=0;i<n_bond;i++)
-    if ((bond[i].exists) && (bond_length(bond,i,atom)>r))
-	for (int j=i+1;j<n_bond;j++)
-	  if ((bond[j].exists) && (bond_length(bond,j,atom)>r))
-	    if ((bond[i].a==bond[j].a && bond[i].a==a) ||
-		(bond[i].a==bond[j].b && bond[i].a==a) ||
-		(bond[i].b==bond[j].a && bond[i].b==a) ||
-		(bond[i].b==bond[j].b && bond[i].b==a) ||
-		(distance(atom[bond[i].a].x,atom[bond[i].a].y,
-			  atom[bond[j].a].x,atom[bond[j].a].y)<d &&
-		 distance(atom[bond[i].a].x,atom[bond[i].a].y,
-			  atom[a].x,atom[a].y)<d) ||
-		(distance(atom[bond[i].a].x,atom[bond[i].a].y,
-			  atom[bond[j].b].x,atom[bond[j].b].y)<d &&
-		 distance(atom[bond[i].a].x,atom[bond[i].a].y,
-			  atom[a].x,atom[a].y)<d) ||
-		(distance(atom[bond[i].b].x,atom[bond[i].b].y,
-			  atom[bond[j].a].x,atom[bond[j].a].y)<d &&
-		 distance(atom[bond[i].b].x,atom[bond[i].b].y,
-			  atom[a].x,atom[a].y)<d) ||
-		(distance(atom[bond[i].b].x,atom[bond[i].b].y,
-			  atom[bond[j].b].x,atom[bond[j].b].y)<d &&
-		 distance(atom[bond[i].b].x,atom[bond[i].b].y,
-			  atom[a].x,atom[a].y)<d))
-	      {
-		double ang=180*acos(angle_between_bonds(bond,i,j,atom))/PI;
-		if (ang>TOLERANCE_PLUS && ang<180-TOLERANCE_PLUS)
-		  res=false;
-	      }
-
-  return(res);
-}
-
 
 int comp_lbonds(const void *a,const void *b)
 {
@@ -1593,7 +1557,6 @@ int find_atoms(potrace_path_t *p, atom_t *atom,bond_t *bond,int *n_bond,int mind
   int *tag,n_atom=0;
   potrace_dpoint_t (*c)[3];
   long n;
-  double ANGLE_TOLERANCE;
 
  while (p != NULL) 
       {
@@ -1659,9 +1622,8 @@ int find_atoms(potrace_path_t *p, atom_t *atom,bond_t *bond,int *n_bond,int mind
 		    if (n_atom>=MAX_ATOMS) n_atom--;
 		  }
 	      }
-	    if ((p->sign == int('+'))) ANGLE_TOLERANCE=TOLERANCE_PLUS;
-	    else ANGLE_TOLERANCE=TOLERANCE_MINUS;
-	    *n_bond=find_bonds(atom,bond,b_atom,n_atom,*n_bond,p,ANGLE_TOLERANCE,mind);
+	    *n_bond=find_bonds(atom,bond,b_atom,n_atom,*n_bond,p,
+			       180-FLAT_TOLERANCE,mind);
      
 	    p = p->next;
       }
@@ -3565,7 +3527,7 @@ int main(int argc,char **argv)
 		remove_zero_bonds(bond,n_bond,atom);
 
 
-		//debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");
+		debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");
 
 		assign_charge(atom,bond,n_atom,n_bond);
 		find_up_down_bonds(bond,n_bond,atom,thickness);
