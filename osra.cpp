@@ -267,6 +267,12 @@ double distance_from_bond_x_b(double x0,double y0,double x1,double y1,double x,d
   return(l-d1);
 }
 
+void bond_end_swap(bond_t *bond, int i)
+{
+  int t=bond[i].a;
+  bond[i].a=bond[i].b;
+  bond[i].b=t;
+}
 
 bool bonds_within_each_other(bond_t *bond,int ii,int jj,atom_t *atom)
 {
@@ -429,14 +435,14 @@ bool no_white_space(int ai,int bi,int aj, int bj, atom_t *atom,Image image,
 
 
 double skeletize(atom_t *atom,bond_t *bond,int n_bond,Image image,
-	       double threshold,ColorGray bgColor)
+		 double threshold,ColorGray bgColor, int max_area)
 {
-  double ang;
   double thickness=0;
   for (int i=0;i<n_bond;i++)
     if (bond[i].exists)
       {
 	double l1=bond_length(bond,i,atom);
+	potrace_path_t* p1=bond[i].curve;
 	for (int j=0;j<n_bond;j++)
 	  if (i!=j && bond[j].exists && bonds_within_each_other(bond,i,j,atom))
 	    {
@@ -447,8 +453,9 @@ double skeletize(atom_t *atom,bond_t *bond,int n_bond,Image image,
 		  || tt<2)
 		{
 		  double l2=bond_length(bond,j,atom);
-		  ang=angle_between_bonds(bond,i,j,atom);
-		  if (tt>thickness) thickness=tt;
+		  potrace_path_t* p2=bond[j].curve;
+		  if (tt>thickness && p1->area>max_area && p2->area>max_area) 
+		    thickness=tt;
 		  if (l1<l2)
 		    {
 		      bond[i].exists=false;
@@ -465,6 +472,7 @@ double skeletize(atom_t *atom,bond_t *bond,int n_bond,Image image,
 		}
 	    }
       }
+  cout<<thickness<<endl;
   return(thickness+1.);
 }
 
@@ -2135,11 +2143,7 @@ int find_dashed_bonds(potrace_path_t *p, atom_t *atom,bond_t *bond,int n_atom,
 		int pa=count_area(&box,int(dash[0].x),int(dash[0].y));
 		int pb=count_area(&box,int(dash[n-1].x),int(dash[n-1].y));
 		if (pa>pb)
-		  {
-		    int t=bond[*n_bond].a;
-		    bond[*n_bond].a=bond[*n_bond].b;
-		    bond[*n_bond].b=t;
-		  }
+		  bond_end_swap(bond,*n_bond);
 		bond[*n_bond].hash=true;
 		bond[*n_bond].wedge=false;
 		bond[*n_bond].up=false;
@@ -2687,9 +2691,8 @@ void find_wedge_bonds(Image image,atom_t* atom, int n_atom,bond_t* bond,int n_bo
 	  }
 	if (w1-w3>1 && w3-w2>1 && w1<2*MAX_BOND_THICKNESS)
 	  {
-	    int t=bond[i].a;
-	    bond[i].a=bond[i].b;
-	    bond[i].b=t;
+	    
+	    bond_end_swap(bond,i);
 	    bond[i].wedge=true;
 	  }
 	double w=max(w1,max(w2,w3));
@@ -2719,12 +2722,17 @@ void find_up_down_bonds(bond_t* bond,int n_bond,atom_t* atom, double thickness)
   for(int i=0;i<n_bond;i++)
     if(bond[i].exists && bond[i].type==2)
       {
+	if (atom[bond[i].a].x>atom[bond[i].b].x)
+	  bond_end_swap(bond,i);
+	if (atom[bond[i].a].x==atom[bond[i].b].x && atom[bond[i].a].y>atom[bond[i].b].y)
+	  bond_end_swap(bond,i);
+
 	for(int j=0;j<n_bond;j++)
 	  if (bond[j].exists && bond[j].type==1 && !bond[j].wedge && !bond[j].hash)
 	    {
 	      bond[j].down=false;
 	      bond[j].up=false;
-	      if (bond[j].b==bond[i].a && j<i)
+	      if (bond[j].b==bond[i].a)
 		{
 		  double h=distance_from_bond_y(atom[bond[i].a].x,atom[bond[i].a].y,
 						atom[bond[i].b].x,atom[bond[i].b].y,
@@ -2732,18 +2740,16 @@ void find_up_down_bonds(bond_t* bond,int n_bond,atom_t* atom, double thickness)
 		  if (h>thickness)  bond[j].down=true;
 		  else if (h<-thickness) bond[j].up=true;
 		}
-	      else if (bond[j].a==bond[i].a && j<i)
+	      else if (bond[j].a==bond[i].a)
 		{
-		  int t=bond[j].b;
-		  bond[j].b=bond[j].a;
-		  bond[j].a=t;
+		  bond_end_swap(bond,j);
 		  double h=distance_from_bond_y(atom[bond[i].a].x,atom[bond[i].a].y,
 						atom[bond[i].b].x,atom[bond[i].b].y,
 						atom[bond[j].a].x,atom[bond[j].a].y);
 		  if (h>thickness)  bond[j].down=true;
 		  else if (h<-thickness) bond[j].up=true;
 		}
-	      else if (bond[j].a==bond[i].b && j>i)
+	      else if (bond[j].a==bond[i].b)
 		{
 		  double h=distance_from_bond_y(atom[bond[i].a].x,atom[bond[i].a].y,
 						atom[bond[i].b].x,atom[bond[i].b].y,
@@ -2751,11 +2757,9 @@ void find_up_down_bonds(bond_t* bond,int n_bond,atom_t* atom, double thickness)
 		  if (h>thickness)  bond[j].up=true;
 		  else if (h<-thickness) bond[j].down=true;
 		}
-	      else if (bond[j].b==bond[i].b && j>i)
+	      else if (bond[j].b==bond[i].b)
 		{
-		  int t=bond[j].b;
-		  bond[j].b=bond[j].a;
-		  bond[j].a=t;
+		  bond_end_swap(bond,j);
 		  double h=distance_from_bond_y(atom[bond[i].a].x,atom[bond[i].a].y,
 						atom[bond[i].b].x,atom[bond[i].b].y,
 						atom[bond[j].b].x,atom[bond[j].b].y);
@@ -3436,10 +3440,11 @@ int main(int argc,char **argv)
 		find_old_aromatic_bonds(p,bond,n_bond,atom,n_atom,avg_bond);
 		
 		
-		double thickness=skeletize(atom,bond,n_bond,box,THRESHOLD_BOND,bgColor);
+		double thickness=skeletize(atom,bond,n_bond,box,THRESHOLD_BOND,
+					   bgColor,dash_length);
+		debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");
 
 		n_bond=fix_one_sided_bonds(bond,n_bond,atom,2);
-
 		collapse_atoms(atom,bond,n_atom,n_bond,thickness,0);
 		remove_zero_bonds(bond,n_bond,atom);
 		flatten_bonds(bond,n_bond,atom,n_atom,thickness);
@@ -3485,7 +3490,7 @@ int main(int argc,char **argv)
 		remove_zero_bonds(bond,n_bond,atom);
 		flatten_bonds(bond,n_bond,atom,n_atom,thickness);
 		remove_zero_bonds(bond,n_bond,atom);
-		debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");
+
 
 
 
