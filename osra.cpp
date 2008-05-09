@@ -111,7 +111,6 @@ double angle4(double x1,double y1, double x2, double y2,
 }
 
 
-
 void remove_disconnected_atoms(atom_t *atom, bond_t *bond, int n_atom, int n_bond)
 {
   for (int i=0;i<n_atom;i++)
@@ -127,33 +126,6 @@ void remove_disconnected_atoms(atom_t *atom, bond_t *bond, int n_atom, int n_bon
                   }
               }
           }
-      }
-}
-
-void remove_disconnected_bonds(bond_t *bond, int n_bond)
-{
-  for (int i=0;i<n_bond;i++)
-      {
-        if ((bond[i].exists)/* && (bond[i].type==1)*/)
-          {
-            bond[i].exists=false;
-            for (int j=0;j<n_bond;j++)
-              {
-                if ((bond[j].exists) && (j!=i) && (bond[i].a==bond[j].a || bond[i].b==bond[j].a ||
-					 bond[i].a==bond[j].b || bond[i].b==bond[j].b))
-                  {
-                    bond[i].exists=true;
-                  }
-		if ((bond[j].exists) && (j!=i) && ((bond[i].a==bond[j].a && bond[i].b==bond[j].b) ||
-						   (bond[i].a==bond[j].b && bond[i].b==bond[j].a)))
-                  {
-                    bond[i].exists=false;
-		    break;
-                  }
-              }
-	    
-          }
-	if (bond[i].a==bond[i].b) bond[i].exists=false;
       }
 }
 
@@ -198,14 +170,6 @@ void delete_curve(atom_t *atom,bond_t *bond,int n_atom,int n_bond, potrace_path_
     }
 }
 
-int find_bond_by_curve(bond_t *bond,int n_bond, potrace_path_t *curve)
-{
-  for(int i=0;i<n_bond;i++)
-    {
-      if (bond[i].curve==curve) return(i);
-    }
-  return(n_bond);
-}
 
 double angle_between_bonds(bond_t *bond,int i,int j,atom_t *atom)
 {
@@ -264,16 +228,7 @@ double bond_length(bond_t *bond, int i,atom_t *atom)
   return(distance(atom[bond[i].a].x,atom[bond[i].a].y,atom[bond[i].b].x,atom[bond[i].b].y));
 }
 
-double distance_between_bonds(bond_t *bond,int i,int j,atom_t *atom,double thickness)
-{
-  double d1=bond_length(bond,i,atom);
-  double cos=(atom[bond[i].b].x-atom[bond[i].a].x)/d1;
-  double sin=-(atom[bond[i].b].y-atom[bond[i].a].y)/d1;
-  double y3=-(atom[bond[j].a].x-atom[bond[i].a].x)*sin-(atom[bond[j].a].y-atom[bond[i].a].y)*cos;
-  double y4=-(atom[bond[j].b].x-atom[bond[i].a].x)*sin-(atom[bond[j].b].y-atom[bond[i].a].y)*cos;
-  if (fabs(y3-y4)>thickness) return(FLT_MAX);
-  return((fabs(y3)+fabs(y4))/2);
-}
+
 
 double distance_from_bond_y(double x0,double y0,double x1,double y1,double x,double y)
 {
@@ -281,7 +236,17 @@ double distance_from_bond_y(double x0,double y0,double x1,double y1,double x,dou
   double cos=(x1-x0)/d1;
   double sin=-(y1-y0)/d1;
   double h=-(x-x0)*sin-(y-y0)*cos;
-  return(fabs(h));
+  return(h);
+}
+
+double distance_between_bonds(bond_t *bond,int i,int j,atom_t *atom,double thickness)
+{
+  double y3=distance_from_bond_y(atom[bond[i].a].x,atom[bond[i].a].y,atom[bond[i].b].x,
+				 atom[bond[i].b].y,atom[bond[j].a].x,atom[bond[j].a].y);
+  double y4=distance_from_bond_y(atom[bond[i].a].x,atom[bond[i].a].y,atom[bond[i].b].x,
+				 atom[bond[i].b].y,atom[bond[j].b].x,atom[bond[j].b].y);
+  if (fabs(y3-y4)>thickness) return(FLT_MAX);
+  return(max(fabs(y3),fabs(y4)));
 }
 
 double distance_from_bond_x_a(double x0,double y0,double x1,double y1,double x,double y)
@@ -290,7 +255,7 @@ double distance_from_bond_x_a(double x0,double y0,double x1,double y1,double x,d
   double cos=(x1-x0)/d1;
   double sin=-(y1-y0)/d1;
   double l=(x-x0)*cos-(y-y0)*sin;
-  return(fabs(l));
+  return(l);
 }
 
 double distance_from_bond_x_b(double x0,double y0,double x1,double y1,double x,double y)
@@ -299,7 +264,7 @@ double distance_from_bond_x_b(double x0,double y0,double x1,double y1,double x,d
   double cos=(x1-x0)/d1;
   double sin=-(y1-y0)/d1;
   double l=(x-x0)*cos-(y-y0)*sin;
-  return(fabs(l-d1));
+  return(l-d1);
 }
 
 
@@ -321,31 +286,11 @@ bool bonds_within_each_other(bond_t *bond,int ii,int jj,atom_t *atom)
   double x2=atom[bond[i].b].x;
   double y1=atom[bond[i].a].y;
   double y2=atom[bond[i].b].y;
-  if ((x1>x2) || ((x1==x2) && (y1>y2)))
-    {
-      x1=atom[bond[i].b].x;
-      x2=atom[bond[i].a].x;
-      y1=atom[bond[i].b].y;
-      y2=atom[bond[i].a].y;
-    }
-  
   double d1=bond_length(bond,i,atom);
-  double cos=(x2-x1)/d1;
-  double sin=(y2-y1)/d1;
-  double x3=(atom[bond[j].a].x-x1)*cos+(atom[bond[j].a].y-y1)*sin;
-  double x4=(atom[bond[j].b].x-x1)*cos+(atom[bond[j].b].y-y1)*sin;
+  double x3=distance_from_bond_x_a(x1,y1,x2,y2,atom[bond[j].a].x,atom[bond[j].a].y);
+  double x4=distance_from_bond_x_a(x1,y1,x2,y2,atom[bond[j].b].x,atom[bond[j].b].y);
   if ((x3+x4)/2>0 && (x3+x4)/2<d1) res=true;
   return(res);
-}
-
-double distance_between_bond_ends(bond_t *bond,int i,int j,atom_t *atom)
-{
-  double aa=distance(atom[bond[i].a].x,atom[bond[i].a].y,atom[bond[j].a].x,atom[bond[j].a].y);
-  double ab=distance(atom[bond[i].a].x,atom[bond[i].a].y,atom[bond[j].b].x,atom[bond[j].b].y);
-  double ba=distance(atom[bond[i].b].x,atom[bond[i].b].y,atom[bond[j].a].x,atom[bond[j].a].y);
-  double bb=distance(atom[bond[i].b].x,atom[bond[i].b].y,atom[bond[j].b].x,atom[bond[j].b].y);
-  if (aa<ab) return(max(aa,bb));
-  else return(max(ab,ba));
 }
 
 int num_comp(const void *a,const void *b)
@@ -920,11 +865,15 @@ void extend_terminal_bond_to_label(atom_t *atom,letters_t *letters,int n_letters
 	    for (int i=0;i<n_label;i++)
 	      if ((label[i].a)[0]!='+' && (label[i].a)[0]!='-')
 		{
-		  double d1=distance_from_bond_x_a(xa,ya,xb,yb,label[i].x1,label[i].y1);
-		  double d2=distance_from_bond_x_a(xa,ya,xb,yb,label[i].x2,label[i].y2);
+		  double d1=fabs(distance_from_bond_x_a(xa,ya,xb,yb,
+							label[i].x1,label[i].y1));
+		  double d2=fabs(distance_from_bond_x_a(xa,ya,xb,yb,
+							label[i].x2,label[i].y2));
 		  double nb=FLT_MAX;
-		  double h1=distance_from_bond_y(xa,ya,xb,yb,label[i].x1,label[i].y1);
-		  double h2=distance_from_bond_y(xa,ya,xb,yb,label[i].x2,label[i].y2);
+		  double h1=fabs(distance_from_bond_y(xa,ya,xb,yb,
+						      label[i].x1,label[i].y1));
+		  double h2=fabs(distance_from_bond_y(xa,ya,xb,yb,
+						      label[i].x2,label[i].y2));
 		  double y_dist=maxh;
 		  double h=FLT_MAX;
 		  if (bond[j].type==2) y_dist+=max_dist_double_bond;
@@ -951,12 +900,13 @@ void extend_terminal_bond_to_label(atom_t *atom,letters_t *letters,int n_letters
 	    for (int i=0;i<n_letters;i++)
 	      if (letters[i].free && letters[i].a!='+' && letters[i].a!='-')
 		{
-		  double d=distance_from_bond_x_a(xa,ya,xb,yb,
-						   letters[i].x,letters[i].y);
+		  double d=fabs(distance_from_bond_x_a(xa,ya,xb,yb,
+						       letters[i].x,letters[i].y));
 		  double nb=d-letters[i].r;   // distance between end "a" and letter
 		  double y_dist=maxh+letters[i].r;
 		  if (bond[j].type==2) y_dist+=max_dist_double_bond;
-		  double h=distance_from_bond_y(xa,ya,xb,yb,letters[i].x,letters[i].y);
+		  double h=fabs(distance_from_bond_y(xa,ya,xb,yb,
+						     letters[i].x,letters[i].y));
 		  if (nb<=avg && h<=y_dist && nb<minb)
 		    {
 		      found2=true;
@@ -984,11 +934,15 @@ void extend_terminal_bond_to_label(atom_t *atom,letters_t *letters,int n_letters
 	    for (int i=0;i<n_label;i++)
 	      if ((label[i].a)[0]!='+' && (label[i].a)[0]!='-' && i!=l1)
 		{
-		  double d1=distance_from_bond_x_b(xa,ya,xb,yb,label[i].x1,label[i].y1);
-		  double d2=distance_from_bond_x_b(xa,ya,xb,yb,label[i].x2,label[i].y2);
+		  double d1=fabs(distance_from_bond_x_b(xa,ya,xb,yb,
+							label[i].x1,label[i].y1));
+		  double d2=fabs(distance_from_bond_x_b(xa,ya,xb,yb,
+							label[i].x2,label[i].y2));
 		  double nb=FLT_MAX;
-		  double h1=distance_from_bond_y(xa,ya,xb,yb,label[i].x1,label[i].y1);
-		  double h2=distance_from_bond_y(xa,ya,xb,yb,label[i].x2,label[i].y2);
+		  double h1=fabs(distance_from_bond_y(xa,ya,xb,yb,
+						      label[i].x1,label[i].y1));
+		  double h2=fabs(distance_from_bond_y(xa,ya,xb,yb,
+						      label[i].x2,label[i].y2));
 		  double y_dist=maxh;
 		  double h=FLT_MAX;
 		  if (bond[j].type==2) y_dist+=max_dist_double_bond;
@@ -1014,12 +968,13 @@ void extend_terminal_bond_to_label(atom_t *atom,letters_t *letters,int n_letters
 	    for (int i=0;i<n_letters;i++)
 	      if (letters[i].free && letters[i].a!='+' && letters[i].a!='-' && i!=l2)
 		{
-		  double d=distance_from_bond_x_b(xa,ya,xb,yb,
-						   letters[i].x,letters[i].y);
+		  double d=fabs(distance_from_bond_x_b(xa,ya,xb,yb,
+						       letters[i].x,letters[i].y));
 		  double nb=d-letters[i].r;   // distance between end "b" and letter
 		  double y_dist=maxh+letters[i].r;
 		  if (bond[j].type==2) y_dist+=max_dist_double_bond;
-		  double h=distance_from_bond_y(xa,ya,xb,yb,letters[i].x,letters[i].y);
+		  double h=fabs(distance_from_bond_y(xa,ya,xb,yb,
+						     letters[i].x,letters[i].y));
 		  if (nb<=avg && h<=y_dist && nb<minb)
 		    {
 		      found2=true;
@@ -1194,8 +1149,8 @@ bool dir_change(int n, int last,int begin, int total, atom_t *atom)
   while (distance(atom[m].x,atom[m].y,atom[n].x,atom[n].y)<V_DISPLACEMENT && m!=n)
     m=next_atom(m,begin,total);
   if (m==n) return(false);
-  double s=distance_from_bond_y(atom[n].x,atom[n].y,atom[last].x,atom[last].y,
-				atom[m].x,atom[m].y);
+  double s=fabs(distance_from_bond_y(atom[n].x,atom[n].y,atom[last].x,atom[last].y,
+				     atom[m].x,atom[m].y));
   if (s>V_DISPLACEMENT) return(true);
   return(false);
 }
@@ -2244,8 +2199,8 @@ int find_small_bonds(potrace_path_t *p, atom_t *atom,bond_t *bond,int n_atom,
 		  }
 		double d=0;
 		for (int i=1;i<n_dot-1;i++)
-		  d=max(d,distance_from_bond_y(dot[0].x,dot[0].y,dot[n_dot-1].x,
-					     dot[n_dot-1].y,dot[i].x,dot[i].y));
+		  d=max(d,fabs(distance_from_bond_y(dot[0].x,dot[0].y,dot[n_dot-1].x,
+						    dot[n_dot-1].y,dot[i].x,dot[i].y)));
 		if (d<thickness || p->area<Small)
 		  {
 		    delete_curve(atom,bond,n_atom,*n_bond,p);
@@ -2413,12 +2368,12 @@ int fix_one_sided_bonds(bond_t *bond,int n_bond,atom_t *atom, double thickness)
       for (int j=0;j<n_bond;j++)
 	if (bond[j].exists && j!=i && bond[j].type==1)
 	  {
-	    double d1=distance_from_bond_y(atom[bond[i].a].x,atom[bond[i].a].y,
-					   atom[bond[i].b].x,atom[bond[i].b].y,
-					   atom[bond[j].a].x,atom[bond[j].a].y);
-	    double d2=distance_from_bond_y(atom[bond[i].a].x,atom[bond[i].a].y,
-					   atom[bond[i].b].x,atom[bond[i].b].y,
-					   atom[bond[j].b].x,atom[bond[j].b].y);
+	    double d1=fabs(distance_from_bond_y(atom[bond[i].a].x,atom[bond[i].a].y,
+						atom[bond[i].b].x,atom[bond[i].b].y,
+						atom[bond[j].a].x,atom[bond[j].a].y));
+	    double d2=fabs(distance_from_bond_y(atom[bond[i].a].x,atom[bond[i].a].y,
+						atom[bond[i].b].x,atom[bond[i].b].y,
+						atom[bond[j].b].x,atom[bond[j].b].y));
 	    double l=bond_length(bond,i,atom);
 	    if (d1<thickness && !(bond[j].a==bond[i].b || bond[j].a==bond[i].a))
 	      {
@@ -2764,25 +2719,48 @@ void find_up_down_bonds(bond_t* bond,int n_bond,atom_t* atom, double thickness)
   for(int i=0;i<n_bond;i++)
     if(bond[i].exists && bond[i].type==2)
       {
-	double d1=bond_length(bond,i,atom);
-	double cos=(atom[bond[i].b].x-atom[bond[i].a].x)/d1;
-	double sin=(atom[bond[i].b].y-atom[bond[i].a].y)/d1;
 	for(int j=0;j<n_bond;j++)
 	  if (bond[j].exists && bond[j].type==1 && !bond[j].wedge && !bond[j].hash)
 	    {
+	      bond[j].down=false;
+	      bond[j].up=false;
 	      if (bond[j].b==bond[i].a && j<i)
 		{
-		  double h=-(atom[bond[j].a].x-atom[bond[i].a].x)*sin+
-		    (atom[bond[j].a].y-atom[bond[i].a].y)*cos;
+		  double h=distance_from_bond_y(atom[bond[i].a].x,atom[bond[i].a].y,
+						atom[bond[i].b].x,atom[bond[i].b].y,
+						atom[bond[j].a].x,atom[bond[j].a].y);
+		  if (h>thickness)  bond[j].down=true;
+		  else if (h<-thickness) bond[j].up=true;
+		}
+	      else if (bond[j].a==bond[i].a && j<i)
+		{
+		  int t=bond[j].b;
+		  bond[j].b=bond[j].a;
+		  bond[j].a=t;
+		  double h=distance_from_bond_y(atom[bond[i].a].x,atom[bond[i].a].y,
+						atom[bond[i].b].x,atom[bond[i].b].y,
+						atom[bond[j].a].x,atom[bond[j].a].y);
 		  if (h>thickness)  bond[j].down=true;
 		  else if (h<-thickness) bond[j].up=true;
 		}
 	      else if (bond[j].a==bond[i].b && j>i)
 		{
-		  double h=-(atom[bond[j].a].x-atom[bond[i].a].x)*sin+
-		    (atom[bond[j].a].y-atom[bond[i].a].y)*cos;
-		  if (h>thickness)  bond[j].down=true;
-		  else if (h<-thickness) bond[j].up=true;
+		  double h=distance_from_bond_y(atom[bond[i].a].x,atom[bond[i].a].y,
+						atom[bond[i].b].x,atom[bond[i].b].y,
+						atom[bond[j].b].x,atom[bond[j].b].y);
+		  if (h>thickness)  bond[j].up=true;
+		  else if (h<-thickness) bond[j].down=true;
+		}
+	      else if (bond[j].b==bond[i].b && j>i)
+		{
+		  int t=bond[j].b;
+		  bond[j].b=bond[j].a;
+		  bond[j].a=t;
+		  double h=distance_from_bond_y(atom[bond[i].a].x,atom[bond[i].a].y,
+						atom[bond[i].b].x,atom[bond[i].b].y,
+						atom[bond[j].b].x,atom[bond[j].b].y);
+		  if (h>thickness)  bond[j].up=true;
+		  else if (h<-thickness) bond[j].down=true;
 		}
 	    }
       }
@@ -3042,9 +3020,12 @@ void flatten_bonds(bond_t *bond,int n_bond,atom_t *atom,int n_atom,double maxh)
 	      {
 		if (bond[i].a==bond[f].b)
 		  {
-		    double h=distance_from_bond_y(atom[bond[i].a].x,atom[bond[i].a].y,
-						atom[bond[i].b].x,atom[bond[i].b].y,
-						atom[bond[f].a].x,atom[bond[f].a].y);
+		    double h=fabs(distance_from_bond_y(atom[bond[i].a].x,
+						       atom[bond[i].a].y,
+						       atom[bond[i].b].x,
+						       atom[bond[i].b].y,
+						       atom[bond[f].a].x,
+						       atom[bond[f].a].y));
 		    if (h<=maxh)
 		      {
 			bond[f].exists=false;
@@ -3059,9 +3040,12 @@ void flatten_bonds(bond_t *bond,int n_bond,atom_t *atom,int n_atom,double maxh)
 		  }
 		else 
 		  {
-		    double h=distance_from_bond_y(atom[bond[i].a].x,atom[bond[i].a].y,
-						atom[bond[i].b].x,atom[bond[i].b].y,
-						atom[bond[f].b].x,atom[bond[f].b].y);
+		    double h=fabs(distance_from_bond_y(atom[bond[i].a].x,
+						       atom[bond[i].a].y,
+						       atom[bond[i].b].x,
+						       atom[bond[i].b].y,
+						       atom[bond[f].b].x,
+						       atom[bond[f].b].y));
 		    if (h<=maxh)
 		      {
 
@@ -3096,9 +3080,12 @@ void flatten_bonds(bond_t *bond,int n_bond,atom_t *atom,int n_atom,double maxh)
 	      {
 		if (bond[i].b==bond[f].b)
 		  {
-		    double h=distance_from_bond_y(atom[bond[i].a].x,atom[bond[i].a].y,
-						atom[bond[i].b].x,atom[bond[i].b].y,
-						atom[bond[f].a].x,atom[bond[f].a].y);
+		    double h=fabs(distance_from_bond_y(atom[bond[i].a].x,
+						       atom[bond[i].a].y,
+						       atom[bond[i].b].x,
+						       atom[bond[i].b].y,
+						       atom[bond[f].a].x,
+						       atom[bond[f].a].y));
 		    if (h<=maxh)
 		      {
 			bond[f].exists=false;
@@ -3118,9 +3105,12 @@ void flatten_bonds(bond_t *bond,int n_bond,atom_t *atom,int n_atom,double maxh)
 		  }
 		else 
 		  {
-		    double h=distance_from_bond_y(atom[bond[i].a].x,atom[bond[i].a].y,
-						atom[bond[i].b].x,atom[bond[i].b].y,
-						atom[bond[f].b].x,atom[bond[f].b].y);
+		    double h=fabs(distance_from_bond_y(atom[bond[i].a].x,
+						       atom[bond[i].a].y,
+						       atom[bond[i].b].x,
+						       atom[bond[i].b].y,
+						       atom[bond[f].b].x,
+						       atom[bond[f].b].y));
 		    if (h<=maxh)
 		      {
 			bond[f].exists=false;
