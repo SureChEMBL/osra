@@ -1188,34 +1188,15 @@ int next_atom(int cur, int begin, int total)
   return(n);
 }
 
-bool dir_change(int n, int last,int begin, int total, atom_t *atom, double ANGLE_TOLERANCE,int mind)
+bool dir_change(int n, int last,int begin, int total, atom_t *atom)
 { 
   int m=next_atom(n,begin,total);
-  double dx1=atom[n].x-atom[last].x;
-  double dy1=atom[n].y-atom[last].y;
-  double d1=sqrt(dx1*dx1+dy1*dy1);
-  double s1=asin(dy1/d1)* 180.0 / PI;
-  double dx2=atom[m].x-atom[n].x;
-  double dy2=atom[m].y-atom[n].y;
-  double d2=sqrt(dx2*dx2+dy2*dy2);
-  while (d2<mind && m!=n)
-    {
-      m=next_atom(m,begin,total);
-      dx2=atom[m].x-atom[n].x;
-      dy2=atom[m].y-atom[n].y;
-      d2=sqrt(dx2*dx2+dy2*dy2);
-    }
+  while (distance(atom[m].x,atom[m].y,atom[n].x,atom[n].y)<V_DISPLACEMENT && m!=n)
+    m=next_atom(m,begin,total);
   if (m==n) return(false);
-  double s2=asin(dy2/d2)* 180.0 / PI;
-  if (dx1<0) s1=180-s1;
-  if (dx2<0) s2=180-s2;
-  if (s1<0)  s1+=360;
-  if (s2<0)  s2+=360;
-
-  if ((fabs(s1-s2)>ANGLE_TOLERANCE) && (fabs(s1-s2)<360-ANGLE_TOLERANCE) && (d1>mind))
-    {
-      return(true);
-    }
+  double s=distance_from_bond_y(atom[n].x,atom[n].y,atom[last].x,atom[last].y,
+				atom[m].x,atom[m].y);
+  if (s>V_DISPLACEMENT) return(true);
   return(false);
 }
 
@@ -1229,8 +1210,7 @@ bool smaller_distance(int n, int last,int begin, int total, atom_t *atom)
 }
 
 
-int find_bonds(atom_t *atom, bond_t *bond, int b_atom, int n_atom, int n_bond,potrace_path_t * p, 
-	       double ANGLE_TOLERANCE,int mind)
+int find_bonds(atom_t *atom, bond_t *bond, int b_atom, int n_atom, int n_bond,potrace_path_t * p)
 {
   int i=b_atom+1;
   int last=b_atom;
@@ -1242,7 +1222,7 @@ int find_bonds(atom_t *atom, bond_t *bond, int b_atom, int n_atom, int n_bond,po
       	  last=i;
       	  i++;
       	}
-      else if (dir_change(i,last,b_atom,n_atom,atom,ANGLE_TOLERANCE,mind)) 
+      else if (dir_change(i,last,b_atom,n_atom,atom)) 
       	{
       	  atom[i].exists=true;
       	  last=i;
@@ -1552,7 +1532,7 @@ int find_chars(potrace_path_t *p,Image orig,letters_t *letters,
   return(n_letters);
 }
 
-int find_atoms(potrace_path_t *p, atom_t *atom,bond_t *bond,int *n_bond,int mind)
+int find_atoms(potrace_path_t *p, atom_t *atom,bond_t *bond,int *n_bond)
 {
   int *tag,n_atom=0;
   potrace_dpoint_t (*c)[3];
@@ -1622,9 +1602,7 @@ int find_atoms(potrace_path_t *p, atom_t *atom,bond_t *bond,int *n_bond,int mind
 		    if (n_atom>=MAX_ATOMS) n_atom--;
 		  }
 	      }
-	    *n_bond=find_bonds(atom,bond,b_atom,n_atom,*n_bond,p,
-			       180-FLAT_TOLERANCE,mind);
-     
+	    *n_bond=find_bonds(atom,bond,b_atom,n_atom,*n_bond,p);
 	    p = p->next;
       }
  return(n_atom);
@@ -3338,22 +3316,14 @@ int main(int argc,char **argv)
 
 	    ColorGray bgColor=getBgColor(image,invert);
 
-	    /*	    try {
-	      box_t trim=trim_page(image,THRESHOLD_BOND,bgColor);
-	      image.crop(Geometry(trim.x2-trim.x1,trim.y2-trim.y1,trim.x1,trim.y1));
-	    }
-	    catch(...) {}
-	    */
 
 	    int width=image.columns();
 	    int height=image.rows();
 	    int max_font_height=2*MAX_FONT_HEIGHT;
 	    int max_font_width=2*MAX_FONT_WIDTH;
 	    int min_font_height=MIN_FONT_HEIGHT;
-	    int mind=2;
 	    int boundary=2*5;
 	    int res=100;
-	    double cornerd=4;
 	    int dash_length=14;
 	    bool thick=true;
 	    if (resolution<300)
@@ -3364,7 +3334,6 @@ int main(int argc,char **argv)
 	      {
 		max_font_height=1*MAX_FONT_HEIGHT;
 		max_font_width=1*MAX_FONT_WIDTH;
-		cornerd=2;
 		thick=false;
 	      }
 	    n_boxes=find_boxes(boxes,image,THRESHOLD_BOND,bgColor,width,height,
@@ -3446,7 +3415,7 @@ int main(int argc,char **argv)
 	
 		st = potrace_trace(param, bm);
 		p = st->plist;
-		n_atom=find_atoms(p,atom,bond,&n_bond,mind);
+		n_atom=find_atoms(p,atom,bond,&n_bond);
 		int real_font_width,real_font_height;
 		
 		n_letters=find_chars(p,orig_box,letters,atom,bond,n_atom,n_bond,
@@ -3477,9 +3446,10 @@ int main(int argc,char **argv)
 		find_old_aromatic_bonds(p,bond,n_bond,atom,n_atom,avg_bond);
 		
 		
-
 		double thickness=skeletize(atom,bond,n_bond,box,THRESHOLD_BOND,bgColor);
-		n_bond=fix_one_sided_bonds(bond,n_bond,atom,thickness);
+
+		n_bond=fix_one_sided_bonds(bond,n_bond,atom,2);
+
 		collapse_atoms(atom,bond,n_atom,n_bond,thickness,0);
 		remove_zero_bonds(bond,n_bond,atom);
 		flatten_bonds(bond,n_bond,atom,n_atom,thickness);
@@ -3521,13 +3491,13 @@ int main(int argc,char **argv)
 					      label,n_label,avg_bond,
 					      thickness,max_dist_double_bond);
 
-		collapse_atoms(atom,bond,n_atom,n_bond,2*thickness,0);
+		collapse_atoms(atom,bond,n_atom,n_bond,thickness,0);
 		remove_zero_bonds(bond,n_bond,atom);
 		flatten_bonds(bond,n_bond,atom,n_atom,thickness);
 		remove_zero_bonds(bond,n_bond,atom);
-
-
 		debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");
+
+
 
 		assign_charge(atom,bond,n_atom,n_bond);
 		find_up_down_bonds(bond,n_bond,atom,thickness);
