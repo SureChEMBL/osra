@@ -170,6 +170,17 @@ void delete_curve(atom_t *atom,bond_t *bond,int n_atom,int n_bond, potrace_path_
     }
 }
 
+void  delete_bonds_in_char(bond_t *bond,int n_bond,atom_t *atom,
+			   double left,double top,double right,double bottom)
+{
+  for (int j=0;j<n_bond;j++)
+    if (bond[j].exists && atom[bond[j].a].x>=left &&
+	atom[bond[j].a].x<=right && atom[bond[j].a].y>=top &&
+	atom[bond[j].a].y<=bottom && atom[bond[j].b].x>=left &&
+	atom[bond[j].b].x<=right && atom[bond[j].b].y>=top &&
+	atom[bond[j].b].y<=bottom)
+      bond[j].exists=false;
+}
 
 double angle_between_bonds(bond_t *bond,int i,int j,atom_t *atom)
 {
@@ -435,14 +446,16 @@ bool no_white_space(int ai,int bi,int aj, int bj, atom_t *atom,Image image,
 
 
 double skeletize(atom_t *atom,bond_t *bond,int n_bond,Image image,
-		 double threshold,ColorGray bgColor, int max_area)
+		 double threshold,ColorGray bgColor)
 {
   double thickness=0;
+  double a[MAX_ATOMS];
+  int n=0;
+
   for (int i=0;i<n_bond;i++)
     if (bond[i].exists)
       {
 	double l1=bond_length(bond,i,atom);
-	potrace_path_t* p1=bond[i].curve;
 	for (int j=0;j<n_bond;j++)
 	  if (i!=j && bond[j].exists && bonds_within_each_other(bond,i,j,atom))
 	    {
@@ -453,9 +466,7 @@ double skeletize(atom_t *atom,bond_t *bond,int n_bond,Image image,
 		  || tt<2)
 		{
 		  double l2=bond_length(bond,j,atom);
-		  potrace_path_t* p2=bond[j].curve;
-		  if (tt>thickness && p1->area>max_area && p2->area>max_area) 
-		    thickness=tt;
+		  a[n++]=tt;
 		  if (l1<l2)
 		    {
 		      bond[i].exists=false;
@@ -472,7 +483,8 @@ double skeletize(atom_t *atom,bond_t *bond,int n_bond,Image image,
 		}
 	    }
       }
-  cout<<thickness<<endl;
+  qsort(a,n,sizeof(double),num_comp);
+  thickness=a[n/2];
   return(thickness+1.);
 }
 
@@ -1389,13 +1401,7 @@ int find_chars(potrace_path_t *p,Image orig,letters_t *letters,
 		    letters[n_letters].free=true;
 		    n_letters++;
 		    if (n_letters>=MAX_ATOMS) n_letters--;
-		    delete_curve(atom,bond,n_atom,n_bond,p);
-		    potrace_path_t *child=p->childlist;
-		    while (child !=NULL)
-		      {
-		    	delete_curve(atom,bond,n_atom,n_bond,child);
-		    	child=child->sibling;
-		      }
+		    delete_bonds_in_char(bond,n_bond,atom,left,top,right,bottom);
 		  }
 	    }
 	    else  if (((bottom-top)<=2*max_font_height) && 
@@ -1432,13 +1438,7 @@ int find_chars(potrace_path_t *p,Image orig,letters_t *letters,
 		    letters[n_letters].free=true;
 		    n_letters++;
 		    if (n_letters>=MAX_ATOMS) n_letters--;
-		    delete_curve(atom,bond,n_atom,n_bond,p);
-		    potrace_path_t *child=p->childlist;
-		    while (child !=NULL)
-		      {
-		    	delete_curve(atom,bond,n_atom,n_bond,child);
-		    	child=child->sibling;
-		      }
+		    delete_bonds_in_char(bond,n_bond,atom,left,top,right,bottom);
 		  }
 	    }
 	    else  if (((bottom-top)<=max_font_height) && 
@@ -1475,13 +1475,7 @@ int find_chars(potrace_path_t *p,Image orig,letters_t *letters,
 		    letters[n_letters].free=true;
 		    n_letters++;
 		    if (n_letters>=MAX_ATOMS) n_letters--;
-		    delete_curve(atom,bond,n_atom,n_bond,p);
-		    potrace_path_t *child=p->childlist;
-		    while (child !=NULL)
-		      {
-		    	delete_curve(atom,bond,n_atom,n_bond,child);
-		    	child=child->sibling;
-		      }
+		    delete_bonds_in_char(bond,n_bond,atom,left,top,right,bottom);
 		  }
 	    }
 
@@ -2456,14 +2450,13 @@ int find_fused_chars(bond_t *bond,int n_bond,atom_t *atom,
 		     int max_font_height,int max_font_width,
 		     double r, Image orig,  ColorGray bgColor, double THRESHOLD)
 {
-  //  cout<<"++++++++++++++++++++++++++"<<endl;
   for (int i=0;i<n_bond;i++)
-    if (bond[i].exists && bond_length(bond,i,atom)<r && bond[i].type==1)
+    if (bond[i].exists && bond_length(bond,i,atom)<r)
       {
 	list<int> t;
 	t.push_back(i);
 	for (int j=i+1;j<n_bond;j++)
-	  if (bond[j].exists && bond_length(bond,j,atom)<r && bond[j].type==1)
+	  if (bond[j].exists && bond_length(bond,j,atom)<r)
 	    {
 	      double dx=max(max(fabs(atom[bond[j].a].x-atom[bond[i].a].x),
 				fabs(atom[bond[j].a].x-atom[bond[i].b].x)),
@@ -2529,14 +2522,7 @@ int find_fused_chars(bond_t *bond,int n_bond,atom_t *atom,
 		    letters[n_letters].free=true;
 		    n_letters++;
 		    if (n_letters>=MAX_ATOMS) n_letters--;
-		    for (int j=0;j<n_bond;j++)
-		      if (bond[j].exists && atom[bond[j].a].x>=left &&
-			  atom[bond[j].a].x<=right && atom[bond[j].a].y>=top &&
-			  atom[bond[j].a].y<=bottom && atom[bond[j].b].x>=left &&
-			  atom[bond[j].b].x<=right && atom[bond[j].b].y>=top &&
-			  atom[bond[j].b].y<=bottom)
-			bond[j].exists=false;
-		    
+		    delete_bonds_in_char(bond,n_bond,atom,left,top,right,bottom);
 		  }
 
 	      }
@@ -3417,7 +3403,7 @@ int main(int argc,char **argv)
 				     max_font_width,max_font_height,
 				     real_font_width,real_font_height);
 	
-
+		cout<<"+++++++++++++++++++++++++++++++++++++++"<<endl;
 		double avg_bond=percentile75(bond,n_bond,atom);
 		if (working_resolution==300)
 		  {
@@ -3440,22 +3426,21 @@ int main(int argc,char **argv)
 		find_old_aromatic_bonds(p,bond,n_bond,atom,n_atom,avg_bond);
 		
 		
-		double thickness=skeletize(atom,bond,n_bond,box,THRESHOLD_BOND,
-					   bgColor,dash_length);
-		debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");
+		double thickness=skeletize(atom,bond,n_bond,box,THRESHOLD_BOND,bgColor);
 
 		n_bond=fix_one_sided_bonds(bond,n_bond,atom,2);
-		collapse_atoms(atom,bond,n_atom,n_bond,thickness,0);
+		collapse_atoms(atom,bond,n_atom,n_bond,2*thickness,0);
 		remove_zero_bonds(bond,n_bond,atom);
-		flatten_bonds(bond,n_bond,atom,n_atom,thickness);
+		flatten_bonds(bond,n_bond,atom,n_atom,2*thickness);
 		remove_zero_bonds(bond,n_bond,atom);
 		avg_bond=percentile75(bond,n_bond,atom);
 		double max_dist_double_bond=0;
 
 		n_bond=double_triple_bonds(atom,bond,n_bond,avg_bond,n_atom,
-					   thickness,max_dist_double_bond);
-		flatten_bonds(bond,n_bond,atom,n_atom,thickness);
+					   2*thickness,max_dist_double_bond);
+		flatten_bonds(bond,n_bond,atom,n_atom,2*thickness);
 		remove_zero_bonds(bond,n_bond,atom);
+
 		avg_bond=percentile75(bond,n_bond,atom);
 		n_atom=find_dashed_bonds(p,atom,bond,n_atom,&n_bond,
 					 max(dash_length,int(avg_bond/3)),
@@ -3490,7 +3475,8 @@ int main(int argc,char **argv)
 		remove_zero_bonds(bond,n_bond,atom);
 		flatten_bonds(bond,n_bond,atom,n_atom,thickness);
 		remove_zero_bonds(bond,n_bond,atom);
-
+		
+		debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");
 
 
 
