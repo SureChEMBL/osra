@@ -505,31 +505,29 @@ double skeletize(atom_t *atom,bond_t *bond,int n_bond,Image image,
 int double_triple_bonds(atom_t *atom,bond_t *bond,int n_bond,double avg,int &n_atom,
 			double thickness, double &max_dist_double_bond)
 {
-  if (max_dist_double_bond<1)
-    {
-      double a[MAX_ATOMS];
-      int n=0;
-      
-      for (int i=0;i<n_bond;i++)
-	if (bond[i].exists)
-	  {
-	    double l1=bond_length(bond,i,atom);
-	    for (int j=i+1;j<n_bond;j++)
-	      if ((bond[j].exists) 
-		  && (fabs(angle_between_bonds(bond,i,j,atom))>D_T_TOLERANCE))
-		{
-		  double l2=bond_length(bond,j,atom);
-		  double dbb=distance_between_bonds(bond,i,j,atom,thickness);
-		  if (dbb<2*avg/3 && l1>avg/3 && l2>avg/3 && 
-		      bonds_within_each_other(bond,i,j,atom))
-		    a[n++]=dbb;
-		}
-	  }
-      qsort(a,n,sizeof(double),num_comp);
-      max_dist_double_bond=a[int(0.5*n)];
-      if (max_dist_double_bond<1) max_dist_double_bond=avg/3;
-      else max_dist_double_bond+=3; 
-    }
+  double a[MAX_ATOMS];
+  int n=0;
+  
+  for (int i=0;i<n_bond;i++)
+    if (bond[i].exists)
+      {
+	double l1=bond_length(bond,i,atom);
+	for (int j=i+1;j<n_bond;j++)
+	  if ((bond[j].exists) 
+	      && (fabs(angle_between_bonds(bond,i,j,atom))>D_T_TOLERANCE))
+	    {
+	      double l2=bond_length(bond,j,atom);
+	      double dbb=distance_between_bonds(bond,i,j,atom,thickness);
+	      if (dbb<2*avg/3 && l1>avg/3 && l2>avg/3 && 
+		  bonds_within_each_other(bond,i,j,atom))
+		a[n++]=dbb;
+	    }
+      }
+  qsort(a,n,sizeof(double),num_comp);
+  max_dist_double_bond=a[n/2];
+  if (max_dist_double_bond<1) max_dist_double_bond=avg/3;
+  else max_dist_double_bond+=3; 
+
   for (int i=0;i<n_bond;i++)
     if (bond[i].exists)
       {
@@ -3178,7 +3176,8 @@ void flatten_bonds(bond_t *bond,int n_bond,atom_t *atom,int n_atom,double maxh)
 }
 
 void clean_unrecognized_characters(bond_t *bond,int n_bond,atom_t *atom,
-					      int real_font_height, int real_font_width)
+				   int real_font_height, int real_font_width,
+				   unsigned int size)
 {
   vector<int> all_bonds(n_bond,0);
   for (int i=0;i<n_bond;i++)
@@ -3213,7 +3212,7 @@ void clean_unrecognized_characters(bond_t *bond,int n_bond,atom_t *atom,
 	  if (atom[bond[k].a].y>b) b=atom[bond[k].a].y;
 	  if (atom[bond[k].b].y>b) b=atom[bond[k].b].y;
 	}
-      if ((r-l)<real_font_width && (b-t)<real_font_height && trash.size()>1)
+      if ((r-l)<real_font_width && (b-t)<real_font_height && trash.size()>size)
 	while (!trash.empty())
 	  {
 	    int k=trash.front();
@@ -3481,21 +3480,26 @@ int main(int argc,char **argv)
 		
 		
 		double thickness=skeletize(atom,bond,n_bond,box,THRESHOLD_BOND,bgColor);
-
-		n_bond=fix_one_sided_bonds(bond,n_bond,atom,2);
+		remove_disconnected_atoms(atom,bond,n_atom,n_bond);
+		n_bond=fix_one_sided_bonds(bond,n_bond,atom,2*thickness);
 		collapse_atoms(atom,bond,n_atom,n_bond,2*thickness,0);
 		remove_zero_bonds(bond,n_bond,atom);
 		flatten_bonds(bond,n_bond,atom,n_atom,2*thickness);
 		remove_zero_bonds(bond,n_bond,atom);
 		avg_bond=percentile75(bond,n_bond,atom);
-		double max_dist_double_bond=0;
 
+		double max_dist_double_bond=0;
 		n_bond=double_triple_bonds(atom,bond,n_bond,avg_bond,n_atom,
 					   2*thickness,max_dist_double_bond);
-		collapse_atoms(atom,bond,n_atom,n_bond,max_dist_double_bond,0);
+
+		remove_disconnected_atoms(atom,bond,n_atom,n_bond);		
+		collapse_atoms(atom,bond,n_atom,n_bond,
+			       min(4*thickness,max_dist_double_bond),0);
 		remove_zero_bonds(bond,n_bond,atom);
-		flatten_bonds(bond,n_bond,atom,n_atom,max_dist_double_bond);
+		flatten_bonds(bond,n_bond,atom,n_atom,
+			      min(4*thickness,max_dist_double_bond));
 		remove_zero_bonds(bond,n_bond,atom);
+
 
 		avg_bond=percentile75(bond,n_bond,atom);
 		n_atom=find_dashed_bonds(p,atom,bond,n_atom,&n_bond,
@@ -3508,37 +3512,38 @@ int main(int argc,char **argv)
 					     real_font_height,min_font_height,avg_bond);
 
 		clean_unrecognized_characters(bond,n_bond,atom,
-					      real_font_height,real_font_width);
+					      real_font_height,real_font_width,1);
 		avg_bond=percentile75(bond,n_bond,atom);
-		remove_disconnected_atoms(atom,bond,n_atom,n_bond);
+
+
 
 		find_wedge_bonds(thick_box,atom,n_atom,bond,n_bond,bgColor,
 				 THRESHOLD_BOND,label,n_label,letters,n_letters,
 				 working_resolution,2*thickness);
 
 		n_label=assemble_labels(letters,n_letters,label);
+
 		
-		collapse_atoms(atom,bond,n_atom,n_bond,thickness,max_dist_double_bond);
-		remove_zero_bonds(bond,n_bond,atom);
-		flatten_bonds(bond,n_bond,atom,n_atom,thickness);
-		remove_zero_bonds(bond,n_bond,atom);
-		avg_bond=percentile75(bond,n_bond,atom);
 
 		extend_terminal_bond_to_label(atom,letters,n_letters,bond,n_bond,
 					      label,n_label,avg_bond,
 					      thickness,max_dist_double_bond);
-		collapse_atoms(atom,bond,n_atom,n_bond,thickness,0);
+		remove_disconnected_atoms(atom,bond,n_atom,n_bond);
+		collapse_atoms(atom,bond,n_atom,n_bond,thickness,max_dist_double_bond);
+		remove_zero_bonds(bond,n_bond,atom);
+		flatten_bonds(bond,n_bond,atom,n_atom,thickness);
 		remove_zero_bonds(bond,n_bond,atom);
 		remove_disconnected_atoms(atom,bond,n_atom,n_bond);
+		debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");
+
 		extend_terminal_bond_to_bonds(atom,n_atom,bond,n_bond,avg_bond,
 					      2*thickness);
-
 		collapse_atoms(atom,bond,n_atom,n_bond,thickness,0);
 		remove_zero_bonds(bond,n_bond,atom);
 		flatten_bonds(bond,n_bond,atom,n_atom,thickness);
 		remove_zero_bonds(bond,n_bond,atom);
-		debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");		
-
+		clean_unrecognized_characters(bond,n_bond,atom,
+					      real_font_height,real_font_width,0);
 
 
 		assign_charge(atom,bond,n_atom,n_bond);
