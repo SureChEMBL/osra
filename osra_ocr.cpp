@@ -163,3 +163,56 @@ char get_atom_label(Image image, ColorGray bg, int x1, int y1, int x2, int y2, d
       return(0);
     }
 }
+
+
+
+string fix_atom_name(string s,int n)
+{
+  string r=s;
+  //cout<<s<<"-->";
+  if (s.length()==1) r=toupper(s.at(0));
+  if (s=="Ci" || s=="Cf" || s=="Cll") r="Cl";
+  else if (s=="H" && n>1) r="N";
+  else if (s=="HN" || s=="NH" || s=="M" || s=="Hm" || s=="MN" || s=="N2"
+      || s=="NM" || s=="NH2" || s=="H2N" || s=="NHZ" || s=="HZN" || s=="NH3")   r="N";
+  else if (s=="OH" || s=="oH" || s=="Ho" || s=="HO" || s=="ol"
+      || s=="On" || s=="on" || s=="no" || s=="nO" || s=="OR" || s=="RO") r="O";
+  else if (s=="Meo" || s=="oMe" || s=="oMg" || s=="omg" || s=="Mgo"
+	   || s=="leo" || s=="ohle" || s=="lleo" || s=="olllle" 
+	   || s=="OMe" || s=="OM8" || s=="OMo" || s=="OMB" || s=="OCH3" 
+	   || s=="OCHS")   r="MeO";
+  else if (s=="NC")  r="CN";
+  else if ((s=="nBU") || (s=="neU") ||(s=="ngU")) r="nBu";
+  else if ((s=="Eto") || (s=="oEt") || (s=="Elo") || (s=="oEl")
+      || s=="ElO") r="EtO";
+  else if ((s=="olgU") || (s=="oleU") || s=="OlBU") r="OiBu";
+  else if ((s=="npr") || (s=="llpll") || (s=="lpl") || (s=="npl")
+      || s=="lPl") r="iPr";
+  else if ((s=="tBU") || (s=="BU") || (s=="llBU") || (s=="lBU")) r="tBu";
+  else if (s=="CooH" || s=="HooC" || s=="Co2H" || s=="CO2H" || s=="HOOC") r="COOH";
+  else if (s=="AC") r="Ac";
+  else if (s=="ACo" || s=="opC" || s=="pcO" || s=="ACO" || s=="oCO" 
+	   || s=="OoC") r="AcO";
+  else if (s=="Bl" || s=="el") r="Br";
+  else if (s=="CH3" || s=="H3C") r="C";
+  else if (s=="R" || s=="Rl" || s=="Rlo" || s=="R2" || s=="R3" || s=="Rg"
+      || s=="R4" || s=="R5" || s=="R6" || s=="R7" || s=="R8" || s=="Z"  || s=="Y" 
+      || s=="2" || s=="RlO") r="X";
+  else if (s=="pl" || s=="nl") r="Ar";
+  else if (s=="oX") r="Ox";
+  else if (s=="NoZ" || s=="o2N" || s=="No2" || s=="No" || s=="O2N"
+      || s=="NOZ" || s=="NO") r="NO2";
+  else if (s=="ph") r="Ph";
+  else if (s=="F3C" || s=="CF" || s=="FC" || s=="Co" || s=="F8l" || s=="CFS"
+      || s=="FSC") r="CF3";
+  else if (s=="F3Co") r="F3CN";
+  else if (s=="S3" || s=="Se" || s=="lS") r="S";
+  else if (s=="lH") r="H";
+  else if (s=="NHnC") r="NHAc";
+  else if (s=="OlHP" || s=="lHPO") r="THPO";
+  else if (s=="NlOHCH3") r="NOHCH3";
+  else if (s=="HO3S") r="SO3H";
+  else if (s=="NMe") r="MeN";
+  //cout<<r<<endl;
+  return(r);
+}
