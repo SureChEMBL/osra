@@ -125,3 +125,6 @@ int getPixel(Image image, ColorGray bg,unsigned int x, unsigned int y, double TH
 #define MIN_HEIGHT 50
 #define MIN_WIDTH 50
 #define NUM_RESOLUTIONS 3
+#define BOUNDARY 5
+#define COARSE_GRAIN 100
+#define MAX_DASH 14
