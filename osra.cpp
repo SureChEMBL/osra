@@ -2775,12 +2775,11 @@ double find_wedge_bonds(Image image,atom_t* atom, int n_atom,bond_t* bond,int n_
 	    w2=thickness_hor(image,int(x2),int(y2),bgColor,THRESHOLD_BOND);
 	    w3=w3_hor;
 	  }
-	if (w2>w3 && w3>w1 && w2<2*MAX_BOND_THICKNESS && w2<avg/3) 
+	if (w2>w3 && w3>w1 && w2<2*MAX_BOND_THICKNESS && w2<avg/3 && w1>0)
 	  {
 	    bond[i].wedge=true;
-	    
 	  }
-	if (w1>w3 && w3>w2 && w1<2*MAX_BOND_THICKNESS && w1<avg/3)
+	if (w1>w3 && w3>w2 && w1<2*MAX_BOND_THICKNESS && w1<avg/3 && w2>0)
 	  {
 	    bond[i].wedge=true;
 	    bond_end_swap(bond,i);
@@ -3423,16 +3422,13 @@ int main(int argc,char **argv)
 	    int height=image.rows();
 	    int max_font_height=MAX_FONT_HEIGHT*resolution/150;
 	    int max_font_width=MAX_FONT_WIDTH*resolution/150;
-	    int min_font_height=MIN_FONT_HEIGHT;
 	    int boundary=2*BOUNDARY;
-	    int res=COARSE_GRAIN;
-	    int dash_length=MAX_DASH;
 	    bool thick=true;
 	    if (resolution<300)	boundary=BOUNDARY;
 	    if (resolution<=150) thick=false;
 
 	    n_boxes=find_boxes(boxes,image,THRESHOLD_BOND,bgColor,width,height,
-			       res,boundary,working_resolution);
+			       COARSE_GRAIN,boundary,working_resolution);
 	    qsort(boxes,n_boxes,sizeof(box_t),comp_boxes);
 	    for (int k=0;k<n_boxes;k++)
 	      {
@@ -3554,12 +3550,12 @@ int main(int argc,char **argv)
 					   3,max_dist_double_bond);
 
 		n_atom=find_dashed_bonds(p,atom,bond,n_atom,&n_bond,
-					 max(dash_length,int(avg_bond/3)),
+					 max(MAX_DASH,int(avg_bond/3)),
 					 avg_bond,orig_box,bgColor,
 					 THRESHOLD_BOND,thick);
 
 		n_letters=remove_small_bonds(bond,n_bond,atom,letters,n_letters,
-					     real_font_height,min_font_height,avg_bond);
+					     real_font_height,MIN_FONT_HEIGHT,avg_bond);
 		if (working_resolution>=150)
 		  clean_unrecognized_characters(bond,n_bond,atom,
 						real_font_height,real_font_width,1);
