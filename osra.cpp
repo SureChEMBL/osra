@@ -3547,7 +3547,7 @@ int main(int argc,char **argv)
 		avg_bond=percentile75(bond,n_bond,atom);
 		double max_dist_double_bond=0;
 		n_bond=double_triple_bonds(atom,bond,n_bond,avg_bond,n_atom,
-					   4,max_dist_double_bond);
+					   5,max_dist_double_bond);
 
 		n_atom=find_dashed_bonds(p,atom,bond,n_atom,&n_bond,
 					 max(MAX_DASH,int(avg_bond/3)),
