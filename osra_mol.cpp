@@ -478,7 +478,7 @@ int count_fragments(string input)
 }
 
 string get_smiles(atom_t *atom, bond_t *bond, int n_bond, int &rotors, 
-		  double &confidence, int &num_fragments)
+		  double &confidence, int &num_fragments, int &r56)
 {
  OBMol mol;
  OBAtom *a,*b;
@@ -608,8 +608,8 @@ string get_smiles(atom_t *atom, bond_t *bond, int n_bond, int &rotors,
    +0.350747*Num_Rings[7]
    -0.037796*num_fragments;
 
+ r56=Num_Rings[5]+Num_Rings[6];
 
-// conv.Write(&mol);
  for (int i=0;i<n_bond;i++)
    if (bond[i].exists) 
      {

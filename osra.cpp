@@ -2425,9 +2425,9 @@ int find_small_bonds(potrace_path_t *p, atom_t *atom,bond_t *bond,int n_atom,
 
 int resolve_bridge_bonds(atom_t* atom,int n_atom,bond_t* bond,int n_bond)
 {
-  int rotors1,rotors2,f;
+  int rotors1,rotors2,f1,f2,rings1,rings2;
   double confidence;
-  string smiles1=get_smiles(atom,bond,n_bond,rotors1,confidence,f);
+  string smiles1=get_smiles(atom,bond,n_bond,rotors1,confidence,f1,rings1);
   for (int i=0;i<n_atom;i++)
     if ((atom[i].exists) && (atom[i].label==" "))
       {
@@ -2480,9 +2480,9 @@ int resolve_bridge_bonds(atom_t* atom,int n_atom,bond_t* bond,int n_bond)
 		    else if (bond[c].a==bond[d].b) bond[c].a=bond[d].a;
 		    else if (bond[c].b==bond[d].a) bond[c].b=bond[d].b;
 		    else if (bond[c].b==bond[d].b) bond[c].b=bond[d].a;
-		    int f1;
-		    string smiles2=get_smiles(atom,bond,n_bond,rotors2,confidence,f1);
-		    if (f!=f1 || rotors1!=rotors2)
+		    string smiles2=get_smiles(atom,bond,n_bond,rotors2,
+					      confidence,f2,rings2);
+		    if (f1!=f2 || rotors1!=rotors2 || rings1-rings2==2)
 		      {
 			bond[b].exists=true;
 			bond[d].exists=true;
@@ -2500,7 +2500,7 @@ int resolve_bridge_bonds(atom_t* atom,int n_atom,bond_t* bond,int n_bond)
 	      }
 	  }
       }
-  return(f);
+  return(f1);
 }
 
 void collapse_atoms(atom_t *atom, bond_t *bond, int n_atom,int n_bond,
@@ -3643,14 +3643,16 @@ int main(int argc,char **argv)
 
 		avg_bond=percentile75(bond,n_bond,atom);
 		double max_dist_double_bond=0;
+		debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");			
 		n_bond=double_triple_bonds(atom,bond,n_bond,avg_bond,n_atom,
 					   5,max_dist_double_bond);
+
 
 		n_atom=find_dashed_bonds(p,atom,bond,n_atom,&n_bond,
 					 max(MAX_DASH,int(avg_bond/3)),
 					 avg_bond,orig_box,bgColor,
 					 THRESHOLD_BOND,thick);
-		debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");			
+
 
 
 		n_letters=remove_small_bonds(bond,n_bond,atom,letters,n_letters,
@@ -3669,8 +3671,7 @@ int main(int argc,char **argv)
 		remove_disconnected_atoms(atom,bond,n_atom,n_bond);		
 		collapse_atoms(atom,bond,n_atom,n_bond,thickness);
 		remove_zero_bonds(bond,n_bond,atom);
-		flatten_bonds(bond,n_bond,atom,n_atom,
-			      min(2*thickness,max_dist_double_bond/2));
+		flatten_bonds(bond,n_bond,atom,n_atom,2*thickness);
 		remove_zero_bonds(bond,n_bond,atom);
 
 
@@ -3699,16 +3700,15 @@ int main(int argc,char **argv)
 					      real_font_height,real_font_width,0);
 
 
-
 		assign_charge(atom,bond,n_atom,n_bond);
 		find_up_down_bonds(bond,n_bond,atom,thickness);
 		int real_atoms=count_atoms(atom,n_atom);
 		if ((real_atoms>MIN_A_COUNT) && (real_atoms<MAX_A_COUNT))
 		  {
 		    int f=resolve_bridge_bonds(atom,n_atom,bond,n_bond);
-		    int rotors;
+		    int rotors,rings;
 		    double confidence=0;
-		    string smiles=get_smiles(atom,bond,n_bond,rotors,confidence,f);
+		    string smiles=get_smiles(atom,bond,n_bond,rotors,confidence,f,rings);
 		    if (f<5 && smiles!="")
 		      {
 			array_of_smiles[res_iter].push_back(smiles);
