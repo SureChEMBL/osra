@@ -3247,20 +3247,29 @@ void clean_unrecognized_characters(bond_t *bond,int n_bond,atom_t *atom,
 {
   vector<int> all_bonds(n_bond,0);
   for (int i=0;i<n_bond;i++)
-    if (bond[i].exists) all_bonds[i]=1;
+    if (bond[i].exists) 
+      all_bonds[i]=1;
+
   for (int i=0;i<n_bond;i++)
-    if (all_bonds[i]>0)
+    if (all_bonds[i]==1)
       {
 	list<int> bag;
 	list<int> trash;
-	all_bonds[i]=0;
+	all_bonds[i]=2;
 	bag.push_back(i);
-      for (int j=0;j<n_bond;j++)
-	if (j!=i && all_bonds[j]>0 && (bond[i].a==bond[j].a || bond[i].a==bond[j].b ||
-				       bond[i].b==bond[j].a || bond[i].b==bond[j].b))
+	while (!bag.empty())
 	  {
-	    all_bonds[j]=0;
-	    bag.push_back(j);
+	    int k=bag.front();
+	    bag.pop_front();
+	    all_bonds[k]=0;
+	    for (int j=0;j<n_bond;j++)
+	      if (j!=k && all_bonds[j]==1 && 
+		  (bond[k].a==bond[j].a || bond[k].a==bond[j].b ||
+		   bond[k].b==bond[j].a || bond[k].b==bond[j].b))
+		{
+		  all_bonds[j]=2;
+		  bag.push_back(j);
+		}
 	  }
       double t=FLT_MAX,b=0,l=FLT_MAX,r=0;
       while (!bag.empty())
@@ -3556,10 +3565,10 @@ int main(int argc,char **argv)
 
 		n_letters=remove_small_bonds(bond,n_bond,atom,letters,n_letters,
 					     real_font_height,MIN_FONT_HEIGHT,avg_bond);
-		if (working_resolution>=150)
-		  clean_unrecognized_characters(bond,n_bond,atom,
-						real_font_height,real_font_width,1);
 
+
+		clean_unrecognized_characters(bond,n_bond,atom,
+					      real_font_height,real_font_width,1);
 
 		thickness=find_wedge_bonds(thick_box,atom,n_atom,bond,n_bond,bgColor,
 					   THRESHOLD_BOND,max_dist_double_bond,avg_bond);
@@ -3576,10 +3585,13 @@ int main(int argc,char **argv)
 
 
 		avg_bond=percentile75(bond,n_bond,atom);
+		debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");			
 		collapse_double_bonds(bond,n_bond,atom,n_atom,max_dist_double_bond);
+
 		extend_terminal_bond_to_label(atom,letters,n_letters,bond,n_bond,
 					      label,n_label,avg_bond,
 					      thickness,max_dist_double_bond);
+
 		remove_disconnected_atoms(atom,bond,n_atom,n_bond);
 		collapse_atoms(atom,bond,n_atom,n_bond,thickness);
 		remove_zero_bonds(bond,n_bond,atom);
@@ -3597,8 +3609,8 @@ int main(int argc,char **argv)
 		clean_unrecognized_characters(bond,n_bond,atom,
 					      real_font_height,real_font_width,0);
 
-		debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");			
 
+	
 		assign_charge(atom,bond,n_atom,n_bond);
 		find_up_down_bonds(bond,n_bond,atom,thickness);
 		int real_atoms=count_atoms(atom,n_atom);
