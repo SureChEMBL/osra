@@ -839,14 +839,42 @@ int assemble_labels(letters_t *letters,int n_letters,label_t *label)
 	}
     }
   qsort(lbond,n_lbond,sizeof(lbond_t),comp_lbonds);
+  
   for (int i=0;i<n_lbond;i++)
     if (lbond[i].exists)
       {
+	bool found_left=false;
+	label[n_label].x1=FLT_MAX;
+	label[n_label].y1=FLT_MAX;
+	label[n_label].r1=0;
+	label[n_label].x2=FLT_MAX;
+	label[n_label].y2=FLT_MAX;
+	label[n_label].r2=0;
 	label[n_label].a=letters[lbond[i].a].a;
 	label[n_label].a+=letters[lbond[i].b].a;
-	label[n_label].x1=letters[lbond[i].a].x;
-	label[n_label].y1=letters[lbond[i].a].y;
-	label[n_label].r1=letters[lbond[i].a].r;
+	if (!isdigit(letters[lbond[i].a].a) && letters[lbond[i].a].a!='-'
+	    && letters[lbond[i].a].a!='+' && !found_left)
+	  {
+	    label[n_label].x1=letters[lbond[i].a].x;
+	    label[n_label].y1=letters[lbond[i].a].y;
+	    label[n_label].r1=letters[lbond[i].a].r;
+	    found_left=true;
+	  }
+	if (!isdigit(letters[lbond[i].b].a) && letters[lbond[i].b].a!='-'
+	    && letters[lbond[i].b].a!='+' && !found_left)
+	  {
+	    label[n_label].x1=letters[lbond[i].b].x;
+	    label[n_label].y1=letters[lbond[i].b].y;
+	    label[n_label].r1=letters[lbond[i].b].r;
+	    found_left=true;
+	  }
+	if (!isdigit(letters[lbond[i].a].a) && letters[lbond[i].a].a!='-'
+	    && letters[lbond[i].a].a!='+')
+	  {
+	    label[n_label].x2=letters[lbond[i].a].x;
+	    label[n_label].y2=letters[lbond[i].a].y;
+	    label[n_label].r2=letters[lbond[i].a].r;
+	  }
 	if (!isdigit(letters[lbond[i].b].a) && letters[lbond[i].b].a!='-'
 	    && letters[lbond[i].b].a!='+')
 	  {
@@ -854,19 +882,36 @@ int assemble_labels(letters_t *letters,int n_letters,label_t *label)
 	    label[n_label].y2=letters[lbond[i].b].y;
 	    label[n_label].r2=letters[lbond[i].b].r;
 	  }
-	else
-	  {
-	    label[n_label].x2=letters[lbond[i].a].x;
-	    label[n_label].y2=letters[lbond[i].a].y;
-	    label[n_label].r2=letters[lbond[i].a].r;
-	  }
 	lbond[i].exists=false;
 	int last=lbond[i].b;
 	 for (int j=i+1;j<n_lbond;j++)
 	   if ((lbond[j].exists) && (lbond[j].a==last))
 	     {
 		label[n_label].a+=letters[lbond[j].b].a;
-		if (!isdigit(letters[lbond[j].b].a)  && letters[lbond[j].b].a!='-'
+		if (!isdigit(letters[lbond[j].a].a) && letters[lbond[j].a].a!='-'
+		    && letters[lbond[j].a].a!='+' && !found_left)
+		  {
+		    label[n_label].x1=letters[lbond[j].a].x;
+		    label[n_label].y1=letters[lbond[j].a].y;
+		    label[n_label].r1=letters[lbond[j].a].r;
+		    found_left=true;
+		  }
+		if (!isdigit(letters[lbond[j].b].a) && letters[lbond[j].b].a!='-'
+		    && letters[lbond[j].b].a!='+' && !found_left)
+		  {
+		    label[n_label].x1=letters[lbond[j].b].x;
+		    label[n_label].y1=letters[lbond[j].b].y;
+		    label[n_label].r1=letters[lbond[j].b].r;
+		    found_left=true;
+		  }
+		if (!isdigit(letters[lbond[j].a].a) && letters[lbond[j].a].a!='-'
+		    && letters[lbond[j].a].a!='+')
+		  {
+		    label[n_label].x2=letters[lbond[j].a].x;
+		    label[n_label].y2=letters[lbond[j].a].y;
+		    label[n_label].r2=letters[lbond[j].a].r;
+		  }
+		if (!isdigit(letters[lbond[j].b].a) && letters[lbond[j].b].a!='-'
 		    && letters[lbond[j].b].a!='+')
 		  {
 		    label[n_label].x2=letters[lbond[j].b].x;
@@ -876,6 +921,28 @@ int assemble_labels(letters_t *letters,int n_letters,label_t *label)
 		last=lbond[j].b;
 		lbond[j].exists=false;
 	     }
+
+	 bool cont=true;
+	 string charges="";
+	 while (cont)
+	  {
+	    cont=false;
+	    string::size_type pos=label[n_label].a.find_first_of('-');
+	    if (pos!=string::npos)
+	      {
+		label[n_label].a.erase(pos,1);
+		charges+="-";
+		cont=true;
+	      }
+	    pos=label[n_label].a.find_first_of('+');
+	    if (pos!=string::npos)
+	      {
+		label[n_label].a.erase(pos,1);
+		charges+="+";
+		cont=true;
+	      }
+	  }
+	 label[n_label].a+=charges;
 	 n_label++;
 	 if (n_label>=MAX_ATOMS) n_label--;
       }
@@ -980,6 +1047,7 @@ void extend_terminal_bond_to_label(atom_t *atom,letters_t *letters,int n_letters
 		  double h2=fabs(distance_from_bond_y(xa,ya,xb,yb,
 						      label[i].x2,label[i].y2));
 		  double y_dist=maxh;
+
 		  if (bond[j].type==2) y_dist+=max_dist_double_bond;
 		  if (fabs(d1)<fabs(d2))   // 1st side of label closer
 		    {
@@ -2110,7 +2178,8 @@ int find_dashed_bonds(potrace_path_t *p, atom_t *atom,bond_t *bond,int n_atom,
 	      }
 	    dot[n_dot].x/=tot;
 	    dot[n_dot].y/=tot;
-	    if (distance(l,t,r,b)<avg/3) n_dot++;
+	    if (distance(l,t,r,b)<avg/3) 
+	      n_dot++;
 	    if (n_dot>=100) n_dot--;
 	  }
 	p = p->next;
@@ -3551,7 +3620,6 @@ int main(int argc,char **argv)
 		  }
 		double max_area=avg_bond*5;
 		if (thick) max_area=avg_bond;
-
 		n_letters=find_plus_minus(p,letters,atom,bond,n_atom,n_bond,
 					  height,width,real_font_height,
 					  real_font_width,n_letters,avg_bond);
@@ -3605,7 +3673,6 @@ int main(int argc,char **argv)
 		avg_bond=percentile75(bond,n_bond,atom);
 
 		collapse_double_bonds(bond,n_bond,atom,n_atom,max_dist_double_bond);
-		debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");			
 		extend_terminal_bond_to_label(atom,letters,n_letters,bond,n_bond,
 					      label,n_label,avg_bond,
 					      thickness,max_dist_double_bond);
@@ -3627,8 +3694,8 @@ int main(int argc,char **argv)
 		clean_unrecognized_characters(bond,n_bond,atom,
 					      real_font_height,real_font_width,0);
 
+		debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");			
 
-	
 		assign_charge(atom,bond,n_atom,n_bond);
 		find_up_down_bonds(bond,n_bond,atom,thickness);
 		int real_atoms=count_atoms(atom,n_atom);

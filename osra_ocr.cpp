@@ -176,11 +176,11 @@ string fix_atom_name(string s,int n)
   else if (s=="HN" || s=="NH" || s=="M" || s=="Hm" || s=="MN" || s=="N2"
       || s=="NM" || s=="NH2" || s=="H2N" || s=="NHZ" || s=="HZN" || s=="NH3")   r="N";
   else if (s=="OH" || s=="oH" || s=="Ho" || s=="HO" || s=="ol"
-      || s=="On" || s=="on" || s=="no" || s=="nO" || s=="OR" || s=="RO") r="O";
+	   || s=="On" || s=="on" || s=="no" || s=="nO") r="O";
   else if (s=="Meo" || s=="oMe" || s=="oMg" || s=="omg" || s=="Mgo"
 	   || s=="leo" || s=="ohle" || s=="lleo" || s=="olllle" 
 	   || s=="OMe" || s=="OM8" || s=="OMo" || s=="OMB" || s=="OCH3" 
-	   || s=="OCHS")   r="MeO";
+	   || s=="OCHS" || s=="OR" || s=="RO")   r="MeO";
   else if (s=="NC")  r="CN";
   else if ((s=="nBU") || (s=="neU") ||(s=="ngU")) r="nBu";
   else if ((s=="Eto") || (s=="oEt") || (s=="Elo") || (s=="oEl")
