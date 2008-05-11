@@ -2813,30 +2813,48 @@ void collapse_double_bonds(bond_t *bond,int n_bond,atom_t *atom,int n_atom,doubl
 {
   for (int i=0;i<n_bond;i++)
     if (bond[i].exists && bond[i].type==2 && bond[i].conjoined)
-      for (int j=0;j<n_atom;j++)
-	if (atom[j].exists)
-	  if (j!=bond[i].a && 
-	      distance(atom[bond[i].a].x,atom[bond[i].a].y,atom[j].x,atom[j].y)<=dist)
-		  {
-		    atom[j].exists=false;
-		    atom[bond[i].a].x=(atom[bond[i].a].x+atom[j].x)/2;
-		    atom[bond[i].a].y=(atom[bond[i].a].y+atom[j].y)/2;
-		    for (int k=0;k<n_bond;k++)
-		      if (bond[k].exists)
-			if (bond[k].a==j) {bond[k].a=bond[i].a;}
-			else if (bond[k].b==j) {bond[k].b=bond[i].a;}
-		  }
-	  else  if (j!=bond[i].b && 
-	      distance(atom[bond[i].b].x,atom[bond[i].b].y,atom[j].x,atom[j].y)<=dist)
-		  {
-		    atom[j].exists=false;
-		    atom[bond[i].b].x=(atom[bond[i].b].x+atom[j].x)/2;
-		    atom[bond[i].b].y=(atom[bond[i].b].y+atom[j].y)/2;
-		    for (int k=0;k<n_bond;k++)
-		      if (bond[k].exists)
-			if (bond[k].a==j) {bond[k].a=bond[i].b;}
-			else if (bond[k].b==j) {bond[k].b=bond[i].b;}
-		  }
+      for (int j=0;j<n_bond;j++)
+	if (bond[j].exists && j!=i && bond[j].type==1 && bond_length(bond,j,atom)<=dist)
+	  if (bond[j].a==bond[i].a)
+	    {
+	      bond[j].exists=false;
+	      atom[bond[i].a].x=(atom[bond[i].a].x+atom[bond[j].b].x)/2;
+	      atom[bond[i].a].y=(atom[bond[i].a].y+atom[bond[j].b].y)/2;
+	      for (int k=0;k<n_bond;k++)
+		if (bond[k].exists)
+		  if (bond[k].a==bond[j].b) {bond[k].a=bond[i].a;}
+		  else if (bond[k].b==bond[j].b) {bond[k].b=bond[i].a;}
+	    }
+	  else if (bond[j].b==bond[i].a)
+	    {
+	      bond[j].exists=false;
+	      atom[bond[i].a].x=(atom[bond[i].a].x+atom[bond[j].a].x)/2;
+	      atom[bond[i].a].y=(atom[bond[i].a].y+atom[bond[j].a].y)/2;
+	      for (int k=0;k<n_bond;k++)
+		if (bond[k].exists)
+		  if (bond[k].a==bond[j].a) {bond[k].a=bond[i].a;}
+		  else if (bond[k].b==bond[j].a) {bond[k].b=bond[i].a;}
+	    }
+	  else if (bond[j].a==bond[i].b)
+	    {
+	      bond[j].exists=false;
+	      atom[bond[i].b].x=(atom[bond[i].b].x+atom[bond[j].b].x)/2;
+	      atom[bond[i].b].y=(atom[bond[i].b].y+atom[bond[j].b].y)/2;
+	      for (int k=0;k<n_bond;k++)
+		if (bond[k].exists)
+		  if (bond[k].a==bond[j].b) {bond[k].a=bond[i].b;}
+		  else if (bond[k].b==bond[j].b) {bond[k].b=bond[i].b;}
+	    }
+	  else if (bond[j].b==bond[i].b)
+	    {
+	      bond[j].exists=false;
+	      atom[bond[i].b].x=(atom[bond[i].b].x+atom[bond[j].a].x)/2;
+	      atom[bond[i].b].y=(atom[bond[i].b].y+atom[bond[j].a].y)/2;
+	      for (int k=0;k<n_bond;k++)
+		if (bond[k].exists)
+		  if (bond[k].a==bond[j].a) {bond[k].a=bond[i].b;}
+		  else if (bond[k].b==bond[j].a) {bond[k].b=bond[i].b;}
+	    }
 
 }
 
@@ -3585,9 +3603,9 @@ int main(int argc,char **argv)
 
 
 		avg_bond=percentile75(bond,n_bond,atom);
-		debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");			
-		collapse_double_bonds(bond,n_bond,atom,n_atom,max_dist_double_bond);
 
+		collapse_double_bonds(bond,n_bond,atom,n_atom,max_dist_double_bond);
+		debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");			
 		extend_terminal_bond_to_label(atom,letters,n_letters,bond,n_bond,
 					      label,n_label,avg_bond,
 					      thickness,max_dist_double_bond);
