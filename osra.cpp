@@ -2061,23 +2061,30 @@ int comp_dashes_y(const void *a,const void *b)
 
 void extend_dashed_bond(int a,int b,int n,atom_t *atom,double avg)
 {
-  double l=distance(atom[a].x,atom[a].y,atom[b].x,atom[b].y);
-  double kx=(atom[b].x-atom[a].x)/l;
-  double ky=(atom[b].y-atom[a].y)/l;
   double x0=atom[a].x;
   double y0=atom[a].y;
-  double e=max(avg,l);
-  atom[b].x=kx*e+x0;
-  atom[b].y=ky*e+y0;
+  double x1=atom[b].x;
+  double y1=atom[b].y;
+  double l=distance(x0,y0,x1,y1);
+  double kx=(x1-x0)/l;
+  double ky=(y1-y0)/l;
+  //double e=max(avg,l);
+  //atom[b].x=kx*e+x0;
+  //atom[b].y=ky*e+y0;
   atom[a].x=kx*(-1.*l/(n-1))+x0;
   atom[a].y=ky*(-1.*l/(n-1))+y0;
+  atom[b].x=kx*l/(n-1)+x1;
+  atom[b].y=ky*l/(n-1)+y1;
 }
 
-int count_area(vector < vector<int> > *box, int x, int y)
+int count_area(vector < vector<int> > *box, double &x0, double &y0)
 {
   int a=0;
   int w=(*box).size();
   int h=(*box)[0].size();
+  int x=int(x0);
+  int y=int(y0);
+  int xm=0,ym=0;
   if ((*box)[x][y]==1)
     {
       (*box)[x][y]=2;
@@ -2093,6 +2100,8 @@ int count_area(vector < vector<int> > *box, int x, int y)
 	  cy.pop_front();
 	  (*box)[x][y]=0;
 	  a++;
+	  xm+=x;
+	  ym+=y;
 	  for(int i=x-1;i<x+2;i++)
 	    for (int j=y-1;j<y+2;j++)
 	      if (i<w && j<h && i>=0 && j>=0 && (*box)[i][j]==1)
@@ -2104,6 +2113,8 @@ int count_area(vector < vector<int> > *box, int x, int y)
 	}
     }
   else return(0);
+  x0=1.*xm/a;
+  y0=1.*ym/a;
   return(a);
 }
 
@@ -2178,6 +2189,10 @@ int find_dashed_bonds(potrace_path_t *p, atom_t *atom,bond_t *bond,int n_atom,
 	      }
 	    dot[n_dot].x/=tot;
 	    dot[n_dot].y/=tot;
+	    if (thick)
+	      dot[n_dot].area=count_area(&box,dot[n_dot].x,dot[n_dot].y);
+	    else
+	      dot[n_dot].area=p->area;
 	    if (distance(l,t,r,b)<avg/3) 
 	      n_dot++;
 	    if (n_dot>=100) n_dot--;
@@ -2304,20 +2319,7 @@ int find_dashed_bonds(potrace_path_t *p, atom_t *atom,bond_t *bond,int n_atom,
 		bond[*n_bond].type=1;
 		bond[*n_bond].b=n_atom-1;
 		bond[*n_bond].curve=dash[0].curve;
-		int pa,pb;
-		if (thick)
-		  {
-		    pa=count_area(&box,int(dash[0].x),int(dash[0].y));
-		    pb=count_area(&box,int(dash[n-1].x),int(dash[n-1].y));
-		  }
-		else
-		  {
-		    potrace_path_t *ppa=atom[bond[*n_bond].a].curve;
-		    potrace_path_t *ppb=atom[bond[*n_bond].b].curve;
-		    pa=ppa->area;
-		    pb=ppb->area;
-		  }
-		if (pa>pb)
+		if (dash[0].area>dash[n-1].area)
 		  bond_end_swap(bond,*n_bond);
 		bond[*n_bond].hash=true;
 		bond[*n_bond].wedge=false;
@@ -3485,7 +3487,7 @@ int main(int argc,char **argv)
 	param = potrace_param_default();
 	param->alphamax=0.;
 	//    param->turnpolicy=POTRACE_TURNPOLICY_MINORITY;
-	param->turdsize=1;
+	param->turdsize=0;
 
 	double THRESHOLD_BOND,THRESHOLD_CHAR;
 	THRESHOLD_BOND=threshold.getValue();
@@ -3648,6 +3650,8 @@ int main(int argc,char **argv)
 					 max(MAX_DASH,int(avg_bond/3)),
 					 avg_bond,orig_box,bgColor,
 					 THRESHOLD_BOND,thick);
+		debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");			
+
 
 		n_letters=remove_small_bonds(bond,n_bond,atom,letters,n_letters,
 					     real_font_height,MIN_FONT_HEIGHT,avg_bond);
@@ -3694,7 +3698,7 @@ int main(int argc,char **argv)
 		clean_unrecognized_characters(bond,n_bond,atom,
 					      real_font_height,real_font_width,0);
 
-		debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");			
+
 
 		assign_charge(atom,bond,n_atom,n_bond);
 		find_up_down_bonds(bond,n_bond,atom,thickness);

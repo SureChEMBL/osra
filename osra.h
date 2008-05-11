@@ -86,6 +86,7 @@ struct dash_s {
   double x,y;
   bool free;
   potrace_path_t *curve;
+  int area;
 };
 typedef struct dash_s dash_t;
 
