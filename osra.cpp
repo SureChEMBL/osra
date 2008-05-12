@@ -1072,7 +1072,7 @@ void extend_terminal_bond_to_label(atom_t *atom,letters_t *letters,int n_letters
 }
 
 void extend_terminal_bond_to_bonds(atom_t *atom,int n_atom,bond_t *bond, int n_bond,
-				   double avg, double maxh)
+				   double avg, double maxh,double max_dist_double_bond)
 {
  for (int j=0;j<n_bond;j++)
     if (bond[j].exists)
@@ -1093,7 +1093,9 @@ void extend_terminal_bond_to_bonds(atom_t *atom,int n_atom,bond_t *bond, int n_b
 	      {
 		double d=distance_from_bond_x_a(xa,ya,xb,yb,atom[i].x,atom[i].y);
 		double h=fabs(distance_from_bond_y(xa,ya,xb,yb,atom[i].x,atom[i].y));
-		if (fabs(d)<=avg/2 && h<=maxh && fabs(d)<minb && d<bl/2)
+		double y_dist=maxh;
+		if (bond[j].type==2 && !bond[j].conjoined) y_dist+=max_dist_double_bond;
+		if (fabs(d)<=avg/2 && h<=y_dist && fabs(d)<minb && d<bl/2)
 		  {
 		    found=true;
 		    l=i;
@@ -1102,8 +1104,9 @@ void extend_terminal_bond_to_bonds(atom_t *atom,int n_atom,bond_t *bond, int n_b
 	      }	      
 	if (found)
 	      {
-		atom[bond[j].a].x=(atom[bond[j].a].x+atom[l].x)/2;
-		atom[bond[j].a].y=(atom[bond[j].a].y+atom[l].y)/2;
+		atom[l].x=(atom[bond[j].a].x+atom[l].x)/2;
+		atom[l].y=(atom[bond[j].a].y+atom[l].y)/2;
+		bond[j].a=l;
 	      }
 	found=false;
 	if (not_corner_b)
@@ -1112,7 +1115,9 @@ void extend_terminal_bond_to_bonds(atom_t *atom,int n_atom,bond_t *bond, int n_b
 	      {
 		double d=distance_from_bond_x_b(xa,ya,xb,yb,atom[i].x,atom[i].y);
 		double h=fabs(distance_from_bond_y(xa,ya,xb,yb,atom[i].x,atom[i].y));
-		if (fabs(d)<=avg/2 && h<=maxh && fabs(d)<minb && d>-bl/2)
+		double y_dist=maxh;
+		if (bond[j].type==2 && !bond[j].conjoined) y_dist+=max_dist_double_bond;
+		if (fabs(d)<=avg/2 && h<=y_dist && fabs(d)<minb && d>-bl/2)
 		  {
 		    found=true;
 		    l=i;
@@ -1121,8 +1126,9 @@ void extend_terminal_bond_to_bonds(atom_t *atom,int n_atom,bond_t *bond, int n_b
 	      }	      
 	if (found)
 	      {
-		atom[bond[j].b].x=(atom[bond[j].b].x+atom[l].x)/2;
-		atom[bond[j].b].y=(atom[bond[j].b].y+atom[l].y)/2;
+		atom[l].x=(atom[bond[j].b].x+atom[l].x)/2;
+		atom[l].y=(atom[bond[j].b].y+atom[l].y)/2;
+		bond[j].b=l;
 	      }
 
       }
@@ -3609,7 +3615,6 @@ int main(int argc,char **argv)
 
 		avg_bond=percentile75(bond,n_bond,atom);
 		double max_dist_double_bond=0;
-		debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");			
 		n_bond=double_triple_bonds(atom,bond,n_bond,avg_bond,n_atom,
 					   5,max_dist_double_bond);
 
@@ -3657,7 +3662,9 @@ int main(int argc,char **argv)
 
 
 		extend_terminal_bond_to_bonds(atom,n_atom,bond,n_bond,avg_bond,
-					      2*thickness);
+					      2*thickness,max_dist_double_bond);
+		debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");			
+
 		collapse_atoms(atom,bond,n_atom,n_bond,3);
 		remove_zero_bonds(bond,n_bond,atom);
 		flatten_bonds(bond,n_bond,atom,n_atom,3);
