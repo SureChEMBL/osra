@@ -116,7 +116,7 @@ char get_atom_label(Image image, ColorGray bg, int x1, int y1, int x2, int y2, d
 
 	    }
 	}
-      /*      cout<<x1<<" "<<y1<<" "<<x2<<" "<<y2<<endl;           
+      /*cout<<x2-x1<<" "<<y2-y1<<endl;           
       for (int i=0;i<job.src.p.y;i++)
 	{
 	  for(int j=0;j<job.src.p.x;j++)
