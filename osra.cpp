@@ -3303,9 +3303,9 @@ void flatten_bonds(bond_t *bond,int n_bond,atom_t *atom,int n_atom,double maxh)
   
 }
 
-void clean_unrecognized_characters(bond_t *bond,int n_bond,atom_t *atom,
+int clean_unrecognized_characters(bond_t *bond,int n_bond,atom_t *atom,
 				   int real_font_height, int real_font_width,
-				   unsigned int size)
+				  unsigned int size,letters_t *letters,int n_letters)
 {
   vector<int> all_bonds(n_bond,0);
   for (int i=0;i<n_bond;i++)
@@ -3351,13 +3351,23 @@ void clean_unrecognized_characters(bond_t *bond,int n_bond,atom_t *atom,
 	  if (atom[bond[k].b].y>b) b=atom[bond[k].b].y;
 	}
       if ((r-l)<real_font_width && (b-t)<real_font_height && trash.size()>size)
+	{
 	while (!trash.empty())
 	  {
 	    int k=trash.front();
 	    trash.pop_front();
 	    bond[k].exists=false;
 	  }
+	letters[n_letters].a='X';
+	letters[n_letters].x=(l+r)/2;
+	letters[n_letters].y=(t+b)/2;
+	letters[n_letters].r=distance(l,t,r,b)/2;
+	letters[n_letters].free=true;
+	n_letters++;
+	if (n_letters>=MAX_ATOMS) n_letters--;
+	}
       }
+  return(n_letters);
 }
 
 job_t *JOB;
@@ -3631,8 +3641,10 @@ int main(int argc,char **argv)
 		n_letters=remove_small_bonds(bond,n_bond,atom,letters,n_letters,
 					     real_font_height,MIN_FONT_HEIGHT,avg_bond);
 
-		clean_unrecognized_characters(bond,n_bond,atom,
-					      real_font_height,real_font_width,1);
+		n_letters=clean_unrecognized_characters(bond,n_bond,
+							atom,real_font_height,
+							real_font_width,1,letters,
+							n_letters);
 
 		thickness=find_wedge_bonds(thick_box,atom,n_atom,bond,n_bond,bgColor,
 					   THRESHOLD_BOND,max_dist_double_bond,
@@ -3671,8 +3683,10 @@ int main(int argc,char **argv)
 		remove_zero_bonds(bond,n_bond,atom);
 		flatten_bonds(bond,n_bond,atom,n_atom,3);
 		remove_zero_bonds(bond,n_bond,atom);
-		clean_unrecognized_characters(bond,n_bond,atom,
-					      real_font_height,real_font_width,0);
+		n_letters=clean_unrecognized_characters(bond,n_bond,atom,
+							real_font_height,
+							real_font_width,0,
+							letters,n_letters);
 		debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");		  
 
 		assign_charge(atom,bond,n_atom,n_bond);
