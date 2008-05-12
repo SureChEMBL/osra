@@ -3664,13 +3664,13 @@ int main(int argc,char **argv)
 					      2*thickness,max_dist_double_bond);
 
 
-		collapse_atoms(atom,bond,n_atom,n_bond,min(real_font_width,real_font_height));
+		collapse_atoms(atom,bond,n_atom,n_bond,3);
 		remove_zero_bonds(bond,n_bond,atom);
-		flatten_bonds(bond,n_bond,atom,n_atom,min(real_font_width,real_font_height));
+		flatten_bonds(bond,n_bond,atom,n_atom,3);
 		remove_zero_bonds(bond,n_bond,atom);
 		clean_unrecognized_characters(bond,n_bond,atom,
 					      real_font_height,real_font_width,0);
-		debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");			
+					
 
 
 		assign_charge(atom,bond,n_atom,n_bond);
@@ -3679,6 +3679,11 @@ int main(int argc,char **argv)
 		if ((real_atoms>MIN_A_COUNT) && (real_atoms<MAX_A_COUNT))
 		  {
 		    int f=resolve_bridge_bonds(atom,n_atom,bond,n_bond);
+		    
+		    flatten_bonds(bond,n_bond,atom,n_atom,min(real_font_width,
+							      real_font_height));
+		    remove_zero_bonds(bond,n_bond,atom);
+		   debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");
 		    int rotors,rings;
 		    double confidence=0;
 		    string smiles=get_smiles(atom,bond,n_bond,rotors,confidence,f,rings);
