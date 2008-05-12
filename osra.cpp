@@ -3315,29 +3315,30 @@ void clean_unrecognized_characters(bond_t *bond,int n_bond,atom_t *atom,
   for (int i=0;i<n_bond;i++)
     if (all_bonds[i]==1)
       {
-	list<int> bag;
+	list<int> bag1,bag2;
 	list<int> trash;
 	all_bonds[i]=2;
-	bag.push_back(i);
-	while (!bag.empty())
+	bag1.push_back(i);
+	while (!bag1.empty())
 	  {
-	    int k=bag.front();
-	    bag.pop_front();
+	    int k=bag1.front();
+	    bag1.pop_front();
 	    all_bonds[k]=0;
+	    bag2.push_back(k);
 	    for (int j=0;j<n_bond;j++)
 	      if (j!=k && all_bonds[j]==1 && 
 		  (bond[k].a==bond[j].a || bond[k].a==bond[j].b ||
 		   bond[k].b==bond[j].a || bond[k].b==bond[j].b))
 		{
 		  all_bonds[j]=2;
-		  bag.push_back(j);
+		  bag1.push_back(j);
 		}
 	  }
       double t=FLT_MAX,b=0,l=FLT_MAX,r=0;
-      while (!bag.empty())
+      while (!bag2.empty())
 	{
-	  int k=bag.front();
-	  bag.pop_front();
+	  int k=bag2.front();
+	  bag2.pop_front();
 	  trash.push_back(k);
 
 	  if (atom[bond[k].a].x<l) l=atom[bond[k].a].x;
@@ -3650,6 +3651,7 @@ int main(int argc,char **argv)
 		avg_bond=percentile75(bond,n_bond,atom);
 
 		collapse_double_bonds(bond,n_bond,atom,n_atom,max_dist_double_bond);
+
 		extend_terminal_bond_to_label(atom,letters,n_letters,bond,n_bond,
 					      label,n_label,avg_bond,
 					      thickness,max_dist_double_bond);
@@ -3671,7 +3673,7 @@ int main(int argc,char **argv)
 		remove_zero_bonds(bond,n_bond,atom);
 		clean_unrecognized_characters(bond,n_bond,atom,
 					      real_font_height,real_font_width,0);
-
+		debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");		  
 
 		assign_charge(atom,bond,n_atom,n_bond);
 		find_up_down_bonds(bond,n_bond,atom,thickness);
@@ -3679,11 +3681,11 @@ int main(int argc,char **argv)
 		if ((real_atoms>MIN_A_COUNT) && (real_atoms<MAX_A_COUNT))
 		  {
 		    int f=resolve_bridge_bonds(atom,n_atom,bond,n_bond);
-		    
-		    flatten_bonds(bond,n_bond,atom,n_atom,min(real_font_width,
+
+		    /*flatten_bonds(bond,n_bond,atom,n_atom,min(real_font_width,
 							      real_font_height));
 		    remove_zero_bonds(bond,n_bond,atom);
-		    debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");		       
+		    */
 
 		    int rotors,rings;
 		    double confidence=0;
