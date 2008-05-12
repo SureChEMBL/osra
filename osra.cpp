@@ -889,7 +889,6 @@ int assemble_labels(letters_t *letters,int n_letters,label_t *label)
 		last=lbond[j].b;
 		lbond[j].exists=false;
 	     }
-
 	 bool cont=true;
 	 string charges="";
 	 while (cont)
@@ -2593,15 +2592,17 @@ int find_fused_chars(bond_t *bond,int n_bond,atom_t *atom,
 		     letters_t *letters,int n_letters,
 		     int max_font_height,int max_font_width,
 		     double r, Image orig,  ColorGray bgColor, 
-		     double THRESHOLD, unsigned int size)
+		     double THRESHOLD, unsigned int size, unsigned int maxsize)
 {
+  double dist=max(max_font_width,max_font_height);
+  dist=min(dist,r);
   for (int i=0;i<n_bond;i++)
-    if (bond[i].exists && bond_length(bond,i,atom)<r)
+    if (bond[i].exists && bond_length(bond,i,atom)<dist)
       {
 	list<int> t;
 	t.push_back(i);
-	for (int j=i+1;j<n_bond;j++)
-	  if (bond[j].exists && bond_length(bond,j,atom)<r)
+	for (int j=0;j<n_bond;j++)
+	  if (bond[j].exists && bond_length(bond,j,atom)<dist && j!=i)
 	    {
 	      double dx=max(max(fabs(atom[bond[j].a].x-atom[bond[i].a].x),
 				fabs(atom[bond[j].a].x-atom[bond[i].b].x)),
@@ -2614,11 +2615,38 @@ int find_fused_chars(bond_t *bond,int n_bond,atom_t *atom,
 	      if (dx<max_font_width && dy<max_font_height)
 		t.push_back(j);
 	    }
-	if (t.size()>size)
+
+	vector<int> all_bonds(n_bond,0);
+	for (int j=0;j<n_bond;j++)
+	  if (bond[j].exists) 
+	    all_bonds[j]=1;
+
+	list<int> bag1;
+	all_bonds[i]=2;
+	bag1.push_back(i);
+	while (!bag1.empty())
+	  {
+	    int k=bag1.front();
+	    bag1.pop_front();
+	    all_bonds[k]=3;
+	    for (int j=0;j<n_bond;j++)
+	      if (j!=k && all_bonds[j]==1 && 
+		  (bond[k].a==bond[j].a || bond[k].a==bond[j].b ||
+		   bond[k].b==bond[j].a || bond[k].b==bond[j].b))
+		{
+		  all_bonds[j]=2;
+		  bag1.push_back(j);
+		}
+	  }
+
+	unsigned int bag_size=t.size();
+	if (bag_size>size)
 	  {
 	    double cx=0;
 	    double cy=0;
 	    int n=0;
+	    bool connected=true;
+
 	    while (!t.empty())
 	      {
 		int k=t.front();
@@ -2626,43 +2654,48 @@ int find_fused_chars(bond_t *bond,int n_bond,atom_t *atom,
 		cx+=atom[bond[k].a].x+atom[bond[k].b].x;
 		cy+=atom[bond[k].a].y+atom[bond[k].b].y;
 		n+=2;
+		if (all_bonds[k]!=3) connected=false;
 	      }
-	    cx/=n;
-	    cy/=n;
-	    int left=int(cx-max_font_width/2);
-	    int right=int(cx+max_font_width/2);
-	    int top=int(cy-max_font_height/2);
-	    int bottom=int(cy+max_font_height/2);
-	    
-
-	    char label=0;
-	    label=get_atom_label(orig,bgColor,left,top,right,bottom,THRESHOLD);
-	    if (label !=0 
-		&& label!='P' && label!='p' && label!='F' 
-		&& label!='X' && label!='Y'
-		&& label!='n' && label!='F' && label!='U' && label!='u'
-		&& label!='h'
-		)
+	    if (connected)
 	      {
-		bool overlap=false;
-		for (int j=0;j<n_letters;j++)
-		  {
-		    if (distance((left+right)/2,(top+bottom)/2,
-				 letters[j].x,letters[j].y)<letters[j].r)
-		      overlap=true;
-		  }
-		if (!overlap)
-		  {
-		    letters[n_letters].a=label;
-		    letters[n_letters].x=(left+right)/2;
-		    letters[n_letters].y=(top+bottom)/2;
-		    letters[n_letters].r=distance(left,top,right,bottom)/2;
-		    letters[n_letters].free=true;
-		    n_letters++;
-		    if (n_letters>=MAX_ATOMS) n_letters--;
-		    delete_bonds_in_char(bond,n_bond,atom,left,top,right,bottom);
-		  }
+		cx/=n;
+		cy/=n;
+		int left=int(cx-max_font_width/2);
+		int right=int(cx+max_font_width/2);
+		int top=int(cy-max_font_height/2);
+		int bottom=int(cy+max_font_height/2);
+		
 
+		char label=0;
+		label=get_atom_label(orig,bgColor,left,top,right,bottom,THRESHOLD);
+		if (label==0 && bag_size>maxsize) label='R';
+		
+		if (label !=0 
+		    && label!='P' && label!='p' && label!='F' 
+		    && label!='X' && label!='Y'
+		    && label!='n' && label!='F' && label!='U' && label!='u'
+		    && label!='h'
+		    )
+		  {
+		    bool overlap=false;
+		    for (int j=0;j<n_letters;j++)
+		      {
+			if (distance((left+right)/2,(top+bottom)/2,
+				     letters[j].x,letters[j].y)<letters[j].r)
+			  overlap=true;
+		      }
+		    if (!overlap)
+		      {
+			letters[n_letters].a=label;
+			letters[n_letters].x=(left+right)/2;
+			letters[n_letters].y=(top+bottom)/2;
+			letters[n_letters].r=distance(left,top,right,bottom)/2;
+			letters[n_letters].free=true;
+			n_letters++;
+			if (n_letters>=MAX_ATOMS) n_letters--;
+			delete_bonds_in_char(bond,n_bond,atom,left,top,right,bottom);
+		      }
+		  }
 	      }
 	  }
       }
@@ -3597,14 +3630,16 @@ int main(int argc,char **argv)
 				     real_font_width,real_font_height);
 	
 		double avg_bond=percentile75(bond,n_bond,atom);
-
+		collapse_atoms(atom,bond,n_atom,n_bond,1);
+		remove_zero_bonds(bond,n_bond,atom);
 		if (working_resolution==300)
 		  {
 		    n_letters=find_fused_chars(bond,n_bond,atom,letters,n_letters,
 					       real_font_height,real_font_width,
 					       avg_bond/3,orig_box,bgColor,
-					       THRESHOLD_CHAR,3);
+					       THRESHOLD_CHAR,3,4);
 		  }
+		debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");		  
 		double max_area=avg_bond*5;
 		if (thick) max_area=avg_bond;
 		n_letters=find_plus_minus(p,letters,atom,bond,n_atom,n_bond,
@@ -3641,9 +3676,10 @@ int main(int argc,char **argv)
 		n_letters=remove_small_bonds(bond,n_bond,atom,letters,n_letters,
 					     real_font_height,MIN_FONT_HEIGHT,avg_bond);
 
+
 		n_letters=clean_unrecognized_characters(bond,n_bond,
 							atom,real_font_height,
-							real_font_width,1,letters,
+							real_font_width,3,letters,
 							n_letters);
 
 		thickness=find_wedge_bonds(thick_box,atom,n_atom,bond,n_bond,bgColor,
@@ -3668,12 +3704,15 @@ int main(int argc,char **argv)
 					      label,n_label,avg_bond,
 					      thickness,max_dist_double_bond);
 
+
 		remove_disconnected_atoms(atom,bond,n_atom,n_bond);
 		collapse_atoms(atom,bond,n_atom,n_bond,thickness);
 		remove_zero_bonds(bond,n_bond,atom);
 		flatten_bonds(bond,n_bond,atom,n_atom,thickness);
 		remove_zero_bonds(bond,n_bond,atom);
 		remove_disconnected_atoms(atom,bond,n_atom,n_bond);
+
+
 
 
 		extend_terminal_bond_to_bonds(atom,n_atom,bond,n_bond,avg_bond,
@@ -3687,7 +3726,6 @@ int main(int argc,char **argv)
 							real_font_height,
 							real_font_width,0,
 							letters,n_letters);
-		debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");		  
 
 		assign_charge(atom,bond,n_atom,n_bond);
 		find_up_down_bonds(bond,n_bond,atom,thickness);
@@ -3695,11 +3733,6 @@ int main(int argc,char **argv)
 		if ((real_atoms>MIN_A_COUNT) && (real_atoms<MAX_A_COUNT))
 		  {
 		    int f=resolve_bridge_bonds(atom,n_atom,bond,n_bond);
-
-		    /*flatten_bonds(bond,n_bond,atom,n_atom,min(real_font_width,
-							      real_font_height));
-		    remove_zero_bonds(bond,n_bond,atom);
-		    */
 
 		    int rotors,rings;
 		    double confidence=0;
