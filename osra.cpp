@@ -3629,7 +3629,6 @@ int main(int argc,char **argv)
 		n_letters=remove_small_bonds(bond,n_bond,atom,letters,n_letters,
 					     real_font_height,MIN_FONT_HEIGHT,avg_bond);
 
-
 		clean_unrecognized_characters(bond,n_bond,atom,
 					      real_font_height,real_font_width,1);
 
@@ -3663,14 +3662,15 @@ int main(int argc,char **argv)
 
 		extend_terminal_bond_to_bonds(atom,n_atom,bond,n_bond,avg_bond,
 					      2*thickness,max_dist_double_bond);
-		debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");			
 
-		collapse_atoms(atom,bond,n_atom,n_bond,3);
+
+		collapse_atoms(atom,bond,n_atom,n_bond,min(real_font_width,real_font_height));
 		remove_zero_bonds(bond,n_bond,atom);
-		flatten_bonds(bond,n_bond,atom,n_atom,3);
+		flatten_bonds(bond,n_bond,atom,n_atom,min(real_font_width,real_font_height));
 		remove_zero_bonds(bond,n_bond,atom);
 		clean_unrecognized_characters(bond,n_bond,atom,
 					      real_font_height,real_font_width,0);
+		debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");			
 
 
 		assign_charge(atom,bond,n_atom,n_bond);
