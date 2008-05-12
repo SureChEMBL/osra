@@ -365,7 +365,7 @@ bool no_white_space(int ai,int bi,int aj, int bj, atom_t *atom,Image image,
   double dy1=atom[bi].y-atom[ai].y;
   double dx2=atom[bj].x-atom[aj].x;
   double dy2=atom[bj].y-atom[aj].y;
-  double k1,k2,y1,y2,x1,x2,x3,y3;
+  double k1,k2;
   int s=0,w=0;
 
   if (fabs(dx1)>fabs(dy1))
@@ -376,34 +376,18 @@ bool no_white_space(int ai,int bi,int aj, int bj, atom_t *atom,Image image,
       xx[3]=atom[bj].x;
       qsort(xx,4,sizeof(double),num_comp);
       k1=dy1/dx1;
-      y1=atom[ai].y;
-      x1=atom[ai].x;
-      if (dx1<0)
-	{
-	  y1=atom[bi].y;
-	  x1=atom[bi].x;
-	}
       k2=dy2/dx2;
-      y2=atom[aj].y;
-      x2=atom[aj].x;
-      x3=atom[bj].x;
-      if (dx2<0)
-	{
-	  y2=atom[bj].y;
-	  x2=atom[bj].x;
-	  x3=atom[aj].x;
-	}
-      for(int x=int(x1);x<=int(x3);x++)
+      int d=(dx1>0?1:-1);
+
+      for(int x=int(atom[ai].x);x!=int(atom[bi].x);x+=d)
 	if(x>xx[1] && x<xx[2])
 	  {
-	   double p1=(x-x1)*k1+y1;
-	   double p2=(x-x2)*k2+y2;
-	   if (p1>p2)
-	     {
-	       p2=(x-x1)*k1+y1;
-	       p1=(x-x2)*k2+y2;
-	     }
-	   for(int y=int(p1)+1;y<int(p2);y++)
+	   double p1=(x-atom[ai].x)*k1+atom[ai].y;
+	   double p2=(x-atom[aj].x)*k2+atom[aj].y;
+	   if (fabs(p2-p1)<1) continue;
+	   int dp=(p2>p1?1:-1);
+
+	   for(int y=int(p1)+dp;y!=int(p2);y+=dp)
 	     {
 	       s++;
 	       if (getPixel(image,bgColor,x,y,threshold)==0) w++;
@@ -418,34 +402,17 @@ bool no_white_space(int ai,int bi,int aj, int bj, atom_t *atom,Image image,
       xx[3]=atom[bj].y;
       qsort(xx,4,sizeof(double),num_comp);
       k1=dx1/dy1;
-      y1=atom[ai].y;
-      x1=atom[ai].x;
-      if (dy1<0)
-	{
-	  y1=atom[bi].y;
-	  x1=atom[bi].x;
-	}
       k2=dx2/dy2;
-      y2=atom[aj].y;
-      x2=atom[aj].x;
-      y3=atom[bj].y;
-      if (dy2<0)
-	{
-	  y2=atom[bj].y;
-	  x2=atom[bj].x;
-	  y3=atom[aj].y;
-	}
-      for(int y=int(y1);y<=int(y3);y++)
+      int d=(dy1>0?1:-1);
+
+      for(int y=int(atom[ai].y);y!=int(atom[bi].y);y+=d)
 	if(y>xx[1] && y<xx[2])
 	  {
-	   double p1=(y-y1)*k1+x1;
-	   double p2=(y-y2)*k2+x2;
-	   if (p1>p2)
-	     {
-	       p2=(y-y1)*k1+x1;
-	       p1=(y-y2)*k2+x2;
-	     }
-	   for(int x=int(p1)+1;x<int(p2);x++)
+	   double p1=(y-atom[ai].y)*k1+atom[ai].x;
+	   double p2=(y-atom[aj].y)*k2+atom[aj].x;
+	   if (fabs(p2-p1)<1) continue;
+	   int dp=(p2>p1?1:-1);
+	   for(int x=int(p1)+dp;x!=int(p2);x+=dp)
 	     {
 	       s++;
 	       if (getPixel(image,bgColor,x,y,threshold)==0) w++;
@@ -464,7 +431,6 @@ double skeletize(atom_t *atom,bond_t *bond,int n_bond,Image image,
   double thickness=0;
   double a[MAX_ATOMS];
   int n=0;
-
   for (int i=0;i<n_bond;i++)
     if (bond[i].exists)
       {
@@ -476,7 +442,7 @@ double skeletize(atom_t *atom,bond_t *bond,int n_bond,Image image,
 	      if ((fabs(angle_between_bonds(bond,i,j,atom))>D_T_TOLERANCE 
 		   && no_white_space(bond[i].a,bond[i].b,bond[j].a,bond[j].b,atom,
 				     image,threshold,bgColor) && tt<MAX_BOND_THICKNESS)
-		  || tt<2)
+		  || tt<4)
 		{
 		  double l2=bond_length(bond,j,atom);
 		  a[n++]=tt;
