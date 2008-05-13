@@ -2591,28 +2591,28 @@ int fix_one_sided_bonds(bond_t *bond,int n_bond,atom_t *atom, double thickness)
 int find_fused_chars(bond_t *bond,int n_bond,atom_t *atom,
 		     letters_t *letters,int n_letters,
 		     int max_font_height,int max_font_width,
-		     double r, Image orig,  ColorGray bgColor, 
-		     double THRESHOLD, unsigned int size, unsigned int maxsize)
+		     char dummy, Image orig,  ColorGray bgColor, 
+		     double THRESHOLD, unsigned int size)
 {
   double dist=max(max_font_width,max_font_height);
-  dist=min(dist,r);
   for (int i=0;i<n_bond;i++)
     if (bond[i].exists && bond_length(bond,i,atom)<dist)
       {
 	list<int> t;
 	t.push_back(i);
+	double xmin1=min(atom[bond[i].a].x,atom[bond[i].b].x);
+	double xmax1=max(atom[bond[i].a].x,atom[bond[i].b].x);
+	double ymin1=min(atom[bond[i].a].y,atom[bond[i].b].y);
+	double ymax1=max(atom[bond[i].a].y,atom[bond[i].b].y);
 	for (int j=0;j<n_bond;j++)
-	  if (bond[j].exists && bond_length(bond,j,atom)<dist && j!=i)
+	  if (bond[j].exists && bond_length(bond,j,atom)<dist && j!=i
+	      && atom[bond[j].a].x>=xmin1 && atom[bond[j].a].x>=xmin1)
 	    {
-	      double dx=max(max(fabs(atom[bond[j].a].x-atom[bond[i].a].x),
-				fabs(atom[bond[j].a].x-atom[bond[i].b].x)),
-			    max(fabs(atom[bond[j].b].x-atom[bond[i].a].x),
-				fabs(atom[bond[j].b].x-atom[bond[i].b].x)));
-	      double dy=max(max(fabs(atom[bond[j].a].y-atom[bond[i].a].y),
-				fabs(atom[bond[j].a].y-atom[bond[i].b].y)),
-			    max(fabs(atom[bond[j].b].y-atom[bond[i].a].y),
-				fabs(atom[bond[j].b].y-atom[bond[i].b].y)));
-	      if (dx<max_font_width && dy<max_font_height)
+	      double xmax2=max(xmax1,max(atom[bond[j].a].x,atom[bond[j].b].x));
+	      double ymin2=min(ymin1,min(atom[bond[j].a].y,atom[bond[j].b].y));
+	      double ymax2=max(ymax1,max(atom[bond[j].a].y,atom[bond[j].b].y));
+
+	      if (xmax2-xmin1<=max_font_width && ymax2-ymin2<=max_font_height)
 		t.push_back(j);
 	    }
 
@@ -2642,8 +2642,8 @@ int find_fused_chars(bond_t *bond,int n_bond,atom_t *atom,
 	  {
 	    int k=t.front();
 	    t.pop_front();
-	    //if (all_bonds[k]==3) 
-	    bag2.push_back(k);
+	    if (all_bonds[k]==3) 
+	      bag2.push_back(k);
 	  }
 
 
@@ -2653,7 +2653,6 @@ int find_fused_chars(bond_t *bond,int n_bond,atom_t *atom,
 	    double cx=0;
 	    double cy=0;
 	    int n=0;
-	    bool connected=true;
 
 	    while (!bag2.empty())
 	      {
@@ -2669,15 +2668,16 @@ int find_fused_chars(bond_t *bond,int n_bond,atom_t *atom,
 	    int right=int(cx+max_font_width/2);
 	    int top=int(cy-max_font_height/2);
 	    int bottom=int(cy+max_font_height/2);
-	    
 	    char label=0;
-	    label=get_atom_label(orig,bgColor,left,top,right,bottom,THRESHOLD);
-	    if (label==0 && bag_size>maxsize) label='R';
-	    if (label !=0 
-		&& label!='P' && label!='p' && label!='F' 
-		&& label!='X' && label!='Y'
-		&& label!='n' && label!='F' && label!='U' && label!='u'
-		&& label!='h'
+	    if (dummy!=0) label=dummy;
+	    else
+	      label=get_atom_label(orig,bgColor,left,top,right,bottom,THRESHOLD);
+
+	    if ((label !=0 
+		 && label!='P' && label!='p' && label!='F' 
+		 && label!='X' && label!='Y'
+		 && label!='n' && label!='F' && label!='U' && label!='u'
+		 && label!='h') || dummy!=0
 		)
 	      {
 		bool overlap=false;
@@ -3638,8 +3638,12 @@ int main(int argc,char **argv)
 		  {
 		    n_letters=find_fused_chars(bond,n_bond,atom,letters,n_letters,
 					       real_font_height,real_font_width,
-					       avg_bond/3,orig_box,bgColor,
-					       THRESHOLD_CHAR,3,4);
+					       0,orig_box,bgColor,
+					       THRESHOLD_CHAR,3);
+		    n_letters=find_fused_chars(bond,n_bond,atom,letters,n_letters,
+					       real_font_height,real_font_width,
+					       'R',orig_box,bgColor,
+					       THRESHOLD_CHAR,4);
 		  }
 		debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");		  
 		double max_area=avg_bond*5;
