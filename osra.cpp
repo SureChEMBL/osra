@@ -2664,15 +2664,16 @@ int find_fused_chars(bond_t *bond,int n_bond,atom_t *atom,
 	      }
 	    cx/=n;
 	    cy/=n;
-	    int left=int(cx-max_font_width/2);
-	    int right=int(cx+max_font_width/2);
+	    int left=int(cx-max_font_width/2)-1;
+	    int right=int(cx+max_font_width/2)-1;
 	    int top=int(cy-max_font_height/2);
 	    int bottom=int(cy+max_font_height/2);
 	    char label=0;
 	    if (dummy!=0) label=dummy;
 	    else
-	      label=get_atom_label(orig,bgColor,left,top,right,bottom,THRESHOLD);
-
+	      {
+		label=get_atom_label(orig,bgColor,left,top,right,bottom,THRESHOLD);
+	      }
 	    if ((label !=0 
 		 && label!='P' && label!='p' && label!='F' 
 		 && label!='X' && label!='Y'
@@ -3632,7 +3633,7 @@ int main(int argc,char **argv)
 				     real_font_width,real_font_height);
 	
 		double avg_bond=percentile75(bond,n_bond,atom);
-		collapse_atoms(atom,bond,n_atom,n_bond,1);
+		collapse_atoms(atom,bond,n_atom,n_bond,2);
 		remove_zero_bonds(bond,n_bond,atom);
 		if (working_resolution==300)
 		  {
@@ -3645,7 +3646,6 @@ int main(int argc,char **argv)
 					       'R',orig_box,bgColor,
 					       THRESHOLD_CHAR,4);
 		  }
-		debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");		  
 		double max_area=avg_bond*5;
 		if (thick) max_area=avg_bond;
 		n_letters=find_plus_minus(p,letters,atom,bond,n_atom,n_bond,
@@ -3710,6 +3710,7 @@ int main(int argc,char **argv)
 					      label,n_label,avg_bond,
 					      thickness,max_dist_double_bond);
 
+		debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");		  
 
 		remove_disconnected_atoms(atom,bond,n_atom,n_bond);
 		collapse_atoms(atom,bond,n_atom,n_bond,thickness);
