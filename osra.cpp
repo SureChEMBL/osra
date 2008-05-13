@@ -2621,7 +2621,7 @@ int find_fused_chars(bond_t *bond,int n_bond,atom_t *atom,
 	  if (bond[j].exists) 
 	    all_bonds[j]=1;
 
-	list<int> bag1;
+	list<int> bag1,bag2;
 	all_bonds[i]=2;
 	bag1.push_back(i);
 	while (!bag1.empty())
@@ -2638,8 +2638,16 @@ int find_fused_chars(bond_t *bond,int n_bond,atom_t *atom,
 		  bag1.push_back(j);
 		}
 	  }
+	while (!t.empty())
+	  {
+	    int k=t.front();
+	    t.pop_front();
+	    //if (all_bonds[k]==3) 
+	    bag2.push_back(k);
+	  }
 
-	unsigned int bag_size=t.size();
+
+	unsigned int bag_size=bag2.size();
 	if (bag_size>size)
 	  {
 	    double cx=0;
@@ -2647,54 +2655,48 @@ int find_fused_chars(bond_t *bond,int n_bond,atom_t *atom,
 	    int n=0;
 	    bool connected=true;
 
-	    while (!t.empty())
+	    while (!bag2.empty())
 	      {
-		int k=t.front();
-		t.pop_front();
+		int k=bag2.front();
+		bag2.pop_front();
 		cx+=atom[bond[k].a].x+atom[bond[k].b].x;
 		cy+=atom[bond[k].a].y+atom[bond[k].b].y;
 		n+=2;
-		if (all_bonds[k]!=3) connected=false;
 	      }
-	    if (connected)
+	    cx/=n;
+	    cy/=n;
+	    int left=int(cx-max_font_width/2);
+	    int right=int(cx+max_font_width/2);
+	    int top=int(cy-max_font_height/2);
+	    int bottom=int(cy+max_font_height/2);
+	    
+	    char label=0;
+	    label=get_atom_label(orig,bgColor,left,top,right,bottom,THRESHOLD);
+	    if (label==0 && bag_size>maxsize) label='R';
+	    if (label !=0 
+		&& label!='P' && label!='p' && label!='F' 
+		&& label!='X' && label!='Y'
+		&& label!='n' && label!='F' && label!='U' && label!='u'
+		&& label!='h'
+		)
 	      {
-		cx/=n;
-		cy/=n;
-		int left=int(cx-max_font_width/2);
-		int right=int(cx+max_font_width/2);
-		int top=int(cy-max_font_height/2);
-		int bottom=int(cy+max_font_height/2);
-		
-
-		char label=0;
-		label=get_atom_label(orig,bgColor,left,top,right,bottom,THRESHOLD);
-		if (label==0 && bag_size>maxsize) label='R';
-		
-		if (label !=0 
-		    && label!='P' && label!='p' && label!='F' 
-		    && label!='X' && label!='Y'
-		    && label!='n' && label!='F' && label!='U' && label!='u'
-		    && label!='h'
-		    )
+		bool overlap=false;
+		for (int j=0;j<n_letters;j++)
 		  {
-		    bool overlap=false;
-		    for (int j=0;j<n_letters;j++)
-		      {
-			if (distance((left+right)/2,(top+bottom)/2,
-				     letters[j].x,letters[j].y)<letters[j].r)
-			  overlap=true;
-		      }
-		    if (!overlap)
-		      {
-			letters[n_letters].a=label;
-			letters[n_letters].x=(left+right)/2;
-			letters[n_letters].y=(top+bottom)/2;
-			letters[n_letters].r=distance(left,top,right,bottom)/2;
-			letters[n_letters].free=true;
-			n_letters++;
-			if (n_letters>=MAX_ATOMS) n_letters--;
-			delete_bonds_in_char(bond,n_bond,atom,left,top,right,bottom);
-		      }
+		    if (distance((left+right)/2,(top+bottom)/2,
+				 letters[j].x,letters[j].y)<letters[j].r)
+		      overlap=true;
+		  }
+		if (!overlap)
+		  {
+		    letters[n_letters].a=label;
+		    letters[n_letters].x=(left+right)/2;
+		    letters[n_letters].y=(top+bottom)/2;
+		    letters[n_letters].r=distance(left,top,right,bottom)/2;
+		    letters[n_letters].free=true;
+		    n_letters++;
+		    if (n_letters>=MAX_ATOMS) n_letters--;
+		    delete_bonds_in_char(bond,n_bond,atom,left,top,right,bottom);
 		  }
 	      }
 	  }
