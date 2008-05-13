@@ -181,7 +181,7 @@ string fix_atom_name(string s,int n)
 	   || s=="leo" || s=="ohle" || s=="lleo" || s=="olllle" 
 	   || s=="OMe" || s=="OM8" || s=="OMo" || s=="OMB" || s=="OCH3" 
 	   || s=="OCHS" || s=="OR" || s=="RO")   r="MeO";
-  else if (s=="NC")  r="CN";
+  else if (s=="NC" || s=="YC")  r="CN";
   else if ((s=="nBU") || (s=="neU") ||(s=="ngU")) r="nBu";
   else if ((s=="Eto") || (s=="oEt") || (s=="Elo") || (s=="oEl")
       || s=="ElO") r="EtO";

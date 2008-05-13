@@ -2091,12 +2091,13 @@ int count_area(vector < vector<int> > *box, double &x0, double &y0)
 
 int find_dashed_bonds(potrace_path_t *p, atom_t *atom,bond_t *bond,int n_atom,
 		      int *n_bond,int max,double avg,Image img,ColorGray bg,  
-		      double THRESHOLD, bool thick)
+		      double THRESHOLD, bool thick, double dist)
 {
   int n,n_dot=0;
   potrace_dpoint_t (*c)[3];
   dash_t dot[100];
   vector < vector<int> > box(img.columns());
+  
 
   for (unsigned int i=0;i<img.columns();i++)
     for (unsigned int j=0;j<img.rows();j++)
@@ -2104,7 +2105,7 @@ int find_dashed_bonds(potrace_path_t *p, atom_t *atom,bond_t *bond,int n_atom,
 
   while (p != NULL) 
       {
-	if ((p->sign == int('+')) && (p->area<max))
+	if (p->sign == int('+') && p->area<max)
 	  {
 	    n = p->curve.n;
 	    c = p->curve.c;
@@ -2186,7 +2187,7 @@ int find_dashed_bonds(potrace_path_t *p, atom_t *atom,bond_t *bond,int n_atom,
 	int next_dot=i;
 	for(int j=i+1;j<n_dot;j++)
 	  if (dot[j].free
-	      && distance(dash[0].x,dash[0].y,dot[j].x,dot[j].y)<=1.8*avg
+	      && distance(dash[0].x,dash[0].y,dot[j].x,dot[j].y)<=dist
 	      && distance(dash[0].x,dash[0].y,dot[j].x,dot[j].y)<dist_next)
 	    {
 	      dash[1]=dot[j];
@@ -2213,7 +2214,7 @@ int find_dashed_bonds(potrace_path_t *p, atom_t *atom,bond_t *bond,int n_atom,
 	    found=false;
 	    int minj=next_dot;
 	    for(int j=next_dot+1;j<n_dot;j++)
-	      if (dot[j].free && distance(mx,my,dot[j].x,dot[j].y)<=1.8*avg
+	      if (dot[j].free && distance(mx,my,dot[j].x,dot[j].y)<=dist
 		  && distance(mx,my,dot[j].x,dot[j].y)<dist_next
 		  && fabs(angle4(dash[0].x,dash[0].y,dash[n-1].x,dash[n-1].y,
 				 dash[0].x,dash[0].y,dot[j].x,dot[j].y))>D_T_TOLERANCE)
@@ -3635,6 +3636,7 @@ int main(int argc,char **argv)
 		double avg_bond=percentile75(bond,n_bond,atom);
 		collapse_atoms(atom,bond,n_atom,n_bond,2);
 		remove_zero_bonds(bond,n_bond,atom);
+		
 		if (working_resolution==300)
 		  {
 		    n_letters=find_fused_chars(bond,n_bond,atom,letters,n_letters,
@@ -3646,17 +3648,18 @@ int main(int argc,char **argv)
 					       'R',orig_box,bgColor,
 					       THRESHOLD_CHAR,4);
 		  }
+		
 		double max_area=avg_bond*5;
 		if (thick) max_area=avg_bond;
 		n_letters=find_plus_minus(p,letters,atom,bond,n_atom,n_bond,
 					  height,width,real_font_height,
 					  real_font_width,n_letters,avg_bond);
-
 	
 		n_atom=find_small_bonds(p,atom,bond,n_atom,&n_bond,
 					max_area,avg_bond/2,5);
 		find_old_aromatic_bonds(p,bond,n_bond,atom,n_atom,avg_bond);
 		
+
 		
 		double thickness=skeletize(atom,bond,n_bond,box,THRESHOLD_BOND,bgColor);
 		remove_disconnected_atoms(atom,bond,n_atom,n_bond);
@@ -3675,8 +3678,7 @@ int main(int argc,char **argv)
 		n_atom=find_dashed_bonds(p,atom,bond,n_atom,&n_bond,
 					 max(MAX_DASH,int(avg_bond/3)),
 					 avg_bond,orig_box,bgColor,
-					 THRESHOLD_BOND,thick);
-
+					 THRESHOLD_BOND,thick,1.5*avg_bond);
 
 
 		n_letters=remove_small_bonds(bond,n_bond,atom,letters,n_letters,
@@ -3710,7 +3712,7 @@ int main(int argc,char **argv)
 					      label,n_label,avg_bond,
 					      thickness,max_dist_double_bond);
 
-		debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");		  
+
 
 		remove_disconnected_atoms(atom,bond,n_atom,n_bond);
 		collapse_atoms(atom,bond,n_atom,n_bond,thickness);
@@ -3733,6 +3735,7 @@ int main(int argc,char **argv)
 							real_font_height,
 							real_font_width,0,
 							letters,n_letters);
+debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");		  		
 
 		assign_charge(atom,bond,n_atom,n_bond);
 		find_up_down_bonds(bond,n_bond,atom,thickness);
