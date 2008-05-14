@@ -463,109 +463,61 @@ int double_triple_bonds(atom_t *atom,bond_t *bond,int n_bond,double avg,int &n_a
 	  if ((bond[j].exists) && (fabs(angle_between_bonds(bond,i,j,atom))>D_T_TOLERANCE))
 	    {
 	      double l2=bond_length(bond,j,atom);
-	      if ((distance_between_bonds(bond,i,j,atom,max_dist_double_bond/2)<=max_dist_double_bond)
+	      if ((distance_between_bonds(bond,i,j,atom,thickness)<=max_dist_double_bond)
 		  && (bonds_within_each_other(bond,i,j,atom))
 		  )
 		{
+		  int ii=i,jj=j;
+		  double l11=l1,l22=l2;
+		  bool extended_triple=false;
 		  if (l1>avg && l1>1.5*l2 && l2>0.5*avg)
-		    {
-		      double aa=distance(atom[bond[i].a].x,atom[bond[i].a].y,
-					 atom[bond[j].a].x,atom[bond[j].a].y);
-		      double ab=distance(atom[bond[i].a].x,atom[bond[i].a].y,
-					 atom[bond[j].b].x,atom[bond[j].b].y);
-		      double ba=distance(atom[bond[i].b].x,atom[bond[i].b].y,
-					 atom[bond[j].a].x,atom[bond[j].a].y);
-		      double bb=distance(atom[bond[i].b].x,atom[bond[i].b].y,
-					 atom[bond[j].b].x,atom[bond[j].b].y);
-		      double da=min(aa,ab);
-		      double db=min(ba,bb);
-		      if (da>0.5*l2)
-			{
-			  double x=atom[bond[i].a].x+
-			    (atom[bond[i].b].x-atom[bond[i].a].x)*da/l1;
-			  double y=atom[bond[i].a].y+
-			    (atom[bond[i].b].y-atom[bond[i].a].y)*da/l1;
-			  bond[n_bond].a=bond[i].a;
-			  bond[n_bond].exists=true;
-			  bond[n_bond].type=1;
-			  bond[n_bond].curve=bond[i].curve;
-			  bond[n_bond].hash=false;
-			  bond[n_bond].wedge=false;
-			  bond[n_bond].up=false;
-			  bond[n_bond].down=false;
-			  bond[n_bond].Small=false;
-			  bond[n_bond].arom=false;
-			  atom[n_atom].x=x;
-			  atom[n_atom].y=y;
-			  atom[n_atom].label=" ";
-			  atom[n_atom].exists=true;
-			  atom[n_atom].curve=bond[i].curve;
-			  atom[n_atom].n=0;
-			  atom[n_atom].corner=false;
-			  bond[i].a=n_atom;
-			  n_atom++;
-			  if (n_atom>=MAX_ATOMS) n_atom--;
-			  bond[n_bond].b=bond[i].a;
-			  n_bond++;
-			  if (n_bond>=MAX_ATOMS) n_bond--;
-			}
-		      if (db>0.5*l2)
-			{
-			  double x=atom[bond[i].b].x+
-			    (atom[bond[i].a].x-atom[bond[i].b].x)*db/l1;
-			  double y=atom[bond[i].b].y+
-			    (atom[bond[i].a].y-atom[bond[i].b].y)*db/l1;
-			  bond[n_bond].a=bond[i].b;
-			  bond[n_bond].exists=true;
-			  bond[n_bond].type=1;
-			  bond[n_bond].curve=bond[i].curve;
-			  bond[n_bond].hash=false;
-			  bond[n_bond].wedge=false;
-			  bond[n_bond].up=false;
-			  bond[n_bond].down=false;
-			  bond[n_bond].Small=false;
-			  bond[n_bond].arom=false;
-			  atom[n_atom].x=x;
-			  atom[n_atom].y=y;
-			  atom[n_atom].label=" ";
-			  atom[n_atom].exists=true;
-			  atom[n_atom].curve=bond[i].curve;
-			  atom[n_atom].n=0;
-			  atom[n_atom].corner=false;
-			  bond[i].b=n_atom;
-			  n_atom++;
-			  if (n_atom>=MAX_ATOMS) n_atom--;
-			  bond[n_bond].b=bond[i].b;
-			  n_bond++;
-			  if (n_bond>=MAX_ATOMS) n_bond--;
-			}
-		      bond[j].exists=false;
-		      bond[i].type+=bond[j].type;
-		      if (bond[j].arom) bond[i].arom=true;
-		      if (bond[j].curve==bond[i].curve) bond[i].conjoined=true;
-		    }
+		    extended_triple=true;
 		  else if (l2>avg && l2>1.5*l1 && l1>0.5*avg)
 		    {
-		      double aa=distance(atom[bond[j].a].x,atom[bond[j].a].y,
-					 atom[bond[i].a].x,atom[bond[i].a].y);
-		      double ab=distance(atom[bond[j].a].x,atom[bond[j].a].y,
-					 atom[bond[i].b].x,atom[bond[i].b].y);
-		      double ba=distance(atom[bond[j].b].x,atom[bond[j].b].y,
-					 atom[bond[i].a].x,atom[bond[i].a].y);
-		      double bb=distance(atom[bond[j].b].x,atom[bond[j].b].y,
-					 atom[bond[i].b].x,atom[bond[i].b].y);
+		      ii=j;
+		      jj=i;
+		      l11=l2;
+		      l22=l1;
+		      extended_triple=true;
+		    }
+		  if (extended_triple)
+		    {
+		      double aa=fabs(distance_from_bond_x_a(atom[bond[ii].a].x,
+							    atom[bond[ii].a].y,
+							    atom[bond[ii].b].x,
+							    atom[bond[ii].b].y,
+							    atom[bond[jj].a].x,
+							    atom[bond[jj].a].y));
+		      double ab=fabs(distance_from_bond_x_a(atom[bond[ii].a].x,
+							    atom[bond[ii].a].y,
+							    atom[bond[ii].b].x,
+							    atom[bond[ii].b].y,
+							    atom[bond[jj].b].x,
+							    atom[bond[jj].b].y));
+		      double ba=fabs(distance_from_bond_x_b(atom[bond[ii].a].x,
+							    atom[bond[ii].a].y,
+							    atom[bond[ii].b].x,
+							    atom[bond[ii].b].y,
+							    atom[bond[jj].a].x,
+							    atom[bond[jj].a].y));
+		      double bb=fabs(distance_from_bond_x_b(atom[bond[ii].a].x,
+							    atom[bond[ii].a].y,
+							    atom[bond[ii].b].x,
+							    atom[bond[ii].b].y,
+							    atom[bond[jj].b].x,
+							    atom[bond[jj].b].y));
 		      double da=min(aa,ab);
 		      double db=min(ba,bb);
-		      if (da>0.5*l1)
+		      if (da>0.5*l22)
 			{
-			  double x=atom[bond[j].a].x+
-			    (atom[bond[j].b].x-atom[bond[j].a].x)*da/l2;
-			  double y=atom[bond[j].a].y+
-			    (atom[bond[j].b].y-atom[bond[j].a].y)*da/l2;
-			  bond[n_bond].a=bond[j].a;
+			  double x=atom[bond[ii].a].x+
+			    (atom[bond[ii].b].x-atom[bond[ii].a].x)*da/l11;
+			  double y=atom[bond[ii].a].y+
+			    (atom[bond[ii].b].y-atom[bond[ii].a].y)*da/l11;
+			  bond[n_bond].a=bond[ii].a;
 			  bond[n_bond].exists=true;
 			  bond[n_bond].type=1;
-			  bond[n_bond].curve=bond[j].curve;
+			  bond[n_bond].curve=bond[ii].curve;
 			  bond[n_bond].hash=false;
 			  bond[n_bond].wedge=false;
 			  bond[n_bond].up=false;
@@ -576,26 +528,26 @@ int double_triple_bonds(atom_t *atom,bond_t *bond,int n_bond,double avg,int &n_a
 			  atom[n_atom].y=y;
 			  atom[n_atom].label=" ";
 			  atom[n_atom].exists=true;
-			  atom[n_atom].curve=bond[j].curve;
+			  atom[n_atom].curve=bond[ii].curve;
 			  atom[n_atom].n=0;
 			  atom[n_atom].corner=false;
-			  bond[j].a=n_atom;
+			  bond[ii].a=n_atom;
 			  n_atom++;
 			  if (n_atom>=MAX_ATOMS) n_atom--;
-			  bond[n_bond].b=bond[j].a;
+			  bond[n_bond].b=bond[ii].a;
 			  n_bond++;
 			  if (n_bond>=MAX_ATOMS) n_bond--;
 			}
-		      if (db>0.5*l1)
+		      if (db>0.5*l22)
 			{
-			  double x=atom[bond[j].b].x+
-			    (atom[bond[j].a].x-atom[bond[j].b].x)*db/l2;
-			  double y=atom[bond[j].b].y+
-			    (atom[bond[j].a].y-atom[bond[j].b].y)*db/l2;
-			  bond[n_bond].a=bond[j].b;
+			  double x=atom[bond[ii].b].x+
+			    (atom[bond[ii].a].x-atom[bond[ii].b].x)*db/l11;
+			  double y=atom[bond[ii].b].y+
+			    (atom[bond[ii].a].y-atom[bond[ii].b].y)*db/l11;
+			  bond[n_bond].a=bond[ii].b;
 			  bond[n_bond].exists=true;
 			  bond[n_bond].type=1;
-			  bond[n_bond].curve=bond[j].curve;
+			  bond[n_bond].curve=bond[ii].curve;
 			  bond[n_bond].hash=false;
 			  bond[n_bond].wedge=false;
 			  bond[n_bond].up=false;
@@ -606,21 +558,21 @@ int double_triple_bonds(atom_t *atom,bond_t *bond,int n_bond,double avg,int &n_a
 			  atom[n_atom].y=y;
 			  atom[n_atom].label=" ";
 			  atom[n_atom].exists=true;
-			  atom[n_atom].curve=bond[j].curve;
+			  atom[n_atom].curve=bond[ii].curve;
 			  atom[n_atom].n=0;
 			  atom[n_atom].corner=false;
-			  bond[j].b=n_atom;
+			  bond[ii].b=n_atom;
 			  n_atom++;
 			  if (n_atom>=MAX_ATOMS) n_atom--;
-			  bond[n_bond].b=bond[j].b;
+			  bond[n_bond].b=bond[ii].b;
 			  n_bond++;
 			  if (n_bond>=MAX_ATOMS) n_bond--;
 			}
-		      bond[i].exists=false;
-		      bond[j].type+=bond[i].type;
-		      if (bond[i].arom) bond[j].arom=true;
-		      if (bond[j].curve==bond[i].curve) bond[j].conjoined=true;
-		      break;
+		      bond[jj].exists=false;
+		      bond[ii].type+=bond[jj].type;
+		      if (bond[jj].arom) bond[ii].arom=true;
+		      if (bond[jj].curve==bond[ii].curve) bond[ii].conjoined=true;
+		      if (i==jj) break;
 		    }
 		  else
 		    {
