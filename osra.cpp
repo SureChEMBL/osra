@@ -468,13 +468,12 @@ double skeletize(atom_t *atom,bond_t *bond,int n_bond,Image image,
   return(thickness);
 }
 
-
-int double_triple_bonds(atom_t *atom,bond_t *bond,int n_bond,double avg,int &n_atom,
-			double thickness, double &max_dist_double_bond)
+double dist_double_bonds(atom_t *atom,bond_t *bond,int n_bond,double avg,int n_atom,
+			double thickness)
 {
   double a[MAX_ATOMS];
   int n=0;
-  max_dist_double_bond=0;
+  double max_dist_double_bond=0;
 
   for (int i=0;i<n_bond;i++)
     if (bond[i].exists)
@@ -496,7 +495,12 @@ int double_triple_bonds(atom_t *atom,bond_t *bond,int n_bond,double avg,int &n_a
   if (n>0) max_dist_double_bond=a[3*n/4];
   if (max_dist_double_bond<1) max_dist_double_bond=avg/3;
   else max_dist_double_bond+=2;
+  return(max_dist_double_bond);
+}
 
+int double_triple_bonds(atom_t *atom,bond_t *bond,int n_bond,double avg,int &n_atom,
+			double thickness, double max_dist_double_bond)
+{
   for (int i=0;i<n_bond;i++)
     if (bond[i].exists)
       {
@@ -2677,7 +2681,11 @@ int find_fused_chars(bond_t *bond,int n_bond,atom_t *atom,
 		int top=int(cy-max_font_height/2);
 		int bottom=int(cy+max_font_height/2);
 		char label=0;
-		if (dummy!=0) label=dummy;
+		if (dummy!=0) 
+		  {
+		    label=dummy;
+		    //cout<<bag_size<<" "<<left<<" "<<top<<" "<<right<<" "<<bottom<<endl;
+		  }
 		else
 		  {
 		    label=get_atom_label(orig,bgColor,left,top,right,bottom,THRESHOLD);
@@ -3643,20 +3651,9 @@ int main(int argc,char **argv)
 				     real_font_width,real_font_height);
 	
 		double avg_bond=percentile75(bond,n_bond,atom);
-		collapse_atoms(atom,bond,n_atom,n_bond,2);
-		remove_zero_bonds(bond,n_bond,atom);
-		
-		if (working_resolution==300)
-		  {
-		    n_letters=find_fused_chars(bond,n_bond,atom,letters,n_letters,
-					       real_font_height,real_font_width,
-					       0,orig_box,bgColor,
-					       THRESHOLD_CHAR,3);
-		    n_letters=find_fused_chars(bond,n_bond,atom,letters,n_letters,
-					       real_font_height,real_font_width,
-					       'R',orig_box,bgColor,
-					       THRESHOLD_CHAR,4);
-		  }
+		//collapse_atoms(atom,bond,n_atom,n_bond,2);
+		//remove_zero_bonds(bond,n_bond,atom);
+	
 		
 		double max_area=avg_bond*5;
 		if (thick) max_area=avg_bond;
@@ -3677,10 +3674,20 @@ int main(int argc,char **argv)
 		remove_zero_bonds(bond,n_bond,atom);
 		flatten_bonds(bond,n_bond,atom,n_atom,3);
 		remove_zero_bonds(bond,n_bond,atom);
+		if (working_resolution==300)
+		  n_letters=find_fused_chars(bond,n_bond,atom,letters,n_letters,
+					     real_font_height,real_font_width,
+					     0,orig_box,bgColor,
+					     THRESHOLD_CHAR,3);
+		if (working_resolution==300)
+		  n_letters=find_fused_chars(bond,n_bond,atom,letters,n_letters,
+					     real_font_height,real_font_width,
+					     'R',orig_box,bgColor,
+					     THRESHOLD_CHAR,4);
 		avg_bond=percentile75(bond,n_bond,atom);
 
-		avg_bond=percentile75(bond,n_bond,atom);
-		double max_dist_double_bond=0;
+		double max_dist_double_bond=dist_double_bonds(atom,bond,n_bond,avg_bond,
+							      n_atom,5);
 		n_bond=double_triple_bonds(atom,bond,n_bond,avg_bond,n_atom,
 					   5,max_dist_double_bond);
 
@@ -3744,7 +3751,8 @@ int main(int argc,char **argv)
 							real_font_height,
 							real_font_width,0,
 							letters,n_letters);
-debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");		  		
+
+		debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");		       
 
 		assign_charge(atom,bond,n_atom,n_bond);
 		find_up_down_bonds(bond,n_bond,atom,thickness);
