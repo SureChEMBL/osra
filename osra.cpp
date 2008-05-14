@@ -201,57 +201,11 @@ double angle_between_bonds(bond_t *bond,int i,int j,atom_t *atom)
 	       atom[bond[j].a].x,atom[bond[j].a].y,atom[bond[j].b].x,atom[bond[j].b].y));
 }
 
-double angle_between_connected_bonds(bond_t *bond,int i,int j,atom_t *atom)
-{
-  double x1,y1,x2,y2,x3,y3,a;
-  if (bond[i].a==bond[j].a)
-    {
-      x1=atom[bond[i].a].x;
-      y1=atom[bond[i].a].y;
-      x2=atom[bond[i].b].x;
-      y2=atom[bond[i].b].y;
-      x3=atom[bond[j].b].x;
-      y3=atom[bond[j].b].y;
-    }
-  else if (bond[i].a==bond[j].b)
-    {
-      x1=atom[bond[i].a].x;
-      y1=atom[bond[i].a].y;
-      x2=atom[bond[i].b].x;
-      y2=atom[bond[i].b].y;
-      x3=atom[bond[j].a].x;
-      y3=atom[bond[j].a].y;
-    }
-  else if (bond[i].b==bond[j].a)
-    {
-      x1=atom[bond[i].b].x;
-      y1=atom[bond[i].b].y;
-      x2=atom[bond[i].a].x;
-      y2=atom[bond[i].a].y;
-      x3=atom[bond[j].b].x;
-      y3=atom[bond[j].b].y;
-    }
-  else if (bond[i].b==bond[j].b)
-    {
-      x1=atom[bond[i].b].x;
-      y1=atom[bond[i].b].y;
-      x2=atom[bond[i].a].x;
-      y2=atom[bond[i].a].y;
-      x3=atom[bond[j].a].x;
-      y3=atom[bond[j].a].y;
-    }
-  else {return(0);}
-  a=angle4(x2,y2,x1,y1,x3,y3,x1,y1);
-  a=acos(a)* 180.0 / PI;
-  return(a);
-}
-
 
 double bond_length(bond_t *bond, int i,atom_t *atom)
 {
   return(distance(atom[bond[i].a].x,atom[bond[i].a].y,atom[bond[i].b].x,atom[bond[i].b].y));
 }
-
 
 
 double distance_from_bond_y(double x0,double y0,double x1,double y1,double x,double y)
@@ -2399,7 +2353,8 @@ int find_small_bonds(potrace_path_t *p, atom_t *atom,bond_t *bond,int n_atom,
   return(n_atom);
 }
 
-int resolve_bridge_bonds(atom_t* atom,int n_atom,bond_t* bond,int n_bond)
+int resolve_bridge_bonds(atom_t* atom,int n_atom,bond_t* bond,int n_bond,
+			 double thickness)
 {
   int rotors1,rotors2,f1,f2,rings1,rings2;
   double confidence;
@@ -2421,7 +2376,13 @@ int resolve_bridge_bonds(atom_t* atom,int n_atom,bond_t* bond,int n_bond)
 	      {
 		b=con.front();
 		con.pop_front();
-		if (angle_between_connected_bonds(bond,a,b,atom)<FLAT_TOLERANCE)
+		double y1=distance_from_bond_y(atom[bond[a].a].x,atom[bond[a].a].y,
+					       atom[bond[a].b].x,atom[bond[a].b].y,
+					       atom[bond[b].a].x,atom[bond[b].a].y);
+		double y2=distance_from_bond_y(atom[bond[a].a].x,atom[bond[a].a].y,
+					       atom[bond[a].b].x,atom[bond[a].b].y,
+					       atom[bond[b].b].x,atom[bond[b].b].y);
+		if (fabs(y1)>thickness || fabs(y2)>thickness)
 		  con.push_back(b);
 	      }
 	    if (con.size()==2)
@@ -2439,9 +2400,15 @@ int resolve_bridge_bonds(atom_t* atom,int n_atom,bond_t* bond,int n_bond)
 		    bool terminal_b=terminal_bond(bond[term[k]].b,term[k],bond,n_bond);
 		    if (terminal_a || terminal_b) terminal=true;
 		  }
+		double y1=distance_from_bond_y(atom[bond[c].a].x,atom[bond[c].a].y,
+					       atom[bond[c].b].x,atom[bond[c].b].y,
+					       atom[bond[d].a].x,atom[bond[d].a].y);
+		double y2=distance_from_bond_y(atom[bond[c].a].x,atom[bond[c].a].y,
+					       atom[bond[c].b].x,atom[bond[c].b].y,
+					       atom[bond[d].b].x,atom[bond[d].b].y);
 		if (bond[a].type==1 && bond[b].type==1 &&
 		    bond[c].type==1 && bond[d].type==1 &&
-		    angle_between_connected_bonds(bond,c,d,atom)>FLAT_TOLERANCE
+		    fabs(y1)<thickness && fabs(y2)<thickness
 		    && !terminal
 		    )
 		  {
@@ -2903,7 +2870,8 @@ double find_wedge_bonds(Image image,atom_t* atom, int n_atom,bond_t* bond,int n_
 	if (!bond[i].wedge) a[n++]=w3;
       }
   qsort(a,n,sizeof(double),num_comp);
-  t=a[n/2];
+  if (n>0) t=a[n/2];
+  else t=1.5;
   return(t);
 }
 
@@ -3537,7 +3505,7 @@ int main(int argc,char **argv)
 	      }
 	    else 
 	      {
-		THRESHOLD_BOND=0.2;
+		THRESHOLD_BOND=THRESHOLD_LOW_RES;
 	      }
 	  }
 	THRESHOLD_CHAR=THRESHOLD_BOND;
@@ -3651,9 +3619,6 @@ int main(int argc,char **argv)
 				     real_font_width,real_font_height);
 	
 		double avg_bond=percentile75(bond,n_bond,atom);
-		//collapse_atoms(atom,bond,n_atom,n_bond,2);
-		//remove_zero_bonds(bond,n_bond,atom);
-	
 		
 		double max_area=avg_bond*5;
 		if (thick) max_area=avg_bond;
@@ -3759,7 +3724,7 @@ int main(int argc,char **argv)
 		int real_atoms=count_atoms(atom,n_atom);
 		if ((real_atoms>MIN_A_COUNT) && (real_atoms<MAX_A_COUNT))
 		  {
-		    int f=resolve_bridge_bonds(atom,n_atom,bond,n_bond);
+		    int f=resolve_bridge_bonds(atom,n_atom,bond,n_bond,2*thickness);
 
 		    int rotors,rings;
 		    double confidence=0;

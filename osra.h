@@ -108,11 +108,11 @@ int getPixel(Image image, ColorGray bg,unsigned int x, unsigned int y, double TH
 #define MAX_FONT_HEIGHT 22
 #define MAX_FONT_WIDTH 20
 #define MIN_FONT_HEIGHT 5
-#define FLAT_TOLERANCE 160
 #define BG_PICK_POINTS 100
 #define D_T_TOLERANCE 0.95
 #define V_DISPLACEMENT 3
 #define THRESHOLD_GLOBAL 0.4
+#define THRESHOLD_LOW_RES 0.2
 #define MAX_RATIO 0.2
 #define MIN_ASPECT 0.2
 #define MAX_ASPECT 5.
