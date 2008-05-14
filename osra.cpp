@@ -2174,8 +2174,9 @@ int find_dashed_bonds(potrace_path_t *p, atom_t *atom,bond_t *bond,int n_atom,
 	    for(int j=next_dot+1;j<n_dot;j++)
 	      if (dot[j].free && distance(mx,my,dot[j].x,dot[j].y)<=dist
 		  && distance(mx,my,dot[j].x,dot[j].y)<dist_next
-		  && fabs(angle4(dash[0].x,dash[0].y,dash[n-1].x,dash[n-1].y,
-				 dash[0].x,dash[0].y,dot[j].x,dot[j].y))>D_T_TOLERANCE)
+		  //		  && fabs(angle4(dash[0].x,dash[0].y,dash[n-1].x,dash[n-1].y,
+		  //	 dash[0].x,dash[0].y,dot[j].x,dot[j].y))>D_T_TOLERANCE)
+		  && fabs(distance_from_bond_y(dash[0].x,dash[0].y,dash[n-1].x,dash[n-1].y,dot[j].x,dot[j].y))<V_DISPLACEMENT)
 		{
 		  dash[n]=dot[j];
 		  dist_next=distance(mx,my,dot[j].x,dot[j].y);
