@@ -380,7 +380,7 @@ bool no_white_space(int ai,int bi,int aj, int bj, atom_t *atom,Image image,
 
 
 double skeletize(atom_t *atom,bond_t *bond,int n_bond,Image image,
-		 double threshold,ColorGray bgColor)
+		 double threshold,ColorGray bgColor, double dist)
 {
   double thickness=0;
   double a[MAX_ATOMS];
@@ -396,7 +396,7 @@ double skeletize(atom_t *atom,bond_t *bond,int n_bond,Image image,
 	      if ((fabs(angle_between_bonds(bond,i,j,atom))>D_T_TOLERANCE 
 		   && no_white_space(bond[i].a,bond[i].b,bond[j].a,bond[j].b,atom,
 				     image,threshold,bgColor) && tt<MAX_BOND_THICKNESS)
-		  || tt<4)
+		  || tt<dist)
 		{
 		  double l2=bond_length(bond,j,atom);
 		  a[n++]=tt;
@@ -3584,8 +3584,11 @@ int main(int argc,char **argv)
 		find_old_aromatic_bonds(p,bond,n_bond,atom,n_atom,avg_bond);
 		
 
-		
-		double thickness=skeletize(atom,bond,n_bond,box,THRESHOLD_BOND,bgColor);
+		double thickness=4.;
+		if (working_resolution<300) thickness=3.;
+		if (working_resolution<150) thickness=2;
+		thickness=skeletize(atom,bond,n_bond,box,THRESHOLD_BOND,
+				    bgColor,thickness);
 		remove_disconnected_atoms(atom,bond,n_atom,n_bond);
 		n_bond=fix_one_sided_bonds(bond,n_bond,atom,2);
 		collapse_atoms(atom,bond,n_atom,n_bond,3);
@@ -3670,7 +3673,7 @@ int main(int argc,char **argv)
 							real_font_width,0,
 							letters,n_letters);
 
-		debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");		       
+		debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");	      	    
 
 		assign_charge(atom,bond,n_atom,n_bond);
 		find_up_down_bonds(bond,n_bond,atom,thickness);
