@@ -463,7 +463,7 @@ int double_triple_bonds(atom_t *atom,bond_t *bond,int n_bond,double avg,int &n_a
 	  if ((bond[j].exists) && (fabs(angle_between_bonds(bond,i,j,atom))>D_T_TOLERANCE))
 	    {
 	      double l2=bond_length(bond,j,atom);
-	      if ((distance_between_bonds(bond,i,j,atom,thickness)<=max_dist_double_bond)
+	      if ((distance_between_bonds(bond,i,j,atom,max(thickness,max_dist_double_bond/2))<=max_dist_double_bond)
 		  && (bonds_within_each_other(bond,i,j,atom))
 		  )
 		{
