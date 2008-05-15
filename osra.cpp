@@ -2759,7 +2759,7 @@ double thickness_ver(Image image,int x1,int y1, ColorGray bgColor,
 
 double find_wedge_bonds(Image image,atom_t* atom, int n_atom,bond_t* bond,int n_bond, 
 			ColorGray bgColor,double THRESHOLD_BOND, 
-			double max_dist_double_bond, double avg)
+			double max_dist_double_bond, double avg, int mindiff)
 {
   double l,t=0;
   double a[MAX_ATOMS];
@@ -2793,11 +2793,13 @@ double find_wedge_bonds(Image image,atom_t* atom, int n_atom,bond_t* bond,int n_
 	    w2=thickness_hor(image,int(x2),int(y2),bgColor,THRESHOLD_BOND);
 	    w3=w3_hor;
 	  }
-	if (w2>w3 && w3>w1 && w2<2*MAX_BOND_THICKNESS && w2<avg/3 && w1>0)
+	if (w2-w3>mindiff && w3-w1>mindiff && 
+	    w2<2*MAX_BOND_THICKNESS && w2<avg/3 && w1>0)
 	  {
 	    bond[i].wedge=true;
 	  }
-	if (w1>w3 && w3>w2 && w1<2*MAX_BOND_THICKNESS && w1<avg/3 && w2>0)
+	if (w1-w3>mindiff && w3-w2>mindiff 
+	    && w1<2*MAX_BOND_THICKNESS && w1<avg/3 && w2>0)
 	  {
 	    bond[i].wedge=true;
 	    bond_end_swap(bond,i);
@@ -3626,10 +3628,12 @@ int main(int argc,char **argv)
 							atom,real_font_height,
 							real_font_width,3,letters,
 							n_letters);
+		int mindiff=0;
+		if (thick) mindiff=1;
 
 		thickness=find_wedge_bonds(thick_box,atom,n_atom,bond,n_bond,bgColor,
 					   THRESHOLD_BOND,max_dist_double_bond,
-					   avg_bond);
+					   avg_bond,mindiff);
 
 		n_label=assemble_labels(letters,n_letters,label);
 

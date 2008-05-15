@@ -180,7 +180,7 @@ string fix_atom_name(string s,int n)
   else if (s=="Meo" || s=="oMe" || s=="oMg" || s=="omg" || s=="Mgo"
 	   || s=="leo" || s=="ohle" || s=="lleo" || s=="olllle" 
 	   || s=="OMe" || s=="OM8" || s=="OMo" || s=="OMB" || s=="OCH3" 
-	   || s=="OCHS" || s=="OR" || s=="RO")   r="MeO";
+	   || s=="OCHS")   r="MeO";
   else if (s=="NC" || s=="YC")  r="CN";
   else if ((s=="nBU") || (s=="neU") ||(s=="ngU")) r="nBu";
   else if ((s=="Eto") || (s=="oEt") || (s=="Elo") || (s=="oEl")
@@ -213,6 +213,7 @@ string fix_atom_name(string s,int n)
   else if (s=="NlOHCH3") r="NOHCH3";
   else if (s=="HO3S") r="SO3H";
   else if (s=="NMe") r="MeN";
+  else if (s=="RO") r="OR";
   //cout<<r<<endl;
   return(r);
 }

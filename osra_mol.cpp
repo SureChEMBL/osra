@@ -39,6 +39,15 @@ void addMeX(OBMol *mol,int *n)
   mol->AddBond((*n)-1,(*n),1);
 }
 
+void addOR(OBMol *mol,int *n)
+{
+  OBAtom *a;
+  a=mol->CreateAtom();
+  a->SetAtomicNum(0);
+  mol->AddAtom(*a);
+  (*n)++;
+  mol->AddBond((*n)-1,(*n),1);
+}
 
 void addCF(OBMol *mol,int *n)
 {
@@ -447,6 +456,11 @@ int getAnum(string s, OBMol *mol,int *n)
       addSO3H(mol,n);
       return(16);
     }
+  if (s=="OR") 
+    {
+      addOR(mol,n);
+      return(8);
+    }
   return(6);
 }
 
@@ -598,7 +612,7 @@ string get_smiles(atom_t *atom, bond_t *bond, int n_bond, int &rotors,
    +0.035674*F_Count
    +0.065504*S_Count
    +0.198795*Cl_Count
-   +0.1*R_Count
+   //   +0.1*R_Count
    -0.212739*num_rings
    +0.071300*num_aromatic
    +0.339289*Num_Rings[3]
