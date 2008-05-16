@@ -555,9 +555,7 @@ string get_smiles(atom_t *atom, bond_t *bond, int n_bond, int &rotors,
 	 mol.AddBond(atom[bond[i].a].n,atom[bond[i].b].n,bond[i].type);
      }
  mol.FindRingAtomsAndBonds();
- int j=0;
- for (int i=0;i<n_bond;i++)
-   if (bond[i].exists)
+ for (unsigned int j=1;j<=mol.NumBonds();j++)
      {
        OBBond *b=mol.GetBond(j);
        if (b!=NULL && b->IsInRing())
@@ -569,7 +567,6 @@ string get_smiles(atom_t *atom, bond_t *bond, int n_bond, int &rotors,
 	 }
        else if (b!=NULL && !b->IsInRing())
 	 b->UnsetAromatic();
-       j++;
      }
  int C_Count=0;
  int N_Count=0;

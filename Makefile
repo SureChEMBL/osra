@@ -1,50 +1,89 @@
-######################### GCC Setup ###################
+ARCH=x86_64   # i386,win32,osx
+
+POTRACE=../../potrace-1.7/
+GOCR=../../gocr-0.45/
+OCRAD=../../ocrad-0.17/
+
+ifeq ($(ARCH),win32)
+OPENBABEL=../openbabel-2.1.1/
+endif
+
+ifeq ($(ARCH),osx)
+MAGIK=/usr/ImageMagick-6.3.5/
+endif
+
+
+CPP = g++
+LD=g++ -g -O2 -fPIC
+CP=cp
+SED=sed
+RM=rm
+PATCH=patch
+
+################ Hopefully you won't have to change anything below this line #########
+
+ifeq ($(ARCH),x86_64)
+X11LIBS=-L/usr/X11R6/lib64
+else
 X11LIBS=-L/usr/X11R6/lib
-#X11LIBS=-L/usr/X11R6/lib64
+endif
+
+ifeq ($(ARCH),win32)
+IMLIBS=-L/usr/local/lib -lMagick++ -lWand -lMagick -lgdi32 -ljbig -llcms -ltiff -ljasper  -ljpeg  -lpng -lbz2 -lz 
+else ifeq ($(ARCH),osx)
+MAGIKINC=-I$(MAGIK)/include/
+MAGIKLIB=-L$(MAGIK)/lib/  -lMagick++ -lWand -lMagick -ltiff -ljpeg
+IMLIBS= $(X11LIBS) $(MAGIKLIB) -lfreetype -lXext -lSM -lICE -lX11 -lXt -lbz2 -lz
+else
 IMLIBS= $(X11LIBS) -lMagick++ -lWand -lMagick -ltiff -lfreetype -ljpeg -lXext -lSM -lICE -lX11 -lXt -lbz2
-#IMLIBS=-L/usr/local/lib -lMagick++ -lWand -lMagick -lgdi32 -ljbig -llcms -ltiff -ljasper  -ljpeg  -lpng -lbz2 -lz 
-POTRACELIB=-L../../potrace-1.7/src/ -lpotrace
-POTRACEINC=-I../../potrace-1.7/src/
-GOCRSRC=../../gocr-0.45/src/
-GOCRINC= -I$(GOCRSRC) -I../../gocr-0.45/include/
-GOCRLIB= -L$(GOCRSRC) -lPgm2asc -lnetpbm
-#OPENBABELLIB=../openbabel-2.1.1/src/formats/cansmilesformat.o ../openbabel-2.1.1/src/formats/obmolecformat.o -L/usr/local/lib -lopenbabel
+NETPBM=-lnetpbm
+endif
+
+POTRACELIB=-L$(POTRACE)/src/ -lpotrace
+POTRACEINC=-I$(POTRACE)/src/
+GOCRSRC=$(GOCR)/src/
+GOCRINC= -I$(GOCRSRC) -I$(GOCR)/include/
+GOCRLIB= -L$(GOCRSRC) -lPgm2asc $(NETPBM)
+
+ifeq ($(ARCH),win32)
+OPENBABELLIB=$(OPENBABEL)/src/formats/cansmilesformat.o $(OPENBABEL)/src/formats/obmolecformat.o -L/usr/local/lib -lopenbabel
+OPENBABELINC=-I$(OPENBABEL)/include
+else
 OPENBABELLIB=-L/usr/local/lib -lopenbabel   
 OPENBABELINC=-I/usr/local/include/openbabel-2.0/
+endif
+
+
 TCLAPINC=-I/usr/local/include/tclap/ -I/usr/local/include
 
-OCRAD=../../ocrad-0.17/
 OCRADSRC=$(wildcard $(OCRAD)*.cc)
 OCRADINC=$(wildcard $(OCRAD)*.h)
 OCRADOBJ=$(OCRADSRC:.cc=.o)
 
-CPP = g++ -g -O2 -fPIC -I$(OCRAD) -I/usr/local/include -D_LIB -D_MT -Wall -DHAVE_CONFIG_H $(POTRACEINC) $(GOCRINC) $(OPENBABELINC) $(TCLAPINC)
-LD=g++ -g -O2 -fPIC
-CP=cp
-SED=sed
+CPPFLAGS= -g -O2 -fPIC -I$(OCRAD) -I/usr/local/include -D_LIB -D_MT -Wall -DHAVE_CONFIG_H $(POTRACEINC) $(GOCRINC) $(OPENBABELINC) $(TCLAPINC) $(MAGIKINC)
 
 LIBS=$(POTRACELIB) -lm  $(IMLIBS) $(GOCRLIB) $(OPENBABELLIB) -lz
 OBJ = osra.o osra_mol.o  osra_anisotropic.o osra_ocr.o $(OCRADOBJ)
 
 
 all:	$(OBJ)
-	${LD}  -o osra $(OPTS) $(OBJ) $(LIBS)
+	${LD}  -o osra $(OBJ) $(LIBS)
 
 
 osra.o:	osra.cpp osra.h pgm2asc.h output.h list.h unicode.h gocr.h
-	$(CPP) -c osra.cpp
+	$(CPP) $(CPPFLAGS) -c osra.cpp
 
 osra_mol.o: osra_mol.cpp osra.h
-	    $(CPP) -c osra_mol.cpp
+	$(CPP) $(CPPFLAGS) -c osra_mol.cpp
 
 osra_anisotropic.o:	osra_anisotropic.cpp osra.h CImg.h greycstoration.h
-	$(CPP) -c osra_anisotropic.cpp
+	$(CPP) $(CPPFLAGS) -c osra_anisotropic.cpp
 
 osra_ocr.o:	osra_ocr.cpp osra.h $(OCRADSRC) $(OCRADINC) pgm2asc.h output.h list.h unicode.h gocr.h
-	$(CPP) -c osra_ocr.cpp
+	$(CPP) $(CPPFLAGS) -c osra_ocr.cpp
 
 clean:	
-	rm -f *.o osra pgm2asc.h output.h list.h unicode.h gocr.h
+	-$(RM) -f *.o osra pgm2asc.h output.h list.h unicode.h gocr.h
 
 pgm2asc.h: $(GOCRSRC)/pgm2asc.h
 	$(CP) $(GOCRSRC)/pgm2asc.h ./
@@ -59,14 +98,14 @@ list.h: $(GOCRSRC)/list.h
 
 
 $(OCRADOBJ):    $(OCRAD)Makefile $(OCRADSRC) $(OCRADINC) 
-	make -C $(OCRAD)   
+	$(MAKE) -C $(OCRAD)   
 
 $(OCRAD)Makefile:  ocrad.Makefile.patch
 	cd $(OCRAD);./configure  
-	-patch -u -t -N  $(OCRAD)Makefile ocrad.Makefile.patch
+	-$(PATCH) -u -t -N  $(OCRAD)Makefile ocrad.Makefile.patch
 
 $(OCRAD)main.cc: main.cc.patch  
-	-patch -u -t -N  $(OCRAD)main.cc main.cc.patch
+	-$(PATCH) -u -t -N  $(OCRAD)main.cc main.cc.patch
 
 $(OCRAD)character.h: character.h.patch
-	-patch -u -t -N  $(OCRAD)character.h character.h.patch
+	-$(PATCH) -u -t -N  $(OCRAD)character.h character.h.patch
