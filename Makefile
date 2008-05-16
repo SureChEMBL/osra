@@ -12,11 +12,6 @@ GOCRLIB= -L$(GOCRSRC) -lPgm2asc -lnetpbm
 OPENBABELLIB=-L/usr/local/lib -lopenbabel   
 OPENBABELINC=-I/usr/local/include/openbabel-2.0/
 TCLAPINC=-I/usr/local/include/tclap/ -I/usr/local/include
-#OCRADOBJ = arg_parser.o common.o rational.o rectangle.o track.o ucs.o \
-#       page_image.o page_image_io.o page_image_layout.o \
-#       bitmap.o block.o profile.o feats.o feats_test0.o feats_test1.o \
-#      character.o character_r11.o character_r12.o character_r13.o \
-#       textline.o textline_r2.o textblock.o textpage.o main.o
 
 OCRAD=../../ocrad-0.16/
 OCRADSRC=$(wildcard $(OCRAD)*.cc)
@@ -42,7 +37,7 @@ osra.o:	osra.cpp osra.h pgm2asc.h output.h list.h unicode.h gocr.h
 osra_mol.o: osra_mol.cpp osra.h
 	    $(CPP) -c osra_mol.cpp
 
-osra_anisotropic.o:	osra_anisotropic.cpp osra.h
+osra_anisotropic.o:	osra_anisotropic.cpp osra.h CImg.h greycstoration.h
 	$(CPP) -c osra_anisotropic.cpp
 
 osra_ocr.o:	osra_ocr.cpp osra.h $(OCRADSRC) $(OCRADINC) pgm2asc.h output.h list.h unicode.h gocr.h
