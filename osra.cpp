@@ -39,10 +39,6 @@ extern "C" {
 #include "pgm2asc.h"
 }
 
-#include "openbabel/mol.h"
-#include "openbabel/obconversion.h" 
-using namespace OpenBabel;
-
 #include "CmdLine.h"
 
 #include <float.h>
