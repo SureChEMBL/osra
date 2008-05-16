@@ -195,31 +195,7 @@ void Character::print( const Control & control ) const throw()
   else std::putc( '_', control.outfile );
   }
 
-char Character::result( const Control & control ) const throw()
-  {
-  if( guesses() )
-    {
-    switch( control.format )
-      {
-      case Control::byte:
-        { char ch = UCS::map_to_byte( gv[0].code );
-        if( ch ) return(ch); }
-        break;
-      case Control::utf8:
-        if( gv[0].code )
-	  {
-	    char *ch= UCS::ucs_to_utf8( gv[0].code );
-	    return( ch[0]);
-	  }
-	break;
-      default:
-        { char ch = UCS::map_to_byte( gv[0].code );
-	  if( ch ) return(ch); }
-        break;
-      }
-    }
-  return('_');
-  }
+
 
 
 void Character::dprint( const Control & control, const Rectangle & charbox,
