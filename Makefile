@@ -12,13 +12,18 @@ GOCRLIB= -L$(GOCRSRC) -lPgm2asc -lnetpbm
 OPENBABELLIB=-L/usr/local/lib -lopenbabel   
 OPENBABELINC=-I/usr/local/include/openbabel-2.0/
 TCLAPINC=-I/usr/local/include/tclap/ -I/usr/local/include
-OCRADOBJ = arg_parser.o common.o rational.o rectangle.o track.o ucs.o \
-       page_image.o page_image_io.o page_image_layout.o \
-       bitmap.o block.o profile.o feats.o feats_test0.o feats_test1.o \
-       character.o character_r11.o character_r12.o character_r13.o \
-       textline.o textline_r2.o textblock.o textpage.o main.o
+#OCRADOBJ = arg_parser.o common.o rational.o rectangle.o track.o ucs.o \
+#       page_image.o page_image_io.o page_image_layout.o \
+#       bitmap.o block.o profile.o feats.o feats_test0.o feats_test1.o \
+#      character.o character_r11.o character_r12.o character_r13.o \
+#       textline.o textline_r2.o textblock.o textpage.o main.o
 
-CPP = g++ -g -O2 -fPIC -I/usr/local/include -D_LIB -D_MT -Wall -DHAVE_CONFIG_H $(POTRACEINC) $(GOCRINC) $(OPENBABELINC) $(TCLAPINC)
+OCRAD=../../ocrad-0.16/
+OCRADSRC=$(wildcard $(OCRAD)*.cc)
+OCRADINC=$(wildcard $(OCRAD)*.h)
+OCRADOBJ=$(OCRADSRC:.cc=.o)
+
+CPP = g++ -g -O2 -fPIC -I$(OCRAD) -I/usr/local/include -D_LIB -D_MT -Wall -DHAVE_CONFIG_H $(POTRACEINC) $(GOCRINC) $(OPENBABELINC) $(TCLAPINC)
 LD=g++ -g -O2 -fPIC
 CP=cp
 SED=sed
@@ -40,43 +45,33 @@ osra_mol.o: osra_mol.cpp osra.h
 osra_anisotropic.o:	osra_anisotropic.cpp osra.h
 	$(CPP) -c osra_anisotropic.cpp
 
-osra_ocr.o:	osra_ocr.cpp osra.h
+osra_ocr.o:	osra_ocr.cpp osra.h $(OCRADSRC) $(OCRADINC) pgm2asc.h output.h list.h unicode.h gocr.h
 	$(CPP) -c osra_ocr.cpp
-	
+
 clean:	
 	rm -f *.o osra pgm2asc.h output.h list.h unicode.h gocr.h
 
-pgm2asc.h:
+pgm2asc.h: $(GOCRSRC)/pgm2asc.h
 	$(CP) $(GOCRSRC)/pgm2asc.h ./
-output.h:
+output.h: $(GOCRSRC)/output.h
 	$(CP) $(GOCRSRC)/output.h ./
-gocr.h:
+gocr.h: $(GOCRSRC)/gocr.h
 	$(CP) $(GOCRSRC)/gocr.h ./	
-unicode.h:
+unicode.h: $(GOCRSRC)/unicode.h
 	$(SED) '/INFINITY/d' $(GOCRSRC)/unicode.h >unicode.h
-list.h:
+list.h: $(GOCRSRC)/list.h
 	$(SED) 's/struct\ list/struct\ list\_s/' $(GOCRSRC)/list.h >list.h
 
-%.o : %.cc
-	$(CPP)  -c -o $@ $<
 
-$(OCRADOBJ)             : bitmap.h block.h common.h rational.h rectangle.h ucs.h
-arg_parser.o        : arg_parser.h
-character.o         : character.h
-character_r11.o     : character.h profile.h feats.h
-character_r12.o     : character.h profile.h feats.h
-character_r13.o     : character.h profile.h feats.h
-feats.o             : profile.h feats.h
-feats_test0.o       : profile.h feats.h
-feats_test1.o       : profile.h feats.h
-main.o              : arg_parser.h page_image.h textpage.h
-page_image.o        : page_image.h
-page_image_io.o     : page_image.h
-page_image_layout.o : track.h page_image.h
-profile.o           : profile.h
-textblock.o         : track.h character.h page_image.h textline.h textblock.h
-textline.o          : track.h character.h page_image.h textline.h
-textline_r2.o       : track.h character.h textline.h
-textpage.o          : track.h character.h page_image.h textline.h textblock.h textpage.h
-track.o             : track.h
+$(OCRADOBJ):    $(OCRAD)Makefile $(OCRADSRC) $(OCRADINC) 
+	make -C $(OCRAD)   
 
+$(OCRAD)Makefile:  ocrad.Makefile.patch
+	cd $(OCRAD);./configure  
+	-patch -u -t -N  $(OCRAD)Makefile ocrad.Makefile.patch
+
+$(OCRAD)main.cc: main.cc.patch  
+	-patch -u -t -N  $(OCRAD)main.cc main.cc.patch
+
+$(OCRAD)character.h: character.h.patch
+	-patch -u -t -N  $(OCRAD)character.h character.h.patch

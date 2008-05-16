@@ -31,12 +31,12 @@ extern "C" {
 #include <cstdio>
 #include <vector>
 
-#include "./common.h"
-#include "./rectangle.h"
-#include "./ucs.h"
-#include "./bitmap.h"
-#include "./block.h"
-#include "./character.h"
+#include "common.h"
+#include "rectangle.h"
+#include "ucs.h"
+#include "bitmap.h"
+#include "block.h"
+#include "character.h"
 
 #include "osra.h"
 
@@ -245,6 +245,7 @@ string fix_atom_name(string s,int n)
 
 char Character::result( const Control & control ) const throw()
   {
+
   if( guesses() )
     {
     switch( control.format )

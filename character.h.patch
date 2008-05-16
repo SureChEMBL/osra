@@ -1,0 +1,8 @@
+--- character.h	2008-05-15 22:50:44.000000000 -0400
++++ character.h	2008-05-15 22:58:07.000000000 -0400
+@@ -74,4 +74,5 @@
+ 
+   void recognize1( const Charset & charset, const Rectangle & charbox ) throw();
+   void apply_filter( const Filter & filter ) throw();
++  char result( const Control & control ) const throw();
+   };
