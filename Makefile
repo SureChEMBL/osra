@@ -20,6 +20,8 @@ SED=sed
 RM=rm
 PATCH=patch
 
+SRCDIR=./
+
 ################ Hopefully you won't have to change anything below this line #########
 
 ifeq ($(ARCH),x86_64)
@@ -86,26 +88,26 @@ clean:
 	-$(RM) -f *.o osra pgm2asc.h output.h list.h unicode.h gocr.h
 
 pgm2asc.h: $(GOCRSRC)/pgm2asc.h
-	$(CP) $(GOCRSRC)/pgm2asc.h ./
+	$(CP) $(GOCRSRC)/pgm2asc.h $(SRCDIR)
 output.h: $(GOCRSRC)/output.h
-	$(CP) $(GOCRSRC)/output.h ./
+	$(CP) $(GOCRSRC)/output.h $(SRCDIR)
 gocr.h: $(GOCRSRC)/gocr.h
-	$(CP) $(GOCRSRC)/gocr.h ./	
+	$(CP) $(GOCRSRC)/gocr.h $(SRCDIR)	
 unicode.h: $(GOCRSRC)/unicode.h
-	$(SED) '/INFINITY/d' $(GOCRSRC)/unicode.h >unicode.h
+	$(SED) '/INFINITY/d' $(GOCRSRC)/unicode.h >$(SRCDIR)/unicode.h
 list.h: $(GOCRSRC)/list.h
-	$(SED) 's/struct\ list/struct\ list\_s/' $(GOCRSRC)/list.h >list.h
+	$(SED) 's/struct\ list/struct\ list\_s/' $(GOCRSRC)/list.h >$(SRCDIR)/list.h
 
 
-$(OCRADOBJ):    $(OCRAD)Makefile $(OCRADSRC) $(OCRADINC) 
+$(OCRADOBJ):    $(OCRAD)/Makefile $(OCRADSRC) $(OCRADINC) 
 	$(MAKE) -C $(OCRAD)   
 
-$(OCRAD)Makefile:  ocrad.Makefile.patch
+$(OCRAD)/Makefile:  ocrad.Makefile.patch
 	cd $(OCRAD);./configure  
-	-$(PATCH) -u -t -N  $(OCRAD)Makefile ocrad.Makefile.patch
+	-$(PATCH) -u -t -N  $(OCRAD)/Makefile $(SRCDIR)/ocrad.Makefile.patch
 
-$(OCRAD)main.cc: main.cc.patch  
-	-$(PATCH) -u -t -N  $(OCRAD)main.cc main.cc.patch
+$(OCRAD)/main.cc: main.cc.patch  
+	-$(PATCH) -u -t -N  $(OCRAD)/main.cc $(SRCDIR)/main.cc.patch
 
-$(OCRAD)character.h: character.h.patch
-	-$(PATCH) -u -t -N  $(OCRAD)character.h character.h.patch
+$(OCRAD)/character.h: character.h.patch
+	-$(PATCH) -u -t -N  $(OCRAD)/character.h $(SRCDIR)/character.h.patch
