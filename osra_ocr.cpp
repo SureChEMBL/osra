@@ -35,13 +35,14 @@ extern "C" {
 #include "rectangle.h"
 #include "ucs.h"
 #include "bitmap.h"
-#include "block.h"
+//#include "block.h"
+#include "blob.h"
 #include "character.h"
 
 #include "osra.h"
 
 
-char get_atom_label(Image image, ColorGray bg, int x1, int y1, int x2, int y2, double THRESHOLD)
+char get_atom_label(Magick::Image image, Magick::ColorGray bg, int x1, int y1, int x2, int y2, double THRESHOLD)
 {
   Control control;
 
@@ -65,7 +66,7 @@ char get_atom_label(Image image, ColorGray bg, int x1, int y1, int x2, int y2, d
   job.src.p.bpp=1;
   job.src.p.p = (unsigned char *)malloc(job.src.p.x*job.src.p.y);
 
-  Block *b=new Block(0,0,job.src.p.x,job.src.p.y);
+  Blob *b=new Blob(0,0,job.src.p.x,job.src.p.y);
 
   tmp=(unsigned char *)malloc(int((x2-x1+1)*(y2-y1+1)));
 

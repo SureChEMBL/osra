@@ -13,7 +13,7 @@ OPENBABELLIB=-L/usr/local/lib -lopenbabel
 OPENBABELINC=-I/usr/local/include/openbabel-2.0/
 TCLAPINC=-I/usr/local/include/tclap/ -I/usr/local/include
 
-OCRAD=../../ocrad-0.16/
+OCRAD=../../ocrad-0.17/
 OCRADSRC=$(wildcard $(OCRAD)*.cc)
 OCRADINC=$(wildcard $(OCRAD)*.h)
 OCRADOBJ=$(OCRADSRC:.cc=.o)

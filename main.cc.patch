@@ -1,15 +1,15 @@
---- main.cc	2006-10-20 13:51:30.000000000 -0400
-+++ main.cc	2008-05-07 08:26:50.000000000 -0400
-@@ -240,7 +240,7 @@
+--- main.cc	2007-06-29 08:29:13.000000000 -0400
++++ main.cc	2008-05-16 09:03:54.000000000 -0400
+@@ -232,7 +232,7 @@
  // image. (or for a pnm file if debugging).
  // 'exportfile' is the Ocr Results File.
  //
--int main( int argc, char * argv[] ) throw()
-+/*int main( int argc, char * argv[] ) throw()
+-int main( const int argc, const char * argv[] ) throw()
++/*int main( const int argc, const char * argv[] ) throw()
    {
    Input_control input_control;
    Control control;
-@@ -400,3 +400,4 @@
+@@ -388,3 +388,4 @@
    if( control.exportfile ) std::fclose( control.exportfile );
    return retval;
    }
