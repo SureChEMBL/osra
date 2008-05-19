@@ -106,7 +106,7 @@ int getPixel(Magick::Image image, Magick::ColorGray bg,unsigned int x, unsigned 
 #define MAX_ATOMS 10000
 #define NUM_BOXES 100
 #define MAX_FONT_HEIGHT 22
-#define MAX_FONT_WIDTH 20
+#define MAX_FONT_WIDTH 21
 #define MIN_FONT_HEIGHT 5
 #define BG_PICK_POINTS 100
 #define D_T_TOLERANCE 0.95

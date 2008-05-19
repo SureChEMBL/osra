@@ -23,12 +23,31 @@
 *********************************************************************/
 
 #include "osra.h"
+#define RDKIT
+#undef OPENBABEL
 
+#ifdef OPENBABEL
 #include "openbabel/mol.h"
 #include "openbabel/obconversion.h" 
 using namespace OpenBabel;
+#endif
 
+#ifdef RDKIT
+#include <RDGeneral/Invariant.h>
+#include <GraphMol/RDKitBase.h>
+#include <GraphMol/SmilesParse/SmilesParse.h>
+#include <GraphMol/SmilesParse/SmilesWrite.h>
+#include <GraphMol/Substruct/SubstructMatch.h>
+#include <GraphMol/Depictor/RDDepictor.h>
+#include <GraphMol/FileParsers/FileParsers.h>
+#include <GraphMol/FileParsers/MolFileStereochem.h>
+#include <RDGeneral/RDLog.h>
+#include <vector>
+#include <algorithm>
+using namespace RDKit;
+#endif
 
+/*
 void addMeX(OBMol *mol,int *n)
 {
   OBAtom *a;
@@ -277,30 +296,6 @@ void addtBu(OBMol *mol,int *n)
   mol->AddBond((*n)-1,(*n),1);
 }
 
-/*void addtBu(OBMol *mol,int *n)
-{
-  OBAtom *a;
-  a=mol->CreateAtom();
-  a->SetAtomicNum(6);
-  mol->AddAtom(*a);
-  (*n)++;
-  mol->AddBond((*n)-1,(*n),1);
-  a=mol->CreateAtom();
-  a->SetAtomicNum(6);
-  mol->AddAtom(*a);
-  (*n)++;
-  a=mol->CreateAtom();
-  a->SetAtomicNum(6);
-  mol->AddAtom(*a);
-  (*n)++;
-  mol->AddBond((*n)-1,(*n)-3,1);
-  mol->AddBond((*n)-3,(*n),1);
-  a=mol->CreateAtom();
-  a->SetAtomicNum(6);
-  mol->AddAtom(*a);
-  (*n)++;
-  mol->AddBond((*n)-1,(*n),1);
-  }*/
 
 void addCOOH(OBMol *mol,int *n)
 {
@@ -351,6 +346,7 @@ void addAcO(OBMol *mol,int *n)
   (*n)++;
   mol->AddBond((*n)-1,(*n),1);
 }
+
 
 int getAnum(string s, OBMol *mol,int *n)
 {
@@ -463,6 +459,24 @@ int getAnum(string s, OBMol *mol,int *n)
     }
   return(6);
 }
+*/
+
+int getAnum(string s, int *n)
+{
+  if (s=="C") return(6);
+  if (s=="N") return(7);
+  if (s=="H") return(1);
+  if (s=="O") return(8);
+  if (s=="F") return(9);
+  if (s=="P") return(15);
+  if (s=="S") return(16);
+  if (s=="I") return(53);
+  if (s=="Cl") return(17);
+  if (s=="Br") return(35);
+  if (s=="X") return(0);
+  if (s=="Ar") return(18);
+  return(6);
+}
 
 int getValency(string s)
 {
@@ -491,7 +505,165 @@ int count_fragments(string input)
   return(r);
 }
 
-string get_smiles(atom_t *atom, bond_t *bond, int n_bond, int &rotors, 
+string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &rotors, 
+		  double &confidence, int &num_fragments, int &r56)
+{
+  RWMol *mol=new RWMol();
+  int n=0,bondid=0;
+  int anum;
+  Conformer *conf = new Conformer(real_atoms);	
+  for (int i=0;i<n_bond;i++)
+    if (bond[i].exists) 
+      {
+	if (atom[bond[i].a].n==0)
+	  {
+  	    RDGeom::Point3D pos;
+  	    pos.x=atom[bond[i].a].x;
+  	    pos.y=atom[bond[i].a].y;
+  	    pos.z=0;
+	    anum=getAnum(atom[bond[i].a].label,&n);
+	    Atom *a=new Atom(anum);
+	    if (atom[bond[i].a].charge!=0)
+	      a->setFormalCharge(atom[bond[i].a].charge);
+	    unsigned int aid=mol->addAtom(a);
+	    conf->setAtomPos(aid, pos);
+	    atom[bond[i].a].n=n++;
+	  }
+	if (atom[bond[i].b].n==0)
+	  {
+	    RDGeom::Point3D pos;
+	    pos.x=atom[bond[i].b].x;
+	    pos.y=atom[bond[i].b].y;
+	    pos.z=0;
+	    anum=getAnum(atom[bond[i].b].label,&n);
+	    Atom *b=new Atom(anum);
+	    if (atom[bond[i].b].charge!=0)
+	      b->setFormalCharge(atom[bond[i].b].charge);
+	    unsigned int aid=mol->addAtom(b);
+	    conf->setAtomPos(aid, pos);
+	    atom[bond[i].b].n=n++;
+	  }
+	if (bond[i].arom)
+	  mol->addBond(atom[bond[i].a].n,atom[bond[i].b].n,Bond::AROMATIC);
+	else if (bond[i].type==2)
+	  mol->addBond(atom[bond[i].a].n,atom[bond[i].b].n,Bond::DOUBLE);
+	else if (bond[i].type==3)
+	  mol->addBond(atom[bond[i].a].n,atom[bond[i].b].n,Bond::TRIPLE);
+	else
+	  mol->addBond(atom[bond[i].a].n,atom[bond[i].b].n,Bond::SINGLE);
+	
+	if(bond[i].up)
+	  mol->getBondWithIdx(bondid)->setBondDir(Bond::ENDUPRIGHT);
+	if(bond[i].down)
+	  mol->getBondWithIdx(bondid)->setBondDir(Bond::ENDDOWNRIGHT);
+        if(bond[i].hash)
+          mol->getBondWithIdx(bondid)->setBondDir(Bond::BEGINDASH);
+        if(bond[i].wedge)
+          mol->getBondWithIdx(bondid)->setBondDir(Bond::BEGINWEDGE);
+	                              
+	bondid++;
+      }
+    mol->addConformer(conf, true);
+    for(RWMol::AtomIterator atomIt=mol->beginAtoms();atomIt!=mol->endAtoms();atomIt++) 
+     (*atomIt)->calcExplicitValence();
+    RDKit::MolOps::cleanUp(*mol);
+    const Conformer &conf2 = mol->getConformer();
+    DetectAtomStereoChemistry(*mol, &conf2);
+  
+                              
+  RDKit::MolOps::sanitizeMol(*mol);
+  RDKit::MolOps::assignBondStereoCodes(*mol);
+             
+      
+  RingInfo *ringInfo = mol->getRingInfo();
+/*
+  for (unsigned int i=0;i<mol->getNumBonds();i++)
+      {
+	Bond *b=mol->getBondWithIdx(i);
+	if (b!=NULL && ringInfo->numBondRings(i)!=0)
+	  b->setBondDir(Bond::NONE);
+	else if (b!=NULL && ringInfo->numBondRings(i)==0 && b->getIsAromatic())
+	  b->setIsAromatic(false);
+     }
+*/
+ int C_Count=0;
+ int N_Count=0;
+ int O_Count=0;
+ int F_Count=0;
+ int S_Count=0;
+ int Cl_Count=0;
+ int R_Count=0;
+ for (unsigned int i=0;i<mol->getNumAtoms();i++)
+   {
+     int anum=mol->getAtomWithIdx(i)->getAtomicNum();
+     if (anum==6) C_Count++;
+     if (anum==7) N_Count++;
+     if (anum==8) O_Count++;
+     if (anum==9) F_Count++;
+     if (anum==16) S_Count++;
+     if (anum==17) Cl_Count++;
+     if (anum==0) R_Count++;
+   }
+
+ int num_rings=ringInfo->numRings();
+ ROMol *pattern_rotors=SmartsToMol("[!$(*#*)&!D1]-&!@[!$(*#*)&!D1]");
+ 
+ std::vector<MatchVectType> matches;
+ rotors=SubstructMatch(*mol,*pattern_rotors,matches);
+
+  vector<int> Num_Rings(8,0);
+  VECT_INT_VECT atomRings; // VECT_INT_VECT is vector< vector<int> >
+  atomRings=ringInfo->atomRings();
+  for(VECT_INT_VECT_CI ringIt=atomRings.begin();ringIt!=atomRings.end();++ringIt)
+    if(ringIt->size()<8) Num_Rings[ringIt->size()]++;
+  VECT_INT_VECT bondRings; // VECT_INT_VECT is vector< vector<int> >
+  bondRings=ringInfo->bondRings();
+  unsigned int num_aromatic=0;
+  for(VECT_INT_VECT_CI ringIt=bondRings.begin();ringIt!=bondRings.end();++ringIt)
+   {
+     bool isAromatic=true;
+     for(INT_VECT_CI bondIt=ringIt->begin();bondIt!=ringIt->end();++bondIt)
+      if(!mol->getBondWithIdx(*bondIt)->getIsAromatic())
+         {
+          isAromatic=false;
+          break;
+         }
+     if(isAromatic) num_aromatic++;
+   }
+  std::string smiles;
+  smiles = MolToSmiles(*(static_cast<ROMol *>(mol)),true,false); 
+  num_fragments=count_fragments(smiles);
+
+  confidence=0.316030
+   -0.016315*C_Count
+   +0.034336*N_Count
+   +0.066810*O_Count
+   +0.035674*F_Count
+   +0.065504*S_Count
+   +0.198795*Cl_Count
+   //   +0.1*R_Count
+   -0.212739*num_rings
+   +0.071300*num_aromatic
+   +0.339289*Num_Rings[3]
+   +0.422291*Num_Rings[4]
+   +0.329922*Num_Rings[5]
+   +0.342865*Num_Rings[6]
+   +0.350747*Num_Rings[7]
+   -0.037796*num_fragments;
+
+  r56=Num_Rings[5]+Num_Rings[6];
+
+
+  for (int i=0;i<n_bond;i++)
+    if (bond[i].exists) 
+      {
+	atom[bond[i].a].n=0;
+	atom[bond[i].b].n=0;
+      }
+  return(smiles);
+}
+
+/*string get_smiles(atom_t *atom, bond_t *bond, int n_bond, int &rotors, 
 		  double &confidence, int &num_fragments, int &r56)
 {
  OBMol mol;
@@ -516,7 +688,7 @@ string get_smiles(atom_t *atom, bond_t *bond, int n_bond, int &rotors,
 	   a->SetAtomicNum(anum);
 	   if (atom[bond[i].a].charge!=0)
 	     a->SetFormalCharge(atom[bond[i].a].charge);
-	   a->SetVector(atom[bond[i].a].x,atom[bond[i].a].y,0);
+	   //a->SetVector(atom[bond[i].a].x,atom[bond[i].a].y,0);
 	   mol.AddAtom(*a);
 	   atom[bond[i].a].n=n++;
 	 }
@@ -527,7 +699,7 @@ string get_smiles(atom_t *atom, bond_t *bond, int n_bond, int &rotors,
 	   b->SetAtomicNum(anum);
 	   if (atom[bond[i].b].charge!=0)
 	     b->SetFormalCharge(atom[bond[i].b].charge);
-	   b->SetVector(atom[bond[i].b].x,atom[bond[i].b].y,0);
+	   //b->SetVector(atom[bond[i].b].x,atom[bond[i].b].y,0);
 	   mol.AddAtom(*b);
 	   atom[bond[i].b].n=n++;
 	 }
@@ -556,18 +728,19 @@ string get_smiles(atom_t *atom, bond_t *bond, int n_bond, int &rotors,
      }
  mol.FindRingAtomsAndBonds();
  for (unsigned int j=1;j<=mol.NumBonds();j++)
-     {
-       OBBond *b=mol.GetBond(j);
-       if (b!=NULL && b->IsInRing())
-	 {
-	   //b->UnsetHash();
-	   //b->UnsetWedge();
-	   b->UnsetUp();
-	   b->UnsetDown();
-	 }
-       else if (b!=NULL && !b->IsInRing())
-	 b->UnsetAromatic();
-     }
+ {
+  OBBond *b=mol.GetBond(j);
+  if (b!=NULL && b->IsInRing())
+  {
+    //b->UnsetHash();
+    //b->UnsetWedge();
+    b->UnsetUp();
+    b->UnsetDown();
+  }
+  else if (b!=NULL && !b->IsInRing())
+  b->UnsetAromatic();
+  j++;
+ }
  int C_Count=0;
  int N_Count=0;
  int O_Count=0;
@@ -629,3 +802,4 @@ string get_smiles(atom_t *atom, bond_t *bond, int n_bond, int &rotors,
      }
  return(str);
 }
+*/

@@ -22,6 +22,16 @@ PATCH=patch
 
 SRCDIR=./
 
+RDKITINC=-I../../RDKit_Jan2008_1/Code/ -I../../RDKit_Jan2008_1/External/vfli
+b-2.0/include/ -I../../boost_1_34_1
+RDKITLIB=-L/root/RDKit_Jan2008_1/bin/ -lRDGeneral -lSmilesParse -lGraphMol -
+lFileParsers -L/root/RDKit_Jan2008_1/Code/GraphMol/Depictor/bin/gcc-3.4.6/releas
+e/link-static/threading-multi -lDepictor -L/root/RDKit_Jan2008_1//Code/Geometry/
+bin/gcc-3.4.6/release/link-static/threading-multi/ -lRDGeometry -L/root/RDKit_Ja
+n2008_1/Code/GraphMol/Substruct/bin/gcc-3.4.6/release/link-static/threading-mult
+i -lSubstruct -L/root/RDKit_Jan2008_1/External/vflib-2.0/lib -lvf
+
+
 ################ Hopefully you won't have to change anything below this line #########
 
 ifeq ($(ARCH),x86_64)

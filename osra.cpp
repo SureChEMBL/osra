@@ -3013,7 +3013,7 @@ int find_plus_minus(potrace_path_t *p,letters_t *letters,
 		    inside_char=true;
 		}
 	      //cout<<left<<","<<y1<<" "<<right<<","<<y2<<" "<<top<<","<<x1<<" "<<bottom<<","<<x2<<endl;
-
+	      //cout<<left<<" "<<y1<<" "<<aspect<<" "<<fill<<endl;
 	      if (aspect<0.7 && fill>0.9 && !char_to_right && !inside_char)  c='-';
 	      else if (aspect>0.7 && aspect<1./0.7 
 		       && abs(y1-y2)<3 && abs(y1+y2-bottom-top)/2<3
@@ -3576,6 +3576,7 @@ int main(int argc,char **argv)
 		n_letters=find_plus_minus(p,letters,atom,bond,n_atom,n_bond,
 					  height,width,real_font_height,
 					  real_font_width,n_letters,avg_bond);
+		debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");	      	    
 	
 		n_atom=find_small_bonds(p,atom,bond,n_atom,&n_bond,
 					max_area,avg_bond/2,5);
@@ -3673,7 +3674,7 @@ int main(int argc,char **argv)
 							real_font_width,0,
 							letters,n_letters);
 
-		debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");	      	    
+
 
 		assign_charge(atom,bond,n_atom,n_bond);
 		find_up_down_bonds(bond,n_bond,atom,thickness);
