@@ -42,7 +42,7 @@ extern "C" {
 #include "osra.h"
 
 
-char get_atom_label(Magick::Image image, Magick::ColorGray bg, int x1, int y1, int x2, int y2, double THRESHOLD)
+char get_atom_label(Magick::Image image, Magick::ColorGray bg, int x1, int y1, int x2, int y2, double THRESHOLD, int dropx,int dropy)
 {
   Control control;
 
@@ -78,8 +78,8 @@ char get_atom_label(Magick::Image image, Magick::ColorGray bg, int x1, int y1, i
 
 
   int t=1;
-  int y=0;
-  int x=int((x2-x1+1)/2);
+  int y=dropy-y1;
+  int x=dropx-x1;
   while ((t!=0) && (y<int(y2-y1+1)))
     {
       t=tmp[y*(x2-x1+1)+x];
@@ -227,12 +227,12 @@ string fix_atom_name(string s,int n)
   else if (s=="pl" || s=="nl") r="Ar";
   else if (s=="oX") r="Ox";
   else if (s=="NoZ" || s=="o2N" || s=="No2" || s=="No" || s=="O2N"
-      || s=="NOZ" || s=="NO") r="NO2";
+      || s=="NOZ" || s=="NO" || s=="MO2") r="NO2";
   else if (s=="ph") r="Ph";
   else if (s=="F3C" || s=="CF" || s=="FC" || s=="Co" || s=="F8l" || s=="CFS"
       || s=="FSC") r="CF3";
   else if (s=="F3Co") r="F3CN";
-  else if (s=="S3" || s=="Se" || s=="lS") r="S";
+  else if (s=="S3" || s=="Se" || s=="lS" || s=="8") r="S";
   else if (s=="lH") r="H";
   else if (s=="NHnC") r="NHAc";
   else if (s=="OlHP" || s=="lHPO") r="THPO";

@@ -98,7 +98,7 @@ string get_smiles(atom_t *atom, bond_t *bond, int n_bond, int &rotors, double &c
 Magick::Image anisotropic_smoothing(Magick::Image image,int width,int height);
 Magick::Image anisotropic_scaling(Magick::Image image,int width,int height, int nw, int nh);
 int count_fragments(string input);
-char get_atom_label(Magick::Image image, Magick::ColorGray bg, int x1, int y1, int x2, int y2, double THRESHOLD);
+char get_atom_label(Magick::Image image, Magick::ColorGray bg, int x1, int y1, int x2, int y2, double THRESHOLD, int dropx, int dropy);
 int getPixel(Magick::Image image, Magick::ColorGray bg,unsigned int x, unsigned int y, double THRESHOLD);
 
 
@@ -109,8 +109,9 @@ int getPixel(Magick::Image image, Magick::ColorGray bg,unsigned int x, unsigned 
 #define MAX_FONT_WIDTH 21
 #define MIN_FONT_HEIGHT 5
 #define BG_PICK_POINTS 100
-#define D_T_TOLERANCE 0.95
+#define D_T_TOLERANCE 0.99
 #define V_DISPLACEMENT 3
+#define DIR_CHANGE 2
 #define THRESHOLD_GLOBAL 0.4
 #define THRESHOLD_LOW_RES 0.2
 #define MAX_RATIO 0.2
