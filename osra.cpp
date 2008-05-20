@@ -558,14 +558,14 @@ double skeletize(atom_t *atom,bond_t *bond,int n_bond,Image image,
 			  atom[bond[i].a].x=(atom[bond[j].b].x+atom[bond[i].a].x)/2;
 			  atom[bond[i].a].y=(atom[bond[j].b].y+atom[bond[i].a].y)/2;
 			}
-		       }
+			}
 		    }
 		}
 	    }
       }
   qsort(a,n,sizeof(double),num_comp);
   if (n>0) thickness=a[n/2];
-  else thickness=1.5;
+  else thickness=dist;
   return(thickness);
 }
 
@@ -2595,9 +2595,10 @@ void collapse_bonds(atom_t *atom, bond_t *bond,int n_bond,
 int fix_one_sided_bonds(bond_t *bond,int n_bond,atom_t *atom, double thickness)
 {
   for (int i=0;i<n_bond;i++)
-    if (bond[i].exists && bond[i].type==1)
+    if (bond[i].exists && bond[i].type<3)
       for (int j=0;j<n_bond;j++)
-	if (bond[j].exists && j!=i && bond[j].type==1)
+	if (bond[j].exists && j!=i && bond[j].type<3 &&
+	    fabs(angle_between_bonds(bond,i,j,atom))<D_T_TOLERANCE)
 	  {
 	    double d1=fabs(distance_from_bond_y(atom[bond[i].a].x,atom[bond[i].a].y,
 						atom[bond[i].b].x,atom[bond[i].b].y,
@@ -3768,17 +3769,17 @@ int main(int argc,char **argv)
 		find_old_aromatic_bonds(p,bond,n_bond,atom,n_atom,avg_bond);
 
 
-		double thickness=4.;
-		if (working_resolution<300) thickness=3.;
-		if (working_resolution<150) thickness=2;
-		thickness=skeletize(atom,bond,n_bond,box,THRESHOLD_BOND,
-				    bgColor,thickness,avg_bond);
+		double dist=4.;
+		if (working_resolution<300) dist=3;
+		if (working_resolution<150) dist=2;
+		double thickness=skeletize(atom,bond,n_bond,box,THRESHOLD_BOND,
+				    bgColor,dist,avg_bond);
 
 		remove_disconnected_atoms(atom,bond,n_atom,n_bond);
-		n_bond=fix_one_sided_bonds(bond,n_bond,atom,2);
-		collapse_atoms(atom,bond,n_atom,n_bond,3);
+		n_bond=fix_one_sided_bonds(bond,n_bond,atom,dist);
+		collapse_atoms(atom,bond,n_atom,n_bond,3.);
 		remove_zero_bonds(bond,n_bond,atom);
-		flatten_bonds(bond,n_bond,atom,n_atom,3);
+		flatten_bonds(bond,n_bond,atom,n_atom,3.);
 		remove_zero_bonds(bond,n_bond,atom);
 
 		if (working_resolution==300)
@@ -3841,7 +3842,7 @@ int main(int argc,char **argv)
 					      label,n_label,avg_bond/2,
 					      thickness,max_dist_double_bond);
 
-
+debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");  
 
 		remove_disconnected_atoms(atom,bond,n_atom,n_bond);
 		collapse_atoms(atom,bond,n_atom,n_bond,thickness);
@@ -3866,7 +3867,7 @@ int main(int argc,char **argv)
 							real_font_width,0,
 							letters,n_letters);
 
-		debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");  
+		
 
 		assign_charge(atom,bond,n_atom,n_bond);
 		find_up_down_bonds(bond,n_bond,atom,thickness);
