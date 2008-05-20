@@ -3527,6 +3527,59 @@ int clean_unrecognized_characters(bond_t *bond,int n_bond,atom_t *atom,
   return(n_letters);
 }
 
+
+int getValency(string s)
+{
+  if (s=="C") return(4);
+  if (s=="N") return(5);
+  if (s=="H") return(1);
+  if (s=="O") return(2);
+  if (s=="F") return(1);
+  if (s=="P") return(5);
+  if (s=="S") return(6);
+  if (s=="I") return(1);
+  if (s=="Cl") return(1);
+  if (s=="Br") return(1);
+  if (s=="Ar") return(1);
+  return(4);
+}
+
+int count_fragments(string input)
+{
+  int r=1;
+  for(string::size_type i = input.find(".", 0); i != string::npos; i = input.find(".", i))
+    {
+      r++;
+      i++;
+    }
+  return(r);
+}
+
+double confidence_function(int C_Count,int N_Count,int O_Count,int F_Count,
+			   int S_Count,int Cl_Count,int num_rings,int num_aromatic,
+			   int num_fragments,vector<int> *Num_Rings)
+{
+double confidence=0.316030
+  -0.016315*C_Count
+  +0.034336*N_Count
+  +0.066810*O_Count
+  +0.035674*F_Count
+  +0.065504*S_Count
+  +0.198795*Cl_Count
+  //   +0.1*R_Count
+  -0.212739*num_rings
+  +0.071300*num_aromatic
+  +0.339289*(*Num_Rings)[3]
+  +0.422291*(*Num_Rings)[4]
+  +0.329922*(*Num_Rings)[5]
+  +0.342865*(*Num_Rings)[6]
+  +0.350747*(*Num_Rings)[7]
+  -0.037796*num_fragments;
+ return(confidence);
+}
+
+
+
 job_t *JOB;
 
 int main(int argc,char **argv)
@@ -3842,7 +3895,7 @@ int main(int argc,char **argv)
 					      label,n_label,avg_bond/2,
 					      thickness,max_dist_double_bond);
 
-debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");  
+		//debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");  
 
 		remove_disconnected_atoms(atom,bond,n_atom,n_bond);
 		collapse_atoms(atom,bond,n_atom,n_bond,thickness);

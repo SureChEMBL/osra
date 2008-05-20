@@ -277,30 +277,6 @@ void addtBu(OBMol *mol,int *n)
   mol->AddBond((*n)-1,(*n),1);
 }
 
-/*void addtBu(OBMol *mol,int *n)
-{
-  OBAtom *a;
-  a=mol->CreateAtom();
-  a->SetAtomicNum(6);
-  mol->AddAtom(*a);
-  (*n)++;
-  mol->AddBond((*n)-1,(*n),1);
-  a=mol->CreateAtom();
-  a->SetAtomicNum(6);
-  mol->AddAtom(*a);
-  (*n)++;
-  a=mol->CreateAtom();
-  a->SetAtomicNum(6);
-  mol->AddAtom(*a);
-  (*n)++;
-  mol->AddBond((*n)-1,(*n)-3,1);
-  mol->AddBond((*n)-3,(*n),1);
-  a=mol->CreateAtom();
-  a->SetAtomicNum(6);
-  mol->AddAtom(*a);
-  (*n)++;
-  mol->AddBond((*n)-1,(*n),1);
-  }*/
 
 void addCOOH(OBMol *mol,int *n)
 {
@@ -464,32 +440,7 @@ int getAnum(string s, OBMol *mol,int *n)
   return(6);
 }
 
-int getValency(string s)
-{
-  if (s=="C") return(4);
-  if (s=="N") return(5);
-  if (s=="H") return(1);
-  if (s=="O") return(2);
-  if (s=="F") return(1);
-  if (s=="P") return(5);
-  if (s=="S") return(6);
-  if (s=="I") return(1);
-  if (s=="Cl") return(1);
-  if (s=="Br") return(1);
-  if (s=="Ar") return(1);
-  return(4);
-}
 
-int count_fragments(string input)
-{
-  int r=1;
-  for(string::size_type i = input.find(".", 0); i != string::npos; i = input.find(".", i))
-    {
-      r++;
-      i++;
-    }
-  return(r);
-}
 
 string get_smiles(atom_t *atom, bond_t *bond, int n_bond, int &rotors, 
 		  double &confidence, int &num_fragments, int &r56)
@@ -602,7 +553,9 @@ string get_smiles(atom_t *atom, bond_t *bond, int n_bond, int &rotors,
  rotors=mol.NumRotors();
  str=conv.WriteString(&mol,true);
  num_fragments=count_fragments(str);
- confidence=0.316030
+ confidence=confidence_function(C_Count,N_Count,O_Count,F_Count,S_Count,Cl_Count,
+				num_rings,num_aromatic,num_fragments,&Num_Rings);
+ /* confidence=0.316030
    -0.016315*C_Count
    +0.034336*N_Count
    +0.066810*O_Count
@@ -618,6 +571,7 @@ string get_smiles(atom_t *atom, bond_t *bond, int n_bond, int &rotors,
    +0.342865*Num_Rings[6]
    +0.350747*Num_Rings[7]
    -0.037796*num_fragments;
+ */
 
  r56=Num_Rings[5]+Num_Rings[6];
 

@@ -23,16 +23,7 @@
 *********************************************************************/
 
 #include "osra.h"
-#define RDKIT
-#undef OPENBABEL
 
-#ifdef OPENBABEL
-#include "openbabel/mol.h"
-#include "openbabel/obconversion.h" 
-using namespace OpenBabel;
-#endif
-
-#ifdef RDKIT
 #include <RDGeneral/Invariant.h>
 #include <GraphMol/RDKitBase.h>
 #include <GraphMol/SmilesParse/SmilesParse.h>
@@ -45,7 +36,7 @@ using namespace OpenBabel;
 #include <vector>
 #include <algorithm>
 using namespace RDKit;
-#endif
+
 
 /*
 void addMeX(OBMol *mol,int *n)
@@ -478,33 +469,6 @@ int getAnum(string s, int *n)
   return(6);
 }
 
-int getValency(string s)
-{
-  if (s=="C") return(4);
-  if (s=="N") return(5);
-  if (s=="H") return(1);
-  if (s=="O") return(2);
-  if (s=="F") return(1);
-  if (s=="P") return(5);
-  if (s=="S") return(6);
-  if (s=="I") return(1);
-  if (s=="Cl") return(1);
-  if (s=="Br") return(1);
-  if (s=="Ar") return(1);
-  return(4);
-}
-
-int count_fragments(string input)
-{
-  int r=1;
-  for(string::size_type i = input.find(".", 0); i != string::npos; i = input.find(".", i))
-    {
-      r++;
-      i++;
-    }
-  return(r);
-}
-
 string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &rotors, 
 		  double &confidence, int &num_fragments, int &r56)
 {
@@ -576,16 +540,17 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
              
       
   RingInfo *ringInfo = mol->getRingInfo();
-/*
+
   for (unsigned int i=0;i<mol->getNumBonds();i++)
       {
 	Bond *b=mol->getBondWithIdx(i);
-	if (b!=NULL && ringInfo->numBondRings(i)!=0)
+	if (b!=NULL && ringInfo->numBondRings(i)!=0 &&
+	    (b->getBondDir()==Bond::ENDUPRIGHT || b->getBondDir()==Bond::ENDDOWNRIGHT))
 	  b->setBondDir(Bond::NONE);
 	else if (b!=NULL && ringInfo->numBondRings(i)==0 && b->getIsAromatic())
 	  b->setIsAromatic(false);
      }
-*/
+
  int C_Count=0;
  int N_Count=0;
  int O_Count=0;
@@ -634,22 +599,8 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
   smiles = MolToSmiles(*(static_cast<ROMol *>(mol)),true,false); 
   num_fragments=count_fragments(smiles);
 
-  confidence=0.316030
-   -0.016315*C_Count
-   +0.034336*N_Count
-   +0.066810*O_Count
-   +0.035674*F_Count
-   +0.065504*S_Count
-   +0.198795*Cl_Count
-   //   +0.1*R_Count
-   -0.212739*num_rings
-   +0.071300*num_aromatic
-   +0.339289*Num_Rings[3]
-   +0.422291*Num_Rings[4]
-   +0.329922*Num_Rings[5]
-   +0.342865*Num_Rings[6]
-   +0.350747*Num_Rings[7]
-   -0.037796*num_fragments;
+  confidence=confidence_function(C_Count,N_Count,O_Count,F_Count,S_Count,Cl_Count,
+				 num_rings,num_aromatic,num_fragments,&Num_Rings);
 
   r56=Num_Rings[5]+Num_Rings[6];
 
@@ -663,143 +614,3 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
   return(smiles);
 }
 
-/*string get_smiles(atom_t *atom, bond_t *bond, int n_bond, int &rotors, 
-		  double &confidence, int &num_fragments, int &r56)
-{
- OBMol mol;
- OBAtom *a,*b;
- string str;
- //stringstream ss;
- //OBConversion conv(NULL,&ss);
- OBConversion conv;
- int n=1;
- int anum;
-
- conv.SetOutFormat("can");
- conv.Read(&mol);
- mol.SetDimension(2);
- for (int i=0;i<n_bond;i++)
-   if (bond[i].exists) 
-     {
-       if (atom[bond[i].a].n==0)
-	 {
-	   a=mol.CreateAtom();
-	   anum=getAnum(atom[bond[i].a].label,&mol,&n);
-	   a->SetAtomicNum(anum);
-	   if (atom[bond[i].a].charge!=0)
-	     a->SetFormalCharge(atom[bond[i].a].charge);
-	   //a->SetVector(atom[bond[i].a].x,atom[bond[i].a].y,0);
-	   mol.AddAtom(*a);
-	   atom[bond[i].a].n=n++;
-	 }
-       if (atom[bond[i].b].n==0)
-	 {
-	   b=mol.CreateAtom();
-	   anum=getAnum(atom[bond[i].b].label,&mol,&n);
-	   b->SetAtomicNum(anum);
-	   if (atom[bond[i].b].charge!=0)
-	     b->SetFormalCharge(atom[bond[i].b].charge);
-	   //b->SetVector(atom[bond[i].b].x,atom[bond[i].b].y,0);
-	   mol.AddAtom(*b);
-	   atom[bond[i].b].n=n++;
-	 }
-       if (bond[i].arom)
-	 {
-	   mol.AddBond(atom[bond[i].a].n,atom[bond[i].b].n,5);
-	 }
-       else if (bond[i].hash)
-	 {
-	   mol.AddBond(atom[bond[i].a].n,atom[bond[i].b].n,bond[i].type,OB_HASH_BOND);
-	 }
-       else if (bond[i].wedge)
-	 {
-	   mol.AddBond(atom[bond[i].a].n,atom[bond[i].b].n,bond[i].type,OB_WEDGE_BOND);
-	 }
-       else if (bond[i].up)
-	 {
-	   mol.AddBond(atom[bond[i].a].n,atom[bond[i].b].n,bond[i].type,OB_TORUP_BOND);
-	 }
-       else if (bond[i].down)
-	 {
-	   mol.AddBond(atom[bond[i].a].n,atom[bond[i].b].n,bond[i].type,OB_TORDOWN_BOND);
-	 }
-       else
-	 mol.AddBond(atom[bond[i].a].n,atom[bond[i].b].n,bond[i].type);
-     }
- mol.FindRingAtomsAndBonds();
- for (unsigned int j=1;j<=mol.NumBonds();j++)
- {
-  OBBond *b=mol.GetBond(j);
-  if (b!=NULL && b->IsInRing())
-  {
-    //b->UnsetHash();
-    //b->UnsetWedge();
-    b->UnsetUp();
-    b->UnsetDown();
-  }
-  else if (b!=NULL && !b->IsInRing())
-  b->UnsetAromatic();
-  j++;
- }
- int C_Count=0;
- int N_Count=0;
- int O_Count=0;
- int F_Count=0;
- int S_Count=0;
- int Cl_Count=0;
- int R_Count=0;
- for (unsigned int i=1;i<=mol.NumAtoms();i++)
-   {
-     OBAtom *a=mol.GetAtom(i);
-     if (a->IsCarbon()) C_Count++;
-     else if (a->IsNitrogen()) N_Count++;
-     else if (a->IsOxygen()) O_Count++;
-     else if (a->IsSulfur()) S_Count++;
-     else if (a->GetAtomicNum()==9) F_Count++;
-     else if (a->GetAtomicNum()==17) Cl_Count++;
-     else if (a->GetAtomicNum()==0) R_Count++;
-   }
-
- vector<OBRing*> vr=mol.GetSSSR();
- vector<OBRing*>::iterator iter;
- vector<int> Num_Rings(8,0);
- int num_rings=0,num_aromatic=0;
- for (iter = vr.begin();iter!=vr.end();iter++)
-   {
-     num_rings++;
-     if ((*iter)->IsAromatic())
-       num_aromatic++;
-     if ((*iter)->Size()<8)
-       Num_Rings[(*iter)->Size()]++;
-   }
- rotors=mol.NumRotors();
- str=conv.WriteString(&mol,true);
- num_fragments=count_fragments(str);
- confidence=0.316030
-   -0.016315*C_Count
-   +0.034336*N_Count
-   +0.066810*O_Count
-   +0.035674*F_Count
-   +0.065504*S_Count
-   +0.198795*Cl_Count
-   //   +0.1*R_Count
-   -0.212739*num_rings
-   +0.071300*num_aromatic
-   +0.339289*Num_Rings[3]
-   +0.422291*Num_Rings[4]
-   +0.329922*Num_Rings[5]
-   +0.342865*Num_Rings[6]
-   +0.350747*Num_Rings[7]
-   -0.037796*num_fragments;
-
- r56=Num_Rings[5]+Num_Rings[6];
-
- for (int i=0;i<n_bond;i++)
-   if (bond[i].exists) 
-     {
-       atom[bond[i].a].n=0;
-       atom[bond[i].b].n=0;
-     }
- return(str);
-}
-*/

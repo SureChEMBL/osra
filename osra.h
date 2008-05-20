@@ -24,7 +24,7 @@
 
 #include <Magick++.h>
 #include <iostream>
-
+#include <vector>
 
 
 using namespace std;
@@ -100,6 +100,10 @@ Magick::Image anisotropic_scaling(Magick::Image image,int width,int height, int 
 int count_fragments(string input);
 char get_atom_label(Magick::Image image, Magick::ColorGray bg, int x1, int y1, int x2, int y2, double THRESHOLD, int dropx, int dropy);
 int getPixel(Magick::Image image, Magick::ColorGray bg,unsigned int x, unsigned int y, double THRESHOLD);
+int count_fragments(string input);
+double confidence_function(int C_Count,int N_Count,int O_Count,int F_Count,
+			   int S_Count,int Cl_Count,int num_rings,int num_aromatic,
+			   int num_fragments,vector<int> *Num_Rings);
 
 
 #define OSRA_VERSION "1.0.0"
