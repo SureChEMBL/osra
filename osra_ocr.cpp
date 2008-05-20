@@ -218,7 +218,7 @@ string fix_atom_name(string s,int n)
   else if (s=="CooH" || s=="HooC" || s=="Co2H" || s=="CO2H" || s=="HOOC") r="COOH";
   else if (s=="AC") r="Ac";
   else if (s=="ACo" || s=="opC" || s=="pcO" || s=="ACO" || s=="oCO" 
-	   || s=="OoC") r="AcO";
+	   || s=="OoC" || s=="OpC" || s=="pCO") r="AcO";
   else if (s=="Bl" || s=="el") r="Br";
   else if (s=="CH3" || s=="H3C") r="C";
   else if (s=="R" || s=="Rl" || s=="Rlo" || s=="R2" || s=="R3" || s=="Rg"

@@ -3165,7 +3165,8 @@ int find_plus_minus(potrace_path_t *p,letters_t *letters,
 		}
 	      //cout<<left<<","<<y1<<" "<<right<<","<<y2<<" "<<top<<","<<x1<<" "<<bottom<<","<<x2<<endl;
 	      //cout<<left<<" "<<y1<<" "<<aspect<<" "<<fill<<endl;
-	      if (aspect<0.7 && fill>0.9 && !char_to_right && !inside_char)  c='-';
+	      if (aspect<0.7 //&& fill>0.9 
+			       && !char_to_right && !inside_char)  c='-';
 	      else if (aspect>0.7 && aspect<1./0.7 
 		       && abs(y1-y2)<3 && abs(y1+y2-bottom-top)/2<3
 		       && abs(x1-x2)<3 && abs(x1+x2-right-left)/2<3
@@ -3828,8 +3829,8 @@ int main(int argc,char **argv)
 
 		extend_terminal_bond_to_bonds(atom,n_atom,bond,n_bond,avg_bond,
 					      2*thickness,max_dist_double_bond);
-
-		collapse_atoms(atom,bond,n_atom,n_bond,3);
+		avg_bond=percentile75(bond,n_bond,atom);
+		collapse_atoms(atom,bond,n_atom,n_bond,avg_bond/4);
 		remove_zero_bonds(bond,n_bond,atom);
 		flatten_bonds(bond,n_bond,atom,n_atom,3);
 		remove_zero_bonds(bond,n_bond,atom);
