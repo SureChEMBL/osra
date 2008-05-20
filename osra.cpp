@@ -3142,11 +3142,17 @@ int find_plus_minus(potrace_path_t *p,letters_t *letters,
 
 	    if (((bottom-top)<=max_font_height) && 
 		((right-left)<=max_font_width) && (right-left>1)
-		&& (right-left)<avg/2
+		&& (right-left)<avg
 		)
 	    {
 	      double aspect=1.*(bottom-top)/(right-left);
-	      double fill=1.*p->area/((bottom-top)*(right-left));
+	      double fill=0;
+	      if ((bottom-top)*(right-left)!=0) 
+		fill=1.*p->area/((bottom-top)*(right-left));
+	      else if ((bottom-top)==0) 
+		fill=1.;
+	      else if ((right-left)==0) 
+		fill=0.;
 	      char c=' ';
 	      bool char_to_right=false;
 	      bool inside_char=false;
@@ -3165,7 +3171,7 @@ int find_plus_minus(potrace_path_t *p,letters_t *letters,
 		}
 	      //cout<<left<<","<<y1<<" "<<right<<","<<y2<<" "<<top<<","<<x1<<" "<<bottom<<","<<x2<<endl;
 	      //cout<<left<<" "<<y1<<" "<<aspect<<" "<<fill<<endl;
-	      if (aspect<0.7 //&& fill>0.9 
+	      if (aspect<0.7 && fill>0.9 
 			       && !char_to_right && !inside_char)  c='-';
 	      else if (aspect>0.7 && aspect<1./0.7 
 		       && abs(y1-y2)<3 && abs(y1+y2-bottom-top)/2<3
@@ -3731,10 +3737,11 @@ int main(int argc,char **argv)
 
 		double max_area=avg_bond*5;
 		if (thick) max_area=avg_bond;
+
 		n_letters=find_plus_minus(p,letters,atom,bond,n_atom,n_bond,
 					  height,width,real_font_height,
 					  real_font_width,n_letters,avg_bond);
-
+		debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");  
 
 		n_atom=find_small_bonds(p,atom,bond,n_atom,&n_bond,
 					max_area,avg_bond/2,5);
@@ -3847,7 +3854,7 @@ int main(int argc,char **argv)
 		if ((real_atoms>MIN_A_COUNT) && (real_atoms<MAX_A_COUNT))
 		  {
 		    int f=resolve_bridge_bonds(atom,n_atom,bond,n_bond,2*thickness);
-		debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");  
+
 		    int rotors,rings;
 		    double confidence=0;
 		    string smiles=get_smiles(atom,bond,n_bond,rotors,
