@@ -376,7 +376,7 @@ bool no_white_space(int ai,int bi,int aj, int bj, atom_t *atom,Image image,
 
 
 double skeletize(atom_t *atom,bond_t *bond,int n_bond,Image image,
-		 double threshold,ColorGray bgColor, double dist)
+		 double threshold,ColorGray bgColor,double dist,double avg)
 {
   double thickness=0;
   double a[MAX_ATOMS];
@@ -402,7 +402,9 @@ double skeletize(atom_t *atom,bond_t *bond,int n_bond,Image image,
 		      bond[i].exists=false;
 		      bond[j].type=1;
 		      if (bond[i].arom) bond[j].arom=true;
-		      /* double ay=fabs(distance_from_bond_y(
+		      if (l1>avg/2)
+			{
+			  double ay=fabs(distance_from_bond_y(
 							  atom[bond[j].a].x,
 							  atom[bond[j].a].y,
 							  atom[bond[j].b].x,
@@ -473,7 +475,8 @@ double skeletize(atom_t *atom,bond_t *bond,int n_bond,Image image,
 			  atom[bond[i].b].y=(atom[bond[i].b].y+atom[bond[j].a].y)/2;
 			  atom[bond[j].a].x=(atom[bond[i].b].x+atom[bond[j].a].x)/2;
 			  atom[bond[j].a].y=(atom[bond[i].b].y+atom[bond[j].a].y)/2;
-			  }*/
+			}
+			}
 		      break;
 		    }
 		  else
@@ -481,7 +484,9 @@ double skeletize(atom_t *atom,bond_t *bond,int n_bond,Image image,
 		      bond[j].exists=false;
 		      bond[i].type=1;
 		      if (bond[j].arom) bond[i].arom=true;
-		      /* double ay=fabs(distance_from_bond_y(
+		      if (l2>avg/2)
+			{
+			  double ay=fabs(distance_from_bond_y(
 							  atom[bond[i].a].x,
 							  atom[bond[i].a].y,
 							  atom[bond[i].b].x,
@@ -552,7 +557,8 @@ double skeletize(atom_t *atom,bond_t *bond,int n_bond,Image image,
 			  atom[bond[j].b].y=(atom[bond[j].b].y+atom[bond[i].a].y)/2;
 			  atom[bond[i].a].x=(atom[bond[j].b].x+atom[bond[i].a].x)/2;
 			  atom[bond[i].a].y=(atom[bond[j].b].y+atom[bond[i].a].y)/2;
-			  }*/
+			}
+		       }
 		    }
 		}
 	    }
@@ -3766,7 +3772,7 @@ int main(int argc,char **argv)
 		if (working_resolution<300) thickness=3.;
 		if (working_resolution<150) thickness=2;
 		thickness=skeletize(atom,bond,n_bond,box,THRESHOLD_BOND,
-				    bgColor,thickness);
+				    bgColor,thickness,avg_bond);
 
 		remove_disconnected_atoms(atom,bond,n_atom,n_bond);
 		n_bond=fix_one_sided_bonds(bond,n_bond,atom,2);
