@@ -389,7 +389,8 @@ double skeletize(atom_t *atom,bond_t *bond,int n_bond,Image image,
 	  if (i!=j && bond[j].exists && bonds_within_each_other(bond,i,j,atom))
 	    {
 	      double tt=distance_between_bonds(bond,i,j,atom,FLT_MAX); 
-	      if ((fabs(angle_between_bonds(bond,i,j,atom))>D_T_TOLERANCE 
+	      double tang=angle_between_bonds(bond,i,j,atom);
+	      if ((fabs(tang)>D_T_TOLERANCE 
 		   && no_white_space(bond[i].a,bond[i].b,bond[j].a,bond[j].b,atom,
 				     image,threshold,bgColor) && tt<MAX_BOND_THICKNESS)
 		  || tt<dist)
@@ -401,6 +402,78 @@ double skeletize(atom_t *atom,bond_t *bond,int n_bond,Image image,
 		      bond[i].exists=false;
 		      bond[j].type=1;
 		      if (bond[i].arom) bond[j].arom=true;
+		      double ay=fabs(distance_from_bond_y(
+							  atom[bond[j].a].x,
+							  atom[bond[j].a].y,
+							  atom[bond[j].b].x,
+							  atom[bond[j].b].y,
+							  atom[bond[i].a].x,
+							  atom[bond[i].a].y));
+		      double axa=fabs(distance_from_bond_x_a(
+							     atom[bond[j].a].x,
+							     atom[bond[j].a].y,
+							     atom[bond[j].b].x,
+							     atom[bond[j].b].y,
+							     atom[bond[i].a].x,
+							     atom[bond[i].a].y));
+		      double axb=fabs(distance_from_bond_x_b(
+							    atom[bond[j].a].x,
+							    atom[bond[j].a].y,
+							    atom[bond[j].b].x,
+							    atom[bond[j].b].y,
+							    atom[bond[i].a].x,
+							    atom[bond[i].a].y));
+
+		      if (tang>0 && ay>axa)
+			{
+			  atom[bond[i].a].x=(atom[bond[i].a].x+atom[bond[j].a].x)/2;
+			  atom[bond[i].a].y=(atom[bond[i].a].y+atom[bond[j].a].y)/2;
+			  atom[bond[j].a].x=(atom[bond[i].a].x+atom[bond[j].a].x)/2;
+			  atom[bond[j].a].y=(atom[bond[i].a].y+atom[bond[j].a].y)/2;
+			}
+		      if (tang<0 && ay>axb)
+			{
+			  atom[bond[i].a].x=(atom[bond[i].a].x+atom[bond[j].b].x)/2;
+			  atom[bond[i].a].y=(atom[bond[i].a].y+atom[bond[j].b].y)/2;
+			  atom[bond[j].b].x=(atom[bond[i].a].x+atom[bond[j].b].x)/2;
+			  atom[bond[j].b].y=(atom[bond[i].a].y+atom[bond[j].b].y)/2;
+			}
+		      double by=fabs(distance_from_bond_y(
+							  atom[bond[j].a].x,
+							  atom[bond[j].a].y,
+							  atom[bond[j].b].x,
+							  atom[bond[j].b].y,
+							  atom[bond[i].b].x,
+							  atom[bond[i].b].y));
+		      double bxa=fabs(distance_from_bond_x_a(
+							     atom[bond[j].a].x,
+							     atom[bond[j].a].y,
+							     atom[bond[j].b].x,
+							     atom[bond[j].b].y,
+							     atom[bond[i].b].x,
+							     atom[bond[i].b].y));
+		      double bxb=fabs(distance_from_bond_x_b(
+							    atom[bond[j].a].x,
+							    atom[bond[j].a].y,
+							    atom[bond[j].b].x,
+							    atom[bond[j].b].y,
+							    atom[bond[i].b].x,
+							    atom[bond[i].b].y));
+
+		      if (tang>0 && by>bxb)
+			{
+			  atom[bond[i].b].x=(atom[bond[i].b].x+atom[bond[j].b].x)/2;
+			  atom[bond[i].b].y=(atom[bond[i].b].y+atom[bond[j].b].y)/2;
+			  atom[bond[j].b].x=(atom[bond[i].b].x+atom[bond[j].b].x)/2;
+			  atom[bond[j].b].y=(atom[bond[i].b].y+atom[bond[j].b].y)/2;
+			}
+		      if (tang<0 && by>bxa)
+			{
+			  atom[bond[i].b].x=(atom[bond[i].b].x+atom[bond[j].a].x)/2;
+			  atom[bond[i].b].y=(atom[bond[i].b].y+atom[bond[j].a].y)/2;
+			  atom[bond[j].a].x=(atom[bond[i].b].x+atom[bond[j].a].x)/2;
+			  atom[bond[j].a].y=(atom[bond[i].b].y+atom[bond[j].a].y)/2;
+			}
 		      break;
 		    }
 		  else
@@ -408,6 +481,78 @@ double skeletize(atom_t *atom,bond_t *bond,int n_bond,Image image,
 		      bond[j].exists=false;
 		      bond[i].type=1;
 		      if (bond[j].arom) bond[i].arom=true;
+		      double ay=fabs(distance_from_bond_y(
+							  atom[bond[i].a].x,
+							  atom[bond[i].a].y,
+							  atom[bond[i].b].x,
+							  atom[bond[i].b].y,
+							  atom[bond[j].a].x,
+							  atom[bond[j].a].y));
+		      double axa=fabs(distance_from_bond_x_a(
+							     atom[bond[i].a].x,
+							     atom[bond[i].a].y,
+							     atom[bond[i].b].x,
+							     atom[bond[i].b].y,
+							     atom[bond[j].a].x,
+							     atom[bond[j].a].y));
+		      double axb=fabs(distance_from_bond_x_b(
+							    atom[bond[i].a].x,
+							    atom[bond[i].a].y,
+							    atom[bond[i].b].x,
+							    atom[bond[i].b].y,
+							    atom[bond[j].a].x,
+							    atom[bond[j].a].y));
+
+		      if (tang>0 && ay>axa)
+			{
+			  atom[bond[i].a].x=(atom[bond[i].a].x+atom[bond[j].a].x)/2;
+			  atom[bond[i].a].y=(atom[bond[i].a].y+atom[bond[j].a].y)/2;
+			  atom[bond[j].a].x=(atom[bond[i].a].x+atom[bond[j].a].x)/2;
+			  atom[bond[j].a].y=(atom[bond[i].a].y+atom[bond[j].a].y)/2;
+			}
+		      if (tang<0 && ay>axb)
+			{
+			  atom[bond[j].a].x=(atom[bond[j].a].x+atom[bond[i].b].x)/2;
+			  atom[bond[j].a].y=(atom[bond[j].a].y+atom[bond[i].b].y)/2;
+			  atom[bond[i].b].x=(atom[bond[j].a].x+atom[bond[i].b].x)/2;
+			  atom[bond[i].b].y=(atom[bond[j].a].y+atom[bond[i].b].y)/2;
+			}
+		      double by=fabs(distance_from_bond_y(
+							  atom[bond[i].a].x,
+							  atom[bond[i].a].y,
+							  atom[bond[i].b].x,
+							  atom[bond[i].b].y,
+							  atom[bond[j].b].x,
+							  atom[bond[j].b].y));
+		      double bxa=fabs(distance_from_bond_x_a(
+							     atom[bond[i].a].x,
+							     atom[bond[i].a].y,
+							     atom[bond[i].b].x,
+							     atom[bond[i].b].y,
+							     atom[bond[j].b].x,
+							     atom[bond[j].b].y));
+		      double bxb=fabs(distance_from_bond_x_b(
+							    atom[bond[i].a].x,
+							    atom[bond[i].a].y,
+							    atom[bond[i].b].x,
+							    atom[bond[i].b].y,
+							    atom[bond[j].b].x,
+							    atom[bond[j].b].y));
+
+		      if (tang>0 && by>bxb)
+			{
+			  atom[bond[i].b].x=(atom[bond[i].b].x+atom[bond[j].b].x)/2;
+			  atom[bond[i].b].y=(atom[bond[i].b].y+atom[bond[j].b].y)/2;
+			  atom[bond[j].b].x=(atom[bond[i].b].x+atom[bond[j].b].x)/2;
+			  atom[bond[j].b].y=(atom[bond[i].b].y+atom[bond[j].b].y)/2;
+			}
+		      if (tang<0 && by>bxa)
+			{
+			  atom[bond[j].b].x=(atom[bond[j].b].x+atom[bond[i].a].x)/2;
+			  atom[bond[j].b].y=(atom[bond[j].b].y+atom[bond[i].a].y)/2;
+			  atom[bond[i].a].x=(atom[bond[j].b].x+atom[bond[i].a].x)/2;
+			  atom[bond[i].a].y=(atom[bond[j].b].y+atom[bond[i].a].y)/2;
+			}
 		    }
 		}
 	    }
