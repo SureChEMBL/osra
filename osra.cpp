@@ -402,7 +402,7 @@ double skeletize(atom_t *atom,bond_t *bond,int n_bond,Image image,
 		      bond[i].exists=false;
 		      bond[j].type=1;
 		      if (bond[i].arom) bond[j].arom=true;
-		      double ay=fabs(distance_from_bond_y(
+		      /* double ay=fabs(distance_from_bond_y(
 							  atom[bond[j].a].x,
 							  atom[bond[j].a].y,
 							  atom[bond[j].b].x,
@@ -473,7 +473,7 @@ double skeletize(atom_t *atom,bond_t *bond,int n_bond,Image image,
 			  atom[bond[i].b].y=(atom[bond[i].b].y+atom[bond[j].a].y)/2;
 			  atom[bond[j].a].x=(atom[bond[i].b].x+atom[bond[j].a].x)/2;
 			  atom[bond[j].a].y=(atom[bond[i].b].y+atom[bond[j].a].y)/2;
-			}
+			  }*/
 		      break;
 		    }
 		  else
@@ -481,7 +481,7 @@ double skeletize(atom_t *atom,bond_t *bond,int n_bond,Image image,
 		      bond[j].exists=false;
 		      bond[i].type=1;
 		      if (bond[j].arom) bond[i].arom=true;
-		      double ay=fabs(distance_from_bond_y(
+		      /* double ay=fabs(distance_from_bond_y(
 							  atom[bond[i].a].x,
 							  atom[bond[i].a].y,
 							  atom[bond[i].b].x,
@@ -552,7 +552,7 @@ double skeletize(atom_t *atom,bond_t *bond,int n_bond,Image image,
 			  atom[bond[j].b].y=(atom[bond[j].b].y+atom[bond[i].a].y)/2;
 			  atom[bond[i].a].x=(atom[bond[j].b].x+atom[bond[i].a].x)/2;
 			  atom[bond[i].a].y=(atom[bond[j].b].y+atom[bond[i].a].y)/2;
-			}
+			  }*/
 		    }
 		}
 	    }
@@ -2572,6 +2572,19 @@ void collapse_atoms(atom_t *atom, bond_t *bond, int n_atom,int n_bond,
     }
 }
 
+void collapse_bonds(atom_t *atom, bond_t *bond,int n_bond,
+		    double dist)
+{
+  for (int i=0;i<n_bond;i++)
+    if (bond[i].exists && bond_length(bond,i,atom)<dist)
+      {
+	atom[bond[i].a].x=(atom[bond[i].a].x+atom[bond[i].b].x)/2;
+	atom[bond[i].a].y=(atom[bond[i].a].y+atom[bond[i].b].y)/2;
+	atom[bond[i].b].x=(atom[bond[i].a].x+atom[bond[i].b].x)/2;
+	atom[bond[i].b].y=(atom[bond[i].a].y+atom[bond[i].b].y)/2;
+      }
+}
+
 
 int fix_one_sided_bonds(bond_t *bond,int n_bond,atom_t *atom, double thickness)
 {
@@ -3741,7 +3754,7 @@ int main(int argc,char **argv)
 		n_letters=find_plus_minus(p,letters,atom,bond,n_atom,n_bond,
 					  height,width,real_font_height,
 					  real_font_width,n_letters,avg_bond);
-		debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");  
+
 
 		n_atom=find_small_bonds(p,atom,bond,n_atom,&n_bond,
 					max_area,avg_bond/2,5);
@@ -3836,8 +3849,9 @@ int main(int argc,char **argv)
 
 		extend_terminal_bond_to_bonds(atom,n_atom,bond,n_bond,avg_bond,
 					      2*thickness,max_dist_double_bond);
-		avg_bond=percentile75(bond,n_bond,atom);
-		collapse_atoms(atom,bond,n_atom,n_bond,avg_bond/4);
+
+		collapse_bonds(atom,bond,n_bond,avg_bond/4);
+		collapse_atoms(atom,bond,n_atom,n_bond,3);
 		remove_zero_bonds(bond,n_bond,atom);
 		flatten_bonds(bond,n_bond,atom,n_atom,3);
 		remove_zero_bonds(bond,n_bond,atom);
@@ -3846,7 +3860,7 @@ int main(int argc,char **argv)
 							real_font_width,0,
 							letters,n_letters);
 
-
+		debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");  
 
 		assign_charge(atom,bond,n_atom,n_bond);
 		find_up_down_bonds(bond,n_bond,atom,thickness);
