@@ -555,23 +555,6 @@ string get_smiles(atom_t *atom, bond_t *bond, int n_bond, int &rotors,
  num_fragments=count_fragments(str);
  confidence=confidence_function(C_Count,N_Count,O_Count,F_Count,S_Count,Cl_Count,
 				num_rings,num_aromatic,num_fragments,&Num_Rings);
- /* confidence=0.316030
-   -0.016315*C_Count
-   +0.034336*N_Count
-   +0.066810*O_Count
-   +0.035674*F_Count
-   +0.065504*S_Count
-   +0.198795*Cl_Count
-   //   +0.1*R_Count
-   -0.212739*num_rings
-   +0.071300*num_aromatic
-   +0.339289*Num_Rings[3]
-   +0.422291*Num_Rings[4]
-   +0.329922*Num_Rings[5]
-   +0.342865*Num_Rings[6]
-   +0.350747*Num_Rings[7]
-   -0.037796*num_fragments;
- */
 
  r56=Num_Rings[5]+Num_Rings[6];
 
