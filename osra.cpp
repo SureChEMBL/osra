@@ -1007,7 +1007,7 @@ void extend_terminal_bond_to_label(atom_t *atom,letters_t *letters,int n_letters
 		  double h2=fabs(distance_from_bond_y(xa,ya,xb,yb,
 						      label[i].x2,label[i].y2));
 		  double y_dist=maxh+label[i].r1/2;
-		  if (bond[j].type==2) y_dist+=max_dist_double_bond;
+		  if (bond[j].type>1) y_dist+=max_dist_double_bond;
 		  double nb=fabs(d1)-label[i].r1;
 		  if (nb<=avg && h1<=y_dist && nb<minb && d1<bl/2)
 		    {
@@ -1016,7 +1016,7 @@ void extend_terminal_bond_to_label(atom_t *atom,letters_t *letters,int n_letters
 		      minb=nb;
 		    }
 		  y_dist=maxh+label[i].r2/2;
-		  if (bond[j].type==2) y_dist+=max_dist_double_bond;
+		  if (bond[j].type>1) y_dist+=max_dist_double_bond;
 		  nb=fabs(d2)-label[i].r2;
 		  if (nb<=avg && h2<=y_dist && nb<minb && d2<bl/2)
 		    {
@@ -1031,7 +1031,7 @@ void extend_terminal_bond_to_label(atom_t *atom,letters_t *letters,int n_letters
 		  double d=distance_from_bond_x_a(xa,ya,xb,yb,letters[i].x,
 						  letters[i].y);
 		  double y_dist=maxh+letters[i].r/2;
-		  if (bond[j].type==2) y_dist+=max_dist_double_bond;
+		  if (bond[j].type>1) y_dist+=max_dist_double_bond;
 		  double h=fabs(distance_from_bond_y(xa,ya,xb,yb,
 						     letters[i].x,letters[i].y));
 		  double nb=fabs(d)-letters[i].r;
@@ -1069,7 +1069,7 @@ void extend_terminal_bond_to_label(atom_t *atom,letters_t *letters,int n_letters
 		  double h2=fabs(distance_from_bond_y(xa,ya,xb,yb,
 						      label[i].x2,label[i].y2));
 		  double y_dist=maxh+label[i].r1/2;
-		  if (bond[j].type==2) y_dist+=max_dist_double_bond;
+		  if (bond[j].type>1) y_dist+=max_dist_double_bond;
 		  double nb=fabs(d1)-label[i].r1;  // end "b" and 1st side
 		  if (nb<=avg && h1<=y_dist && nb<minb && d1>-bl/2)
 		    {
@@ -1078,7 +1078,7 @@ void extend_terminal_bond_to_label(atom_t *atom,letters_t *letters,int n_letters
 		      minb=nb;
 		    }
 		  y_dist=maxh+label[i].r2/2;
-		  if (bond[j].type==2) y_dist+=max_dist_double_bond;
+		  if (bond[j].type>1) y_dist+=max_dist_double_bond;
 		  nb=fabs(d2)-label[i].r2;   // end "b" and 2nd side
 		  if (nb<=avg && h2<=y_dist && nb<minb && d2>-bl/2)
 		    {
@@ -1094,7 +1094,7 @@ void extend_terminal_bond_to_label(atom_t *atom,letters_t *letters,int n_letters
 						  letters[i].x,letters[i].y);
 		  double nb=fabs(d)-letters[i].r; // distance between end "b" and letter
 		  double y_dist=maxh+letters[i].r/2;
-		  if (bond[j].type==2) y_dist+=max_dist_double_bond;
+		  if (bond[j].type>1) y_dist+=max_dist_double_bond;
 		  double h=fabs(distance_from_bond_y(xa,ya,xb,yb,
 						     letters[i].x,letters[i].y));
 		  if (nb<=avg && h<=y_dist && nb<minb && d>-bl/2)
@@ -1145,7 +1145,7 @@ void extend_terminal_bond_to_bonds(atom_t *atom,int n_atom,bond_t *bond, int n_b
 		double d=distance_from_bond_x_a(xa,ya,xb,yb,atom[i].x,atom[i].y);
 		double h=fabs(distance_from_bond_y(xa,ya,xb,yb,atom[i].x,atom[i].y));
 		double y_dist=maxh;
-		if (bond[j].type==2 && !bond[j].conjoined) y_dist+=max_dist_double_bond;
+		if (bond[j].type>1 && !bond[j].conjoined) y_dist+=max_dist_double_bond;
 		if (fabs(d)<=avg/2 && h<=y_dist && fabs(d)<minb && d<bl/2)
 		  {
 		    found=true;
@@ -1167,7 +1167,7 @@ void extend_terminal_bond_to_bonds(atom_t *atom,int n_atom,bond_t *bond, int n_b
 		double d=distance_from_bond_x_b(xa,ya,xb,yb,atom[i].x,atom[i].y);
 		double h=fabs(distance_from_bond_y(xa,ya,xb,yb,atom[i].x,atom[i].y));
 		double y_dist=maxh;
-		if (bond[j].type==2 && !bond[j].conjoined) y_dist+=max_dist_double_bond;
+		if (bond[j].type>1 && !bond[j].conjoined) y_dist+=max_dist_double_bond;
 		if (fabs(d)<=avg/2 && h<=y_dist && fabs(d)<minb && d>-bl/2)
 		  {
 		    found=true;
@@ -3924,7 +3924,7 @@ int main(int argc,char **argv)
 							real_font_height,
 							real_font_width,0,
 							letters,n_letters);
-		
+		//debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");
 
 		assign_charge(atom,bond,n_atom,n_bond);
 		find_up_down_bonds(bond,n_bond,atom,thickness);

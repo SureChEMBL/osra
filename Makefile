@@ -1,4 +1,4 @@
-ARCH=x86_64   # i386,win32,osx
+ARCH=i386   # i386,win32,osx
 
 POTRACE=../../potrace-1.7/
 GOCR=../../gocr-0.45/
