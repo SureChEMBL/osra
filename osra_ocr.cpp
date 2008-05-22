@@ -78,10 +78,10 @@ char get_atom_label(Magick::Image image, Magick::ColorGray bg, int x1, int y1, i
 
 
   int t=1;
-  //int y=dropy-y1;
-  //int x=dropx-x1;
-  int y=0;
-  int x=int((x2-x1+1)/2);
+  int y=dropy-y1+1;
+  int x=dropx-x1;
+  //int y=0;
+  //int x=int((x2-x1+1)/2);
   while ((t!=0) && (y<int(y2-y1+1)))
     {
       t=tmp[y*(x2-x1+1)+x];
