@@ -38,17 +38,15 @@
 using namespace RDKit;
 
 
-/*
-void addMeX(OBMol *mol,int *n)
-{
-  OBAtom *a;
-  a=mol->CreateAtom();
-  a->SetAtomicNum(6);
-  mol->AddAtom(*a);
-  (*n)++;
-  mol->AddBond((*n)-1,(*n),1);
-}
 
+void addMeX(RWMol *mol,int *n)
+{
+  Atom *a=new Atom(6);
+  aid=mol->addAtom(a);
+  (*n)++;
+  mol->addBond((*n)-1,(*n),Bond::SINGLE);
+}
+/*
 void addOR(OBMol *mol,int *n)
 {
   OBAtom *a;
@@ -452,7 +450,7 @@ int getAnum(string s, OBMol *mol,int *n)
 }
 */
 
-int getAnum(string s, int *n)
+int getAnum(string s,RWMol *mol,int *n)
 {
   if (s=="C") return(6);
   if (s=="N") return(7);
@@ -466,6 +464,11 @@ int getAnum(string s, int *n)
   if (s=="Br") return(35);
   if (s=="X") return(0);
   if (s=="Ar") return(18);
+  if (s=="MeO") 
+    {
+      addMeX(mol,n);
+      return(8);
+    }
   return(6);
 }
 
@@ -485,7 +488,7 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
   	    pos.x=atom[bond[i].a].x;
   	    pos.y=atom[bond[i].a].y;
   	    pos.z=0;
-	    anum=getAnum(atom[bond[i].a].label,&n);
+	    anum=getAnum(atom[bond[i].a].label,mol,&n);
 	    Atom *a=new Atom(anum);
 	    if (atom[bond[i].a].charge!=0)
 	      a->setFormalCharge(atom[bond[i].a].charge);
@@ -499,7 +502,7 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
 	    pos.x=atom[bond[i].b].x;
 	    pos.y=atom[bond[i].b].y;
 	    pos.z=0;
-	    anum=getAnum(atom[bond[i].b].label,&n);
+	    anum=getAnum(atom[bond[i].b].label,mol,&n);
 	    Atom *b=new Atom(anum);
 	    if (atom[bond[i].b].charge!=0)
 	      b->setFormalCharge(atom[bond[i].b].charge);
@@ -508,13 +511,13 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
 	    atom[bond[i].b].n=n++;
 	  }
 	if (bond[i].arom)
-	  mol->addBond(atom[bond[i].a].n,atom[bond[i].b].n,Bond::AROMATIC);
+	  bondid=mol->addBond(atom[bond[i].a].n,atom[bond[i].b].n,Bond::AROMATIC)-1;
 	else if (bond[i].type==2)
-	  mol->addBond(atom[bond[i].a].n,atom[bond[i].b].n,Bond::DOUBLE);
+	  bondid=mol->addBond(atom[bond[i].a].n,atom[bond[i].b].n,Bond::DOUBLE)-1;
 	else if (bond[i].type==3)
-	  mol->addBond(atom[bond[i].a].n,atom[bond[i].b].n,Bond::TRIPLE);
+	  bondid=mol->addBond(atom[bond[i].a].n,atom[bond[i].b].n,Bond::TRIPLE)-1;
 	else
-	  mol->addBond(atom[bond[i].a].n,atom[bond[i].b].n,Bond::SINGLE);
+	  bondid=mol->addBond(atom[bond[i].a].n,atom[bond[i].b].n,Bond::SINGLE)-1;
 	
 	if(bond[i].up)
 	  mol->getBondWithIdx(bondid)->setBondDir(Bond::ENDUPRIGHT);
@@ -524,8 +527,7 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
           mol->getBondWithIdx(bondid)->setBondDir(Bond::BEGINDASH);
         if(bond[i].wedge)
           mol->getBondWithIdx(bondid)->setBondDir(Bond::BEGINWEDGE);
-	                              
-	bondid++;
+
       }
     mol->addConformer(conf, true);
     for(RWMol::AtomIterator atomIt=mol->beginAtoms();atomIt!=mol->endAtoms();atomIt++) 

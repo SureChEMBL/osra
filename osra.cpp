@@ -1125,118 +1125,125 @@ void extend_terminal_bond_to_label(atom_t *atom,letters_t *letters,int n_letters
 void extend_terminal_bond_to_bonds(atom_t *atom,int n_atom,bond_t *bond, int n_bond,
 				   double avg, double maxh,double max_dist_double_bond)
 {
- for (int j=0;j<n_bond;j++)
-    if (bond[j].exists)
-      {
-	bool not_corner_a=terminal_bond(bond[j].a,j,bond,n_bond);
-	bool not_corner_b=terminal_bond(bond[j].b,j,bond,n_bond);
-	double xa=atom[bond[j].a].x;
-	double ya=atom[bond[j].a].y;
-	double xb=atom[bond[j].b].x;
-	double yb=atom[bond[j].b].y;
-	double bl=bond_length(bond,j,atom);
-	double minb=FLT_MAX;
-	bool found=false;
-	int l=-1;
-	for (int i=0;i<n_bond;i++)
-	  if (bond[i].exists && i!=j)
-	    if (not_corner_a)
-		{
-		  double h1=fabs(distance_from_bond_y(atom[bond[i].a].x,atom[bond[i].a].y,atom[bond[i].b].x,atom[bond[i].b].y,xa,ya));
-		  
-		  double y_dist=maxh;
-		  double y_dist1=maxh;
-		      
-		  if (bond[j].type>1 && !bond[j].conjoined) 
-		    y_dist+=max_dist_double_bond;
-		  if (bond[i].type>1 && !bond[i].conjoined) 
-		    y_dist1+=max_dist_double_bond;
-
-		  int ai=bond[i].a;
-		  if (ai!=bond[j].a && ai!=bond[j].b)
-		    {
-		      double d=distance_from_bond_x_a(xa,ya,xb,yb,atom[ai].x,atom[ai].y);
-		      double h=fabs(distance_from_bond_y(xa,ya,xb,yb,atom[ai].x,atom[ai].y));
-		      if (fabs(d)<=avg/2 && h<=y_dist && fabs(d)<minb && d<bl/2
-			  && h1<y_dist1)
-			{
-			  found=true;
-			  l=ai;
-			  minb=fabs(d);
-			}
-		    }
-		  int bi=bond[i].b;
-		  if (bi!=bond[j].a && bi!=bond[j].b)
-		    {
-		      double d=distance_from_bond_x_a(xa,ya,xb,yb,atom[bi].x,atom[bi].y);
-		      double h=fabs(distance_from_bond_y(xa,ya,xb,yb,atom[bi].x,atom[bi].y));
-		      if (fabs(d)<=avg/2 && h<=y_dist && fabs(d)<minb && d<bl/2
-			  && h1<y_dist1)
-			{
-			  found=true;
-			  l=bi;
-			  minb=fabs(d);
-			}
-		    }
-		}
-	if (found)
+  bool found_intersection=true;
+  while (found_intersection)
+    {
+      found_intersection=false;
+      for (int j=0;j<n_bond;j++)
+	if (bond[j].exists)
 	  {
-	    atom[l].x=(atom[bond[j].a].x+atom[l].x)/2;
-	    atom[l].y=(atom[bond[j].a].y+atom[l].y)/2;
-	    bond[j].a=l;
-	  }
-	
-	found=false;
-	minb=FLT_MAX;
-	l=-1;
-	for (int i=0;i<n_bond;i++)
-	  if (bond[i].exists && i!=j)
-	    if (not_corner_b)
+	    bool not_corner_a=terminal_bond(bond[j].a,j,bond,n_bond);
+	    bool not_corner_b=terminal_bond(bond[j].b,j,bond,n_bond);
+	    double xa=atom[bond[j].a].x;
+	    double ya=atom[bond[j].a].y;
+	    double xb=atom[bond[j].b].x;
+	    double yb=atom[bond[j].b].y;
+	    double bl=bond_length(bond,j,atom);
+	    double minb=FLT_MAX;
+	    bool found=false;
+	    int l=-1;
+	    for (int i=0;i<n_bond;i++)
+	      if (bond[i].exists && i!=j)
+		if (not_corner_a)
+		  {
+		    double h1=fabs(distance_from_bond_y(atom[bond[i].a].x,atom[bond[i].a].y,atom[bond[i].b].x,atom[bond[i].b].y,xa,ya));
+		    
+		    double y_dist=maxh;
+		    double y_dist1=maxh;
+		    
+		    if (bond[j].type>1 && !bond[j].conjoined) 
+		      y_dist+=max_dist_double_bond;
+		    if (bond[i].type>1 && !bond[i].conjoined) 
+		      y_dist1+=max_dist_double_bond;
+		    
+		    int ai=bond[i].a;
+		    if (ai!=bond[j].a && ai!=bond[j].b)
+		      {
+			double d=distance_from_bond_x_a(xa,ya,xb,yb,atom[ai].x,atom[ai].y);
+			double h=fabs(distance_from_bond_y(xa,ya,xb,yb,atom[ai].x,atom[ai].y));
+			if (fabs(d)<=avg/2 && h<=y_dist && fabs(d)<minb && d<bl/2
+			    && h1<y_dist1)
+			  {
+			    found=true;
+			    l=ai;
+			    minb=fabs(d);
+			  }
+		    }
+		    int bi=bond[i].b;
+		    if (bi!=bond[j].a && bi!=bond[j].b)
+		      {
+			double d=distance_from_bond_x_a(xa,ya,xb,yb,atom[bi].x,atom[bi].y);
+			double h=fabs(distance_from_bond_y(xa,ya,xb,yb,atom[bi].x,atom[bi].y));
+			if (fabs(d)<=avg/2 && h<=y_dist && fabs(d)<minb && d<bl/2
+			    && h1<y_dist1)
+			  {
+			    found=true;
+			    l=bi;
+			    minb=fabs(d);
+			  }
+		      }
+		}
+	    if (found)
 	      {
-		double h1=fabs(distance_from_bond_y(atom[bond[i].a].x,atom[bond[i].a].y,atom[bond[i].b].x,atom[bond[i].b].y,xb,yb));
-		double y_dist=maxh;
-		double y_dist1=maxh;
-		if (bond[j].type>1 && !bond[j].conjoined) 
-		  y_dist+=max_dist_double_bond;
-		if (bond[i].type>1 && !bond[i].conjoined) 
-		  y_dist1+=max_dist_double_bond;
-
-		int ai=bond[i].a;
-		if (ai!=bond[j].a && ai!=bond[j].b)
+		atom[l].x=(atom[bond[j].a].x+atom[l].x)/2;
+		atom[l].y=(atom[bond[j].a].y+atom[l].y)/2;
+		bond[j].a=l;
+		found_intersection=true;
+	      }
+	    
+	    found=false;
+	    minb=FLT_MAX;
+	    l=-1;
+	    for (int i=0;i<n_bond;i++)
+	      if (bond[i].exists && i!=j)
+		if (not_corner_b)
 		  {
-		    double d=distance_from_bond_x_b(xa,ya,xb,yb,atom[ai].x,atom[ai].y);
-		    double h=fabs(distance_from_bond_y(xa,ya,xb,yb,atom[ai].x,atom[ai].y));
-		    if (fabs(d)<=avg/2 && h<=y_dist && fabs(d)<minb && d>-bl/2
-			&& h1<y_dist1)
-		      {
-			found=true;
-			l=ai;
-			minb=fabs(d);
-		      }
-		  }
-		int bi=bond[i].b;
-		if (bi!=bond[j].a && bi!=bond[j].b)
-		  {
-		    double d=distance_from_bond_x_b(xa,ya,xb,yb,atom[bi].x,atom[bi].y);
-		    double h=fabs(distance_from_bond_y(xa,ya,xb,yb,atom[bi].x,atom[bi].y));
-		    if (fabs(d)<=avg/2 && h<=y_dist && fabs(d)<minb && d>-bl/2
-			&& h1<y_dist1)
-		      {
-			found=true;
-			l=bi;
-			minb=fabs(d);
-		      }
-		  }
-	      }	      
+		    double h1=fabs(distance_from_bond_y(atom[bond[i].a].x,atom[bond[i].a].y,atom[bond[i].b].x,atom[bond[i].b].y,xb,yb));
+		    double y_dist=maxh;
+		    double y_dist1=maxh;
+		    if (bond[j].type>1 && !bond[j].conjoined) 
+		      y_dist+=max_dist_double_bond;
+		    if (bond[i].type>1 && !bond[i].conjoined) 
+		      y_dist1+=max_dist_double_bond;
 
-	if (found)
+		    int ai=bond[i].a;
+		    if (ai!=bond[j].a && ai!=bond[j].b)
+		      {
+			double d=distance_from_bond_x_b(xa,ya,xb,yb,atom[ai].x,atom[ai].y);
+			double h=fabs(distance_from_bond_y(xa,ya,xb,yb,atom[ai].x,atom[ai].y));
+			if (fabs(d)<=avg/2 && h<=y_dist && fabs(d)<minb && d>-bl/2
+			    && h1<y_dist1)
+			  {
+			    found=true;
+			    l=ai;
+			    minb=fabs(d);
+			  }
+		      }
+		    int bi=bond[i].b;
+		    if (bi!=bond[j].a && bi!=bond[j].b)
+		      {
+			double d=distance_from_bond_x_b(xa,ya,xb,yb,atom[bi].x,atom[bi].y);
+			double h=fabs(distance_from_bond_y(xa,ya,xb,yb,atom[bi].x,atom[bi].y));
+			if (fabs(d)<=avg/2 && h<=y_dist && fabs(d)<minb && d>-bl/2
+			    && h1<y_dist1)
+			  {
+			    found=true;
+			    l=bi;
+			    minb=fabs(d);
+			  }
+		      }
+		  }	      
+	    
+	    if (found)
 	      {
 		atom[l].x=(atom[bond[j].b].x+atom[l].x)/2;
 		atom[l].y=(atom[bond[j].b].y+atom[l].y)/2;
 		bond[j].b=l;
+		found_intersection=true;
 	      }
-
-      }
+	    
+	  }
+    }
 }
 
 
@@ -3662,7 +3669,7 @@ int main(int argc,char **argv)
     int page=count_pages(input.getValue());
 
     int image_count=0;
-    int ttt=1;
+    //int ttt=1;
 
     for(int l=0;l<page;l++)
       {
@@ -3887,17 +3894,17 @@ int main(int argc,char **argv)
 		remove_zero_bonds(bond,n_bond,atom);
 		
 
-		if (working_resolution==300)
+		//if (working_resolution>=150)
 		  n_letters=find_fused_chars(bond,n_bond,atom,letters,n_letters,
 					     real_font_height,real_font_width,
 					     0,orig_box,bgColor,
 					     THRESHOLD_CHAR,3);
 
-		if (working_resolution==300)
+		  //if (working_resolution>=150)
 		  n_letters=find_fused_chars(bond,n_bond,atom,letters,n_letters,
 					     real_font_height,real_font_width,
 					     'R',orig_box,bgColor,
-					     THRESHOLD_CHAR,3);
+					     THRESHOLD_CHAR,4);
 
 		flatten_bonds(bond,n_bond,atom,n_atom,3.);
 		remove_zero_bonds(bond,n_bond,atom);
@@ -3936,7 +3943,7 @@ int main(int argc,char **argv)
 		thickness=find_wedge_bonds(thick_box,atom,n_atom,bond,n_bond,bgColor,
 					   THRESHOLD_BOND,max_dist_double_bond,
 					   avg_bond,mindiff);
-		debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");	
+
 
 		n_label=assemble_labels(letters,n_letters,label);
 
@@ -3982,7 +3989,7 @@ int main(int argc,char **argv)
 							real_font_width,0,
 							letters,n_letters);
 
-
+		//debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");	
 		assign_charge(atom,bond,n_atom,n_bond);
 		find_up_down_bonds(bond,n_bond,atom,thickness);
 		int real_atoms=count_atoms(atom,n_atom);

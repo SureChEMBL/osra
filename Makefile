@@ -1,8 +1,11 @@
 ARCH=i386   # i386,win32,osx
 
+OPENBABEL_OR_RDKIT=openbabel # openbabel,rdkit
+
 POTRACE=../../potrace-1.7/
 GOCR=../../gocr-0.45/
 OCRAD=../../ocrad-0.17/
+RDKIT=../../RDKit_Jan2008_1/
 
 ifeq ($(ARCH),win32)
 OPENBABEL=../openbabel-2.1.1/
@@ -22,8 +25,8 @@ PATCH=patch
 
 SRCDIR=./
 
-RDKITINC=-I../../RDKit_Jan2008_1/Code/ -I../../RDKit_Jan2008_1/External/vflib-2.0/include/ -I../../boost_1_34_1
-RDKITLIB=-L/root/RDKit_Jan2008_1/bin/ -lRDGeneral -lSmilesParse -lGraphMol -lFileParsers -L/root/RDKit_Jan2008_1/Code/GraphMol/Depictor/bin/gcc-3.4.6/release/link-static/threading-multi -lDepictor -L/root/RDKit_Jan2008_1//Code/Geometry/bin/gcc-3.4.6/release/link-static/threading-multi/ -lRDGeometry -L/root/RDKit_Jan2008_1/Code/GraphMol/Substruct/bin/gcc-3.4.6/release/link-static/threading-multi -lSubstruct -L/root/RDKit_Jan2008_1/External/vflib-2.0/lib -lvf
+RDKITINC=-I$(RDKIT)/Code/ -I$(RDKIT)/External/vflib-2.0/include/ -I../../boost_1_34_1
+RDKITLIB=-L$(RDKIT)/bin/ -lRDGeneral -lSmilesParse -lGraphMol -lFileParsers -L$(RDKIT)/Code/GraphMol/Depictor/bin/gcc-3.4.6/release/link-static/threading-multi -lDepictor -L$(RDKIT)//Code/Geometry/bin/gcc-3.4.6/release/link-static/threading-multi/ -lRDGeometry -L$(RDKIT)/Code/GraphMol/Substruct/bin/gcc-3.4.6/release/link-static/threading-multi -lSubstruct -L$(RDKIT)/External/vflib-2.0/lib -lvf
 
 ################ Hopefully you won't have to change anything below this line #########
 
@@ -58,6 +61,13 @@ OPENBABELLIB=-L/usr/local/lib -lopenbabel
 OPENBABELINC=-I/usr/local/include/openbabel-2.0/
 endif
 
+ifeq($(OPENBABEL_OR_RDKIT),openbabel)
+MOL_BACKEND_INC=$(OPENBABELINC)
+MOL_BACKEND_LIB=$(OPENBABELLIB)
+else
+MOL_BACKEND_INC=$(RDKITINC)
+MOL_BACKEND_LIB=$(RDKITLIB)
+endif
 
 TCLAPINC=-I/usr/local/include/tclap/ -I/usr/local/include
 
@@ -65,9 +75,9 @@ OCRADSRC=$(wildcard $(OCRAD)*.cc)
 OCRADINC=$(wildcard $(OCRAD)*.h)
 OCRADOBJ=$(OCRADSRC:.cc=.o)
 
-CPPFLAGS= -g -O2 -fPIC -I$(OCRAD) -I/usr/local/include -D_LIB -D_MT -Wall $(POTRACEINC) $(GOCRINC) $(OPENBABELINC) $(TCLAPINC) $(MAGIKINC)
+CPPFLAGS= -g -O2 -fPIC -I$(OCRAD) -I/usr/local/include -D_LIB -D_MT -Wall $(POTRACEINC) $(GOCRINC) $(MOL_BACKEND_INC) $(TCLAPINC) $(MAGIKINC)
 
-LIBS=$(POTRACELIB) -lm  $(IMLIBS) $(GOCRLIB) $(OPENBABELLIB) -lz
+LIBS=$(POTRACELIB) -lm  $(IMLIBS) $(GOCRLIB) $(MOL_BACKEND_LIB) -lz
 OBJ = osra.o osra_mol.o  osra_anisotropic.o osra_ocr.o $(OCRADOBJ)
 
 
@@ -78,8 +88,8 @@ all:	$(OBJ)
 osra.o:	osra.cpp osra.h pgm2asc.h output.h list.h unicode.h gocr.h
 	$(CPP) $(CPPFLAGS) -c osra.cpp
 
-osra_mol.o: osra_mol.cpp osra.h
-	$(CPP) $(CPPFLAGS) -c osra_mol.cpp
+osra_$(OPENABABEL_OR_RDKIT).o: osra_$(OPENBABEL_OR_RDKIT).cpp osra.h
+	$(CPP) $(CPPFLAGS) -c osra_$(OPENBABEL_OR_RDKIT).cpp
 
 osra_anisotropic.o:	osra_anisotropic.cpp osra.h CImg.h greycstoration.h
 	$(CPP) $(CPPFLAGS) -c osra_anisotropic.cpp
