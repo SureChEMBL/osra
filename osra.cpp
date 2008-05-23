@@ -1138,80 +1138,74 @@ void extend_terminal_bond_to_bonds(atom_t *atom,int n_atom,bond_t *bond, int n_b
 	double minb=FLT_MAX;
 	bool found=false;
 	int l=-1;
-	if (not_corner_a)
-	  for (int i=0;i<n_bond;i++)
-	    if (bond[i].exists && i!=j)
-	      {
-		int ai=bond[i].a;
-		if (ai!=bond[j].a && ai!=bond[j].b)
-		  {
-		    double d=distance_from_bond_x_a(xa,ya,xb,yb,atom[ai].x,atom[ai].y);
-		    double h=fabs(distance_from_bond_y(xa,ya,xb,yb,atom[ai].x,atom[ai].y));
-		    double h1=fabs(distance_from_bond_y(atom[bond[i].a].x,atom[bond[i].a].y,atom[bond[i].b].x,atom[bond[i].b].y,xa,ya));
+	for (int i=0;i<n_bond;i++)
+	  if (bond[i].exists && i!=j)
+	    if (not_corner_a)
+		{
+		  double h1=fabs(distance_from_bond_y(atom[bond[i].a].x,atom[bond[i].a].y,atom[bond[i].b].x,atom[bond[i].b].y,xa,ya));
+		  
+		  double y_dist=maxh;
+		  double y_dist1=maxh;
+		      
+		  if (bond[j].type>1 && !bond[j].conjoined) 
+		    y_dist+=max_dist_double_bond;
+		  if (bond[i].type>1 && !bond[i].conjoined) 
+		    y_dist1+=max_dist_double_bond;
 
-		    double y_dist=maxh;
-		    double y_dist1=maxh;
-		    
-		    if (bond[j].type>1 && !bond[j].conjoined) 
-		      y_dist+=max_dist_double_bond;
-		    if (bond[i].type>1 && !bond[i].conjoined) 
-		      y_dist1+=max_dist_double_bond;
-		    if (fabs(d)<=avg/2 && h<=y_dist && fabs(d)<minb && d<bl/2
-			&& h1<y_dist1)
-		      {
-			found=true;
-			l=ai;
-			minb=fabs(d);
-		      }
-		  }
-		int bi=bond[i].b;
-		if (bi!=bond[j].a && bi!=bond[j].b)
-		  {
-		    double d=distance_from_bond_x_a(xa,ya,xb,yb,atom[bi].x,atom[bi].y);
-		    double h=fabs(distance_from_bond_y(xa,ya,xb,yb,atom[bi].x,atom[bi].y));
-		    double h1=fabs(distance_from_bond_y(atom[bond[i].a].x,atom[bond[i].a].y,atom[bond[i].b].x,atom[bond[i].b].y,xa,ya));
-
-		    double y_dist=maxh;
-		    double y_dist1=maxh;
-		    
-		    if (bond[j].type>1 && !bond[j].conjoined) 
-		      y_dist+=max_dist_double_bond;
-		    if (bond[i].type>1 && !bond[i].conjoined) 
-		      y_dist1+=max_dist_double_bond;
-		    if (fabs(d)<=avg/2 && h<=y_dist && fabs(d)<minb && d<bl/2
-			&& h1<y_dist1)
-		      {
-			found=true;
-			l=bi;
-			minb=fabs(d);
-		      }
-		  }
-	      }	      
+		  int ai=bond[i].a;
+		  if (ai!=bond[j].a && ai!=bond[j].b)
+		    {
+		      double d=distance_from_bond_x_a(xa,ya,xb,yb,atom[ai].x,atom[ai].y);
+		      double h=fabs(distance_from_bond_y(xa,ya,xb,yb,atom[ai].x,atom[ai].y));
+		      if (fabs(d)<=avg/2 && h<=y_dist && fabs(d)<minb && d<bl/2
+			  && h1<y_dist1)
+			{
+			  found=true;
+			  l=ai;
+			  minb=fabs(d);
+			}
+		    }
+		  int bi=bond[i].b;
+		  if (bi!=bond[j].a && bi!=bond[j].b)
+		    {
+		      double d=distance_from_bond_x_a(xa,ya,xb,yb,atom[bi].x,atom[bi].y);
+		      double h=fabs(distance_from_bond_y(xa,ya,xb,yb,atom[bi].x,atom[bi].y));
+		      if (fabs(d)<=avg/2 && h<=y_dist && fabs(d)<minb && d<bl/2
+			  && h1<y_dist1)
+			{
+			  found=true;
+			  l=bi;
+			  minb=fabs(d);
+			}
+		    }
+		}
 	if (found)
-	      {
-		atom[l].x=(atom[bond[j].a].x+atom[l].x)/2;
-		atom[l].y=(atom[bond[j].a].y+atom[l].y)/2;
-		bond[j].a=l;
-	      }
+	  {
+	    atom[l].x=(atom[bond[j].a].x+atom[l].x)/2;
+	    atom[l].y=(atom[bond[j].a].y+atom[l].y)/2;
+	    bond[j].a=l;
+	  }
+	
 	found=false;
-	if (not_corner_b)
-	  for (int i=0;i<n_bond;i++)
-	    if (bond[i].exists && i!=j)
+	minb=FLT_MAX;
+	l=-1;
+	for (int i=0;i<n_bond;i++)
+	  if (bond[i].exists && i!=j)
+	    if (not_corner_b)
 	      {
+		double h1=fabs(distance_from_bond_y(atom[bond[i].a].x,atom[bond[i].a].y,atom[bond[i].b].x,atom[bond[i].b].y,xb,yb));
+		double y_dist=maxh;
+		double y_dist1=maxh;
+		if (bond[j].type>1 && !bond[j].conjoined) 
+		  y_dist+=max_dist_double_bond;
+		if (bond[i].type>1 && !bond[i].conjoined) 
+		  y_dist1+=max_dist_double_bond;
+
 		int ai=bond[i].a;
 		if (ai!=bond[j].a && ai!=bond[j].b)
 		  {
 		    double d=distance_from_bond_x_b(xa,ya,xb,yb,atom[ai].x,atom[ai].y);
 		    double h=fabs(distance_from_bond_y(xa,ya,xb,yb,atom[ai].x,atom[ai].y));
-		    double h1=fabs(distance_from_bond_y(atom[bond[i].a].x,atom[bond[i].a].y,atom[bond[i].b].x,atom[bond[i].b].y,xb,yb));
-
-		    double y_dist=maxh;
-		    double y_dist1=maxh;
-		    
-		    if (bond[j].type>1 && !bond[j].conjoined) 
-		      y_dist+=max_dist_double_bond;
-		    if (bond[i].type>1 && !bond[i].conjoined) 
-		      y_dist1+=max_dist_double_bond;
 		    if (fabs(d)<=avg/2 && h<=y_dist && fabs(d)<minb && d>-bl/2
 			&& h1<y_dist1)
 		      {
@@ -1225,15 +1219,6 @@ void extend_terminal_bond_to_bonds(atom_t *atom,int n_atom,bond_t *bond, int n_b
 		  {
 		    double d=distance_from_bond_x_b(xa,ya,xb,yb,atom[bi].x,atom[bi].y);
 		    double h=fabs(distance_from_bond_y(xa,ya,xb,yb,atom[bi].x,atom[bi].y));
-		    double h1=fabs(distance_from_bond_y(atom[bond[i].a].x,atom[bond[i].a].y,atom[bond[i].b].x,atom[bond[i].b].y,xb,yb));
-
-		    double y_dist=maxh;
-		    double y_dist1=maxh;
-		    
-		    if (bond[j].type>1 && !bond[j].conjoined) 
-		      y_dist+=max_dist_double_bond;
-		    if (bond[i].type>1 && !bond[i].conjoined) 
-		      y_dist1+=max_dist_double_bond;
 		    if (fabs(d)<=avg/2 && h<=y_dist && fabs(d)<minb && d>-bl/2
 			&& h1<y_dist1)
 		      {
@@ -1243,21 +1228,7 @@ void extend_terminal_bond_to_bonds(atom_t *atom,int n_atom,bond_t *bond, int n_b
 		      }
 		  }
 	      }	      
-	/*
-	  for (int i=0;i<n_atom;i++)
-	    if (atom[i].exists && i!=l && i!=bond[j].a && i!=bond[j].b)
-	      {
-		double d=distance_from_bond_x_b(xa,ya,xb,yb,atom[i].x,atom[i].y);
-		double h=fabs(distance_from_bond_y(xa,ya,xb,yb,atom[i].x,atom[i].y));
-		double y_dist=maxh;
-		if (bond[j].type>1 && !bond[j].conjoined) y_dist+=max_dist_double_bond;
-		if (fabs(d)<=avg/2 && h<=y_dist && fabs(d)<minb && d>-bl/2)
-		  {
-		    found=true;
-		    l=i;
-		    minb=fabs(d);
-		  }
-	      }	      */
+
 	if (found)
 	      {
 		atom[l].x=(atom[bond[j].b].x+atom[l].x)/2;
@@ -3882,11 +3853,7 @@ int main(int argc,char **argv)
 				     max_font_width,max_font_height,
 				     real_font_width,real_font_height);
 	
-if (total_boxes==7)
-		  {
-		    debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");	      	    
-		    //exit(0);
-		  }			
+		
 		
 
 		double avg_bond=percentile75(bond,n_bond,atom);
@@ -3916,8 +3883,7 @@ if (total_boxes==7)
 	
 		collapse_atoms(atom,bond,n_atom,n_bond,3.);
 		remove_zero_bonds(bond,n_bond,atom);
-		flatten_bonds(bond,n_bond,atom,n_atom,3.);
-		remove_zero_bonds(bond,n_bond,atom);
+		
 
 		if (working_resolution==300)
 		  n_letters=find_fused_chars(bond,n_bond,atom,letters,n_letters,
@@ -3930,6 +3896,9 @@ if (total_boxes==7)
 					     real_font_height,real_font_width,
 					     'R',orig_box,bgColor,
 					     THRESHOLD_CHAR,3);
+
+		flatten_bonds(bond,n_bond,atom,n_atom,3.);
+		remove_zero_bonds(bond,n_bond,atom);
 		avg_bond=percentile75(bond,n_bond,atom);
 
 
@@ -3970,6 +3939,7 @@ if (total_boxes==7)
 		remove_disconnected_atoms(atom,bond,n_atom,n_bond);		
 		collapse_atoms(atom,bond,n_atom,n_bond,thickness);
 		remove_zero_bonds(bond,n_bond,atom);
+
 		flatten_bonds(bond,n_bond,atom,n_atom,2*thickness);
 		remove_zero_bonds(bond,n_bond,atom);
 		
@@ -4005,7 +3975,7 @@ if (total_boxes==7)
 							real_font_height,
 							real_font_width,0,
 							letters,n_letters);
-		//debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");
+
 
 		assign_charge(atom,bond,n_atom,n_bond);
 		find_up_down_bonds(bond,n_bond,atom,thickness);
@@ -4013,6 +3983,7 @@ if (total_boxes==7)
 		if ((real_atoms>MIN_A_COUNT) && (real_atoms<MAX_A_COUNT))
 		  {
 		    int f=resolve_bridge_bonds(atom,n_atom,bond,n_bond,2*thickness);
+		    debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");
 
 		    int rotors,rings;
 		    double confidence=0;
