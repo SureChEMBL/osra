@@ -2513,7 +2513,7 @@ int find_small_bonds(potrace_path_t *p, atom_t *atom,bond_t *bond,int n_atom,
 }
 
 int resolve_bridge_bonds(atom_t* atom,int n_atom,bond_t* bond,int n_bond,
-			 double thickness,int real_atoms)
+			 double thickness,int &real_atoms)
 {
   int rotors1,rotors2,f1,f2,rings1,rings2;
   double confidence;
