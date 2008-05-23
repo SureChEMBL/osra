@@ -39,249 +39,206 @@ using namespace RDKit;
 
 
 
-void addMeX(RWMol *mol,int *n)
+void addMeX(RWMol *mol,unsigned int aid)
 {
   Atom *a=new Atom(6);
-  mol->addAtom(a);
-  (*n)++;
-  mol->addBond((*n)-1,(*n),Bond::SINGLE);
+  unsigned int aid1=mol->addAtom(a);
+  mol->addBond(aid,aid1,Bond::SINGLE);
 }
 
-void addOR(RWMol *mol,int *n)
+void addOR(RWMol *mol,unsigned int aid)
 {
   Atom *a=new Atom(0);
-  mol->addAtom(a);
-  (*n)++;
-  mol->addBond((*n)-1,(*n),Bond::SINGLE);
+  unsigned int aid1=mol->addAtom(a);
+  mol->addBond(aid,aid1,Bond::SINGLE);
 }
 
 
-void addCF(RWMol *mol,int *n)
+void addCF(RWMol *mol,unsigned int aid)
 {
   Atom *a=new Atom(9);
-  mol->addAtom(a);
-  (*n)++;
-  mol->addBond((*n)-1,(*n),Bond::SINGLE);
+  unsigned int aid1=mol->addAtom(a);
+  mol->addBond(aid,aid1,Bond::SINGLE);
 }
 
-void addCF3(RWMol *mol,int *n)
+void addCF3(RWMol *mol,unsigned int aid)
 {
   Atom *a1=new Atom(9);
-  mol->addAtom(a1);
-  (*n)++;
+  unsigned int aid1=mol->addAtom(a1);
   Atom *a2=new Atom(9);
-  mol->addAtom(a2);
-  (*n)++;
+  unsigned int aid2=mol->addAtom(a2);
   Atom *a3=new Atom(9);
-  mol->addAtom(a3);
-  (*n)++;
-  mol->addBond((*n)-3,(*n),Bond::SINGLE);
-  mol->addBond((*n)-2,(*n),Bond::SINGLE);
-  mol->addBond((*n)-1,(*n),Bond::SINGLE);
+  unsigned int aid3=mol->addAtom(a3);
+  mol->addBond(aid1,aid,Bond::SINGLE);
+  mol->addBond(aid2,aid,Bond::SINGLE);
+  mol->addBond(aid3,aid,Bond::SINGLE);
 }
 
-void addF3CN(RWMol *mol,int *n)
+void addF3CN(RWMol *mol,unsigned int aid)
 {
   Atom *a1=new Atom(9);
-  mol->addAtom(a1);
-  (*n)++;
+  unsigned int aid1=mol->addAtom(a1);
   Atom *a2=new Atom(9);
-  mol->addAtom(a2);
-  (*n)++;
+  unsigned int aid2=mol->addAtom(a2);
   Atom *a3=new Atom(9);
-  mol->addAtom(a3);
-  (*n)++;
-  mol->addBond((*n)-3,(*n),Bond::SINGLE);
-  mol->addBond((*n)-2,(*n),Bond::SINGLE);
-  mol->addBond((*n)-1,(*n),Bond::SINGLE);
+  unsigned int aid3=mol->addAtom(a3);
   Atom *a4=new Atom(6);
-  mol->addAtom(a4);
-  (*n)++;
-  mol->addBond((*n)-1,(*n),Bond::SINGLE);
+  unsigned int aid4=mol->addAtom(a4);
+  mol->addBond(aid1,aid4,Bond::SINGLE);
+  mol->addBond(aid2,aid4,Bond::SINGLE);
+  mol->addBond(aid3,aid4,Bond::SINGLE);
+  mol->addBond(aid4,aid,Bond::SINGLE);
 }
 
-void addPh(RWMol *mol,int *n)
+void addPh(RWMol *mol,unsigned int aid)
 {
   Atom *a1=new Atom(6);
-  mol->addAtom(a1);
-  (*n)++;
+  unsigned int aid1=mol->addAtom(a1);
   Atom *a2=new Atom(6);
-  mol->addAtom(a2);
-  (*n)++;
+  unsigned int aid2=mol->addAtom(a2);
   Atom *a3=new Atom(6);
-  mol->addAtom(a3);
-  (*n)++;
+  unsigned int aid3=mol->addAtom(a3);
   Atom *a4=new Atom(6);
-  mol->addAtom(a4);
-  (*n)++;
+  unsigned int aid4=mol->addAtom(a4);
   Atom *a5=new Atom(6);
-  mol->addAtom(a5);
-  (*n)++;
-  mol->addBond((*n)-5,(*n)-4,Bond::AROMATIC);
-  mol->addBond((*n)-4,(*n)-3,Bond::AROMATIC);
-  mol->addBond((*n)-3,(*n)-2,Bond::AROMATIC);
-  mol->addBond((*n)-2,(*n)-1,Bond::AROMATIC);
-  mol->addBond((*n)-1,(*n),Bond::AROMATIC);
-  mol->addBond((*n)-5,(*n),Bond::AROMATIC);
+  unsigned int aid5=mol->addAtom(a5);
+  mol->addBond(aid1,aid2,Bond::AROMATIC);
+  mol->addBond(aid2,aid3,Bond::AROMATIC);
+  mol->addBond(aid3,aid4,Bond::AROMATIC);
+  mol->addBond(aid4,aid5,Bond::AROMATIC);
+  mol->addBond(aid5,aid,Bond::AROMATIC);
+  mol->addBond(aid1,aid,Bond::AROMATIC);
 }
 
-void addNO2(RWMol *mol,int *n)
+void addNO2(RWMol *mol,unsigned int aid)
 {
   Atom *a1=new Atom(8);
-  mol->addAtom(a1);
-  (*n)++;
+  unsigned int aid1=mol->addAtom(a1);
   Atom *a2=new Atom(8);
-  mol->addAtom(a2);
-  (*n)++;
-  mol->addBond((*n)-2,(*n),Bond::DOUBLE);
-  mol->addBond((*n)-1,(*n),Bond::DOUBLE);
+  unsigned int aid2=mol->addAtom(a2);
+  mol->addBond(aid1,aid,Bond::DOUBLE);
+  mol->addBond(aid2,aid,Bond::DOUBLE);
 }
 
-void addSO3H(RWMol *mol,int *n)
+void addSO3H(RWMol *mol,unsigned int aid)
 {
 
   Atom *a1=new Atom(8);
-  mol->addAtom(a1);
-  (*n)++;
+  unsigned int aid1=mol->addAtom(a1);
   Atom *a2=new Atom(8);
-  mol->addAtom(a2);
-  (*n)++;
+  unsigned int aid2=mol->addAtom(a2);
   Atom *a3=new Atom(8);
-  mol->addAtom(a3);
-  (*n)++;
-  mol->addBond((*n)-3,(*n),Bond::SINGLE);
-  mol->addBond((*n)-2,(*n),Bond::DOUBLE);
-  mol->addBond((*n)-1,(*n),Bond::DOUBLE);
+  unsigned int aid3=mol->addAtom(a3);
+  mol->addBond(aid1,aid,Bond::SINGLE);
+  mol->addBond(aid2,aid,Bond::DOUBLE);
+  mol->addBond(aid3,aid,Bond::DOUBLE);
 }
 
 
-void addNC(RWMol *mol,int *n)
+void addNC(RWMol *mol,unsigned int aid)
 {
   Atom *a=new Atom(7);
-  mol->addAtom(a);
-  (*n)++;
-  mol->addBond((*n)-1,(*n),Bond::TRIPLE);
+  unsigned int aid1=mol->addAtom(a);
+  mol->addBond(aid1,aid,Bond::TRIPLE);
 }
 
-void addnBu(RWMol *mol,int *n)
+void addnBu(RWMol *mol,unsigned int aid)
 {
   Atom *a1=new Atom(6);
-  mol->addAtom(a1);
-  (*n)++;
-  mol->addBond((*n)-1,(*n),Bond::SINGLE);
+  unsigned int aid1=mol->addAtom(a1);
   Atom *a2=new Atom(6);
-  mol->addAtom(a2);
-  (*n)++;
-  mol->addBond((*n)-1,(*n),Bond::SINGLE);
+  unsigned int aid2=mol->addAtom(a2);
   Atom *a3=new Atom(6);
-  mol->addAtom(a3);
-  (*n)++;
-  mol->addBond((*n)-1,(*n),Bond::SINGLE);
+  unsigned int aid3=mol->addAtom(a3);
+  mol->addBond(aid2,aid3,Bond::SINGLE);
+  mol->addBond(aid1,aid2,Bond::SINGLE);
+  mol->addBond(aid3,aid,Bond::SINGLE);
 }
 
-void addiPr(RWMol *mol,int *n)
+void addiPr(RWMol *mol,unsigned int aid)
 {
   Atom *a1=new Atom(6);
-  mol->addAtom(a1);
-  (*n)++;
-  mol->addBond((*n)-1,(*n),Bond::SINGLE);
+  unsigned int aid1=mol->addAtom(a1);
   Atom *a2=new Atom(6);
-  mol->addAtom(a2);
-  (*n)++;
-  mol->addBond((*n)-1,(*n),Bond::SINGLE);
+  unsigned int aid2=mol->addAtom(a2);
+  mol->addBond(aid1,aid2,Bond::SINGLE);
+  mol->addBond(aid2,aid,Bond::SINGLE);
 }
 
-void addEtO(RWMol *mol,int *n)
+void addEtO(RWMol *mol,unsigned int aid)
 {
   Atom *a1=new Atom(6);
-  mol->addAtom(a1);
-  (*n)++;
-  mol->addBond((*n)-1,(*n),Bond::SINGLE);
+  unsigned int aid1=mol->addAtom(a1);
   Atom *a2=new Atom(6);
-  mol->addAtom(a2);
-  (*n)++;
-  mol->addBond((*n)-1,(*n),Bond::SINGLE);
+  unsigned int aid2=mol->addAtom(a2);
+  mol->addBond(aid1,aid2,Bond::SINGLE);
+  mol->addBond(aid2,aid,Bond::SINGLE);
 }
 
-void addOiBu(RWMol *mol,int *n)
+void addOiBu(RWMol *mol,unsigned int aid)
 {
   Atom *a1=new Atom(6);
-  mol->addAtom(a1);
-  (*n)++;
-  mol->addBond((*n)-1,(*n),Bond::SINGLE);
+  unsigned int aid1=mol->addAtom(a1);
   Atom *a2=new Atom(6);
-  mol->addAtom(a2);
-  (*n)++;
-  mol->addBond((*n)-1,(*n),Bond::SINGLE);
+  unsigned int aid2=mol->addAtom(a2);
   Atom *a3=new Atom(6);
-  mol->addAtom(a3);
-  (*n)++;
-  mol->addBond((*n)-1,(*n)-2,Bond::SINGLE);
-  mol->addBond((*n)-2,(*n),Bond::SINGLE);
-  Atom *a4=new Atom(6);
+  unsigned int aid3=mol->addAtom(a3);
+  unsigned int aid4=Atom *a4=new Atom(6);
   mol->addAtom(a4);
-  (*n)++;
-  mol->addBond((*n)-1,(*n),Bond::SINGLE);
+  mol->addBond(aid1,aid2,Bond::SINGLE);
+  mol->addBond(aid2,aid,Bond::SINGLE);
+  mol->addBond(aid3,aid4,Bond::SINGLE);
+  mol->addBond(aid4,aid,Bond::SINGLE);
 }
 
-void addtBu(RWMol *mol,int *n)
+void addtBu(RWMol *mol,unsigned int aid)
 {
   Atom *a1=new Atom(6);
-  mol->addAtom(a1);
-  (*n)++;
+  unsigned int aid1=mol->addAtom(a1);
   Atom *a2=new Atom(6);
-  mol->addAtom(a2);
-  (*n)++;
+  unsigned int aid2=mol->addAtom(a2);
   Atom *a3=new Atom(6);
-  mol->addAtom(a3);
-  (*n)++;
-  mol->addBond((*n)-3,(*n),Bond::SINGLE);
-  mol->addBond((*n)-2,(*n),Bond::SINGLE);
-  mol->addBond((*n)-1,(*n),Bond::SINGLE);
+  unsigned int aid3=mol->addAtom(a3);
+  mol->addBond(aid1,aid,Bond::SINGLE);
+  mol->addBond(aid2,aid,Bond::SINGLE);
+  mol->addBond(aid3,aid,Bond::SINGLE);
 }
 
 
-void addCOOH(RWMol *mol,int *n)
+void addCOOH(RWMol *mol,unsigned int aid)
 {
   Atom *a1=new Atom(8);
-  mol->addAtom(a1);
-  (*n)++;
+  unsigned int aid1=mol->addAtom(a1);
   Atom *a2=new Atom(8);
-  mol->addAtom(a2);
-  (*n)++;
-  mol->addBond((*n)-2,(*n),Bond::DOUBLE);
-  mol->addBond((*n)-1,(*n),Bond::DOUBLE);
+  unsigned int aid2=mol->addAtom(a2);
+  mol->addBond(aid1,aid,Bond::DOUBLE);
+  mol->addBond(aid2,aid,Bond::DOUBLE);
 }
 
-void addAc(RWMol *mol,int *n)
+void addAc(RWMol *mol,unsigned int aid)
 {
   Atom *a1=new Atom(8);
-  mol->addAtom(a1);
-  (*n)++;
-  mol->addBond((*n)-1,(*n),Bond::DOUBLE);
+  unsigned int aid1=mol->addAtom(a1);
   Atom *a2=new Atom(6);
-  mol->addAtom(a2);
-  (*n)++;
-  mol->addBond((*n)-1,(*n),Bond::SINGLE);
+  unsigned int aid2=mol->addAtom(a2);
+  mol->addBond(aid1,aid2,Bond::DOUBLE);
+  mol->addBond(aid2,aid,Bond::SINGLE);
 }
 
-void addAcO(RWMol *mol,int *n)
+void addAcO(RWMol *mol,unsigned int aid)
 {
   Atom *a1=new Atom(8);
-  mol->addAtom(a1);
-  (*n)++;
+  unsigned int aid1=mol->addAtom(a1);
   Atom *a2=new Atom(8);
-  mol->addAtom(a2);
-  (*n)++;
-  mol->addBond((*n)-1,(*n),Bond::DOUBLE);
-  mol->addBond((*n)-2,(*n),Bond::SINGLE);
+  unsigned int aid2=mol->addAtom(a2);
   Atom *a3=new Atom(6);
-  mol->addAtom(a3);
-  (*n)++;
-  mol->addBond((*n)-1,(*n),Bond::SINGLE);
+  unsigned int aid3=mol->addAtom(a3);
+  mol->addBond(aid2,aid3,Bond::DOUBLE);
+  mol->addBond(aid1,aid3,Bond::SINGLE);
+  mol->addBond(aid3,aid,Bond::SINGLE);
 }
 
-int getAnum(string s,RWMol *mol,int *n)
+int getAnum(string s)
 {
   if (s=="C") return(6);
   if (s=="N") return(7);
@@ -295,102 +252,49 @@ int getAnum(string s,RWMol *mol,int *n)
   if (s=="Br") return(35);
   if (s=="X") return(0);
   if (s=="Ar") return(18);
-  if (s=="MeO") 
-    {
-      addMeX(mol,n);
-      return(8);
-    }
-  if (s=="CF")
-    {
-      addCF(mol,n);
-      return(6);
-    }
-  if (s=="CF3")
-    {
-      addCF3(mol,n);
-      return(6);
-    }
-  if (s=="F3CN")
-    {
-      addF3CN(mol,n);
-      return(7);
-    }
-  if (s=="CN")
-    {
-      addNC(mol,n);
-      return(6);
-    }
-  if (s=="nBu")
-    {
-      addnBu(mol,n);
-      return(6);
-    }
-  if (s=="EtO")
-    {
-      addEtO(mol,n);
-      return(8);
-    }
-  if (s=="OiBu")
-    {
-      addOiBu(mol,n);
-      return(8);
-    }
-  if (s=="iPr")
-    {
-      addiPr(mol,n);
-      return(6);
-    }
-  if (s=="tBu")
-    {
-      addtBu(mol,n);
-      return(6);
-    }
-  if (s=="COOH")
-    {
-      addCOOH(mol,n);
-      return(6);
-    }
-  if (s=="Ac")
-    {
-      addAc(mol,n);
-      return(6);
-    }
-  if (s=="AcO")
-    {
-      addAcO(mol,n);
-      return(6);
-    }
-  if (s=="NO2")
-    {
-      addNO2(mol,n);
-      return(7);
-    }
-  if (s=="Ph")
-    {
-      addPh(mol,n);
-      return(6);
-    }
-  if (s=="MeS") 
-    {
-      addMeX(mol,n);
-      return(16);
-    }
-  if (s=="MeN") 
-    {
-      addMeX(mol,n);
-      return(7);
-    }
-  if (s=="SO3H") 
-    {
-      addSO3H(mol,n);
-      return(16);
-    }
-  if (s=="OR") 
-    {
-      addOR(mol,n);
-      return(8);
-    }
+  if (s=="MeO") return(8);
+  if (s=="CF") return(6);
+  if (s=="CF3") return(6);
+  if (s=="F3CN") return(7);
+  if (s=="CN")  return(6);
+  if (s=="nBu") return(6);
+  if (s=="EtO") return(8);
+  if (s=="OiBu") return(8);
+  if (s=="iPr")  return(6);
+  if (s=="tBu") return(6);
+  if (s=="COOH") return(6);
+  if (s=="Ac") return(6);
+  if (s=="AcO") return(6);
+  if (s=="NO2") return(7);
+  if (s=="Ph") return(6);
+  if (s=="MeS") return(16);
+  if (s=="MeN") return(7);
+  if (s=="SO3H") return(16);
+  if (s=="OR")  return(8);
   return(6);
+}
+
+void superatom(string s,RWMol *mol,unsigned int n)
+{
+  if (s=="MeO") addMeX(mol,n);
+  if (s=="CF")  addCF(mol,n);
+  if (s=="CF3") addCF3(mol,n);
+  if (s=="F3CN") addF3CN(mol,n);
+  if (s=="CN")   addNC(mol,n);
+  if (s=="nBu")  addnBu(mol,n);
+  if (s=="EtO")  addEtO(mol,n);
+  if (s=="OiBu") addOiBu(mol,n);
+  if (s=="iPr")  addiPr(mol,n);
+  if (s=="tBu")  addtBu(mol,n);
+  if (s=="COOH") addCOOH(mol,n);
+  if (s=="Ac")   addAc(mol,n);
+  if (s=="AcO")  addAcO(mol,n);
+  if (s=="NO2")  addNO2(mol,n);
+  if (s=="Ph")   addPh(mol,n);
+  if (s=="MeS")  addMeX(mol,n);
+  if (s=="MeN")  addMeX(mol,n);
+  if (s=="SO3H") addSO3H(mol,n);
+  if (s=="OR")   addOR(mol,n);
 }
 
 string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &rotors, 
@@ -409,11 +313,12 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
   	    pos.x=atom[bond[i].a].x;
   	    pos.y=atom[bond[i].a].y;
   	    pos.z=0;
-	    anum=getAnum(atom[bond[i].a].label,mol,&n);
+	    anum=getAnum(atom[bond[i].a].label);
 	    Atom *a=new Atom(anum);
 	    if (atom[bond[i].a].charge!=0)
 	      a->setFormalCharge(atom[bond[i].a].charge);
 	    unsigned int aid=mol->addAtom(a);
+	    superatom(atom[bond[i].a].label,mol,aid);
 	    conf->setAtomPos(aid, pos);
 	    atom[bond[i].a].n=n++;
 	  }
@@ -423,11 +328,12 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
 	    pos.x=atom[bond[i].b].x;
 	    pos.y=atom[bond[i].b].y;
 	    pos.z=0;
-	    anum=getAnum(atom[bond[i].b].label,mol,&n);
+	    anum=getAnum(atom[bond[i].b].label);
 	    Atom *b=new Atom(anum);
 	    if (atom[bond[i].b].charge!=0)
 	      b->setFormalCharge(atom[bond[i].b].charge);
 	    unsigned int aid=mol->addAtom(b);
+	    superatom(atom[bond[i].b].label,mol,aid);
 	    conf->setAtomPos(aid, pos);
 	    atom[bond[i].b].n=n++;
 	  }
