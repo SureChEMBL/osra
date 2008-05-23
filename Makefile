@@ -1,6 +1,8 @@
-ARCH=x86_64   # i386,x86_64,win32,osx
+ARCH=x86_64
+#i386,x86_64,win32,osx
 
-OPENBABEL_OR_RDKIT=openbabel # openbabel,rdkit
+OPENBABEL_OR_RDKIT=openbabel
+#openbabel,rdkit
 
 POTRACE=../../potrace-1.7/
 GOCR=../../gocr-0.45/
@@ -84,7 +86,7 @@ OCRADOBJ=$(OCRADSRC:.cc=.o)
 CPPFLAGS= -g -O2 -fPIC -I$(OCRAD) -I/usr/local/include -D_LIB -D_MT -Wall $(POTRACEINC) $(GOCRINC) $(MOL_BACKEND_INC) $(TCLAPINC) $(MAGIKINC)
 
 LIBS=$(POTRACELIB) -lm  $(IMLIBS) $(GOCRLIB) $(MOL_BACKEND_LIB) -lz
-OBJ = osra.o $(MOL_BACKEND_OBJ)  osra_anisotropic.o osra_ocr.o $(OCRADOBJ)
+OBJ = $(MOL_BACKEND_OBJ)  osra.o osra_anisotropic.o osra_ocr.o $(OCRADOBJ)
 
 
 all:	$(OBJ)
