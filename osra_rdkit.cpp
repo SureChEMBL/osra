@@ -371,7 +371,7 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
    try {
     mol->addConformer(conf, true);
    }
-   catch (MolSanitizeException &se)
+   catch (...)
      {
        delete mol;
        return(smiles);
@@ -385,7 +385,7 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
     try {                            
       RDKit::MolOps::sanitizeMol(*mol);
     }
-    catch (MolSanitizeException &se)
+    catch (...)
       {
 	delete mol;
 	return(smiles);
