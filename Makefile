@@ -1,6 +1,6 @@
-ARCH=i386   # i386,win32,osx
+ARCH:=x86_65   # i386,x86_64,win32,osx
 
-OPENBABEL_OR_RDKIT=openbabel # openbabel,rdkit
+OPENBABEL_OR_RDKIT:=openbabel # openbabel,rdkit
 
 POTRACE=../../potrace-1.7/
 GOCR=../../gocr-0.45/
@@ -61,12 +61,16 @@ OPENBABELLIB=-L/usr/local/lib -lopenbabel
 OPENBABELINC=-I/usr/local/include/openbabel-2.0/
 endif
 
-ifeq($(OPENBABEL_OR_RDKIT),openbabel)
-MOL_BACKEND_INC=$(OPENBABELINC)
-MOL_BACKEND_LIB=$(OPENBABELLIB)
-else
+ifeq ($(OPENBABEL_OR_RDKIT),rdkit)
 MOL_BACKEND_INC=$(RDKITINC)
 MOL_BACKEND_LIB=$(RDKITLIB)
+MOL_BACKEND_CPP=osra_rdkit.cpp
+MOL_BACKEND_OBJ=osra_rdkit.o
+else
+MOL_BACKEND_INC=$(OPENBABELINC)
+MOL_BACKEND_LIB=$(OPENBABELLIB)
+MOL_BACKEND_CPP=osra_openbabel.cpp
+MOL_BACKEND_OBJ=osra_openbabel.o
 endif
 
 TCLAPINC=-I/usr/local/include/tclap/ -I/usr/local/include
@@ -78,7 +82,7 @@ OCRADOBJ=$(OCRADSRC:.cc=.o)
 CPPFLAGS= -g -O2 -fPIC -I$(OCRAD) -I/usr/local/include -D_LIB -D_MT -Wall $(POTRACEINC) $(GOCRINC) $(MOL_BACKEND_INC) $(TCLAPINC) $(MAGIKINC)
 
 LIBS=$(POTRACELIB) -lm  $(IMLIBS) $(GOCRLIB) $(MOL_BACKEND_LIB) -lz
-OBJ = osra.o osra_mol.o  osra_anisotropic.o osra_ocr.o $(OCRADOBJ)
+OBJ = osra.o $(MOL_BACKEND_OBJ)  osra_anisotropic.o osra_ocr.o $(OCRADOBJ)
 
 
 all:	$(OBJ)
@@ -88,8 +92,9 @@ all:	$(OBJ)
 osra.o:	osra.cpp osra.h pgm2asc.h output.h list.h unicode.h gocr.h
 	$(CPP) $(CPPFLAGS) -c osra.cpp
 
-osra_$(OPENABABEL_OR_RDKIT).o: osra_$(OPENBABEL_OR_RDKIT).cpp osra.h
-	$(CPP) $(CPPFLAGS) -c osra_$(OPENBABEL_OR_RDKIT).cpp
+$(MOL_BACKEND_OBJ): $(MOL_BACKEND_CPP) osra.h
+	$(CPP) $(CPPFLAGS) -c $(MOL_BACKEND_CPP)
+
 
 osra_anisotropic.o:	osra_anisotropic.cpp osra.h CImg.h greycstoration.h
 	$(CPP) $(CPPFLAGS) -c osra_anisotropic.cpp
