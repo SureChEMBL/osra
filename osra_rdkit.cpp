@@ -42,7 +42,7 @@ using namespace RDKit;
 void addMeX(RWMol *mol,int *n)
 {
   Atom *a=new Atom(6);
-  aid=mol->addAtom(a);
+  mol->addAtom(a);
   (*n)++;
   mol->addBond((*n)-1,(*n),Bond::SINGLE);
 }
