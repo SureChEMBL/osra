@@ -35,7 +35,6 @@
 #include <RDGeneral/RDLog.h>
 #include <vector>
 #include <algorithm>
-#include <math.h>
 using namespace RDKit;
 
 
@@ -307,7 +306,7 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
   Conformer *conf = new Conformer(real_atoms);	
   std::string smiles="";
   rotors=0;
-  confidence=-FLT_MAX;
+  confidence=-1000;
   num_fragments=0;
   r56=0;
   
@@ -369,7 +368,14 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
           mol->getBondWithIdx(bondid)->setBondDir(Bond::BEGINWEDGE);
 
       }
+   try {
     mol->addConformer(conf, true);
+   }
+   catch (MolSanitizeException &se)
+     {
+       delete mol;
+       return(smiles);
+     }
     for(RWMol::AtomIterator atomIt=mol->beginAtoms();atomIt!=mol->endAtoms();atomIt++) 
      (*atomIt)->calcExplicitValence();
     RDKit::MolOps::cleanUp(*mol);
