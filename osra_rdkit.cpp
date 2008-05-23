@@ -320,7 +320,7 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
 	    unsigned int aid=mol->addAtom(a);
 	    superatom(atom[bond[i].a].label,mol,aid);
 	    conf->setAtomPos(aid, pos);
-	    atom[bond[i].a].n=n++;
+	    atom[bond[i].a].n=aid;
 	  }
 	if (atom[bond[i].b].n==0)
 	  {
@@ -335,7 +335,7 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
 	    unsigned int aid=mol->addAtom(b);
 	    superatom(atom[bond[i].b].label,mol,aid);
 	    conf->setAtomPos(aid, pos);
-	    atom[bond[i].b].n=n++;
+	    atom[bond[i].b].n=aid;
 	  }
 	if (bond[i].arom)
 	  bondid=mol->addBond(atom[bond[i].a].n,atom[bond[i].b].n,Bond::AROMATIC)-1;
