@@ -442,7 +442,7 @@ int getAnum(string s, OBMol *mol,int *n)
 
 
 
-string get_smiles(atom_t *atom, bond_t *bond, int n_bond, int &rotors, 
+string get_smiles(atom_t *atom, int real_atoms, bond_t *bond, int n_bond, int &rotors, 
 		  double &confidence, int &num_fragments, int &r56)
 {
  OBMol mol;

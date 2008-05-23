@@ -2513,11 +2513,11 @@ int find_small_bonds(potrace_path_t *p, atom_t *atom,bond_t *bond,int n_atom,
 }
 
 int resolve_bridge_bonds(atom_t* atom,int n_atom,bond_t* bond,int n_bond,
-			 double thickness)
+			 double thickness,int real_atoms)
 {
   int rotors1,rotors2,f1,f2,rings1,rings2;
   double confidence;
-  string smiles1=get_smiles(atom,bond,n_bond,rotors1,confidence,f1,rings1);
+  string smiles1=get_smiles(atom,real_atoms,bond,n_bond,rotors1,confidence,f1,rings1);
   for (int i=0;i<n_atom;i++)
     if ((atom[i].exists) && (atom[i].label==" "))
       {
@@ -2574,6 +2574,7 @@ int resolve_bridge_bonds(atom_t* atom,int n_atom,bond_t* bond,int n_bond,
 		    bond[b].exists=false;
 		    bond[d].exists=false;
 		    atom[i].exists=false;
+		    real_atoms--;
 		    if (bond[a].a==bond[b].a) bond[a].a=bond[b].b;
 		    else if (bond[a].a==bond[b].b) bond[a].a=bond[b].a;
 		    else if (bond[a].b==bond[b].a) bond[a].b=bond[b].b;
@@ -2582,13 +2583,14 @@ int resolve_bridge_bonds(atom_t* atom,int n_atom,bond_t* bond,int n_bond,
 		    else if (bond[c].a==bond[d].b) bond[c].a=bond[d].a;
 		    else if (bond[c].b==bond[d].a) bond[c].b=bond[d].b;
 		    else if (bond[c].b==bond[d].b) bond[c].b=bond[d].a;
-		    string smiles2=get_smiles(atom,bond,n_bond,rotors2,
+		    string smiles2=get_smiles(atom,real_atoms,bond,n_bond,rotors2,
 					      confidence,f2,rings2);
 		    if (f1!=f2 || rotors1!=rotors2 || rings1-rings2==2)
 		      {
 			bond[b].exists=true;
 			bond[d].exists=true;
 			atom[i].exists=true;
+			real_atoms++;
 			if (bond[a].a==bond[b].a) bond[a].a=bond[b].b;
 			else if (bond[a].a==bond[b].b) bond[a].a=bond[b].a;
 			else if (bond[a].b==bond[b].a) bond[a].b=bond[b].b;
@@ -3996,12 +3998,13 @@ int main(int argc,char **argv)
 		if ((real_atoms>MIN_A_COUNT) && (real_atoms<MAX_A_COUNT))
 		  {
 
-		    int f=resolve_bridge_bonds(atom,n_atom,bond,n_bond,2*thickness);
+		    int f=resolve_bridge_bonds(atom,n_atom,bond,n_bond,2*thickness,
+					       real_atoms);
 
 
 		    int rotors,rings;
 		    double confidence=0;
-		    string smiles=get_smiles(atom,bond,n_bond,rotors,
+		    string smiles=get_smiles(atom,real_atoms,bond,n_bond,rotors,
 					     confidence,f,rings);
 		    if (f<5 && smiles!="")
 		      {
