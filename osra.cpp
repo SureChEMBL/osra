@@ -2674,7 +2674,8 @@ int fix_one_sided_bonds(bond_t *bond,int n_bond,atom_t *atom, double thickness,
 			bond[n_bond].type=1;
 			bond[n_bond].a=bond[j].a;
 			bond[n_bond].curve=bond[i].curve;
-			bond[n_bond].hash=false;
+			if (bond[i].hash) bond[n_bond].hash=true;
+			else bond[n_bond].hash=false;
 			if (bond[i].wedge) bond[n_bond].wedge=true;
 			else bond[n_bond].wedge=false;
 			bond[n_bond].Small=false;
@@ -2707,7 +2708,8 @@ int fix_one_sided_bonds(bond_t *bond,int n_bond,atom_t *atom, double thickness,
 			bond[n_bond].type=1;
 			bond[n_bond].a=bond[j].b;
 			bond[n_bond].curve=bond[i].curve;
-			bond[n_bond].hash=false;
+			if (bond[i].hash) bond[n_bond].hash=true;
+			else bond[n_bond].hash=false;
 			if (bond[i].wedge) bond[n_bond].wedge=true;
 			else bond[n_bond].wedge=false;
 			bond[n_bond].Small=false;
@@ -3918,13 +3920,15 @@ int main(int argc,char **argv)
 		n_letters=remove_small_bonds(bond,n_bond,atom,letters,n_letters,
 					     real_font_height,MIN_FONT_HEIGHT,avg_bond);
 
+
 		n_bond=fix_one_sided_bonds(bond,n_bond,atom,thickness,avg_bond);
-	
+		
 		
 		n_letters=clean_unrecognized_characters(bond,n_bond,
 							atom,real_font_height,
 							real_font_width,3,letters,
 							n_letters);
+
 
 		int mindiff=0;
 		if (thick) mindiff=1;
@@ -3932,6 +3936,7 @@ int main(int argc,char **argv)
 		thickness=find_wedge_bonds(thick_box,atom,n_atom,bond,n_bond,bgColor,
 					   THRESHOLD_BOND,max_dist_double_bond,
 					   avg_bond,mindiff);
+		debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");	
 
 		n_label=assemble_labels(letters,n_letters,label);
 
@@ -3947,6 +3952,7 @@ int main(int argc,char **argv)
 		avg_bond=percentile75(bond,n_bond,atom);
 
 		collapse_double_bonds(bond,n_bond,atom,n_atom,max_dist_double_bond);
+
 
 		extend_terminal_bond_to_label(atom,letters,n_letters,bond,n_bond,
 					      label,n_label,avg_bond/2,
@@ -3982,8 +3988,9 @@ int main(int argc,char **argv)
 		int real_atoms=count_atoms(atom,n_atom);
 		if ((real_atoms>MIN_A_COUNT) && (real_atoms<MAX_A_COUNT))
 		  {
+
 		    int f=resolve_bridge_bonds(atom,n_atom,bond,n_bond,2*thickness);
-		    debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");
+
 
 		    int rotors,rings;
 		    double confidence=0;
