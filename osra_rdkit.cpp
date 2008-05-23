@@ -304,10 +304,22 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
   int n=0,bondid=0;
   int anum;
   Conformer *conf = new Conformer(real_atoms);	
+  std::string smiles="";
+  rotors=0;
+  confidence=-FLT_MAX;
+  num_fragments=0;
+  r56=0;
+  
   for (int i=0;i<n_bond;i++)
     if (bond[i].exists) 
       {
-	if (atom[bond[i].a].n==0)
+	atom[bond[i].a].n=-1;
+	atom[bond[i].b].n=-1;
+      }
+  for (int i=0;i<n_bond;i++)
+    if (bond[i].exists) 
+      {
+	if (atom[bond[i].a].n<0)
 	  {
   	    RDGeom::Point3D pos;
   	    pos.x=atom[bond[i].a].x;
@@ -322,7 +334,7 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
 	    conf->setAtomPos(aid, pos);
 	    atom[bond[i].a].n=aid;
 	  }
-	if (atom[bond[i].b].n==0)
+	if (atom[bond[i].b].n<0)
 	  {
 	    RDGeom::Point3D pos;
 	    pos.x=atom[bond[i].b].x;
@@ -363,8 +375,15 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
     const Conformer &conf2 = mol->getConformer();
     DetectAtomStereoChemistry(*mol, &conf2);
   
-                              
-  RDKit::MolOps::sanitizeMol(*mol);
+    try {                            
+      RDKit::MolOps::sanitizeMol(*mol);
+    }
+    catch (MolSanitizeException &se)
+      {
+	delete mol;
+	return(smiles);
+      }
+
   RDKit::MolOps::assignBondStereoCodes(*mol);
              
       
@@ -424,7 +443,7 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
          }
      if(isAromatic) num_aromatic++;
    }
-  std::string smiles;
+  
   smiles = MolToSmiles(*(static_cast<ROMol *>(mol)),true,false); 
   num_fragments=count_fragments(smiles);
 
@@ -434,12 +453,6 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
   r56=Num_Rings[5]+Num_Rings[6];
 
 
-  for (int i=0;i<n_bond;i++)
-    if (bond[i].exists) 
-      {
-	atom[bond[i].a].n=0;
-	atom[bond[i].b].n=0;
-      }
   return(smiles);
 }
 
