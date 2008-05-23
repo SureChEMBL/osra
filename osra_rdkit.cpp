@@ -117,12 +117,12 @@ void addPh(RWMol *mol,int *n)
   Atom *a5=new Atom(6);
   mol->addAtom(a5);
   (*n)++;
-  mol->AddBond((*n)-5,(*n)-4,Bond::AROMATIC);
-  mol->AddBond((*n)-4,(*n)-3,Bond::AROMATIC);
-  mol->AddBond((*n)-3,(*n)-2,Bond::AROMATIC);
-  mol->AddBond((*n)-2,(*n)-1,Bond::AROMATIC);
-  mol->AddBond((*n)-1,(*n),Bond::AROMATIC);
-  mol->AddBond((*n)-5,(*n),Bond::AROMATIC);
+  mol->addBond((*n)-5,(*n)-4,Bond::AROMATIC);
+  mol->addBond((*n)-4,(*n)-3,Bond::AROMATIC);
+  mol->addBond((*n)-3,(*n)-2,Bond::AROMATIC);
+  mol->addBond((*n)-2,(*n)-1,Bond::AROMATIC);
+  mol->addBond((*n)-1,(*n),Bond::AROMATIC);
+  mol->addBond((*n)-5,(*n),Bond::AROMATIC);
 }
 
 void addNO2(RWMol *mol,int *n)
@@ -149,9 +149,9 @@ void addSO3H(RWMol *mol,int *n)
   Atom *a3=new Atom(8);
   mol->addAtom(a3);
   (*n)++;
-  mol->AddBond((*n)-3,(*n),Bond::SINGLE);
-  mol->AddBond((*n)-2,(*n),Bond::DOUBLE);
-  mol->AddBond((*n)-1,(*n),Bond::DOUBLE);
+  mol->addBond((*n)-3,(*n),Bond::SINGLE);
+  mol->addBond((*n)-2,(*n),Bond::DOUBLE);
+  mol->addBond((*n)-1,(*n),Bond::DOUBLE);
 }
 
 
