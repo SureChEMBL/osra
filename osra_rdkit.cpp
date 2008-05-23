@@ -35,6 +35,7 @@
 #include <RDGeneral/RDLog.h>
 #include <vector>
 #include <algorithm>
+#include <math.h>
 using namespace RDKit;
 
 
@@ -301,7 +302,7 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
 		  double &confidence, int &num_fragments, int &r56)
 {
   RWMol *mol=new RWMol();
-  int n=0,bondid=0;
+  int bondid=0;
   int anum;
   Conformer *conf = new Conformer(real_atoms);	
   std::string smiles="";
