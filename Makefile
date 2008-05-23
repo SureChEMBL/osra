@@ -1,6 +1,6 @@
-ARCH:=x86_65   # i386,x86_64,win32,osx
+ARCH=x86_64   # i386,x86_64,win32,osx
 
-OPENBABEL_OR_RDKIT:=openbabel # openbabel,rdkit
+OPENBABEL_OR_RDKIT=openbabel # openbabel,rdkit
 
 POTRACE=../../potrace-1.7/
 GOCR=../../gocr-0.45/
@@ -36,12 +36,14 @@ else
 X11LIBS=-L/usr/X11R6/lib
 endif
 
-ifeq ($(ARCH),win32)
-IMLIBS=-L/usr/local/lib -lMagick++ -lWand -lMagick -lgdi32 -ljbig -llcms -ltiff -ljasper  -ljpeg  -lpng -lbz2 -lz 
-else ifeq ($(ARCH),osx)
+ifeq ($(ARCH),osx)
 MAGIKINC=-I$(MAGIK)/include/
 MAGIKLIB=-L$(MAGIK)/lib/  -lMagick++ -lWand -lMagick -ltiff -ljpeg
 IMLIBS= $(X11LIBS) $(MAGIKLIB) -lfreetype -lXext -lSM -lICE -lX11 -lXt -lbz2 -lz
+endif
+
+ifeq ($(ARCH),win32)
+IMLIBS=-L/usr/local/lib -lMagick++ -lWand -lMagick -lgdi32 -ljbig -llcms -ltiff -ljasper  -ljpeg  -lpng -lbz2 -lz 
 else
 IMLIBS= $(X11LIBS) -lMagick++ -lWand -lMagick -ltiff -lfreetype -ljpeg -lXext -lSM -lICE -lX11 -lXt -lbz2
 NETPBM=-lnetpbm
