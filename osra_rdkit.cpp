@@ -309,7 +309,8 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
   confidence=-1000;
   num_fragments=0;
   r56=0;
-  
+  vector<int> bondid_to_i(MAX_ATOMS,-1);
+
   for (int i=0;i<n_bond;i++)
     if (bond[i].exists) 
       {
@@ -366,8 +367,23 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
           mol->getBondWithIdx(bondid)->setBondDir(Bond::BEGINDASH);
         if(bond[i].wedge)
           mol->getBondWithIdx(bondid)->setBondDir(Bond::BEGINWEDGE);
-
+	bondid_to_i[bondid]=i;
       }
+  MolOps::findSSSR(*mol);
+  for(ROMol::BondIterator bondIt=mol->beginBonds();bondIt!=mol->endBonds();++bondIt)
+    if( ((*bondIt)->getIsAromatic() || (*bondIt)->getBondType()==Bond::AROMATIC)
+        && !mol->getRingInfo()->numBondRings((*bondIt)->getIdx()) )
+      {
+	(*bondIt)->setIsAromatic(false);
+	(*bondIt)->setBondType(Bond::SINGLE);
+	int i=bondid_to_i[(*bondIt)->getIdx()];
+	if (i>=0)
+	  if (bond[i].type==2)
+	    (*bondIt)->setBondType(Bond::DOUBLE);
+	  else if (bond[i].type==3)
+	    (*bondIt)->setBondType(Bond::TRIPLE);
+      }
+
    try {
     mol->addConformer(conf, true);
    }
@@ -402,8 +418,8 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
 	if (b!=NULL && ringInfo->numBondRings(i)!=0 &&
 	    (b->getBondDir()==Bond::ENDUPRIGHT || b->getBondDir()==Bond::ENDDOWNRIGHT))
 	  b->setBondDir(Bond::NONE);
-	else if (b!=NULL && ringInfo->numBondRings(i)==0 && b->getIsAromatic())
-	  b->setIsAromatic(false);
+	//else if (b!=NULL && ringInfo->numBondRings(i)==0 && b->getIsAromatic())
+	//  b->setIsAromatic(false);
      }
 
  int C_Count=0;
