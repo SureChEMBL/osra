@@ -133,3 +133,7 @@ $(OCRAD)/main.cc: main.cc.patch
 
 $(OCRAD)/character.h: character.h.patch
 	-$(PATCH) -u -t -N  $(OCRAD)/character.h $(SRCDIR)/character.h.patch
+
+$(OCRADSRC): $(OCRAD)/main.cc
+
+$(OCRADINC): $(OCRAD)/character.h
