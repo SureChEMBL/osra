@@ -1,4 +1,4 @@
-ARCH=i386
+ARCH=x86_64
 #i386,x86_64,win32,osx
 
 OPENBABEL_OR_RDKIT=openbabel

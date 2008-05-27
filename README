@@ -40,8 +40,14 @@ http://www.imagemagick.com/
 - POTRACE, vector tracing library, version 1.7 or later,
 http://potrace.sourceforge.net/
 
-- GOCR/JOCR, optical character recognition library, version 0.43,
+- GOCR/JOCR, optical character recognition library, version 0.43 or later,
 http://jocr.sourceforge.net/
+
+- OCRAD, optical character recognition program, version 0.17,
+http://www.gnu.org/software/ocrad/ocrad.html
+
+- TCLAP, Templatized C++ Command Line Parser Library, version 1.1.0,
+http://tclap.sourceforge.net/
 
 - OpenBabel, open source chemistry toolbox, version 2.1.0 or later; 
 if installing from RPM make sure you have the following packages:
@@ -49,20 +55,15 @@ if installing from RPM make sure you have the following packages:
 	 openbabel-devel
 http://openbabel.sourceforge.net/wiki/Main_Page
 
-- TCLAP, Templatized C++ Command Line Parser Library, version 1.1.0,
-http://tclap.sourceforge.net/
+- OR alternatively you can use RDKit as the molecular builder back-end,
+version Jan2008_1  or later:
+ http://www.rdkit.org/
 
 =============================================================================
 Other acknowledgements:
 
 OSRA also makes use of the following software (you do not need to
 install it separately, it's included in the distribution):
-
-- EVG-Thin, Thinning Approximation to the Extended Voronoi Graph,
-http://www.cs.utexas.edu/users/qr/software/evg-thin.html
-
-- OCRAD, optical character recognition program,
-http://www.gnu.org/software/ocrad/ocrad.html
 
 - ThinImage, C code from the article
   "Efficient Binary Image Thinning using Neighborhood Maps"
@@ -78,9 +79,18 @@ http://cimg.sourceforge.net
 =============================================================================
 Compilation:
 
+Unpack downloaded source code for the OCRAD package. Do not compile or install it -
+OSRA will automatically patch it and compile the object files it needs.
+Compile and/or install all the other necessary dependencies.
+Unpack OSRA package.
 Edit the included Makefile to make sure you have the correct locations
-for ImageMagick, potrace, gocr, openbabel, and tclap.  Running make
-should then generate the executable - osra.
+for ImageMagick, potrace, gocr, ocrad, openbabel (or rdkit), and tclap.  
+Set ARCH variable to one of the following: i386 - for 32-bit linux, x86_64
+for 64-bit linux, win32 - for building on Windows MinGW environment, and
+osx for Mac OS X environment (the last one hasn't been tested yet).
+Set OPENBABEL_OR_RDKIT to either openbabel or rdkit depending on what toolkit you
+have installed.
+Running make should then generate the executable - osra.
 
 For compiling with MinGW or Cygwin environment see more detailed
 instructions at the end of this file.
@@ -146,6 +156,12 @@ Other options:
 
 -s, --size:      Resize images on output - can be useful for running OSRA
                  as a backend for a webservice. Example: "-s 300x400".
+
+-g,  --guess:    Prints out resolution guess when you chose to have automatic
+     		 resolution estimate
+
+-p,  --print:    Prints out the value of confidence function estimate
+
 
 =============================================================================
 Windows users:
@@ -224,9 +240,7 @@ g++ -DHAVE_CONFIG_H -I. -I../../src -I../../include -I../../data -I../../include
 
 
 Compiling osra:
-Edit the Makefile to comment out X11LIBS, choose the IMLIBS line containing
-gdi32 and OPENBABELLIB line containing cansmilesformat.o and
-obmolecformat.o, remove "-lnetpbm" from GOCRLIB. 
+Edit the Makefile to set ARCH variable to win32 and OPENBABEL_OR_RDKIT to openbabel.
 Running make should (hopefully) generate osra.exe. You're done!
 Make sure you take a look at osra.bat to see that the environment is set
 correctly. You will still need delegates.xml from ImageMagick installation
