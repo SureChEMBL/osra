@@ -135,6 +135,83 @@ void addPh(OBMol *mol,int *n)
   mol->AddBond((*n)-5,(*n),5);
 }
 
+void addBzO(OBMol *mol,int *n)
+{
+  OBAtom *a;
+  a=mol->CreateAtom();
+  a->SetAtomicNum(6);
+  mol->AddAtom(*a);
+  (*n)++;
+  a=mol->CreateAtom();
+  a->SetAtomicNum(6);
+  mol->AddAtom(*a);
+  (*n)++;
+  a=mol->CreateAtom();
+  a->SetAtomicNum(6);
+  mol->AddAtom(*a);
+  (*n)++;
+  a=mol->CreateAtom();
+  a->SetAtomicNum(6);
+  mol->AddAtom(*a);
+  (*n)++;
+  a=mol->CreateAtom();
+  a->SetAtomicNum(6);
+  mol->AddAtom(*a);
+  (*n)++;
+  a=mol->CreateAtom();
+  a->SetAtomicNum(6);
+  mol->AddAtom(*a);
+  mol->AddBond((*n)-5,(*n)-4,5);
+  mol->AddBond((*n)-4,(*n)-3,5);
+  mol->AddBond((*n)-3,(*n)-2,5);
+  mol->AddBond((*n)-2,(*n)-1,5);
+  mol->AddBond((*n)-1,(*n),5);
+  mol->AddBond((*n)-5,(*n),5);
+  (*n)++;
+  a=mol->CreateAtom();
+  a->SetAtomicNum(6);
+  mol->AddAtom(*a);
+  mol->AddBond((*n)-1,(*n),1);
+  (*n)++;
+  mol->AddBond((*n)-1,(*n),1);
+}
+
+void addTHPO(OBMol *mol,int *n)
+{
+  OBAtom *a;
+  a=mol->CreateAtom();
+  a->SetAtomicNum(6);
+  mol->AddAtom(*a);
+  (*n)++;
+  a=mol->CreateAtom();
+  a->SetAtomicNum(6);
+  mol->AddAtom(*a);
+  (*n)++;
+  a=mol->CreateAtom();
+  a->SetAtomicNum(6);
+  mol->AddAtom(*a);
+  (*n)++;
+  a=mol->CreateAtom();
+  a->SetAtomicNum(6);
+  mol->AddAtom(*a);
+  (*n)++;
+  a=mol->CreateAtom();
+  a->SetAtomicNum(8);
+  mol->AddAtom(*a);
+  (*n)++;
+  a=mol->CreateAtom();
+  a->SetAtomicNum(6);
+  mol->AddAtom(*a);
+  mol->AddBond((*n)-5,(*n)-4,1);
+  mol->AddBond((*n)-4,(*n)-3,1);
+  mol->AddBond((*n)-3,(*n)-2,1);
+  mol->AddBond((*n)-2,(*n)-1,1);
+  mol->AddBond((*n)-1,(*n),1);
+  mol->AddBond((*n)-5,(*n),1);
+  (*n)++;
+  mol->AddBond((*n)-1,(*n),1);
+}
+
 void addNO2(OBMol *mol,int *n)
 {
   OBAtom *a;
@@ -148,6 +225,21 @@ void addNO2(OBMol *mol,int *n)
   (*n)++;
   mol->AddBond((*n)-2,(*n),2);
   mol->AddBond((*n)-1,(*n),2);
+}
+
+void addNOHCH3(OBMol *mol,int *n)
+{
+  OBAtom *a;
+  a=mol->CreateAtom();
+  a->SetAtomicNum(8);
+  mol->AddAtom(*a);
+  (*n)++;
+  a=mol->CreateAtom();
+  a->SetAtomicNum(6);
+  mol->AddAtom(*a);
+  (*n)++;
+  mol->AddBond((*n)-2,(*n),1);
+  mol->AddBond((*n)-1,(*n),1);
 }
 
 void addSO3H(OBMol *mol,int *n)
@@ -435,6 +527,21 @@ int getAnum(string s, OBMol *mol,int *n)
   if (s=="OR") 
     {
       addOR(mol,n);
+      return(8);
+    }
+  if (s=="BzO")
+    {
+      addBzO(mol,n);
+      return(8);
+    }
+  if (s=="N(OH)CH3")
+    {
+      addNOHCH3(mol,n);
+      return(7);
+    }
+  if (s=="THPO")
+    {
+      addTHPO(mol,n);
       return(8);
     }
   return(6);

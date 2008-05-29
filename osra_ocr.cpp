@@ -220,7 +220,7 @@ string fix_atom_name(string s,int n)
   else if (s=="CooH" || s=="HooC" || s=="Co2H" || s=="CO2H" || s=="HOOC") r="COOH";
   else if (s=="AC") r="Ac";
   else if (s=="ACo" || s=="opC" || s=="pcO" || s=="ACO" || s=="oCO" 
-	   || s=="OoC" || s=="OpC" || s=="pCO") r="AcO";
+	   || s=="OoC" || s=="OpC" || s=="pCO" || s=="RCO" || s=="ORC") r="AcO";
   else if (s=="Bl" || s=="el") r="Br";
   else if (s=="CH3" || s=="H3C") r="C";
   else if (s=="R" || s=="Rl" || s=="Rlo" || s=="R2" || s=="R3" || s=="Rg"
@@ -240,8 +240,11 @@ string fix_atom_name(string s,int n)
   else if (s=="OlHP" || s=="lHPO") r="THPO";
   else if (s=="NlOHCH3") r="NOHCH3";
   else if (s=="HO3S") r="SO3H";
-  else if (s=="NMe") r="MeN";
+  else if (s=="NMe" || s=="NHMe") r="MeN";
   else if (s=="RO") r="OR";
+  else if (s=="lHPO" || s=="OlHP") r="THPO";
+  else if (s=="NCOlRlH3") r="N(OH)CH3";
+  else if (s=="pZO" || s=="p2O" || s=="OBX" || s=="BZO" || s=="B2O") r="BzO";
   //cout<<r<<endl;
   return(r);
 }

@@ -110,6 +110,55 @@ void addPh(RWMol *mol,unsigned int aid)
   mol->addBond(aid1,aid,Bond::AROMATIC);
 }
 
+void addBzO(RWMol *mol,unsigned int aid)
+{
+  Atom *a1=new Atom(6);
+  unsigned int aid1=mol->addAtom(a1);
+  Atom *a2=new Atom(6);
+  unsigned int aid2=mol->addAtom(a2);
+  Atom *a3=new Atom(6);
+  unsigned int aid3=mol->addAtom(a3);
+  Atom *a4=new Atom(6);
+  unsigned int aid4=mol->addAtom(a4);
+  Atom *a5=new Atom(6);
+  unsigned int aid5=mol->addAtom(a5);
+  Atom *a6=new Atom(6);
+  unsigned int aid6=mol->addAtom(a6);
+  mol->addBond(aid1,aid2,Bond::AROMATIC);
+  mol->addBond(aid2,aid3,Bond::AROMATIC);
+  mol->addBond(aid3,aid4,Bond::AROMATIC);
+  mol->addBond(aid4,aid5,Bond::AROMATIC);
+  mol->addBond(aid5,aid6,Bond::AROMATIC);
+  mol->addBond(aid1,aid6,Bond::AROMATIC);
+  Atom *a7=new Atom(6);
+  unsigned int aid7=mol->addAtom(a7);
+  mol->addBond(aid1,aid7,Bond::SINGLE);
+  mol->addBond(aid,aid7,Bond::SINGLE);
+}
+
+void addTHPO(RWMol *mol,unsigned int aid)
+{
+  Atom *a1=new Atom(6);
+  unsigned int aid1=mol->addAtom(a1);
+  Atom *a2=new Atom(8);
+  unsigned int aid2=mol->addAtom(a2);
+  Atom *a3=new Atom(6);
+  unsigned int aid3=mol->addAtom(a3);
+  Atom *a4=new Atom(6);
+  unsigned int aid4=mol->addAtom(a4);
+  Atom *a5=new Atom(6);
+  unsigned int aid5=mol->addAtom(a5);
+  Atom *a6=new Atom(6);
+  unsigned int aid6=mol->addAtom(a6);
+  mol->addBond(aid1,aid2,Bond::SINGLE);
+  mol->addBond(aid2,aid3,Bond::SINGLE);
+  mol->addBond(aid3,aid4,Bond::SINGLE);
+  mol->addBond(aid4,aid5,Bond::SINGLE);
+  mol->addBond(aid5,aid6,Bond::SINGLE);
+  mol->addBond(aid1,aid6,Bond::SINGLE);
+  mol->addBond(aid,aid1,Bond::SINGLE);
+}
+
 void addNO2(RWMol *mol,unsigned int aid)
 {
   Atom *a1=new Atom(8);
@@ -118,6 +167,16 @@ void addNO2(RWMol *mol,unsigned int aid)
   unsigned int aid2=mol->addAtom(a2);
   mol->addBond(aid1,aid,Bond::DOUBLE);
   mol->addBond(aid2,aid,Bond::DOUBLE);
+}
+
+void addNOHCH3(RWMol *mol,unsigned int aid)
+{
+  Atom *a1=new Atom(6);
+  unsigned int aid1=mol->addAtom(a1);
+  Atom *a2=new Atom(8);
+  unsigned int aid2=mol->addAtom(a2);
+  mol->addBond(aid1,aid,Bond::SINGLE);
+  mol->addBond(aid2,aid,Bond::SINGLE);
 }
 
 void addSO3H(RWMol *mol,unsigned int aid)
@@ -271,6 +330,9 @@ int getAnum(string s)
   if (s=="MeN") return(7);
   if (s=="SO3H") return(16);
   if (s=="OR")  return(8);
+  if (s=="BzO") return(8);
+  if (s=="N(OH)CH3") return(7);
+  if (s=="THPO")     return(8);
   return(6);
 }
 
@@ -295,6 +357,9 @@ void superatom(string s,RWMol *mol,unsigned int n)
   if (s=="MeN")  addMeX(mol,n);
   if (s=="SO3H") addSO3H(mol,n);
   if (s=="OR")   addOR(mol,n);
+  if (s=="BzO")  addBzO(mol,n);
+  if (s=="N(OH)CH3")  addNOHCH3(mol,n);
+  if (s=="THPO")      addTHPO(mol,n);
 }
 
 string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &rotors, 
