@@ -458,11 +458,20 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
        return(smiles);
      }
     for(RWMol::AtomIterator atomIt=mol->beginAtoms();atomIt!=mol->endAtoms();atomIt++) 
+    {
      (*atomIt)->calcExplicitValence();
+     try {
+       (*atomIt)->calcImplicitValence();
+     }
+     catch (...)
+     {
+      (*atomIt)->setNoImplicit(true);
+     }
+    }
     RDKit::MolOps::cleanUp(*mol);
     const Conformer &conf2 = mol->getConformer();
     DetectAtomStereoChemistry(*mol, &conf2);
-  
+    
     try {                            
       RDKit::MolOps::sanitizeMol(*mol);
     }
