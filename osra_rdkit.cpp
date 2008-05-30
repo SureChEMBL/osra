@@ -32,6 +32,7 @@
 #include <GraphMol/Depictor/RDDepictor.h>
 #include <GraphMol/FileParsers/FileParsers.h>
 #include <GraphMol/FileParsers/MolFileStereochem.h>
+#include <GraphMol/RDKitQueries.h>
 #include <RDGeneral/RDLog.h>
 #include <vector>
 #include <algorithm>
@@ -48,8 +49,10 @@ void addMeX(RWMol *mol,unsigned int aid)
 
 void addOR(RWMol *mol,unsigned int aid)
 {
-  Atom *a=new Atom(0);
-  unsigned int aid1=mol->addAtom(a);
+  QueryAtom *query=new QueryAtom(0);
+  query->setQuery(makeAtomNullQuery());
+  query->setProp("dummyLabel",std::string("?"));
+  unsigned int aid1=mol->addAtom(query);
   mol->addBond(aid,aid1,Bond::SINGLE);
 }
 
@@ -394,8 +397,16 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
 	    anum=getAnum(atom[bond[i].a].label);
 	    Atom *a=new Atom(anum);
 	    if (atom[bond[i].a].charge!=0)
-	      a->setFormalCharge(atom[bond[i].a].charge);
-	    unsigned int aid=mol->addAtom(a);
+	       a->setFormalCharge(atom[bond[i].a].charge);
+	    if (anum==0)
+	    {
+	      QueryAtom *query=new QueryAtom(0);
+	      query->setQuery(makeAtomNullQuery());
+	      delete a;
+	      a=query;
+	      a->setProp("dummyLabel",std::string("?"));
+             }  
+	    unsigned int aid=mol->addAtom(a);                         
 	    superatom(atom[bond[i].a].label,mol,aid);
 	    conf->setAtomPos(aid, pos);
 	    atom[bond[i].a].n=aid;
@@ -410,6 +421,14 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
 	    Atom *b=new Atom(anum);
 	    if (atom[bond[i].b].charge!=0)
 	      b->setFormalCharge(atom[bond[i].b].charge);
+            if (anum==0)
+               {
+                 QueryAtom *query=new QueryAtom(0);
+                 query->setQuery(makeAtomNullQuery());
+                 delete b;
+                 b=query;
+                 b->setProp("dummyLabel",std::string("?"));
+	        }
 	    unsigned int aid=mol->addAtom(b);
 	    superatom(atom[bond[i].b].label,mol,aid);
 	    conf->setAtomPos(aid, pos);
