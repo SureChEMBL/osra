@@ -497,7 +497,7 @@ int getAnum(string s, OBMol *mol,int *n)
   if (s=="AcO")
     {
       addAcO(mol,n);
-      return(6);
+      return(8);
     }
   if (s=="NO2")
     {

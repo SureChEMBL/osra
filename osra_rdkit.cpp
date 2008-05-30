@@ -326,7 +326,7 @@ int getAnum(string s)
   if (s=="tBu") return(6);
   if (s=="COOH") return(6);
   if (s=="Ac") return(6);
-  if (s=="AcO") return(6);
+  if (s=="AcO") return(8);
   if (s=="NO2") return(7);
   if (s=="Ph") return(6);
   if (s=="MeS") return(16);
