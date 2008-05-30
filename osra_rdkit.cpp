@@ -271,7 +271,7 @@ void addCOOH(RWMol *mol,unsigned int aid)
   Atom *a2=new Atom(8);
   unsigned int aid2=mol->addAtom(a2);
   mol->addBond(aid1,aid,Bond::DOUBLE);
-  mol->addBond(aid2,aid,Bond::DOUBLE);
+  mol->addBond(aid2,aid,Bond::SINGLE);
 }
 
 void addAc(RWMol *mol,unsigned int aid)
