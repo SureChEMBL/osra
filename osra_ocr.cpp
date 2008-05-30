@@ -217,7 +217,7 @@ string fix_atom_name(string s,int n)
   else if ((s=="npr") || (s=="llpll") || (s=="lpl") || (s=="npl")
       || s=="lPl") r="iPr";
   else if ((s=="tBU") || (s=="BU") || (s=="llBU") || (s=="lBU")) r="tBu";
-  else if (s=="CooH" || s=="HooC" || s=="Co2H" || s=="CO2H" || s=="HOOC") r="COOH";
+  else if (s=="CooH" || s=="HooC" || s=="Co2H" || s=="CO2H" || s=="HOOC" || s=="CO2n") r="COOH";
   else if (s=="AC") r="Ac";
   else if (s=="ACo" || s=="opC" || s=="pcO" || s=="ACO" || s=="oCO" 
 	   || s=="OoC" || s=="OpC" || s=="pCO" || s=="RCO" || s=="ORC") r="AcO";
@@ -244,7 +244,7 @@ string fix_atom_name(string s,int n)
   else if (s=="RO") r="OR";
   else if (s=="lHPO" || s=="OlHP") r="THPO";
   else if (s=="NCOlRlH3") r="N(OH)CH3";
-  else if (s=="pZO" || s=="p2O" || s=="OBX" || s=="BZO" || s=="B2O") r="BzO";
+  else if (s=="pZO" || s=="p2O" || s=="OBX" || s=="BZO" || s=="B2O" || s=="OB2") r="BzO";
   //cout<<r<<endl;
   return(r);
 }
