@@ -448,15 +448,15 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
 	  else if (bond[i].type==3)
 	    (*bondIt)->setBondType(Bond::TRIPLE);
       }
-
+   bool doStereo=true;
    try {
     mol->addConformer(conf, true);
    }
    catch (...)
      {
-       delete mol;
-       return(smiles);
+       doStereo=false;
      }
+     
     for(RWMol::AtomIterator atomIt=mol->beginAtoms();atomIt!=mol->endAtoms();atomIt++) 
     {
      (*atomIt)->calcExplicitValence();
@@ -468,9 +468,12 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
       (*atomIt)->setNoImplicit(true);
      }
     }
-    RDKit::MolOps::cleanUp(*mol);
-    const Conformer &conf2 = mol->getConformer();
-    DetectAtomStereoChemistry(*mol, &conf2);
+    if (doStereo)
+    {
+     RDKit::MolOps::cleanUp(*mol);
+     const Conformer &conf2 = mol->getConformer();
+     DetectAtomStereoChemistry(*mol, &conf2);
+    }
     
     try {                            
       RDKit::MolOps::sanitizeMol(*mol);
