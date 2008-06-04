@@ -570,7 +570,7 @@ double skeletize(atom_t *atom,bond_t *bond,int n_bond,Image image,
 }
 
 double dist_double_bonds(atom_t *atom,bond_t *bond,int n_bond,double avg,int n_atom,
-			double thickness)
+			 double thickness,double dist)
 {
   double a[MAX_ATOMS];
   int n=0;
@@ -595,7 +595,7 @@ double dist_double_bonds(atom_t *atom,bond_t *bond,int n_bond,double avg,int n_a
   qsort(a,n,sizeof(double),num_comp);
   if (n>0) max_dist_double_bond=a[3*n/4];
   if (max_dist_double_bond<1) max_dist_double_bond=avg/3;
-  else max_dist_double_bond+=2;
+  else max_dist_double_bond+=dist;
   return(max_dist_double_bond);
 }
 
@@ -3858,14 +3858,13 @@ int main(int argc,char **argv)
 		p = st->plist;
 		n_atom=find_atoms(p,atom,bond,&n_bond);
 		int real_font_width,real_font_height;
-
 		n_letters=find_chars(p,orig_box,letters,atom,bond,n_atom,n_bond,
 				     height,width,bgColor,THRESHOLD_CHAR,
 				     max_font_width,max_font_height,
 				     real_font_width,real_font_height);
 	
 		
-		
+
 
 		double avg_bond=percentile75(bond,n_bond,atom);
 
@@ -3886,7 +3885,7 @@ int main(int argc,char **argv)
 		double dist=4.;
 		if (working_resolution<300) dist=3;
 		if (working_resolution<150) dist=2;
-	
+
 		double thickness=skeletize(atom,bond,n_bond,box,THRESHOLD_BOND,
 				    bgColor,dist,avg_bond);
 
@@ -3907,6 +3906,7 @@ int main(int argc,char **argv)
 					     real_font_height,real_font_width,
 					     'R',orig_box,bgColor,
 					     THRESHOLD_CHAR,4);
+		  //if (ttt++==5) debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");  
 
 		flatten_bonds(bond,n_bond,atom,n_atom,3.);
 		remove_zero_bonds(bond,n_bond,atom);
@@ -3914,7 +3914,7 @@ int main(int argc,char **argv)
 
 
 		double max_dist_double_bond=dist_double_bonds(atom,bond,n_bond,avg_bond,
-							      n_atom,5);
+							      n_atom,5,dist/2);
 		n_bond=double_triple_bonds(atom,bond,n_bond,avg_bond,n_atom,
 					   5,max_dist_double_bond);
 	
@@ -3929,8 +3929,8 @@ int main(int argc,char **argv)
 		n_letters=remove_small_bonds(bond,n_bond,atom,letters,n_letters,
 					     real_font_height,MIN_FONT_HEIGHT,avg_bond);
 
-
-		n_bond=fix_one_sided_bonds(bond,n_bond,atom,thickness,avg_bond);
+		
+		n_bond=fix_one_sided_bonds(bond,n_bond,atom,dist,avg_bond);
 		
 		
 		n_letters=clean_unrecognized_characters(bond,n_bond,
@@ -3991,7 +3991,8 @@ int main(int argc,char **argv)
 							real_font_width,0,
 							letters,n_letters);
 
-		//debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");	
+
+		
 		assign_charge(atom,bond,n_atom,n_bond);
 		find_up_down_bonds(bond,n_bond,atom,thickness);
 		int real_atoms=count_atoms(atom,n_atom);
