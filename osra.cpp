@@ -213,13 +213,16 @@ double distance_from_bond_y(double x0,double y0,double x1,double y1,double x,dou
   return(h);
 }
 
-double distance_between_bonds(bond_t *bond,int i,int j,atom_t *atom,double thickness)
+double distance_between_bonds(bond_t *bond,int i,int j,atom_t *atom)
 {
   double y3=distance_from_bond_y(atom[bond[i].a].x,atom[bond[i].a].y,atom[bond[i].b].x,
 				 atom[bond[i].b].y,atom[bond[j].a].x,atom[bond[j].a].y);
   double y4=distance_from_bond_y(atom[bond[i].a].x,atom[bond[i].a].y,atom[bond[i].b].x,
 				 atom[bond[i].b].y,atom[bond[j].b].x,atom[bond[j].b].y);
-  if (fabs(y3-y4)>thickness) return(FLT_MAX);
+  double ratio=1.;
+  if (fabs(y3)>=1 && (fabs(y3)>2 || fabs(y4)>2)) ratio=y4/y3;
+  if (fabs(y3)<1 && fabs(y4)>2) ratio=FLT_MAX;
+  if (ratio>2.5 || ratio<0.4) return(FLT_MAX);
   return(max(fabs(y3),fabs(y4)));
 }
 
@@ -388,7 +391,7 @@ double skeletize(atom_t *atom,bond_t *bond,int n_bond,Image image,
 	for (int j=0;j<n_bond;j++)
 	  if (i!=j && bond[j].exists && bonds_within_each_other(bond,i,j,atom))
 	    {
-	      double tt=distance_between_bonds(bond,i,j,atom,FLT_MAX); 
+	      double tt=distance_between_bonds(bond,i,j,atom); 
 	      double tang=angle_between_bonds(bond,i,j,atom);
 	      if ((fabs(tang)>D_T_TOLERANCE 
 		   && no_white_space(bond[i].a,bond[i].b,bond[j].a,bond[j].b,atom,
@@ -569,8 +572,7 @@ double skeletize(atom_t *atom,bond_t *bond,int n_bond,Image image,
   return(thickness);
 }
 
-double dist_double_bonds(atom_t *atom,bond_t *bond,int n_bond,double avg,int n_atom,
-			double thickness)
+double dist_double_bonds(atom_t *atom,bond_t *bond,int n_bond,double avg,int n_atom)
 {
   double a[MAX_ATOMS];
   int n=0;
@@ -586,21 +588,21 @@ double dist_double_bonds(atom_t *atom,bond_t *bond,int n_bond,double avg,int n_a
 	      && (fabs(angle_between_bonds(bond,i,j,atom))>D_T_TOLERANCE))
 	    {
 	      double l2=bond_length(bond,j,atom);
-	      double dbb=distance_between_bonds(bond,i,j,atom,thickness);
+	      double dbb=distance_between_bonds(bond,i,j,atom);
 	      if (dbb<avg/2 && l1>avg/3 && l2>avg/3 && 
 		  bonds_within_each_other(bond,i,j,atom))
 		a[n++]=dbb;
 	    }
       }
   qsort(a,n,sizeof(double),num_comp);
-  if (n>0) max_dist_double_bond=a[3*n/4];
+  if (n>0) max_dist_double_bond=a[3*(n-1)/4];
   if (max_dist_double_bond<1) max_dist_double_bond=avg/3;
   else max_dist_double_bond+=2;
   return(max_dist_double_bond);
 }
 
 int double_triple_bonds(atom_t *atom,bond_t *bond,int n_bond,double avg,int &n_atom,
-			double thickness, double max_dist_double_bond)
+			double max_dist_double_bond)
 {
   for (int i=0;i<n_bond;i++)
     if (bond[i].exists)
@@ -610,7 +612,7 @@ int double_triple_bonds(atom_t *atom,bond_t *bond,int n_bond,double avg,int &n_a
 	  if ((bond[j].exists) && (fabs(angle_between_bonds(bond,i,j,atom))>D_T_TOLERANCE))
 	    {
 	      double l2=bond_length(bond,j,atom);
-	      if ((distance_between_bonds(bond,i,j,atom,max(thickness,max_dist_double_bond/2))<=max_dist_double_bond)
+	      if ((distance_between_bonds(bond,i,j,atom)<=max_dist_double_bond)
 		  && (bonds_within_each_other(bond,i,j,atom))
 		  )
 		{
@@ -3914,11 +3916,11 @@ int main(int argc,char **argv)
 
 
 		double max_dist_double_bond=dist_double_bonds(atom,bond,n_bond,avg_bond,
-							      n_atom,5);
+							      n_atom);
 		n_bond=double_triple_bonds(atom,bond,n_bond,avg_bond,n_atom,
-					   5,max_dist_double_bond);
+					   max_dist_double_bond);
 	
-
+		//debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");	
 
 		n_atom=find_dashed_bonds(p,atom,bond,n_atom,&n_bond,
 					 max(MAX_DASH,int(avg_bond/3)),
@@ -3991,7 +3993,7 @@ int main(int argc,char **argv)
 							real_font_width,0,
 							letters,n_letters);
 
-		//debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");	
+		
 		assign_charge(atom,bond,n_atom,n_bond);
 		find_up_down_bonds(bond,n_bond,atom,thickness);
 		int real_atoms=count_atoms(atom,n_atom);
