@@ -2682,7 +2682,7 @@ int fix_one_sided_bonds(bond_t *bond,int n_bond,atom_t *atom, double thickness,
 		      {
 			bond[n_bond].b=bond[i].b;
 			bond[n_bond].exists=true;
-			bond[n_bond].type=1;
+			bond[n_bond].type=bond[i].type;
 			bond[n_bond].a=bond[j].a;
 			bond[n_bond].curve=bond[i].curve;
 			if (bond[i].hash) bond[n_bond].hash=true;
@@ -2716,7 +2716,7 @@ int fix_one_sided_bonds(bond_t *bond,int n_bond,atom_t *atom, double thickness,
 		      {
 			bond[n_bond].b=bond[i].b;
 			bond[n_bond].exists=true;
-			bond[n_bond].type=1;
+			bond[n_bond].type=bond[i].type;
 			bond[n_bond].a=bond[j].b;
 			bond[n_bond].curve=bond[i].curve;
 			if (bond[i].hash) bond[n_bond].hash=true;
@@ -3920,8 +3920,7 @@ int main(int argc,char **argv)
 		n_bond=double_triple_bonds(atom,bond,n_bond,avg_bond,n_atom,
 					   max_dist_double_bond);
 	
-		//debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");	
-
+	
 		n_atom=find_dashed_bonds(p,atom,bond,n_atom,&n_bond,
 					 max(MAX_DASH,int(avg_bond/3)),
 					 avg_bond,orig_box,bgColor,
@@ -3934,7 +3933,8 @@ int main(int argc,char **argv)
 
 		n_bond=fix_one_sided_bonds(bond,n_bond,atom,dist,avg_bond);
 		
-		
+		//debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");	
+
 		n_letters=clean_unrecognized_characters(bond,n_bond,
 							atom,real_font_height,
 							real_font_width,3,letters,
@@ -3994,6 +3994,7 @@ int main(int argc,char **argv)
 							letters,n_letters);
 
 		
+	
 		assign_charge(atom,bond,n_atom,n_bond);
 		find_up_down_bonds(bond,n_bond,atom,thickness);
 		int real_atoms=count_atoms(atom,n_atom);
