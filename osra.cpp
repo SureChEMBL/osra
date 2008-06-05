@@ -219,10 +219,10 @@ double distance_between_bonds(bond_t *bond,int i,int j,atom_t *atom)
 				 atom[bond[i].b].y,atom[bond[j].a].x,atom[bond[j].a].y);
   double y4=distance_from_bond_y(atom[bond[i].a].x,atom[bond[i].a].y,atom[bond[i].b].x,
 				 atom[bond[i].b].y,atom[bond[j].b].x,atom[bond[j].b].y);
-  double ratio=1.;
+  /*double ratio=1.;
   if (fabs(y3)>=1 && (fabs(y3)>2 || fabs(y4)>2)) ratio=y4/y3;
   if (fabs(y3)<1 && fabs(y4)>2) ratio=FLT_MAX;
-  if (ratio>2.5 || ratio<0.4) return(FLT_MAX);
+  if (ratio>2.5 || ratio<0.4) return(FLT_MAX);*/
   return(max(fabs(y3),fabs(y4)));
 }
 
