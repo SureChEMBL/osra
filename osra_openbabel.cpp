@@ -340,7 +340,7 @@ void addOiBu(OBMol *mol,int *n)
   a->SetAtomicNum(6);
   mol->AddAtom(*a);
   (*n)++;
-  mol->AddBond((*n)-1,(*n)-2,1);
+  //mol->AddBond((*n)-1,(*n)-2,1);
   mol->AddBond((*n)-2,(*n),1);
   a=mol->CreateAtom();
   a->SetAtomicNum(6);

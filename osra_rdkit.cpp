@@ -247,10 +247,10 @@ void addOiBu(RWMol *mol,unsigned int aid)
   unsigned int aid3=mol->addAtom(a3);
   Atom *a4=new Atom(6);
   unsigned int aid4=mol->addAtom(a4);
+  mol->addBond(aid,aid1,Bond::SINGLE);
   mol->addBond(aid1,aid2,Bond::SINGLE);
-  mol->addBond(aid2,aid,Bond::SINGLE);
-  mol->addBond(aid3,aid4,Bond::SINGLE);
-  mol->addBond(aid4,aid,Bond::SINGLE);
+  mol->addBond(aid2,aid3,Bond::SINGLE);
+  mol->addBond(aid2,aid4,Bond::SINGLE);
 }
 
 void addtBu(RWMol *mol,unsigned int aid)
