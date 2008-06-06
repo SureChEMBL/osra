@@ -613,17 +613,19 @@ int double_triple_bonds(atom_t *atom,bond_t *bond,int n_bond,double avg,int &n_a
 	  if ((bond[j].exists) && (fabs(angle_between_bonds(bond,i,j,atom))>D_T_TOLERANCE))
 	    {
 	      double l2=bond_length(bond,j,atom);
-	      if ((distance_between_bonds(bond,i,j,atom)<=max_dist_double_bond)
-		  && (bonds_within_each_other(bond,i,j,atom)))
+	      double dij=distance_between_bonds(bond,i,j,atom);
+	      if (dij<=max_dist_double_bond && bonds_within_each_other(bond,i,j,atom))
 		{
 		  for (int k=j+1;k<n_bond;k++)
 		    if ((bond[k].exists) && 
 			(fabs(angle_between_bonds(bond,k,j,atom))>D_T_TOLERANCE))
 		      {
 			double l3=bond_length(bond,k,atom);
-			if ((distance_between_bonds(bond,k,j,atom)<=max_dist_double_bond)
-			    && (bonds_within_each_other(bond,k,j,atom)))
-			  if (l2>l3)
+			double djk=distance_between_bonds(bond,k,j,atom);
+			double dik=distance_between_bonds(bond,k,i,atom);
+			if (djk<=max_dist_double_bond &&
+			    bonds_within_each_other(bond,k,j,atom))
+			  if (dik>dij)
 			    {
 			      bond[k].exists=false;
 			      if (l3>l2/2)
