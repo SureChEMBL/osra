@@ -385,11 +385,12 @@ double skeletize(atom_t *atom,bond_t *bond,int n_bond,Image image,
   double a[MAX_ATOMS];
   int n=0;
   for (int i=0;i<n_bond;i++)
-    if (bond[i].exists)
+    if (bond[i].exists && !bond[i].Small)
       {
 	double l1=bond_length(bond,i,atom);
 	for (int j=0;j<n_bond;j++)
-	  if (i!=j && bond[j].exists && bonds_within_each_other(bond,i,j,atom))
+	  if (i!=j && bond[j].exists && bonds_within_each_other(bond,i,j,atom)
+	      && !bond[j].Small)
 	    {
 	      double tt=distance_between_bonds(bond,i,j,atom); 
 	      double tang=angle_between_bonds(bond,i,j,atom);
@@ -595,7 +596,8 @@ double dist_double_bonds(atom_t *atom,bond_t *bond,int n_bond,double avg,int n_a
 	    }
       }
   qsort(a,n,sizeof(double),num_comp);
-  //  for (int i=0;i<n;i++) cout<<a[i]<<endl;
+  //for (int i=0;i<n;i++) cout<<a[i]<<endl;
+    //    cout<<"-----------------"<<endl;
   if (n>0) max_dist_double_bond=a[3*(n-1)/4];
   if (max_dist_double_bond<1) max_dist_double_bond=avg/3;
   else max_dist_double_bond+=2;
@@ -3446,7 +3448,13 @@ void flatten_bonds(bond_t *bond,int n_bond,atom_t *atom,int n_atom,double maxh)
 							   atom[bond[i].b].y,
 							   atom[bond[f].a].x,
 							   atom[bond[f].a].y));
-			if (h<=maxh)
+			double d=distance_from_bond_x_a(atom[bond[i].a].x,
+							atom[bond[i].a].y,
+							atom[bond[i].b].x,
+							atom[bond[i].b].y,
+							atom[bond[f].a].x,
+							atom[bond[f].a].y);
+			if (h<=maxh && d<0)
 			  {
 			    bond[f].exists=false;
 			    atom[bond[f].b].exists=false;
@@ -3466,7 +3474,13 @@ void flatten_bonds(bond_t *bond,int n_bond,atom_t *atom,int n_atom,double maxh)
 							   atom[bond[i].b].y,
 							   atom[bond[f].b].x,
 							   atom[bond[f].b].y));
-			if (h<=maxh)
+			double d=distance_from_bond_x_a(atom[bond[i].a].x,
+							atom[bond[i].a].y,
+							atom[bond[i].b].x,
+							atom[bond[i].b].y,
+							atom[bond[f].b].x,
+							atom[bond[f].b].y);
+			if (h<=maxh && d<0)
 			  {
 			    
 			    bond[f].exists=false;
@@ -3509,7 +3523,13 @@ void flatten_bonds(bond_t *bond,int n_bond,atom_t *atom,int n_atom,double maxh)
 							   atom[bond[i].b].y,
 							   atom[bond[f].a].x,
 							   atom[bond[f].a].y));
-			if (h<=maxh)
+			double d=distance_from_bond_x_b(atom[bond[i].a].x,
+							atom[bond[i].a].y,
+							atom[bond[i].b].x,
+							atom[bond[i].b].y,
+							atom[bond[f].a].x,
+							atom[bond[f].a].y);
+			if (h<=maxh && d>0)
 			  {
 			    bond[f].exists=false;
 			    atom[bond[f].b].exists=false;
@@ -3534,7 +3554,13 @@ void flatten_bonds(bond_t *bond,int n_bond,atom_t *atom,int n_atom,double maxh)
 							   atom[bond[i].b].y,
 							   atom[bond[f].b].x,
 							   atom[bond[f].b].y));
-			if (h<=maxh)
+			double d=distance_from_bond_x_b(atom[bond[i].a].x,
+							atom[bond[i].a].y,
+							atom[bond[i].b].x,
+							atom[bond[i].b].y,
+							atom[bond[f].b].x,
+							atom[bond[f].b].y);
+			if (h<=maxh && d>0)
 			  {
 			    bond[f].exists=false;
 			    atom[bond[f].a].exists=false;
@@ -3708,7 +3734,7 @@ int main(int argc,char **argv)
     int page=count_pages(input.getValue());
 
     int image_count=0;
-    //int ttt=1;
+    int ttt=1;
 
     for(int l=0;l<page;l++)
       {
@@ -3917,6 +3943,7 @@ int main(int argc,char **argv)
 		n_atom=find_small_bonds(p,atom,bond,n_atom,&n_bond,
 					max_area,avg_bond/2,5);
 
+
 		find_old_aromatic_bonds(p,bond,n_bond,atom,n_atom,avg_bond);
 
 
@@ -3926,7 +3953,7 @@ int main(int argc,char **argv)
 	
 		double thickness=skeletize(atom,bond,n_bond,box,THRESHOLD_BOND,
 				    bgColor,dist,avg_bond);
-
+	
 		remove_disconnected_atoms(atom,bond,n_atom,n_bond);
 	
 		collapse_atoms(atom,bond,n_atom,n_bond,3.);
@@ -3939,16 +3966,23 @@ int main(int argc,char **argv)
 					     0,orig_box,bgColor,
 					     THRESHOLD_CHAR,3);
 
+
 		  //if (working_resolution>=150)
 		  n_letters=find_fused_chars(bond,n_bond,atom,letters,n_letters,
 					     real_font_height,real_font_width,
 					     'R',orig_box,bgColor,
 					     THRESHOLD_CHAR,4);
 
+
 		flatten_bonds(bond,n_bond,atom,n_atom,3.);
 		remove_zero_bonds(bond,n_bond,atom);
 		avg_bond=percentile75(bond,n_bond,atom);
-
+	
+		/*if (ttt++==22) 
+		  {
+		    debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");	
+		    exit(0);
+		    }		*/
 
 		double max_dist_double_bond=dist_double_bonds(atom,bond,n_bond,avg_bond,
 							      n_atom);
@@ -3968,7 +4002,7 @@ int main(int argc,char **argv)
 
 		n_bond=fix_one_sided_bonds(bond,n_bond,atom,dist,avg_bond);
 		
-		//debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");	
+		
 
 		n_letters=clean_unrecognized_characters(bond,n_bond,
 							atom,real_font_height,
