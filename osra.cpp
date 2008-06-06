@@ -628,7 +628,7 @@ int double_triple_bonds(atom_t *atom,bond_t *bond,int n_bond,double avg,int &n_a
 			  if (dik>dij)
 			    {
 			      bond[k].exists=false;
-			      if (l3>l2/2)
+			      if ((l3>l2/2) || (l2>avg && l2>1.5*l3 && l3>0.5*avg))
 				{  
 				  bond[j].type+=bond[k].type;
 				  if (bond[j].curve==bond[k].curve) 
@@ -639,7 +639,7 @@ int double_triple_bonds(atom_t *atom,bond_t *bond,int n_bond,double avg,int &n_a
 			  else
 			    {
 			      bond[j].exists=false;
-			      if (l2>l3/2)  
+			      if ((l2>l3/2) || (l3>avg && l3>1.5*l2 && l2>0.5*avg))
 				{
 				  bond[k].type+=bond[j].type;
 				  if (bond[j].curve==bond[k].curve) 
