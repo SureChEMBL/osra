@@ -595,6 +595,7 @@ double dist_double_bonds(atom_t *atom,bond_t *bond,int n_bond,double avg,int n_a
 	    }
       }
   qsort(a,n,sizeof(double),num_comp);
+  //  for (int i=0;i<n;i++) cout<<a[i]<<endl;
   if (n>0) max_dist_double_bond=a[3*(n-1)/4];
   if (max_dist_double_bond<1) max_dist_double_bond=avg/3;
   else max_dist_double_bond+=2;
@@ -613,9 +614,41 @@ int double_triple_bonds(atom_t *atom,bond_t *bond,int n_bond,double avg,int &n_a
 	    {
 	      double l2=bond_length(bond,j,atom);
 	      if ((distance_between_bonds(bond,i,j,atom)<=max_dist_double_bond)
-		  && (bonds_within_each_other(bond,i,j,atom))
-		  )
+		  && (bonds_within_each_other(bond,i,j,atom)))
 		{
+		  for (int k=j+1;k<n_bond;k++)
+		    if ((bond[k].exists) && 
+			(fabs(angle_between_bonds(bond,k,j,atom))>D_T_TOLERANCE))
+		      {
+			double l3=bond_length(bond,k,atom);
+			if ((distance_between_bonds(bond,k,j,atom)<=max_dist_double_bond)
+			    && (bonds_within_each_other(bond,k,j,atom)))
+			  if (l2>l3)
+			    {
+			      bond[k].exists=false;
+			      if (l3>l2/2)
+				{  
+				  bond[j].type+=bond[k].type;
+				  if (bond[j].curve==bond[k].curve) 
+				    bond[j].conjoined=true;
+				}
+			      if (bond[k].arom) bond[j].arom=true;
+			    }
+			  else
+			    {
+			      bond[j].exists=false;
+			      if (l2>l3/2)  
+				{
+				  bond[k].type+=bond[j].type;
+				  if (bond[j].curve==bond[k].curve) 
+				    bond[k].conjoined=true;
+				}
+			      if (bond[j].arom) bond[k].arom=true;
+			      break;
+			    }
+		      }
+	       
+		  if (!bond[j].exists) continue;
 		  int ii=i,jj=j;
 		  double l11=l1,l22=l2;
 		  bool extended_triple=false;
