@@ -601,14 +601,14 @@ string get_smiles(atom_t *atom, int real_atoms, bond_t *bond, int n_bond, int &r
 	 {
 	   mol.AddBond(atom[bond[i].a].n,atom[bond[i].b].n,bond[i].type,OB_WEDGE_BOND);
 	 }
-       else if (bond[i].up)
+       /*else if (bond[i].up)
 	 {
 	   mol.AddBond(atom[bond[i].a].n,atom[bond[i].b].n,bond[i].type,OB_TORUP_BOND);
 	 }
        else if (bond[i].down)
 	 {
 	   mol.AddBond(atom[bond[i].a].n,atom[bond[i].b].n,bond[i].type,OB_TORDOWN_BOND);
-	 }
+	   }*/
        else
 	 mol.AddBond(atom[bond[i].a].n,atom[bond[i].b].n,bond[i].type);
      }

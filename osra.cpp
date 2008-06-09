@@ -223,6 +223,7 @@ double distance_between_bonds(bond_t *bond,int i,int j,atom_t *atom)
   if (fabs(y3)>=1 && (fabs(y3)>2 || fabs(y4)>2)) ratio=y4/y3;
   if (fabs(y3)<1 && fabs(y4)>2) ratio=FLT_MAX;
   if (ratio>2.5 || ratio<0.4) return(FLT_MAX);*/
+  if (fabs(y3-y4)>=4) return(FLT_MAX);
   return(max(fabs(y3),fabs(y4)));
 }
 
@@ -599,8 +600,15 @@ double dist_double_bonds(atom_t *atom,bond_t *bond,int n_bond,double avg,int n_a
   //for (int i=0;i<n;i++) cout<<a[i]<<endl;
     //    cout<<"-----------------"<<endl;
   if (n>0) max_dist_double_bond=a[3*(n-1)/4];
+
   if (max_dist_double_bond<1) max_dist_double_bond=avg/3;
-  else max_dist_double_bond+=2;
+  else
+    {
+      max_dist_double_bond+=2;
+      for (int i=0;i<n;i++)
+	if (a[i]-max_dist_double_bond<1 && a[i]>max_dist_double_bond)
+	  max_dist_double_bond=a[i];
+    }
   return(max_dist_double_bond);
 }
 
@@ -618,7 +626,7 @@ int double_triple_bonds(atom_t *atom,bond_t *bond,int n_bond,double avg,int &n_a
 	      double dij=distance_between_bonds(bond,i,j,atom);
 	      if (dij<=max_dist_double_bond && bonds_within_each_other(bond,i,j,atom))
 		{
-		  for (int k=j+1;k<n_bond;k++)
+		  /*for (int k=j+1;k<n_bond;k++)
 		    if ((bond[k].exists) && 
 			(fabs(angle_between_bonds(bond,k,j,atom))>D_T_TOLERANCE))
 		      {
@@ -652,7 +660,7 @@ int double_triple_bonds(atom_t *atom,bond_t *bond,int n_bond,double avg,int &n_a
 			    }
 		      }
 	       
-		  if (!bond[j].exists) continue;
+		      if (!bond[j].exists) continue;*/
 		  int ii=i,jj=j;
 		  double l11=l1,l22=l2;
 		  bool extended_triple=false;
@@ -3690,11 +3698,11 @@ double confidence=0.316030
   //   +0.1*R_Count
   -0.212739*num_rings
   +0.071300*num_aromatic
-  +0.339289*(*Num_Rings)[3]
-  +0.422291*(*Num_Rings)[4]
+  //+0.339289*(*Num_Rings)[3]
+  //+0.422291*(*Num_Rings)[4]
   +0.329922*(*Num_Rings)[5]
   +0.342865*(*Num_Rings)[6]
-  +0.350747*(*Num_Rings)[7]
+  //+0.350747*(*Num_Rings)[7]
   -0.037796*num_fragments;
  return(confidence);
 }
@@ -3988,7 +3996,6 @@ int main(int argc,char **argv)
 							      n_atom);
 		n_bond=double_triple_bonds(atom,bond,n_bond,avg_bond,n_atom,
 					   max_dist_double_bond);
-	
 	
 		n_atom=find_dashed_bonds(p,atom,bond,n_atom,&n_bond,
 					 max(MAX_DASH,int(avg_bond/3)),
