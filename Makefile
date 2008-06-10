@@ -1,13 +1,13 @@
-ARCH=x86_64
+ARCH=i386
 #i386,x86_64,win32,osx
 
 OPENBABEL_OR_RDKIT=rdkit
 #openbabel,rdkit
 
-POTRACE=../../potrace-1.7/
+POTRACE=../../potrace-1.8/
 GOCR=../../gocr-0.45/
 OCRAD=../../ocrad-0.17/
-RDKIT=../../RDKit_64/
+RDKIT=../../RDKit_May2008_1/
 
 ifeq ($(ARCH),win32)
 OPENBABEL=../openbabel-2.1.1/
@@ -70,6 +70,7 @@ MOL_BACKEND_INC=$(RDKITINC)
 MOL_BACKEND_LIB=$(RDKITLIB)
 MOL_BACKEND_CPP=osra_rdkit.cpp
 MOL_BACKEND_OBJ=osra_rdkit.o
+LD_LIBRARY_PATH=$(RDKIT)/bin
 else
 MOL_BACKEND_INC=$(OPENBABELINC)
 MOL_BACKEND_LIB=$(OPENBABELLIB)

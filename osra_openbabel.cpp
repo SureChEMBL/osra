@@ -620,8 +620,8 @@ string get_smiles(atom_t *atom, int real_atoms, bond_t *bond, int n_bond, int &r
 	 {
 	   //b->UnsetHash();
 	   //b->UnsetWedge();
-	   b->UnsetUp();
-	   b->UnsetDown();
+	   //b->UnsetUp();
+	   //b->UnsetDown();
 	 }
        else if (b!=NULL && !b->IsInRing())
 	 b->UnsetAromatic();
