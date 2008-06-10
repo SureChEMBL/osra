@@ -1,13 +1,14 @@
-ARCH=i386
+ARCH=x86_64
 #i386,x86_64,win32,osx
 
-OPENBABEL_OR_RDKIT=openbabel
+OPENBABEL_OR_RDKIT=rdkit
 #openbabel,rdkit
 
 POTRACE=../../potrace-1.7/
 GOCR=../../gocr-0.45/
 OCRAD=../../ocrad-0.17/
-RDKIT=../../RDKit_Jan2008_1/
+RDKIT=../../RDKit_64/
+RDKIT_BIN=/gcc-4.1.2/release/address-model-64/threading-multi/
 
 ifeq ($(ARCH),win32)
 OPENBABEL=../openbabel-2.1.1/
@@ -28,7 +29,7 @@ PATCH=patch
 SRCDIR=./
 
 RDKITINC=-I$(RDKIT)/Code/ -I$(RDKIT)/External/vflib-2.0/include/ -I../../boost_1_34_1
-RDKITLIB=-L$(RDKIT)/bin/ -lRDGeneral -lSmilesParse -lGraphMol -lFileParsers -L$(RDKIT)/Code/GraphMol/Depictor/bin/gcc-3.4.6/release/link-static/threading-multi -lDepictor -L$(RDKIT)//Code/Geometry/bin/gcc-3.4.6/release/link-static/threading-multi/ -lRDGeometry -L$(RDKIT)/Code/GraphMol/Substruct/bin/gcc-3.4.6/release/link-static/threading-multi -lSubstruct -L$(RDKIT)/External/vflib-2.0/lib -lvf
+RDKITLIB=-L$(RDKIT)/bin/ -lRDGeneral -lSmilesParse -lGraphMol -lFileParsers -L$(RDKIT)/Code/GraphMol/Depictor/bin/$(RDKIT_BIN) -lDepictor -L$(RDKIT)//Code/Geometry/bin/$(RDKIT_BIN) -lRDGeometry -L$(RDKIT)/Code/GraphMol/Substruct/bin/$(RDKIT_BIN) -lSubstruct -L$(RDKIT)/External/vflib-2.0/lib -lvf
 
 ################ Hopefully you won't have to change anything below this line #########
 

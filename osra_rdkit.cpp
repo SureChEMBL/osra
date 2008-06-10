@@ -478,7 +478,13 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
      
     for(RWMol::AtomIterator atomIt=mol->beginAtoms();atomIt!=mol->endAtoms();atomIt++) 
     {
-     (*atomIt)->calcExplicitValence();
+     try {
+       (*atomIt)->calcExplicitValence();
+     }
+     catch (...)
+     {
+      (*atomIt)->setNumExplicitHs(0);
+     }
      try {
        (*atomIt)->calcImplicitValence();
      }
