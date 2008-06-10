@@ -94,7 +94,7 @@ typedef struct dash_s dash_t;
 
 string fix_atom_name(string s,int n);
 int getValency(string s);
-string get_smiles(atom_t *atom,int real_atoms,bond_t *bond, int n_bond, int &rotors, double &confidence, int &num_fragments, int &r56);
+string get_smiles(atom_t *atom,int real_atoms,bond_t *bond, int n_bond, int &rotors, double &confidence, int &num_fragments, int &r56,double avg);
 Magick::Image anisotropic_smoothing(Magick::Image image,int width,int height);
 Magick::Image anisotropic_scaling(Magick::Image image,int width,int height, int nw, int nh);
 int count_fragments(string input);
@@ -135,3 +135,6 @@ double confidence_function(int C_Count,int N_Count,int O_Count,int F_Count,
 #define BOUNDARY 5
 #define COARSE_GRAIN 100
 #define MAX_DASH 14
+#define CC_BOND_LENGTH 1.5120
+
+

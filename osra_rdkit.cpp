@@ -366,11 +366,13 @@ void superatom(string s,RWMol *mol,unsigned int n)
 }
 
 string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &rotors, 
-		  double &confidence, int &num_fragments, int &r56)
+		  double &confidence, int &num_fragments, int &r56, double avg)
 {
   RWMol *mol=new RWMol();
   int bondid=0;
   int anum;
+  double scale=CC_BOND_LENGTH/avg;
+
   Conformer *conf = new Conformer(real_atoms);	
   std::string smiles="";
   rotors=0;
@@ -391,8 +393,8 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
 	if (atom[bond[i].a].n<0)
 	  {
   	    RDGeom::Point3D pos;
-  	    pos.x=atom[bond[i].a].x;
-  	    pos.y=atom[bond[i].a].y;
+  	    pos.x=atom[bond[i].a].x*scale;
+  	    pos.y=atom[bond[i].a].y*scale;
   	    pos.z=0;
 	    anum=getAnum(atom[bond[i].a].label);
 	    Atom *a=new Atom(anum);
@@ -414,8 +416,8 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
 	if (atom[bond[i].b].n<0)
 	  {
 	    RDGeom::Point3D pos;
-	    pos.x=atom[bond[i].b].x;
-	    pos.y=atom[bond[i].b].y;
+	    pos.x=atom[bond[i].b].x*scale;
+	    pos.y=atom[bond[i].b].y*scale;
 	    pos.z=0;
 	    anum=getAnum(atom[bond[i].b].label);
 	    Atom *b=new Atom(anum);
