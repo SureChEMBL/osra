@@ -8,7 +8,6 @@ POTRACE=../../potrace-1.7/
 GOCR=../../gocr-0.45/
 OCRAD=../../ocrad-0.17/
 RDKIT=../../RDKit_64/
-RDKIT_BIN=/gcc-4.1.2/release/address-model-64/threading-multi/
 
 ifeq ($(ARCH),win32)
 OPENBABEL=../openbabel-2.1.1/
@@ -29,7 +28,7 @@ PATCH=patch
 SRCDIR=./
 
 RDKITINC=-I$(RDKIT)/Code/ -I$(RDKIT)/External/vflib-2.0/include/ -I../../boost_1_34_1
-RDKITLIB=-L$(RDKIT)/bin/ -lRDGeneral -lSmilesParse -lGraphMol -lFileParsers -L$(RDKIT)/Code/GraphMol/Depictor/bin/$(RDKIT_BIN) -lDepictor -L$(RDKIT)//Code/Geometry/bin/$(RDKIT_BIN) -lRDGeometry -L$(RDKIT)/Code/GraphMol/Substruct/bin/$(RDKIT_BIN) -lSubstruct -L$(RDKIT)/External/vflib-2.0/lib -lvf
+RDKITLIB=-L$(RDKIT)/bin/ -lRDGeneral -lSmilesParse -lGraphMol -lFileParsers -lDepictor -lRDGeometry -lSubstruct -L$(RDKIT)/External/vflib-2.0/lib -lvf
 
 ################ Hopefully you won't have to change anything below this line #########
 
