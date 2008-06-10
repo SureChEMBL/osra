@@ -573,7 +573,7 @@ string get_smiles(atom_t *atom, int real_atoms, bond_t *bond, int n_bond, int &r
 	   a->SetAtomicNum(anum);
 	   if (atom[bond[i].a].charge!=0)
 	     a->SetFormalCharge(atom[bond[i].a].charge);
-	   //a->SetVector(atom[bond[i].a].x*scale,atom[bond[i].a].y*scale,0);
+	   a->SetVector(atom[bond[i].a].x*scale,atom[bond[i].a].y*scale,0);
 	   mol.AddAtom(*a);
 	   atom[bond[i].a].n=n++;
 	 }
@@ -584,7 +584,7 @@ string get_smiles(atom_t *atom, int real_atoms, bond_t *bond, int n_bond, int &r
 	   b->SetAtomicNum(anum);
 	   if (atom[bond[i].b].charge!=0)
 	     b->SetFormalCharge(atom[bond[i].b].charge);
-	   //b->SetVector(atom[bond[i].b].x*scale,atom[bond[i].b].y*scale,0);
+	   b->SetVector(atom[bond[i].b].x*scale,atom[bond[i].b].y*scale,0);
 	   mol.AddAtom(*b);
 	   atom[bond[i].b].n=n++;
 	 }
@@ -600,14 +600,14 @@ string get_smiles(atom_t *atom, int real_atoms, bond_t *bond, int n_bond, int &r
 	 {
 	   mol.AddBond(atom[bond[i].a].n,atom[bond[i].b].n,bond[i].type,OB_WEDGE_BOND);
 	 }
-       else if (bond[i].up)
+       /*else if (bond[i].up)
 	 {
 	   mol.AddBond(atom[bond[i].a].n,atom[bond[i].b].n,bond[i].type,OB_TORUP_BOND);
 	 }
        else if (bond[i].down)
 	 {
 	   mol.AddBond(atom[bond[i].a].n,atom[bond[i].b].n,bond[i].type,OB_TORDOWN_BOND);
-         }
+         }*/
        else
 	 mol.AddBond(atom[bond[i].a].n,atom[bond[i].b].n,bond[i].type);
      }
@@ -619,8 +619,8 @@ string get_smiles(atom_t *atom, int real_atoms, bond_t *bond, int n_bond, int &r
 	 {
 	   //b->UnsetHash();
 	   //b->UnsetWedge();
-	   b->UnsetUp();
-	   b->UnsetDown();
+	   //b->UnsetUp();
+	   //b->UnsetDown();
 	 }
        else if (b!=NULL && !b->IsInRing())
 	 b->UnsetAromatic();
