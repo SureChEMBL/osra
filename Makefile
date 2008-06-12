@@ -1,7 +1,7 @@
 ARCH=i386
 #i386,x86_64,win32,osx
 
-OPENBABEL_OR_RDKIT=openbabel
+OPENBABEL_OR_RDKIT=rdkit
 #openbabel,rdkit
 
 POTRACE=../../potrace-1.8/

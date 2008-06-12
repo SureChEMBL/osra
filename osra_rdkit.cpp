@@ -34,6 +34,7 @@
 #include <GraphMol/FileParsers/MolFileStereochem.h>
 #include <GraphMol/RDKitQueries.h>
 #include <RDGeneral/RDLog.h>
+#include <GraphMol/PeriodicTable.h>
 #include <vector>
 #include <algorithm>
 using namespace RDKit;
@@ -430,7 +431,7 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
                  delete b;
                  b=query;
                  b->setProp("dummyLabel",std::string("?"));
-	        }
+	       }
 	    unsigned int aid=mol->addAtom(b);
 	    superatom(atom[bond[i].b].label,mol,aid);
 	    conf->setAtomPos(aid, pos);
@@ -485,7 +486,12 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
      }
      catch (...)
      {
-      (*atomIt)->setNumExplicitHs(0);
+       string symbol=(*atomIt)->getSymbol();
+       int id=(*atomIt)->getIdx();
+       QueryAtom *query=new QueryAtom(0);
+       query->setQuery(makeAtomNullQuery());
+       query->setProp("dummyLabel",symbol);
+       mol->replaceAtom(id,query);
      }
      try {
        (*atomIt)->calcImplicitValence();
@@ -522,8 +528,6 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
 	if (b!=NULL && ringInfo->numBondRings(i)!=0 &&
 	    (b->getBondDir()==Bond::ENDUPRIGHT || b->getBondDir()==Bond::ENDDOWNRIGHT))
 	  b->setBondDir(Bond::NONE);
-	//else if (b!=NULL && ringInfo->numBondRings(i)==0 && b->getIsAromatic())
-	//  b->setIsAromatic(false);
      }
 
  int C_Count=0;
