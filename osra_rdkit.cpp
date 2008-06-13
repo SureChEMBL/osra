@@ -33,8 +33,6 @@
 #include <GraphMol/FileParsers/FileParsers.h>
 #include <GraphMol/FileParsers/MolFileStereochem.h>
 #include <GraphMol/RDKitQueries.h>
-#include <RDGeneral/RDLog.h>
-#include <GraphMol/PeriodicTable.h>
 #include <vector>
 #include <algorithm>
 using namespace RDKit;
@@ -478,7 +476,7 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
      {
        doStereo=false;
      }
-     
+  
     for(RWMol::AtomIterator atomIt=mol->beginAtoms();atomIt!=mol->endAtoms();atomIt++) 
     {
      try {
@@ -517,19 +515,24 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
 	return(smiles);
       }
 
-  RDKit::MolOps::assignBondStereoCodes(*mol);
+    try {
+      RDKit::MolOps::assignBondStereoCodes(*mol);
+    } catch (...)
+      {
+	// do nothing?
+      }
              
-      
+    
   RingInfo *ringInfo = mol->getRingInfo();
 
-  for (unsigned int i=0;i<mol->getNumBonds();i++)
+    for (unsigned int i=0;i<mol->getNumBonds();i++)
       {
 	Bond *b=mol->getBondWithIdx(i);
 	if (b!=NULL && ringInfo->numBondRings(i)!=0 &&
 	    (b->getBondDir()==Bond::ENDUPRIGHT || b->getBondDir()==Bond::ENDDOWNRIGHT))
 	  b->setBondDir(Bond::NONE);
-     }
-
+      }
+  
  int C_Count=0;
  int N_Count=0;
  int O_Count=0;
@@ -553,7 +556,15 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
  ROMol *pattern_rotors=SmartsToMol("[!$(*#*)&!D1]-&!@[!$(*#*)&!D1]");
  
  std::vector<MatchVectType> matches;
- rotors=SubstructMatch(*mol,*pattern_rotors,matches);
+ try 
+   {
+     rotors=SubstructMatch(*mol,*pattern_rotors,matches,
+       true,false,false,false);
+   }
+ catch (...)
+   {
+     rotors=-1;
+   }
 
   vector<int> Num_Rings(8,0);
   VECT_INT_VECT atomRings; // VECT_INT_VECT is vector< vector<int> >

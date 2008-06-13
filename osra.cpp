@@ -2562,10 +2562,11 @@ int find_small_bonds(potrace_path_t *p, atom_t *atom,bond_t *bond,int n_atom,
 int resolve_bridge_bonds(atom_t* atom,int n_atom,bond_t* bond,int n_bond,
 			 double thickness,int &real_atoms,double avg)
 {
-  int rotors1,rotors2,f1,f2,rings1,rings2;
+  int rotors1=0,rotors2,f1,f2,rings1,rings2;
   double confidence;
   string smiles1=get_smiles(atom,real_atoms,bond,n_bond,rotors1,confidence,f1,
 			    rings1,avg);
+  rotors2=rotors1;
   for (int i=0;i<n_atom;i++)
     if ((atom[i].exists) && (atom[i].label==" "))
       {
