@@ -4,10 +4,10 @@ ARCH=i386
 OPENBABEL_OR_RDKIT=rdkit
 #openbabel,rdkit
 
-POTRACE=../../potrace-1.8/
+POTRACE=../../potrace-1.7/
 GOCR=../../gocr-0.45/
 OCRAD=../../ocrad-0.17/
-RDKIT=../../RDKit_May2008_1/
+RDKIT=../../RDKit_64/
 
 ifeq ($(ARCH),win32)
 OPENBABEL=../openbabel-2.1.1/

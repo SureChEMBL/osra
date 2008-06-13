@@ -554,17 +554,30 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
 
  int num_rings=ringInfo->numRings();
  ROMol *pattern_rotors=SmartsToMol("[!$(*#*)&!D1]-&!@[!$(*#*)&!D1]");
- 
- std::vector<MatchVectType> matches;
- try 
-   {
-     rotors=SubstructMatch(*mol,*pattern_rotors,matches,
-       true,false,false,false);
-   }
- catch (...)
-   {
-     rotors=-1;
-   }
+ rotors=-1;
+ smiles = MolToSmiles(*(static_cast<ROMol *>(mol)),true,false);
+ bool doSubstruct=true;
+ try {
+  ROMol *test=SmilesToMol(smiles);
+  if (test==NULL) doSubstruct=false;
+ } catch (...)
+ {
+  doSubstruct=false;
+ }
+
+ if (doSubstruct)
+ {
+  std::vector<MatchVectType> matches;
+  try 
+    {
+      rotors=SubstructMatch(*mol,*pattern_rotors,matches,
+        true,false,false,false);
+    }
+  catch (...)
+    {
+      rotors=-1;
+    }
+ } 
 
   vector<int> Num_Rings(8,0);
   VECT_INT_VECT atomRings; // VECT_INT_VECT is vector< vector<int> >
@@ -586,7 +599,7 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
      if(isAromatic) num_aromatic++;
    }
   
-  smiles = MolToSmiles(*(static_cast<ROMol *>(mol)),true,false); 
+//  smiles = MolToSmiles(*(static_cast<ROMol *>(mol)),true,false); 
   num_fragments=count_fragments(smiles);
 
   confidence=confidence_function(C_Count,N_Count,O_Count,F_Count,S_Count,Cl_Count,
