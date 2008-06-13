@@ -515,6 +515,7 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
 	return(smiles);
       }
 
+
     try {
       RDKit::MolOps::assignBondStereoCodes(*mol);
     } catch (...)
@@ -522,7 +523,7 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
 	// do nothing?
       }
              
-    
+
   RingInfo *ringInfo = mol->getRingInfo();
 
     for (unsigned int i=0;i<mol->getNumBonds();i++)
@@ -542,20 +543,21 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
  int R_Count=0;
  for (unsigned int i=0;i<mol->getNumAtoms();i++)
    {
-     int anum=mol->getAtomWithIdx(i)->getAtomicNum();
-     if (anum==6) C_Count++;
-     if (anum==7) N_Count++;
-     if (anum==8) O_Count++;
-     if (anum==9) F_Count++;
-     if (anum==16) S_Count++;
-     if (anum==17) Cl_Count++;
-     if (anum==0) R_Count++;
+     string symbol=mol->getAtomWithIdx(i)->getSymbol();
+     if (symbol=="C") C_Count++;
+     if (symbol=="N") N_Count++;
+     if (symbol=="O") O_Count++;
+     if (symbol=="F") F_Count++;
+     if (symbol=="S") S_Count++;
+     if (symbol=="Cl") Cl_Count++;
+     if (symbol=="?") R_Count++;
    }
 
  int num_rings=ringInfo->numRings();
  ROMol *pattern_rotors=SmartsToMol("[!$(*#*)&!D1]-&!@[!$(*#*)&!D1]");
  rotors=-1;
  smiles = MolToSmiles(*(static_cast<ROMol *>(mol)),true,false);
+
  bool doSubstruct=true;
  try {
   ROMol *test=SmilesToMol(smiles);
