@@ -570,8 +570,7 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
   std::vector<MatchVectType> matches;
   try 
     {
-      rotors=SubstructMatch(*mol,*pattern_rotors,matches,
-        true,false,false,false);
+      rotors=SubstructMatch(*mol,*pattern_rotors,matches);
     }
   catch (...)
     {
