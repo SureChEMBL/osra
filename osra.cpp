@@ -3951,7 +3951,7 @@ int main(int argc,char **argv)
 					  height,width,real_font_height,
 					  real_font_width,n_letters,avg_bond);
 
-debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");			
+		//debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");			
 		n_atom=find_small_bonds(p,atom,bond,n_atom,&n_bond,
 					max_area,avg_bond/2,5);
 
