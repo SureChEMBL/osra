@@ -569,7 +569,7 @@ double skeletize(atom_t *atom,bond_t *bond,int n_bond,Image image,
 	    }
       }
   qsort(a,n,sizeof(double),num_comp);
-  if (n>0) thickness=a[n/2];
+  if (n>0) thickness=a[(n-1)/2];
   else thickness=dist;
   return(thickness);
 }
@@ -3100,7 +3100,7 @@ double find_wedge_bonds(Image image,atom_t* atom, int n_atom,bond_t* bond,int n_
 	if (!bond[i].wedge) a[n++]=w3;
       }
   qsort(a,n,sizeof(double),num_comp);
-  if (n>0) t=a[n/2];
+  if (n>0) t=a[(n-1)/2];
   else t=1.5;
   return(t);
 }
@@ -3440,6 +3440,7 @@ void flatten_bonds(bond_t *bond,int n_bond,atom_t *atom,int n_atom,double maxh)
 	  {
 	    int n=0;
 	    int f=i;
+	    double li=bond_length(bond,i,atom);
 	    if (atom[bond[i].a].label==" ")
 	      {
 		for (int j=0;j<n_bond;j++)
@@ -3449,6 +3450,7 @@ void flatten_bonds(bond_t *bond,int n_bond,atom_t *atom,int n_atom,double maxh)
 		      n++;
 		      f=j;
 		    }
+		double lf=bond_length(bond,f,atom);
 		if (n==1)
 		  {
 		    if (bond[i].a==bond[f].b)
@@ -3470,7 +3472,8 @@ void flatten_bonds(bond_t *bond,int n_bond,atom_t *atom,int n_atom,double maxh)
 			    bond[f].exists=false;
 			    atom[bond[f].b].exists=false;
 			    bond[i].a=bond[f].a;
-			    bond[i].type=max(bond[i].type,bond[f].type);
+			    if (lf>li)
+			      bond[i].type=bond[f].type;
 			    if (bond[f].arom) bond[i].arom=true;
 			    if (bond[f].hash) bond[i].hash=true;
 			    if (bond[f].wedge) bond[i].wedge=true;
@@ -3493,7 +3496,6 @@ void flatten_bonds(bond_t *bond,int n_bond,atom_t *atom,int n_atom,double maxh)
 							atom[bond[f].b].y);
 			if (h<=maxh && d<0)
 			  {
-			    
 			    bond[f].exists=false;
 			    atom[bond[f].a].exists=false;
 			    
@@ -3503,7 +3505,8 @@ void flatten_bonds(bond_t *bond,int n_bond,atom_t *atom,int n_atom,double maxh)
 				bond[i].b=bond[f].b;
 			      }
 			    else bond[i].a=bond[f].b;
-			    bond[i].type=max(bond[i].type,bond[f].type);
+			    if (lf>li)
+			      bond[i].type=bond[f].type;
 			    if (bond[f].arom) bond[i].arom=true;
 			    if (bond[f].hash) bond[i].hash=true;
 			    if (bond[f].wedge) bond[i].wedge=true;
@@ -3524,6 +3527,7 @@ void flatten_bonds(bond_t *bond,int n_bond,atom_t *atom,int n_atom,double maxh)
 		      n++;
 		      f=j;
 		    }
+		double lf=bond_length(bond,f,atom);
 		if (n==1)
 		  {
 		    if (bond[i].b==bond[f].b)
@@ -3550,7 +3554,8 @@ void flatten_bonds(bond_t *bond,int n_bond,atom_t *atom,int n_atom,double maxh)
 				bond[i].a=bond[f].a;
 			      }
 			    else bond[i].b=bond[f].a;
-			    bond[i].type=max(bond[i].type,bond[f].type);
+			    if (lf>li)
+			      bond[i].type=bond[f].type;
 			    if (bond[f].arom) bond[i].arom=true;
 			    if (bond[f].hash) bond[i].hash=true;
 			    if (bond[f].wedge) bond[i].wedge=true;
@@ -3576,7 +3581,8 @@ void flatten_bonds(bond_t *bond,int n_bond,atom_t *atom,int n_atom,double maxh)
 			    bond[f].exists=false;
 			    atom[bond[f].a].exists=false;
 			    bond[i].b=bond[f].b;
-			    bond[i].type=max(bond[i].type,bond[f].type);
+			    if (lf>li)
+			      bond[i].type=bond[f].type;
 			    if (bond[f].arom) bond[i].arom=true;
 			    if (bond[f].hash) bond[i].hash=true;
 			    if (bond[f].wedge) bond[i].wedge=true;
@@ -3939,7 +3945,7 @@ int main(int argc,char **argv)
 				     max_font_width,max_font_height,
 				     real_font_width,real_font_height);
 	
-		
+
 
 
 		double avg_bond=percentile75(bond,n_bond,atom);
@@ -3951,7 +3957,6 @@ int main(int argc,char **argv)
 					  height,width,real_font_height,
 					  real_font_width,n_letters,avg_bond);
 
-		//debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");			
 		n_atom=find_small_bonds(p,atom,bond,n_atom,&n_bond,
 					max_area,avg_bond/2,5);
 
@@ -4000,13 +4005,12 @@ int main(int argc,char **argv)
 							      n_atom);
 		n_bond=double_triple_bonds(atom,bond,n_bond,avg_bond,n_atom,
 					   max_dist_double_bond);
-		
+					
 	
 		n_atom=find_dashed_bonds(p,atom,bond,n_atom,&n_bond,
 					 max(MAX_DASH,int(avg_bond/3)),
 					 avg_bond,orig_box,bgColor,
 					 THRESHOLD_BOND,thick,avg_bond);
-		
 		
 		n_letters=remove_small_bonds(bond,n_bond,atom,letters,n_letters,
 					     real_font_height,MIN_FONT_HEIGHT,avg_bond);
@@ -4038,8 +4042,9 @@ int main(int argc,char **argv)
 		remove_zero_bonds(bond,n_bond,atom);
 
 		flatten_bonds(bond,n_bond,atom,n_atom,2*thickness);
+
 		remove_zero_bonds(bond,n_bond,atom);
-		
+
 
 		avg_bond=percentile75(bond,n_bond,atom);
 
@@ -4073,6 +4078,7 @@ int main(int argc,char **argv)
 							real_font_height,
 							real_font_width,0,
 							letters,n_letters);
+
 
 
 	
