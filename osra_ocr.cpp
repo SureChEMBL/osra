@@ -229,7 +229,7 @@ string fix_atom_name(string s,int n)
   else if (s=="pl" || s=="nl") r="Ar";
   else if (s=="oX") r="Ox";
   else if (s=="NoZ" || s=="o2N" || s=="No2" || s=="No" || s=="O2N"
-      || s=="NOZ" || s=="NO" || s=="MO2") r="NO2";
+      || s=="NOZ" || s=="MO2") r="NO2";
   else if (s=="ph" || s=="Pl" || s=="pl") r="Ph";
   else if (s=="F3C" || s=="CF" || s=="FC" || s=="Co" || s=="F8l" || s=="CFS"
       || s=="FSC") r="CF3";

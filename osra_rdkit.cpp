@@ -171,6 +171,13 @@ void addNO2(RWMol *mol,unsigned int aid)
   mol->addBond(aid2,aid,Bond::DOUBLE);
 }
 
+void addNO(RWMol *mol,unsigned int aid)
+{
+  Atom *a1=new Atom(8);
+  unsigned int aid1=mol->addAtom(a1);
+  mol->addBond(aid1,aid,Bond::DOUBLE);
+}
+
 void addNOHCH3(RWMol *mol,unsigned int aid)
 {
   Atom *a1=new Atom(6);
@@ -327,6 +334,7 @@ int getAnum(string s)
   if (s=="Ac") return(6);
   if (s=="AcO") return(8);
   if (s=="NO2") return(7);
+  if (s=="NO") return(7);
   if (s=="Ph") return(6);
   if (s=="MeS") return(16);
   if (s=="MeN") return(7);
@@ -354,6 +362,7 @@ void superatom(string s,RWMol *mol,unsigned int n)
   if (s=="Ac")   addAc(mol,n);
   if (s=="AcO")  addAcO(mol,n);
   if (s=="NO2")  addNO2(mol,n);
+  if (s=="NO")  addNO(mol,n);
   if (s=="Ph")   addPh(mol,n);
   if (s=="MeS")  addMeX(mol,n);
   if (s=="MeN")  addMeX(mol,n);

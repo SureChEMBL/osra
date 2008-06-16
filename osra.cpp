@@ -298,8 +298,8 @@ double percentile75(bond_t *bond, int n_bond,atom_t *atom)
 	a[n++]=bond_length(bond,i,atom);
       }
   qsort(a,n,sizeof(double),num_comp);
-  double pos=0.75*n;
-  return(a[int(pos)]);
+  int pos=3*(n-1)/4;
+  return(a[pos]);
 }
 
 bool alone(bond_t* bond,int i,double avg)
@@ -898,6 +898,7 @@ int assemble_labels(letters_t *letters,int n_letters,label_t *label)
 	   (distance(letters[i].x,letters[i].y,letters[j].x,letters[j].y)<1.5*(letters[i].r+letters[j].r) && 
 	    (letters[i].a=='-' || letters[i].a=='+' || letters[j].a=='-' || letters[j].a=='+')))
 	{
+
 	  lbond[n_lbond].a=i;
 	  lbond[n_lbond].b=j;
 	  lbond[n_lbond].x=letters[i].x;
@@ -993,7 +994,7 @@ int assemble_labels(letters_t *letters,int n_letters,label_t *label)
 		last=lbond[j].b;
 		lbond[j].exists=false;
 	     }
-	 //cout<<label[n_label].a<<endl;
+	
 	 bool cont=true;
 	 string charges="";
 	 while (cont)
@@ -1015,6 +1016,7 @@ int assemble_labels(letters_t *letters,int n_letters,label_t *label)
 	      }
 	  }
 	 label[n_label].a+=charges;
+	 //cout<<label[n_label].a<<endl;
 	 n_label++;
 	 if (n_label>=MAX_ATOMS) n_label--;
       }
@@ -3265,10 +3267,9 @@ int find_plus_minus(potrace_path_t *p,letters_t *letters,
 		if (c[i][2].y>bottom) {bottom=int(c[i][2].y);x2=int(c[i][2].x);}
 	      }
 
-
 	    if (((bottom-top)<=max_font_height) && 
 		((right-left)<=max_font_width) && (right-left>1)
-		&& (right-left)<avg
+		//&& (right-left)<avg
 		)
 	    {
 	      double aspect=1.*(bottom-top)/(right-left);
@@ -3297,6 +3298,7 @@ int find_plus_minus(potrace_path_t *p,letters_t *letters,
 		}
 	      //cout<<left<<","<<y1<<" "<<right<<","<<y2<<" "<<top<<","<<x1<<" "<<bottom<<","<<x2<<endl;
 	      //cout<<left<<" "<<y1<<" "<<aspect<<" "<<fill<<endl;
+	      //	      cout<<aspect<<" "<<abs(y1-y2)<<" "<<abs(y1+y2-bottom-top)/2<<" "<<abs(x1-x2)<<" "<<abs(x1+x2-right-left)/2<<endl;
 	      if (aspect<0.7 && fill>0.9 
 			       && !char_to_right && !inside_char)  c='-';
 	      else if (aspect>0.7 && aspect<1./0.7 
@@ -3929,6 +3931,7 @@ int main(int argc,char **argv)
 		st = potrace_trace(param, bm);
 		p = st->plist;
 		n_atom=find_atoms(p,atom,bond,&n_bond);
+
 		int real_font_width,real_font_height;
 
 		n_letters=find_chars(p,orig_box,letters,atom,bond,n_atom,n_bond,
@@ -3937,7 +3940,7 @@ int main(int argc,char **argv)
 				     real_font_width,real_font_height);
 	
 		
-		
+
 
 		double avg_bond=percentile75(bond,n_bond,atom);
 
@@ -3948,7 +3951,7 @@ int main(int argc,char **argv)
 					  height,width,real_font_height,
 					  real_font_width,n_letters,avg_bond);
 
-
+debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");			
 		n_atom=find_small_bonds(p,atom,bond,n_atom,&n_bond,
 					max_area,avg_bond/2,5);
 
@@ -3997,6 +4000,7 @@ int main(int argc,char **argv)
 							      n_atom);
 		n_bond=double_triple_bonds(atom,bond,n_bond,avg_bond,n_atom,
 					   max_dist_double_bond);
+		
 	
 		n_atom=find_dashed_bonds(p,atom,bond,n_atom,&n_bond,
 					 max(MAX_DASH,int(avg_bond/3)),
@@ -4070,7 +4074,7 @@ int main(int argc,char **argv)
 							real_font_width,0,
 							letters,n_letters);
 
-		
+
 	
 		assign_charge(atom,bond,n_atom,n_bond);
 		find_up_down_bonds(bond,n_bond,atom,thickness);

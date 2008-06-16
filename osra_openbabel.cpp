@@ -227,6 +227,17 @@ void addNO2(OBMol *mol,int *n)
   mol->AddBond((*n)-1,(*n),2);
 }
 
+void addNO(OBMol *mol,int *n)
+{
+  OBAtom *a;
+  a=mol->CreateAtom();
+  a->SetAtomicNum(8);
+  mol->AddAtom(*a);
+  (*n)++;
+  mol->AddBond((*n)-1,(*n),2);
+}
+
+
 void addNOHCH3(OBMol *mol,int *n)
 {
   OBAtom *a;
@@ -502,6 +513,11 @@ int getAnum(string s, OBMol *mol,int *n)
   if (s=="NO2")
     {
       addNO2(mol,n);
+      return(7);
+    }
+  if (s=="NO")
+    {
+      addNO(mol,n);
       return(7);
     }
   if (s=="Ph")
