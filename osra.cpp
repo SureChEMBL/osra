@@ -4069,7 +4069,6 @@ int main(int argc,char **argv)
 					      2*thickness,max_dist_double_bond);
 
 
-		collapse_bonds(atom,bond,n_bond,avg_bond/4);
 		collapse_atoms(atom,bond,n_atom,n_bond,3);
 		remove_zero_bonds(bond,n_bond,atom);
 		flatten_bonds(bond,n_bond,atom,n_atom,3);
@@ -4091,12 +4090,17 @@ int main(int argc,char **argv)
 		    int f=resolve_bridge_bonds(atom,n_atom,bond,n_bond,2*thickness,
 					       real_atoms,avg_bond);
 
-
+                    collapse_bonds(atom,bond,n_bond,avg_bond/4);
+                    collapse_atoms(atom,bond,n_atom,n_bond,3);
+                    remove_zero_bonds(bond,n_bond,atom);
+                    flatten_bonds(bond,n_bond,atom,n_atom,3);
+                    remove_zero_bonds(bond,n_bond,atom);
+                                                                
 		    int rotors,rings;
 		    double confidence=0;
 		    string smiles=get_smiles(atom,real_atoms,bond,n_bond,rotors,
 					     confidence,f,rings,avg_bond);
-		    if (f<5 && smiles!="" && confidence>0)
+		    if (f<5 && smiles!="")
 		      {
 			array_of_smiles[res_iter].push_back(smiles);
 			total_boxes++;

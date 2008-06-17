@@ -13,10 +13,6 @@ ifeq ($(ARCH),win32)
 OPENBABEL=../openbabel-2.1.1/
 endif
 
-ifeq ($(ARCH),osx)
-MAGIK=/usr/ImageMagick-6.3.5/
-endif
-
 
 CPP = g++
 LD=g++ -g -O2 -fPIC
@@ -32,22 +28,10 @@ RDKITLIB=-L$(RDKIT)/bin/ -lRDGeneral -lSmilesParse -lGraphMol -lFileParsers -lDe
 
 ################ Hopefully you won't have to change anything below this line #########
 
-ifeq ($(ARCH),x86_64)
-X11LIBS=-L/usr/X11R6/lib64
-else
-X11LIBS=-L/usr/X11R6/lib
-endif
+MAGIKINC := $(shell Magick++-config --cppflags) $(shell Magick++-config --cxxflags)
+IMLIBS := $(shell Magick++-config --libs) $(shell Magick++-config --ldflags)
 
-ifeq ($(ARCH),osx)
-MAGIKINC=-I$(MAGIK)/include/
-MAGIKLIB=-L$(MAGIK)/lib/  -lMagick++ -lWand -lMagick -ltiff -ljpeg
-IMLIBS= $(X11LIBS) $(MAGIKLIB) -lfreetype -lXext -lSM -lICE -lX11 -lXt -lbz2 -lz
-endif
-
-ifeq ($(ARCH),win32)
-IMLIBS=-L/usr/local/lib -lMagick++ -lWand -lMagick -lgdi32 -ljbig -llcms -ltiff -ljasper  -ljpeg  -lpng -lbz2 -lz 
-else
-IMLIBS= $(X11LIBS) -lMagick++ -lWand -lMagick -ltiff -lfreetype -ljpeg -lXext -lSM -lICE -lX11 -lXt -lbz2
+ifneq ($(ARCH),win32)
 NETPBM=-lnetpbm
 endif
 
