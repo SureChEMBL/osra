@@ -136,5 +136,5 @@ double confidence_function(int C_Count,int N_Count,int O_Count,int F_Count,
 #define COARSE_GRAIN 100
 #define MAX_DASH 14
 #define CC_BOND_LENGTH 1.5120
-#define MIN_CONFIDENCE 0.3
+
 

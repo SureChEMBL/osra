@@ -4096,7 +4096,7 @@ int main(int argc,char **argv)
 		    double confidence=0;
 		    string smiles=get_smiles(atom,real_atoms,bond,n_bond,rotors,
 					     confidence,f,rings,avg_bond);
-		    if (f<5 && smiles!="" && confidence>MIN_CONFIDENCE)
+		    if (f<5 && smiles!="" && confidence>0)
 		      {
 			array_of_smiles[res_iter].push_back(smiles);
 			total_boxes++;
