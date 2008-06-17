@@ -3972,10 +3972,10 @@ int main(int argc,char **argv)
 				    bgColor,dist,avg_bond);
 	
 		remove_disconnected_atoms(atom,bond,n_atom,n_bond);
-	
-		collapse_atoms(atom,bond,n_atom,n_bond,3.);
+
+		collapse_atoms(atom,bond,n_atom,n_bond,2.);
 		remove_zero_bonds(bond,n_bond,atom);
-		
+
 
 		//if (working_resolution>=150)
 		  n_letters=find_fused_chars(bond,n_bond,atom,letters,n_letters,
@@ -4080,7 +4080,7 @@ int main(int argc,char **argv)
 							letters,n_letters);
 
 
-
+		
 	
 		assign_charge(atom,bond,n_atom,n_bond);
 		find_up_down_bonds(bond,n_bond,atom,thickness);
@@ -4096,7 +4096,7 @@ int main(int argc,char **argv)
 		    double confidence=0;
 		    string smiles=get_smiles(atom,real_atoms,bond,n_bond,rotors,
 					     confidence,f,rings,avg_bond);
-		    if (f<5 && smiles!="")
+		    if (f<5 && smiles!="" && confidence>MIN_CONFIDENCE)
 		      {
 			array_of_smiles[res_iter].push_back(smiles);
 			total_boxes++;
