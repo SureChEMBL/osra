@@ -1,5 +1,5 @@
-ARCH=i386
-#i386,x86_64,win32,osx
+ARCH=unix
+#unix,win32
 
 OPENBABEL_OR_RDKIT=openbabel
 #openbabel,rdkit
@@ -7,7 +7,11 @@ OPENBABEL_OR_RDKIT=openbabel
 POTRACE=../../potrace-1.7/
 GOCR=../../gocr-0.45/
 OCRAD=../../ocrad-0.17/
+
+ifeq ($(OPENBABEL_OR_RDKIT),rdkit)
 RDKIT=../../RDKit_64/
+BOOST=../../boost_1_34_1
+endif
 
 ifeq ($(ARCH),win32)
 OPENBABEL=../openbabel-2.1.1/
@@ -23,10 +27,12 @@ PATCH=patch
 
 SRCDIR=./
 
-RDKITINC=-I$(RDKIT)/Code/ -I$(RDKIT)/External/vflib-2.0/include/ -I../../boost_1_34_1
-RDKITLIB=-L$(RDKIT)/bin/ -lRDGeneral -lSmilesParse -lGraphMol -lFileParsers -lDepictor -lRDGeometry -lSubstruct -L$(RDKIT)/External/vflib-2.0/lib -lvf
-
 ################ Hopefully you won't have to change anything below this line #########
+
+TCLAPINC=-I/usr/local/include/tclap/ -I/usr/local/include
+
+RDKITINC=-I$(RDKIT)/Code/ -I$(RDKIT)/External/vflib-2.0/include/ -I$(BOOST)
+RDKITLIB=-L$(RDKIT)/bin/ -lRDGeneral -lSmilesParse -lGraphMol -lFileParsers -lDepictor -lRDGeometry -lSubstruct -L$(RDKIT)/External/vflib-2.0/lib -lvf
 
 MAGIKINC := $(shell Magick++-config --cppflags) $(shell Magick++-config --cxxflags)
 IMLIBS := $(shell Magick++-config --libs) $(shell Magick++-config --ldflags)
@@ -62,7 +68,6 @@ MOL_BACKEND_CPP=osra_openbabel.cpp
 MOL_BACKEND_OBJ=osra_openbabel.o
 endif
 
-TCLAPINC=-I/usr/local/include/tclap/ -I/usr/local/include
 
 OCRADSRC=$(wildcard $(OCRAD)*.cc)
 OCRADINC=$(wildcard $(OCRAD)*.h)
