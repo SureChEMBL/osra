@@ -3969,8 +3969,8 @@ int main(int argc,char **argv)
 				    bgColor,dist,avg_bond);
 	
 		remove_disconnected_atoms(atom,bond,n_atom,n_bond);
-
-		collapse_atoms(atom,bond,n_atom,n_bond,3.);
+		extend_terminal_bond_to_bonds(atom,bond,n_bond,4,1,0);
+		collapse_atoms(atom,bond,n_atom,n_bond,2.);
 		remove_zero_bonds(bond,n_bond,atom);
 
 
@@ -4086,8 +4086,6 @@ int main(int argc,char **argv)
 					       real_atoms,avg_bond);
                     collapse_bonds(atom,bond,n_bond,avg_bond/4);
                     collapse_atoms(atom,bond,n_atom,n_bond,3);
-                    remove_zero_bonds(bond,n_bond,atom);
-                    flatten_bonds(bond,n_bond,atom,3);
                     remove_zero_bonds(bond,n_bond,atom);
                                                                 
 		    int rotors,rings;
