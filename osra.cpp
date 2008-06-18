@@ -574,7 +574,7 @@ double skeletize(atom_t *atom,bond_t *bond,int n_bond,Image image,
   return(thickness);
 }
 
-double dist_double_bonds(atom_t *atom,bond_t *bond,int n_bond,double avg,int n_atom)
+double dist_double_bonds(atom_t *atom,bond_t *bond,int n_bond,double avg)
 {
   double a[MAX_ATOMS];
   int n=0;
@@ -1171,7 +1171,7 @@ void extend_terminal_bond_to_label(atom_t *atom,letters_t *letters,int n_letters
       }
 }
 
-void extend_terminal_bond_to_bonds(atom_t *atom,int n_atom,bond_t *bond, int n_bond,
+void extend_terminal_bond_to_bonds(atom_t *atom,bond_t *bond, int n_bond,
 				   double avg, double maxh,double max_dist_double_bond)
 {
   bool found_intersection=true;
@@ -2196,7 +2196,7 @@ int comp_dashes_y(const void *a,const void *b)
 }
 
 
-void extend_dashed_bond(int a,int b,int n,atom_t *atom,double avg)
+void extend_dashed_bond(int a,int b,int n,atom_t *atom)
 {
   double x0=atom[a].x;
   double y0=atom[a].y;
@@ -2205,9 +2205,6 @@ void extend_dashed_bond(int a,int b,int n,atom_t *atom,double avg)
   double l=distance(x0,y0,x1,y1);
   double kx=(x1-x0)/l;
   double ky=(y1-y0)/l;
-  //double e=max(avg,l);
-  //atom[b].x=kx*e+x0;
-  //atom[b].y=ky*e+y0;
   atom[a].x=kx*(-1.*l/(n-1))+x0;
   atom[a].y=ky*(-1.*l/(n-1))+y0;
   atom[b].x=kx*l/(n-1)+x1;
@@ -2464,7 +2461,7 @@ int find_dashed_bonds(potrace_path_t *p, atom_t *atom,bond_t *bond,int n_atom,
 		bond[*n_bond].up=false;
 		bond[*n_bond].down=false;
 		bond[*n_bond].Small=false;
-		extend_dashed_bond(bond[*n_bond].a,bond[*n_bond].b,n,atom,avg);
+		extend_dashed_bond(bond[*n_bond].a,bond[*n_bond].b,n,atom);
 		(*n_bond)++;
 		if ((*n_bond)>=MAX_ATOMS) (*n_bond)--;
 	      }
@@ -3105,7 +3102,7 @@ double find_wedge_bonds(Image image,atom_t* atom, int n_atom,bond_t* bond,int n_
   return(t);
 }
 
-void collapse_double_bonds(bond_t *bond,int n_bond,atom_t *atom,int n_atom,double dist)
+void collapse_double_bonds(bond_t *bond,int n_bond,atom_t *atom,double dist)
 {
   for (int i=0;i<n_bond;i++)
     if (bond[i].exists && bond[i].type==2 && bond[i].conjoined)
@@ -3220,7 +3217,7 @@ bool detect_curve(bond_t *bond,int n_bond, potrace_path_t *curve)
 int find_plus_minus(potrace_path_t *p,letters_t *letters,
 		    atom_t *atom,bond_t *bond,int n_atom,int n_bond,int height,
 		    int width, int max_font_height, int max_font_width,
-		    int n_letters, double avg)
+		    int n_letters)
 {
   int n, *tag;
   potrace_dpoint_t (*c)[3];
@@ -3427,7 +3424,7 @@ void  find_old_aromatic_bonds(potrace_path_t *p,bond_t *bond,int n_bond,
   
 }
 
-void flatten_bonds(bond_t *bond,int n_bond,atom_t *atom,int n_atom,double maxh)
+void flatten_bonds(bond_t *bond,int n_bond,atom_t *atom,double maxh)
 {
   bool found=true;
 
@@ -3955,7 +3952,7 @@ int main(int argc,char **argv)
 
 		n_letters=find_plus_minus(p,letters,atom,bond,n_atom,n_bond,
 					  height,width,real_font_height,
-					  real_font_width,n_letters,avg_bond);
+					  real_font_width,n_letters);
 
 		n_atom=find_small_bonds(p,atom,bond,n_atom,&n_bond,
 					max_area,avg_bond/2,5);
@@ -3973,7 +3970,7 @@ int main(int argc,char **argv)
 	
 		remove_disconnected_atoms(atom,bond,n_atom,n_bond);
 
-		collapse_atoms(atom,bond,n_atom,n_bond,2.);
+		collapse_atoms(atom,bond,n_atom,n_bond,3.);
 		remove_zero_bonds(bond,n_bond,atom);
 
 
@@ -3991,7 +3988,7 @@ int main(int argc,char **argv)
 					     THRESHOLD_CHAR,4);
 
 
-		flatten_bonds(bond,n_bond,atom,n_atom,3.);
+		flatten_bonds(bond,n_bond,atom,3.);
 		remove_zero_bonds(bond,n_bond,atom);
 		avg_bond=percentile75(bond,n_bond,atom);
 	
@@ -4001,8 +3998,7 @@ int main(int argc,char **argv)
 		    exit(0);
 		    }		*/
 
-		double max_dist_double_bond=dist_double_bonds(atom,bond,n_bond,avg_bond,
-							      n_atom);
+		double max_dist_double_bond=dist_double_bonds(atom,bond,n_bond,avg_bond);
 		n_bond=double_triple_bonds(atom,bond,n_bond,avg_bond,n_atom,
 					   max_dist_double_bond);
 					
@@ -4041,14 +4037,14 @@ int main(int argc,char **argv)
 		collapse_atoms(atom,bond,n_atom,n_bond,thickness);
 		remove_zero_bonds(bond,n_bond,atom);
 
-		flatten_bonds(bond,n_bond,atom,n_atom,2*thickness);
+		flatten_bonds(bond,n_bond,atom,2*thickness);
 
 		remove_zero_bonds(bond,n_bond,atom);
 
 
 		avg_bond=percentile75(bond,n_bond,atom);
 
-		collapse_double_bonds(bond,n_bond,atom,n_atom,max_dist_double_bond);
+		collapse_double_bonds(bond,n_bond,atom,max_dist_double_bond);
 
 
 		extend_terminal_bond_to_label(atom,letters,n_letters,bond,n_bond,
@@ -4059,19 +4055,18 @@ int main(int argc,char **argv)
 		remove_disconnected_atoms(atom,bond,n_atom,n_bond);
 		collapse_atoms(atom,bond,n_atom,n_bond,thickness);
 		remove_zero_bonds(bond,n_bond,atom);
-		flatten_bonds(bond,n_bond,atom,n_atom,thickness);
+		flatten_bonds(bond,n_bond,atom,thickness);
 		remove_zero_bonds(bond,n_bond,atom);
 		remove_disconnected_atoms(atom,bond,n_atom,n_bond);
 
 
 
-		extend_terminal_bond_to_bonds(atom,n_atom,bond,n_bond,avg_bond,
+		extend_terminal_bond_to_bonds(atom,bond,n_bond,avg_bond,
 					      2*thickness,max_dist_double_bond);
-
-
+					      
 		collapse_atoms(atom,bond,n_atom,n_bond,3);
 		remove_zero_bonds(bond,n_bond,atom);
-		flatten_bonds(bond,n_bond,atom,n_atom,3);
+		flatten_bonds(bond,n_bond,atom,3);
 		remove_zero_bonds(bond,n_bond,atom);
 		n_letters=clean_unrecognized_characters(bond,n_bond,atom,
 							real_font_height,
@@ -4089,11 +4084,10 @@ int main(int argc,char **argv)
 
 		    int f=resolve_bridge_bonds(atom,n_atom,bond,n_bond,2*thickness,
 					       real_atoms,avg_bond);
-
                     collapse_bonds(atom,bond,n_bond,avg_bond/4);
                     collapse_atoms(atom,bond,n_atom,n_bond,3);
                     remove_zero_bonds(bond,n_bond,atom);
-                    flatten_bonds(bond,n_bond,atom,n_atom,3);
+                    flatten_bonds(bond,n_bond,atom,3);
                     remove_zero_bonds(bond,n_bond,atom);
                                                                 
 		    int rotors,rings;
