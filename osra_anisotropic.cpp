@@ -28,7 +28,8 @@
 using namespace cimg_library;
 using namespace Magick;
 
-Image anisotropic_smoothing(Image image,int width,int height)
+Image anisotropic_smoothing(Image image,int width,int height, const float amplitude,
+			    const float alpha, const float sigma)
 {
 
   CImg<unsigned char> source(width,height,1,1,0);
@@ -46,25 +47,24 @@ Image anisotropic_smoothing(Image image,int width,int height)
 	source.draw_point(i,j,color);
       }
   CImg<unsigned char> dest(source);  
-  //  const float gfact = (sizeof(T)==2)?1.0f/256:1.0f;
   const float gfact=1.;
-  const float amplitude=20.; // 40 20!
-  const float sharpness=0.3; // 0.2! 0.3
+  //  const float amplitude=5.; // 20
+  const float sharpness=0.3; 
   const float anisotropy=1.;
-  const float alpha=.6; //0.6! 0.8
-  const float sigma=2.; //1.1 2.!
+  //const float alpha=.2; //0.6
+  //const float sigma=1.1; // 2.
   const float dl=0.8;
   const float da=30.;
   const float gauss_prec=2.;
   const unsigned int interp=0;
   const bool fast_approx=true;
-  const unsigned int tile=512; // 512 0
+  const unsigned int tile=512;
   const unsigned int btile=4;
-  const unsigned int threads=2; // 2 1
+  const unsigned int threads=2;
 
   dest.greycstoration_run(amplitude,sharpness,anisotropy,alpha,sigma,gfact,dl,da,gauss_prec,interp,fast_approx,tile,btile,threads);
   do {
-    cimg::wait(200);
+    cimg::wait(10);
   } while (dest.greycstoration_is_running());
 
   for(int i=0;i<width;i++)

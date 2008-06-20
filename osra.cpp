@@ -2928,9 +2928,10 @@ int comp_boxes(const void *a,const void *b)
 
 
 double noise_factor(Image image, int width, int height, ColorGray bgColor, 
-		     double THRESHOLD_BOND)
+		     double THRESHOLD_BOND, int resolution)
 {
   int n1=0,n2=0,n3=0;
+  double nf;
   for(int i=0;i<width;i++)
     {
       int j=0;
@@ -2965,8 +2966,9 @@ double noise_factor(Image image, int width, int height, ColorGray bgColor,
 	  else if (l==3) n3++;
 	}
     }
-  //  cout<<n1<<" "<<n2<<" "<<n3<<endl;
-  return(1.*n2/n3);
+  if (resolution>=300) nf=1.*n2/n3;
+  else nf=1.*n1/n2;
+  return(nf);
 }
 
 double thickness_hor(Image image,int x1,int y1, ColorGray bgColor, 
@@ -3885,16 +3887,14 @@ int main(int argc,char **argv)
 		height=orig_box.rows();
 		Image thick_box;
 
-
+		
 		if (resolution>=300)
 		  {
 		    double nf=noise_factor(orig_box,width,height,bgColor,
-					   THRESHOLD_BOND);
+					   THRESHOLD_BOND,resolution);
 		    if (nf>0.5 && nf<1.)
-		      {
-			thick_box=anisotropic_smoothing(orig_box,width,height);
-		      }
-		      else thick_box=orig_box;
+		      thick_box=anisotropic_smoothing(orig_box,width,height,20,0.6,2);
+		    else thick_box=orig_box;
 		  }
 		else if (resolution<300 && resolution>150)
 		  {
@@ -3909,8 +3909,12 @@ int main(int argc,char **argv)
 		    orig_box.scale(scale.str());
 		    working_resolution=300;
 		  }
+		/*else if (resolution<150)
+		  if (nf>2)
+		    thick_box=anisotropic_smoothing(orig_box,width,height,5,0.2,1.1);
+		    else thick_box=orig_box;*/
 		else 
-		    thick_box=orig_box;
+		  thick_box=orig_box;
 		
 		    
 		param->turnpolicy=POTRACE_TURNPOLICY_MINORITY;
@@ -3964,13 +3968,14 @@ int main(int argc,char **argv)
 		double dist=4.;
 		if (working_resolution<300) dist=3;
 		if (working_resolution<150) dist=2;
+		
+		                                
 	
 		double thickness=skeletize(atom,bond,n_bond,box,THRESHOLD_BOND,
 				    bgColor,dist,avg_bond);
 	
 		remove_disconnected_atoms(atom,bond,n_atom,n_bond);
-		extend_terminal_bond_to_bonds(atom,bond,n_bond,4,1,0);
-		collapse_atoms(atom,bond,n_atom,n_bond,2.);
+		collapse_atoms(atom,bond,n_atom,n_bond,3);
 		remove_zero_bonds(bond,n_bond,atom);
 
 
@@ -4087,7 +4092,12 @@ int main(int argc,char **argv)
                     collapse_bonds(atom,bond,n_bond,avg_bond/4);
                     collapse_atoms(atom,bond,n_atom,n_bond,3);
                     remove_zero_bonds(bond,n_bond,atom);
-                                                                
+		    extend_terminal_bond_to_bonds(atom,bond,n_bond,avg_bond,
+						  7,0);
+					      
+		    collapse_atoms(atom,bond,n_atom,n_bond,1);
+		    remove_zero_bonds(bond,n_bond,atom);
+
 		    int rotors,rings;
 		    double confidence=0;
 		    string smiles=get_smiles(atom,real_atoms,bond,n_bond,rotors,
