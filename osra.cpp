@@ -3851,13 +3851,14 @@ int main(int argc,char **argv)
 	    int height=image.rows();
 	    int max_font_height=MAX_FONT_HEIGHT*resolution/150;
 	    int max_font_width=MAX_FONT_WIDTH*resolution/150;
-	    int boundary=2*BOUNDARY;
+	    int boundary=BOUNDARY;
 	    bool thick=true;
-	    if (resolution<300)	boundary=BOUNDARY;
+	    //if (resolution<300) boundary=BOUNDARY;
 	    if (resolution<=150) thick=false;
 
 	    n_boxes=find_boxes(boxes,image,THRESHOLD_BOND,bgColor,width,height,
 			       COARSE_GRAIN,boundary,working_resolution);
+
 	    qsort(boxes,n_boxes,sizeof(box_t),comp_boxes);
 	    for (int k=0;k<n_boxes;k++)
 	      {
@@ -3975,33 +3976,27 @@ int main(int argc,char **argv)
 				    bgColor,dist,avg_bond);
 	
 		remove_disconnected_atoms(atom,bond,n_atom,n_bond);
-		collapse_atoms(atom,bond,n_atom,n_bond,3);
+		collapse_atoms(atom,bond,n_atom,n_bond,dist);
 		remove_zero_bonds(bond,n_bond,atom);
 
 
-		//if (working_resolution>=150)
-		  n_letters=find_fused_chars(bond,n_bond,atom,letters,n_letters,
-					     real_font_height,real_font_width,
-					     0,orig_box,bgColor,
-					     THRESHOLD_CHAR,3);
+		n_letters=find_fused_chars(bond,n_bond,atom,letters,n_letters,
+					   real_font_height,real_font_width,
+					   0,orig_box,bgColor,
+					   THRESHOLD_CHAR,3);
+		
 
+		n_letters=find_fused_chars(bond,n_bond,atom,letters,n_letters,
+					   real_font_height,real_font_width,
+					   'R',orig_box,bgColor,
+					   THRESHOLD_CHAR,4);
+		
 
-		  //if (working_resolution>=150)
-		  n_letters=find_fused_chars(bond,n_bond,atom,letters,n_letters,
-					     real_font_height,real_font_width,
-					     'R',orig_box,bgColor,
-					     THRESHOLD_CHAR,4);
-
-
-		flatten_bonds(bond,n_bond,atom,3.);
+		flatten_bonds(bond,n_bond,atom,dist);
 		remove_zero_bonds(bond,n_bond,atom);
 		avg_bond=percentile75(bond,n_bond,atom);
 	
-		/*if (ttt++==22) 
-		  {
-		    debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");	
-		    exit(0);
-		    }		*/
+		
 
 		double max_dist_double_bond=dist_double_bonds(atom,bond,n_bond,avg_bond);
 		n_bond=double_triple_bonds(atom,bond,n_bond,avg_bond,n_atom,
@@ -4069,9 +4064,9 @@ int main(int argc,char **argv)
 		extend_terminal_bond_to_bonds(atom,bond,n_bond,avg_bond,
 					      2*thickness,max_dist_double_bond);
 					      
-		collapse_atoms(atom,bond,n_atom,n_bond,3);
+		collapse_atoms(atom,bond,n_atom,n_bond,1);
 		remove_zero_bonds(bond,n_bond,atom);
-		flatten_bonds(bond,n_bond,atom,3);
+		flatten_bonds(bond,n_bond,atom,1);
 		remove_zero_bonds(bond,n_bond,atom);
 		n_letters=clean_unrecognized_characters(bond,n_bond,atom,
 							real_font_height,
@@ -4079,7 +4074,10 @@ int main(int argc,char **argv)
 							letters,n_letters);
 
 
-		
+		/*if (ttt++==6) 
+		  {
+		    debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");	
+		    }*/	       
 	
 		assign_charge(atom,bond,n_atom,n_bond);
 		find_up_down_bonds(bond,n_bond,atom,thickness);
@@ -4090,7 +4088,7 @@ int main(int argc,char **argv)
 		    int f=resolve_bridge_bonds(atom,n_atom,bond,n_bond,2*thickness,
 					       real_atoms,avg_bond);
                     collapse_bonds(atom,bond,n_bond,avg_bond/4);
-                    collapse_atoms(atom,bond,n_atom,n_bond,3);
+                    collapse_atoms(atom,bond,n_atom,n_bond,1);
                     remove_zero_bonds(bond,n_bond,atom);
 		    extend_terminal_bond_to_bonds(atom,bond,n_bond,avg_bond,
 						  7,0);

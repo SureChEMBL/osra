@@ -106,7 +106,7 @@ double confidence_function(int C_Count,int N_Count,int O_Count,int F_Count,
 			   int num_fragments,vector<int> *Num_Rings);
 
 
-#define OSRA_VERSION "1.0.0"
+#define OSRA_VERSION "1.0.1"
 #define MAX_ATOMS 10000
 #define NUM_BOXES 100
 #define MAX_FONT_HEIGHT 22
@@ -127,8 +127,8 @@ double confidence_function(int C_Count,int N_Count,int O_Count,int F_Count,
 #define WHITE_SPACE_FRACTION 0.3 
 #define MAX_BOND_THICKNESS 10
 #define SMALL_PICTURE_AREA 6000
-#define MAX_HEIGHT 1100
-#define MAX_WIDTH 1700
+#define MAX_HEIGHT 1000
+#define MAX_WIDTH 1000
 #define MIN_HEIGHT 50
 #define MIN_WIDTH 50
 #define NUM_RESOLUTIONS 3
