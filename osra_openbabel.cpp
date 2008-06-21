@@ -576,7 +576,7 @@ string get_smiles(atom_t *atom, int real_atoms, bond_t *bond, int n_bond, int &r
  int anum;
  double scale=CC_BOND_LENGTH/avg;
 
- conv.SetOutFormat("smi");
+ conv.SetOutFormat("can");
  conv.Read(&mol);
  mol.SetDimension(2);
  for (int i=0;i<n_bond;i++)

@@ -3851,9 +3851,9 @@ int main(int argc,char **argv)
 	    int height=image.rows();
 	    int max_font_height=MAX_FONT_HEIGHT*resolution/150;
 	    int max_font_width=MAX_FONT_WIDTH*resolution/150;
-	    int boundary=BOUNDARY;
+	    int boundary=2*BOUNDARY;
 	    bool thick=true;
-	    //if (resolution<300) boundary=BOUNDARY;
+	    if (resolution<300) boundary=BOUNDARY;
 	    if (resolution<=150) thick=false;
 
 	    n_boxes=find_boxes(boxes,image,THRESHOLD_BOND,bgColor,width,height,
@@ -3976,7 +3976,7 @@ int main(int argc,char **argv)
 				    bgColor,dist,avg_bond);
 	
 		remove_disconnected_atoms(atom,bond,n_atom,n_bond);
-		collapse_atoms(atom,bond,n_atom,n_bond,dist);
+		collapse_atoms(atom,bond,n_atom,n_bond,3);
 		remove_zero_bonds(bond,n_bond,atom);
 
 
@@ -3992,7 +3992,7 @@ int main(int argc,char **argv)
 					   THRESHOLD_CHAR,4);
 		
 
-		flatten_bonds(bond,n_bond,atom,dist);
+		flatten_bonds(bond,n_bond,atom,3);
 		remove_zero_bonds(bond,n_bond,atom);
 		avg_bond=percentile75(bond,n_bond,atom);
 	
