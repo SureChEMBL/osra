@@ -403,11 +403,11 @@ void addAc(OBMol *mol,int *n)
   a->SetAtomicNum(8);
   mol->AddAtom(*a);
   (*n)++;
-  mol->AddBond((*n)-1,(*n),2);
   a=mol->CreateAtom();
   a->SetAtomicNum(6);
   mol->AddAtom(*a);
   (*n)++;
+  mol->AddBond((*n)-2,(*n),2);
   mol->AddBond((*n)-1,(*n),1);
 }
 
@@ -415,7 +415,7 @@ void addAcO(OBMol *mol,int *n)
 {
   OBAtom *a;
   a=mol->CreateAtom();
-  a->SetAtomicNum(8);
+  a->SetAtomicNum(6);
   mol->AddAtom(*a);
   (*n)++;
   a=mol->CreateAtom();

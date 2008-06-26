@@ -4064,9 +4064,9 @@ int main(int argc,char **argv)
 		extend_terminal_bond_to_bonds(atom,bond,n_bond,avg_bond,
 					      2*thickness,max_dist_double_bond);
 					      
-		collapse_atoms(atom,bond,n_atom,n_bond,1);
+		collapse_atoms(atom,bond,n_atom,n_bond,3);
 		remove_zero_bonds(bond,n_bond,atom);
-		flatten_bonds(bond,n_bond,atom,1);
+		flatten_bonds(bond,n_bond,atom,3);
 		remove_zero_bonds(bond,n_bond,atom);
 		n_letters=clean_unrecognized_characters(bond,n_bond,atom,
 							real_font_height,
@@ -4088,7 +4088,7 @@ int main(int argc,char **argv)
 		    int f=resolve_bridge_bonds(atom,n_atom,bond,n_bond,2*thickness,
 					       real_atoms,avg_bond);
                     collapse_bonds(atom,bond,n_bond,avg_bond/4);
-                    collapse_atoms(atom,bond,n_atom,n_bond,1);
+                    collapse_atoms(atom,bond,n_atom,n_bond,3);
                     remove_zero_bonds(bond,n_bond,atom);
 		    extend_terminal_bond_to_bonds(atom,bond,n_bond,avg_bond,
 						  7,0);

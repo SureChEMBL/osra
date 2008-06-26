@@ -289,13 +289,13 @@ void addAc(RWMol *mol,unsigned int aid)
   unsigned int aid1=mol->addAtom(a1);
   Atom *a2=new Atom(6);
   unsigned int aid2=mol->addAtom(a2);
-  mol->addBond(aid1,aid2,Bond::DOUBLE);
+  mol->addBond(aid1,aid,Bond::DOUBLE);
   mol->addBond(aid2,aid,Bond::SINGLE);
 }
 
 void addAcO(RWMol *mol,unsigned int aid)
 {
-  Atom *a1=new Atom(8);
+  Atom *a1=new Atom(6);
   unsigned int aid1=mol->addAtom(a1);
   Atom *a2=new Atom(8);
   unsigned int aid2=mol->addAtom(a2);

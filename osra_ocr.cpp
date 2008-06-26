@@ -218,7 +218,7 @@ string fix_atom_name(string s,int n)
       || s=="lPl") r="iPr";
   else if ((s=="tBU") || (s=="BU") || (s=="llBU") || (s=="lBU")) r="tBu";
   else if (s=="CooH" || s=="HooC" || s=="Co2H" || s=="CO2H" || s=="HOOC" || s=="CO2n") r="COOH";
-  else if (s=="AC") r="Ac";
+  else if (s=="AC" || s=="pC" || s=="pc") r="Ac";
   else if (s=="ACo" || s=="opC" || s=="pcO" || s=="ACO" || s=="oCO" 
 	   || s=="OoC" || s=="OpC" || s=="pCO" || s=="RCO" || s=="ORC") r="AcO";
   else if (s=="Bl" || s=="el") r="Br";
@@ -230,7 +230,7 @@ string fix_atom_name(string s,int n)
   else if (s=="oX") r="Ox";
   else if (s=="NoZ" || s=="o2N" || s=="No2" || s=="No" || s=="O2N"
       || s=="NOZ" || s=="MO2") r="NO2";
-  else if (s=="ph" || s=="Pl" || s=="pl") r="Ph";
+//  else if (s=="ph" || s=="Pl" || s=="pl") r="Ph";
   else if (s=="F3C" || s=="CF" || s=="FC" || s=="Co" || s=="F8l" || s=="CFS"
       || s=="FSC") r="CF3";
   else if (s=="F3Co") r="F3CN";
