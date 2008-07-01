@@ -119,9 +119,8 @@ double confidence_function(int C_Count,int N_Count,int O_Count,int F_Count,
 #define DIR_CHANGE 2
 #define THRESHOLD_GLOBAL 0.4
 #define THRESHOLD_LOW_RES 0.2
-//#define MAX_RATIO 0.2
-#define MIN_ASPECT 0.2
-#define MAX_ASPECT 5.
+#define MIN_ASPECT 0.1
+#define MAX_ASPECT 10.
 #define MIN_A_COUNT 5
 #define MAX_A_COUNT 200
 #define MIN_CHAR_POINTS 2
@@ -133,8 +132,6 @@ double confidence_function(int C_Count,int N_Count,int O_Count,int F_Count,
 #define MIN_HEIGHT 50
 #define MIN_WIDTH 50
 #define NUM_RESOLUTIONS 3
-//#define BOUNDARY 5
-//#define COARSE_GRAIN 100
 #define MAX_DASH 14
 #define CC_BOND_LENGTH 1.5120
 #define MAX_ASSEMBLY_SIZE 120

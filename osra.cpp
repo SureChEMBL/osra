@@ -1988,12 +1988,21 @@ vector < vector < box_t > > find_assembly(Image image,double THRESHOLD_BOND,
 	  int left=width;
 	  int bottom=0;
 	  int right=0;
+	  bool big_segment=false;
 	  for (unsigned int j=0;j<v_box_assembly[i].size();j++)
 	    {
 	      if (v_box_assembly[i][j].x1<left) left=v_box_assembly[i][j].x1;
 	      if (v_box_assembly[i][j].y1<top) top=v_box_assembly[i][j].y1;
 	      if (v_box_assembly[i][j].x2>right) right=v_box_assembly[i][j].x2;
 	      if (v_box_assembly[i][j].y2>bottom) bottom=v_box_assembly[i][j].y2;
+	      if ((v_box_assembly[i][j].x2-v_box_assembly[i][j].x1)>MIN_WIDTH
+		  || (v_box_assembly[i][j].y2-v_box_assembly[i][j].y1)>MIN_HEIGHT)
+		big_segment=true;
+	    }
+	  if (!big_segment && working_resolution>=150)
+	    {
+	      v_box_assembly[i].clear();
+	      continue;
 	    }
 	  double aspect=0;
 	  if (right!=left)  aspect=1.*(bottom-top)/(right-left);
@@ -2018,7 +2027,7 @@ vector < vector < box_t > > find_assembly(Image image,double THRESHOLD_BOND,
     potrace_state_free(st);
     potrace_param_free(param);
     free(bm);
-    //    draw_box(image,boxes,n_boxes,"tmp.gif");
+    //        draw_box(image,boxes,n_boxes,"tmp.gif");
     return(v_box_assembly);
 }
 
@@ -3885,7 +3894,7 @@ int main(int argc,char **argv)
 	    bool thick=true;
 	    if (resolution<=150) thick=false;
 
-	    vector < vector < box_t > > v_box_assembly=find_assembly(image,THRESHOLD_BOND,bgColor,width,height,max_font_height, working_resolution,boxes,n_boxes);
+	    vector < vector < box_t > > v_box_assembly=find_assembly(image,THRESHOLD_BOND,bgColor,width,height,max_font_height/2, working_resolution,boxes,n_boxes);
 
 	    qsort(boxes,n_boxes,sizeof(box_t),comp_boxes);
 	    for (int k=0;k<n_boxes;k++)
