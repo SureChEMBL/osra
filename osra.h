@@ -72,6 +72,7 @@ typedef struct label_s label_t;
 
 struct box_s {
   int x1,y1,x2,y2;
+  unsigned int assembly;
 };
 typedef struct box_s box_t;
 
@@ -118,7 +119,7 @@ double confidence_function(int C_Count,int N_Count,int O_Count,int F_Count,
 #define DIR_CHANGE 2
 #define THRESHOLD_GLOBAL 0.4
 #define THRESHOLD_LOW_RES 0.2
-#define MAX_RATIO 0.2
+//#define MAX_RATIO 0.2
 #define MIN_ASPECT 0.2
 #define MAX_ASPECT 5.
 #define MIN_A_COUNT 5
@@ -132,9 +133,10 @@ double confidence_function(int C_Count,int N_Count,int O_Count,int F_Count,
 #define MIN_HEIGHT 50
 #define MIN_WIDTH 50
 #define NUM_RESOLUTIONS 3
-#define BOUNDARY 5
-#define COARSE_GRAIN 100
+//#define BOUNDARY 5
+//#define COARSE_GRAIN 100
 #define MAX_DASH 14
 #define CC_BOND_LENGTH 1.5120
+#define MAX_ASSEMBLY_SIZE 120
 
 

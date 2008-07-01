@@ -287,6 +287,15 @@ int num_comp(const void *a,const void *b)
   return(0);
 }
 
+int num_comp_int(const void *a,const void *b)
+{
+  int aa=int(*(int*)a);
+  int bb=int(*(int*)b);
+  if (aa<bb) return(-1);
+  if (aa==bb) return(0);
+  if (aa>bb) return(1);
+  return(0);
+}
 
 double percentile75(bond_t *bond, int n_bond,atom_t *atom)
 {
@@ -1508,66 +1517,6 @@ int find_bonds(atom_t *atom, bond_t *bond, int b_atom, int n_atom, int n_bond,po
     return(n_bond);
 }
 
-void adjust_box(Image image,double THRESHOLD_BOND,ColorGray bgColor,
-		int width,int height,int boundary,int allowed,
-		int &top,int &left, int &bottom, int &right,int maxh,int maxw)
-{
-  int oldtop=top-1;
-  int oldbottom=bottom-1;
-  int oldleft=left-1;
-  int oldright=right-1;
-  while (((oldtop!=top) || (oldbottom!=bottom) || (oldleft!=left) || (oldright!=right)) &&
-	 ((right-left)<=maxw) && ((bottom-top)<=maxh))
-    {
-      oldtop=top;
-      oldbottom=bottom;
-      oldleft=left;
-      oldright=right;
-      int s=1;
-      while((top>0) && (s>allowed)  && ((right-left)<=maxw) && ((bottom-top)<=maxh))
-	{
-	  s=0;
-	  for (int i=top;i<top+boundary;i++)
-	    {
-	      for (int j=left;j<=right;j++) s+=getPixel(image,bgColor,j,i,THRESHOLD_BOND);
-	    }
-	  if (s>allowed) top--;
-	}
-      s=1;
-      while((bottom<height) && (s>allowed) && ((right-left)<=maxw) && ((bottom-top)<=maxh))
-	{
-	  s=0;
-	  for (int i=bottom;i>bottom-boundary;i--)
-	    {
-	      for (int j=left;j<=right;j++) s+=getPixel(image,bgColor,j,i,THRESHOLD_BOND);
-	    }
-	  if (s>allowed) bottom++;
-	}
-      s=1;
-      while((left>0) && (s>allowed) && ((right-left)<=maxw) && ((bottom-top)<=maxh))
-	{
-	  s=0;
-	  for (int i=top;i<=bottom;i++)
-	    {
-	      for (int j=left;j<left+boundary;j++) s+=getPixel(image,bgColor,j,i,THRESHOLD_BOND);
-	    }
-	  if (s>allowed) left--;
-	}
-      s=1;
-      while((right<width) && (s>allowed) && ((right-left)<=maxw) && ((bottom-top)<=maxh))
-	{
-	  s=0;
-	  for (int i=top;i<=bottom;i++)
-	    {
-	      for (int j=right;j>right-boundary;j--) s+=getPixel(image,bgColor,j,i,THRESHOLD_BOND);
-	    }
-	  if (s>allowed) right++;
-	}
-    }
-
-}
-
-
 int find_chars(potrace_path_t *p,Image orig,letters_t *letters,
 	       atom_t *atom,bond_t *bond,int n_atom,int n_bond,int height,int width,
 	       ColorGray bgColor, double THRESHOLD, 
@@ -1852,51 +1801,74 @@ int find_atoms(potrace_path_t *p, atom_t *atom,bond_t *bond,int *n_bond)
 }
 
 
-bool check_boxes(int left,int top,int right,int bottom,box_t *boxes,int n_boxes)
+
+bool overlap_boxes(int x1,int y1,int x2, int y2,int x3, int y3, int x4, int y4)
 {
-  for (int i=0;i<n_boxes;i++)
-    {
-      if ((left>boxes[i].x1) && (left<boxes[i].x2) && (top>boxes[i].y1) && (top<boxes[i].y2)) 
-	return(true);
-      else if ((right>boxes[i].x1) && (right<boxes[i].x2) && (top>boxes[i].y1) && (top<boxes[i].y2)) 
-	return(true);
-      else if ((left>boxes[i].x1) && (left<boxes[i].x2) && (bottom>boxes[i].y1) && (bottom<boxes[i].y2)) 
-	return(true);
-      else if ((right>boxes[i].x1) && (right<boxes[i].x2) && (bottom>boxes[i].y1) && (bottom<boxes[i].y2)) 
-	return(true);
-    }
+  if (x1>=x3 && x1<=x4 && y1>=y3 && y1<=y4) return(true);
+  if (x2>=x3 && x2<=x4 && y2>=y3 && y2<=y4) return(true);
+  if (x1>=x3 && x1<=x4 && y2>=y3 && y2<=y4) return(true);
+  if (x2>=x3 && x2<=x4 && y1>=y3 && y1<=y4) return(true);
+  if (x3>=x1 && x3<=x2 && y3>=y1 && y3<=y2) return(true);
+  if (x4>=x1 && x4<=x2 && y4>=y1 && y4<=y2) return(true);
+  if (x3>=x1 && x3<=x2 && y4>=y1 && y4<=y2) return(true);
+  if (x4>=x1 && x4<=x2 && y3>=y1 && y3<=y2) return(true);
   return(false);
 }
 
-int calculate_area(potrace_path_t *p)
+int distance_between_boxes(int x1,int y1,int x2, int y2,int x3, int y3, int x4, int y4)
 {
-  int area=p->area;
-  potrace_path_t *child=p->childlist;
-  while (child !=NULL)
+  int r;
+  if (overlap_boxes(x1,y1,x2,y2,x3,y3,x4,y4)) return(0);
+  int c1x=(x1+x2)/2;
+  int c1y=(y1+y2)/2;
+  int c2x=(x3+x4)/2;
+  int c2y=(y3+y4)/2;
+  if (abs(c1x-c2x)>abs(c1y-c2y))
     {
-      area-=child->area;
-      child=child->sibling;
+      r=min(abs(x3-x1),abs(x4-x1));
+      r=min(r,abs(x3-x2));
+      r=min(r,abs(x4-x2));
     }
-  return(area);
+  else
+    {
+      r=min(abs(y3-y1),abs(y4-y1));
+      r=min(r,abs(y3-y2));
+      r=min(r,abs(y4-y2));
+    }
+  return(r);
 }
 
+int distance_from_assembly(vector < box_t > assembly, box_t box)
+{
+  int d=INT_MAX;
+  for (unsigned int i=0;i<assembly.size();i++)
+    {
+      int d1=distance_between_boxes(assembly[i].x1,assembly[i].y1,assembly[i].x2,
+				    assembly[i].y2,box.x1,box.y1,box.x2,box.y2);
+      if (d>d1)  d=d1;
+    }
+  return(d);
+}
 
-
-int find_boxes(box_t *boxes,Image image,double THRESHOLD_BOND,ColorGray bgColor,
-	       int width,int height,int res,int boundary, int working_resolution)
+vector < vector < box_t > > find_assembly(Image image,double THRESHOLD_BOND,
+					  ColorGray bgColor,int width,int height,
+					  int boundary, int working_resolution,
+					  box_t *boxes,int &n_boxes)
 {
   potrace_bitmap_t *bm;
   potrace_param_t *param;
   potrace_path_t *p;
   potrace_state_t *st;
-  int n_boxes=0;
+  vector < vector < box_t > > v_box_assembly;
+  box_t box;
+
 
   param = potrace_param_default();
   param->alphamax=0.;
   //param->turnpolicy=POTRACE_TURNPOLICY_MINORITY;
   bm = bm_new(width,height);
-  param->turdsize=res;
-  //param->turdsize=1;
+  param->turdsize=1;
+  //param->turdsize=res;
 
     for(int i=0;i<width;i++)
       for(int j=0;j<height;j++)
@@ -1951,44 +1923,103 @@ int find_boxes(box_t *boxes,Image image,double THRESHOLD_BOND,ColorGray bgColor,
 		if (right>width-1) right=width-1;
 		if (bottom>height-1) bottom=height-1;
 	      }
-	    int area=calculate_area(p);
-	    double ratio=0,aspect=0;
-	    if ((bottom!=top) && (right!=left)) ratio=1.*area/((bottom-top)*(right-left));
-	    if (right!=left)  aspect=1.*(bottom-top)/(right-left);
+	    box.x1=left;
+	    box.y1=top;
+	    box.x2=right;
+	    box.y2=bottom;
 
-	    if ((ratio<MAX_RATIO) && (ratio>0) && (aspect>MIN_ASPECT) && 
-		(aspect<MAX_ASPECT) &&
-		(!check_boxes(left,top,right,bottom,boxes,n_boxes)))
+	    bool new_flag=true;
+	    for (unsigned int i=0;i<v_box_assembly.size();i++)
+	      if (distance_from_assembly(v_box_assembly[i],box)<boundary)
+		{
+		  v_box_assembly[i].push_back(box);
+		  new_flag=false;
+		  break;
+		}
+	    if (new_flag)
 	      {
-		adjust_box(image,THRESHOLD_BOND,bgColor,width,height,boundary, 
-			   0,top,left,bottom,right,height,width);
-		//left=0;top=0;right=width;bottom=height;
-		if (left<0) left=0;
-		if (top<0) top=0;
-		if (right>width) right=width;
-		if (bottom>height) bottom=height;
-		if ((right-left)*300/working_resolution<MAX_WIDTH 
-		    && (bottom-top)*300/working_resolution<MAX_HEIGHT 
-		    && (right-left)>MIN_WIDTH && (bottom-top)>MIN_HEIGHT
-		    || working_resolution<150)
-		  {
-		    boxes[n_boxes].x1=left;
-		    boxes[n_boxes].x2=right;
-		    boxes[n_boxes].y1=top;
-		    boxes[n_boxes].y2=bottom;
-		    n_boxes++;
-		    if (n_boxes>=NUM_BOXES) n_boxes--;
-		  }
+		vector < box_t > new_assembly;
+		new_assembly.push_back(box);
+		v_box_assembly.push_back(new_assembly);
 	      }
 	  }
-
 	p = p->next;
       }
-    //draw_box(image,boxes,n_boxes,"tmp.gif");
+    bool cont=true;
+    while (cont)
+      {
+	cont=false;
+	for (unsigned int i=0;i<v_box_assembly.size();i++)
+	  if (!v_box_assembly[i].empty())
+	    for (unsigned j=0;j<i;j++)
+	      if (!v_box_assembly[j].empty())
+		{
+		  bool found=false;
+		  for (unsigned int k=0;k<v_box_assembly[i].size();k++)
+		    {
+		      int dist=distance_from_assembly(v_box_assembly[j],v_box_assembly[i][k]);
+		      if (dist<boundary)
+			{
+			  found=true;
+			  cont=true;
+			  break;
+			}
+		    }
+		  if (found)
+		    {
+		      for (unsigned int k=0;k<v_box_assembly[i].size();k++)
+			v_box_assembly[j].push_back(v_box_assembly[i][k]);
+		      v_box_assembly[i].clear();
+		    }
+		}
+      }
+
+
+    n_boxes=0;
+    for (unsigned int i=0;i<v_box_assembly.size();i++)
+      if (!v_box_assembly[i].empty())
+	{
+	  if (v_box_assembly[i].size()>MAX_ASSEMBLY_SIZE)
+	    {
+	      v_box_assembly[i].clear();
+	      continue;
+	    }
+	  int top=height;
+	  int left=width;
+	  int bottom=0;
+	  int right=0;
+	  for (unsigned int j=0;j<v_box_assembly[i].size();j++)
+	    {
+	      if (v_box_assembly[i][j].x1<left) left=v_box_assembly[i][j].x1;
+	      if (v_box_assembly[i][j].y1<top) top=v_box_assembly[i][j].y1;
+	      if (v_box_assembly[i][j].x2>right) right=v_box_assembly[i][j].x2;
+	      if (v_box_assembly[i][j].y2>bottom) bottom=v_box_assembly[i][j].y2;
+	    }
+	  double aspect=0;
+	  if (right!=left)  aspect=1.*(bottom-top)/(right-left);
+	  
+	  if (aspect<MIN_ASPECT || aspect>MAX_ASPECT
+	      || (right-left)*300/working_resolution>MAX_WIDTH 
+	      || (bottom-top)*300/working_resolution>MAX_HEIGHT 
+	      || (((right-left)<MIN_WIDTH || (bottom-top)<MIN_HEIGHT)
+		  && working_resolution>150))
+	    v_box_assembly[i].clear();
+	  else
+	    {
+	      boxes[n_boxes].x1=left;
+	      boxes[n_boxes].y1=top;
+	      boxes[n_boxes].x2=right;
+	      boxes[n_boxes].y2=bottom;
+	      boxes[n_boxes].assembly=i;
+	      n_boxes++;
+	      if (n_boxes>=NUM_BOXES) n_boxes--;
+	    }
+	}
     potrace_state_free(st);
     potrace_param_free(param);
     free(bm);
-    return(n_boxes);
+    //    draw_box(image,boxes,n_boxes,"tmp.gif");
+    return(v_box_assembly);
 }
 
 int count_pages(string input)
@@ -3851,13 +3882,10 @@ int main(int argc,char **argv)
 	    int height=image.rows();
 	    int max_font_height=MAX_FONT_HEIGHT*resolution/150;
 	    int max_font_width=MAX_FONT_WIDTH*resolution/150;
-	    int boundary=2*BOUNDARY;
 	    bool thick=true;
-	    if (resolution<300) boundary=BOUNDARY;
 	    if (resolution<=150) thick=false;
 
-	    n_boxes=find_boxes(boxes,image,THRESHOLD_BOND,bgColor,width,height,
-			       COARSE_GRAIN,boundary,working_resolution);
+	    vector < vector < box_t > > v_box_assembly=find_assembly(image,THRESHOLD_BOND,bgColor,width,height,max_font_height, working_resolution,boxes,n_boxes);
 
 	    qsort(boxes,n_boxes,sizeof(box_t),comp_boxes);
 	    for (int k=0;k<n_boxes;k++)
@@ -3871,19 +3899,25 @@ int main(int argc,char **argv)
 		potrace_path_t *p;
 		potrace_state_t *st;
 
-		Image orig_box=image;
+	
+		Image orig_box( Geometry(boxes[k].x2-boxes[k].x1+3,boxes[k].y2-boxes[k].y1+3), bgColor );
+		orig_box.type( GrayscaleType );
+		unsigned int assembly=boxes[k].assembly;
+		for (unsigned int kk=0;kk<v_box_assembly[assembly].size();kk++)
+		  {
+		    int x1=v_box_assembly[assembly][kk].x1;
+		    int y1=v_box_assembly[assembly][kk].y1;
+		    int x2=v_box_assembly[assembly][kk].x2;
+		    int y2=v_box_assembly[assembly][kk].y2;
+		    for (int i=x1;i<=x2;i++)
+		      for (int j=y1;j<=y2;j++)
+			{
+			  ColorRGB c;
+			  c=image.pixelColor(i,j);
+			  orig_box.pixelColor(i-boxes[k].x1+1,j-boxes[k].y1+1,c);
+			}
+		  }
 
-		width=orig_box.columns();
-		height=orig_box.rows();
-
-
-		if (boxes[k].x1>MIN_FONT_HEIGHT 
-		    || boxes[k].y1>MIN_FONT_HEIGHT 
-		    || width-boxes[k].x2>MIN_FONT_HEIGHT 
-		    || height-boxes[k].y2>MIN_FONT_HEIGHT)
-		  orig_box.crop(Geometry(boxes[k].x2-boxes[k].x1,
-					 boxes[k].y2-boxes[k].y1,
-					 boxes[k].x1,boxes[k].y1));
 		width=orig_box.columns();
 		height=orig_box.rows();
 		Image thick_box;
