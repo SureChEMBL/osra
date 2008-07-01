@@ -1999,9 +1999,9 @@ vector < vector < box_t > > find_assembly(Image image,double THRESHOLD_BOND,
 	  if (right!=left)  aspect=1.*(bottom-top)/(right-left);
 	  
 	  if (aspect<MIN_ASPECT || aspect>MAX_ASPECT
-	      || (right-left)*300/working_resolution>MAX_WIDTH 
-	      || (bottom-top)*300/working_resolution>MAX_HEIGHT 
-	      || (((right-left)<MIN_WIDTH || (bottom-top)<MIN_HEIGHT)
+	      || (((right-left)*300/working_resolution>MAX_WIDTH 
+		   || (bottom-top)*300/working_resolution>MAX_HEIGHT 
+		   || (right-left)<MIN_WIDTH || (bottom-top)<MIN_HEIGHT)
 		  && working_resolution>150))
 	    v_box_assembly[i].clear();
 	  else
