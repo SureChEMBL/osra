@@ -1804,26 +1804,39 @@ int find_atoms(potrace_path_t *p, atom_t *atom,bond_t *bond,int *n_bond)
 
 bool overlap_boxes(int x1,int y1,int x2, int y2,int x3, int y3, int x4, int y4)
 {
-  if (x1>=x3 && x1<=x4 && y1>=y3 && y1<=y4) return(true);
-  if (x2>=x3 && x2<=x4 && y2>=y3 && y2<=y4) return(true);
-  if (x1>=x3 && x1<=x4 && y2>=y3 && y2<=y4) return(true);
-  if (x2>=x3 && x2<=x4 && y1>=y3 && y1<=y4) return(true);
-  if (x3>=x1 && x3<=x2 && y3>=y1 && y3<=y2) return(true);
-  if (x4>=x1 && x4<=x2 && y4>=y1 && y4<=y2) return(true);
-  if (x3>=x1 && x3<=x2 && y4>=y1 && y4<=y2) return(true);
-  if (x4>=x1 && x4<=x2 && y3>=y1 && y3<=y2) return(true);
-  return(false);
+  int t,l,r,b;
+  l=(x1>x3 ? x1 : x3);
+  t=(y1>y3 ? y1 : y3);
+  r=(x2<x4 ? x2 : x4);
+  b=(y2<y4 ? y2 : y4);
+  
+  if (r>l && b>t) return(true);
+  else return(false);
 }
 
 int distance_between_boxes(int x1,int y1,int x2, int y2,int x3, int y3, int x4, int y4)
 {
   int r;
   if (overlap_boxes(x1,y1,x2,y2,x3,y3,x4,y4)) return(0);
-  int c1x=(x1+x2)/2;
-  int c1y=(y1+y2)/2;
-  int c2x=(x3+x4)/2;
-  int c2y=(y3+y4)/2;
-  if (abs(c1x-c2x)>abs(c1y-c2y))
+  if ((x1>=x3 && x1<=x4) || (x2>=x3 && x2<=x4))
+    {
+      r=min(abs(y3-y1),abs(y4-y1));
+      r=min(r,abs(y3-y2));
+      r=min(r,abs(y4-y2));
+    }
+  else if ((y1>=y3 && y1<=y4) || (y2>=y3 && y2<=y4))
+    {
+      r=min(abs(x3-x1),abs(x4-x1));
+      r=min(r,abs(x3-x2));
+      r=min(r,abs(x4-x2));
+    }
+  else if (x1<x3 && x2>x4) 
+    {
+      r=min(abs(y3-y1),abs(y4-y1));
+      r=min(r,abs(y3-y2));
+      r=min(r,abs(y4-y2));
+    }
+  else if (y1<y3 && y2>y4) 
     {
       r=min(abs(x3-x1),abs(x4-x1));
       r=min(r,abs(x3-x2));
@@ -1831,9 +1844,13 @@ int distance_between_boxes(int x1,int y1,int x2, int y2,int x3, int y3, int x4, 
     }
   else
     {
-      r=min(abs(y3-y1),abs(y4-y1));
-      r=min(r,abs(y3-y2));
-      r=min(r,abs(y4-y2));
+      int rx=min(abs(x3-x1),abs(x4-x1));
+      rx=min(rx,abs(x3-x2));
+      rx=min(rx,abs(x4-x2));
+      int ry=min(abs(y4-y1),abs(y3-y1));
+      ry=min(ry,abs(y3-y2));
+      ry=min(ry,abs(y4-y2));
+      r=max(rx,ry);
     }
   return(r);
 }
@@ -1849,6 +1866,31 @@ int distance_from_assembly(vector < box_t > assembly, box_t box)
     }
   return(d);
 }
+
+bool box_in_box(int x1,int y1,int x2, int y2,int x3, int y3, int x4, int y4)
+{
+  if (x1>=x3 && x1<=x4 && y1>=y3 && y1<=y4 &&
+      x2>=x3 && x2<=x4 && y2>=y3 && y2<=y4)
+    return(true);
+  return(false);
+}
+
+bool assembly_in_box(vector < box_t > assembly, box_t box)
+{
+  for (unsigned int i=0;i<assembly.size();i++)
+    if (!box_in_box(assembly[i].x1,assembly[i].y1,assembly[i].x2,
+		    assembly[i].y2,box.x1,box.y1,box.x2,box.y2))
+      return(false);
+  return(true);
+}
+
+bool assembly_in_box_assembly(vector < box_t > assembly1,vector < box_t > assembly2)
+{
+  for (unsigned int i=0;i<assembly2.size();i++)
+    if (assembly_in_box(assembly1,assembly2[i])) return(true);
+  return(false);
+}
+
 
 vector < vector < box_t > > find_assembly(Image image,double THRESHOLD_BOND,
 					  ColorGray bgColor,int width,int height,
@@ -1927,54 +1969,88 @@ vector < vector < box_t > > find_assembly(Image image,double THRESHOLD_BOND,
 	    box.y1=top;
 	    box.x2=right;
 	    box.y2=bottom;
+	    
+	    double aspect=0;
+	    if (right!=left)  aspect=1.*(bottom-top)/(right-left);
 
-	    bool new_flag=true;
-	    for (unsigned int i=0;i<v_box_assembly.size();i++)
-	      if (distance_from_assembly(v_box_assembly[i],box)<boundary)
-		{
-		  v_box_assembly[i].push_back(box);
-		  new_flag=false;
-		  break;
-		}
-	    if (new_flag)
+	    if ((right-left)*300/working_resolution<MAX_WIDTH &&
+		(bottom-top)*300/working_resolution<MAX_HEIGHT &&
+		!(((right-left)>MIN_WIDTH || (bottom-top)>MIN_HEIGHT) &&
+		  (aspect<MIN_ASPECT || aspect>MAX_ASPECT)))
 	      {
 		vector < box_t > new_assembly;
 		new_assembly.push_back(box);
 		v_box_assembly.push_back(new_assembly);
 	      }
-	  }
+
+         }
 	p = p->next;
-      }
+     }
+	
     bool cont=true;
     while (cont)
       {
 	cont=false;
 	for (unsigned int i=0;i<v_box_assembly.size();i++)
 	  if (!v_box_assembly[i].empty())
-	    for (unsigned j=0;j<i;j++)
-	      if (!v_box_assembly[j].empty())
-		{
-		  bool found=false;
-		  for (unsigned int k=0;k<v_box_assembly[i].size();k++)
+	    {
+	      int minj=i;
+	      int mindist=INT_MAX;
+	      for (unsigned j=i+1;j<v_box_assembly.size();j++)
+		if (!v_box_assembly[j].empty())
+		  for (unsigned int k=0;k<v_box_assembly[j].size();k++)
 		    {
-		      int dist=distance_from_assembly(v_box_assembly[j],v_box_assembly[i][k]);
-		      if (dist<boundary)
+		      int dist=distance_from_assembly(v_box_assembly[i],v_box_assembly[j][k]);
+		      if (dist<mindist)
 			{
-			  found=true;
-			  cont=true;
-			  break;
+			  mindist=dist;
+			  minj=j;
 			}
 		    }
-		  if (found)
+	     
+	      if (mindist<boundary && minj!=i)
+		{
+		  int j=minj;
+		  /*bool fits_inside1=assembly_in_box_assembly(v_box_assembly[i],
+							     v_box_assembly[j]);
+		  bool fits_inside2=assembly_in_box_assembly(v_box_assembly[j],
+							     v_box_assembly[i]);
+		 if (!fits_inside1 && !fits_inside2)
+		  */
 		    {
+		      int top=height;
+		      int left=width;
+		      int bottom=0;
+		      int right=0;
 		      for (unsigned int k=0;k<v_box_assembly[i].size();k++)
-			v_box_assembly[j].push_back(v_box_assembly[i][k]);
-		      v_box_assembly[i].clear();
+			{
+			  if (v_box_assembly[i][k].x1<left) left=v_box_assembly[i][k].x1;
+			  if (v_box_assembly[i][k].y1<top) top=v_box_assembly[i][k].y1;
+			  if (v_box_assembly[i][k].x2>right) right=v_box_assembly[i][k].x2;
+			  if (v_box_assembly[i][k].y2>bottom) bottom=v_box_assembly[i][k].y2;
+			}
+		      for (unsigned int k=0;k<v_box_assembly[j].size();k++)
+			{
+			  if (v_box_assembly[j][k].x1<left) left=v_box_assembly[j][k].x1;
+			  if (v_box_assembly[j][k].y1<top) top=v_box_assembly[j][k].y1;
+			  if (v_box_assembly[j][k].x2>right) right=v_box_assembly[j][k].x2;
+			  if (v_box_assembly[j][k].y2>bottom) bottom=v_box_assembly[j][k].y2;
+			}
+		      if (((right-left)*300/working_resolution>MAX_WIDTH 
+			   || (bottom-top)*300/working_resolution>MAX_HEIGHT) 
+			  && mindist>0)
+			continue;
+
+		      for (unsigned int k=0;k<v_box_assembly[j].size();k++)
+			v_box_assembly[i].push_back(v_box_assembly[j][k]);
+		      v_box_assembly[j].clear();
+		      cont=true;
 		    }
 		}
+	    }
       }
-
-
+	
+	
     n_boxes=0;
     for (unsigned int i=0;i<v_box_assembly.size();i++)
       if (!v_box_assembly[i].empty())
@@ -2007,11 +2083,7 @@ vector < vector < box_t > > find_assembly(Image image,double THRESHOLD_BOND,
 	  double aspect=0;
 	  if (right!=left)  aspect=1.*(bottom-top)/(right-left);
 	  
-	  if (aspect<MIN_ASPECT || aspect>MAX_ASPECT
-	      || (((right-left)*300/working_resolution>MAX_WIDTH 
-		   || (bottom-top)*300/working_resolution>MAX_HEIGHT 
-		   || (right-left)<MIN_WIDTH || (bottom-top)<MIN_HEIGHT)
-		  && working_resolution>150))
+	  if (aspect<MIN_ASPECT || aspect>MAX_ASPECT)
 	    v_box_assembly[i].clear();
 	  else
 	    {
@@ -2027,7 +2099,7 @@ vector < vector < box_t > > find_assembly(Image image,double THRESHOLD_BOND,
     potrace_state_free(st);
     potrace_param_free(param);
     free(bm);
-    //        draw_box(image,boxes,n_boxes,"tmp.gif");
+    //            draw_box(image,boxes,n_boxes,"tmp.gif");
     return(v_box_assembly);
 }
 
