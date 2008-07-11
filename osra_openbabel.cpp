@@ -674,7 +674,12 @@ string get_smiles(atom_t *atom, int real_atoms, bond_t *bond, int n_bond, int &r
    }
  rotors=mol.NumRotors();
  str=conv.WriteString(&mol,true);
- num_fragments=count_fragments(str);
+ 
+ std::vector< std::vector< int > > cfl;
+ mol.ContigFragList(cfl);
+ //num_fragments=count_fragments(str);
+ num_fragments=cfl.size();
+
  confidence=confidence_function(C_Count,N_Count,O_Count,F_Count,S_Count,Cl_Count,
 				num_rings,num_aromatic,num_fragments,&Num_Rings);
 

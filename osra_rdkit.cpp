@@ -610,7 +610,9 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
    }
   
 //  smiles = MolToSmiles(*(static_cast<ROMol *>(mol)),true,false); 
-  num_fragments=count_fragments(smiles);
+//  num_fragments=count_fragments(smiles);
+  VECT_INT_VECT frags;	 
+  num_fragments= MolOps::getMolFrags(*(static_cast<ROMol *>(mol)),frags);
 
   confidence=confidence_function(C_Count,N_Count,O_Count,F_Count,S_Count,Cl_Count,
 				 num_rings,num_aromatic,num_fragments,&Num_Rings);

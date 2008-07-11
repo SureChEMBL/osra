@@ -94,14 +94,13 @@ typedef struct dash_s dash_t;
 //using namespace Magick;
 
 string fix_atom_name(string s,int n);
-int getValency(string s);
+//int getValency(string s);
 string get_smiles(atom_t *atom,int real_atoms,bond_t *bond, int n_bond, int &rotors, double &confidence, int &num_fragments, int &r56,double avg);
 Magick::Image anisotropic_smoothing(Magick::Image image,int width,int height, const float amplitude,const float alpha, const float sigma);
 Magick::Image anisotropic_scaling(Magick::Image image,int width,int height, int nw, int nh);
-int count_fragments(string input);
 char get_atom_label(Magick::Image image, Magick::ColorGray bg, int x1, int y1, int x2, int y2, double THRESHOLD, int dropx, int dropy);
 int getPixel(Magick::Image image, Magick::ColorGray bg,unsigned int x, unsigned int y, double THRESHOLD);
-int count_fragments(string input);
+//int count_fragments(string input);
 double confidence_function(int C_Count,int N_Count,int O_Count,int F_Count,
 			   int S_Count,int Cl_Count,int num_rings,int num_aromatic,
 			   int num_fragments,vector<int> *Num_Rings);

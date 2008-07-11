@@ -2103,6 +2103,196 @@ vector < vector < box_t > > find_assembly(Image image,double THRESHOLD_BOND,
     return(v_box_assembly);
 }
 
+void adjust_box(Image image,double THRESHOLD_BOND,ColorGray bgColor,
+		int width,int height,int boundary,int allowed,
+		int &top,int &left, int &bottom, int &right,int maxh,int maxw)
+{
+  int oldtop=top-1;
+  int oldbottom=bottom-1;
+  int oldleft=left-1;
+  int oldright=right-1;
+  while (((oldtop!=top) || (oldbottom!=bottom) || (oldleft!=left) || (oldright!=right)) &&
+	 ((right-left)<=maxw) && ((bottom-top)<=maxh))
+    {
+      oldtop=top;
+      oldbottom=bottom;
+      oldleft=left;
+      oldright=right;
+      int s=1;
+      while((top>0) && (s>allowed)  && ((right-left)<=maxw) && ((bottom-top)<=maxh))
+	{
+	  s=0;
+	  for (int i=top;i<top+boundary;i++)
+	    {
+	      for (int j=left;j<=right;j++) s+=getPixel(image,bgColor,j,i,THRESHOLD_BOND);
+	    }
+	  if (s>allowed) top--;
+	}
+      s=1;
+      while((bottom<height) && (s>allowed) && ((right-left)<=maxw) && ((bottom-top)<=maxh))
+	{
+	  s=0;
+	  for (int i=bottom;i>bottom-boundary;i--)
+	    {
+	      for (int j=left;j<=right;j++) s+=getPixel(image,bgColor,j,i,THRESHOLD_BOND);
+	    }
+	  if (s>allowed) bottom++;
+	}
+      s=1;
+      while((left>0) && (s>allowed) && ((right-left)<=maxw) && ((bottom-top)<=maxh))
+	{
+	  s=0;
+	  for (int i=top;i<=bottom;i++)
+	    {
+	      for (int j=left;j<left+boundary;j++) s+=getPixel(image,bgColor,j,i,THRESHOLD_BOND);
+	    }
+	  if (s>allowed) left--;
+	}
+      s=1;
+      while((right<width) && (s>allowed) && ((right-left)<=maxw) && ((bottom-top)<=maxh))
+	{
+	  s=0;
+	  for (int i=top;i<=bottom;i++)
+	    {
+	      for (int j=right;j>right-boundary;j--) s+=getPixel(image,bgColor,j,i,THRESHOLD_BOND);
+	    }
+	  if (s>allowed) right++;
+	}
+    }
+
+}
+
+int calculate_area(potrace_path_t *p)
+{
+  int area=p->area;
+  potrace_path_t *child=p->childlist;
+  while (child !=NULL)
+    {
+      area-=child->area;
+      child=child->sibling;
+    }
+  return(area);
+}
+
+bool check_boxes(int left,int top,int right,int bottom,box_t *boxes,int n_boxes)
+{
+  for (int i=0;i<n_boxes;i++)
+    if (overlap_boxes(left,top,right,bottom,
+		      boxes[i].x1,boxes[i].y1,boxes[i].x2,boxes[i].y2))
+      return(true);
+  return(false);
+}
+
+int find_boxes(box_t *boxes,Image image,double THRESHOLD_BOND,ColorGray bgColor,
+	       int width,int height,int res,int boundary, int working_resolution)
+{
+  potrace_bitmap_t *bm;
+  potrace_param_t *param;
+  potrace_path_t *p;
+  potrace_state_t *st;
+  int n_boxes=0;
+
+  param = potrace_param_default();
+  param->alphamax=0.;
+  //param->turnpolicy=POTRACE_TURNPOLICY_MINORITY;
+  bm = bm_new(width,height);
+  param->turdsize=res;
+  //param->turdsize=1;
+
+    for(int i=0;i<width;i++)
+      for(int j=0;j<height;j++)
+	BM_PUT(bm,i,j,getPixel(image,bgColor,i,j,THRESHOLD_BOND));
+    
+    st = potrace_trace(param, bm);
+    p = st->plist;
+    while (p != NULL) 
+      {
+	int top=0;
+	int left=0;
+	int bottom=0;
+	int right=0;
+	if ((p->sign == int('+')))
+	  {
+	    long n = p->curve.n;
+	    int *tag = p->curve.tag;
+	    potrace_dpoint_t (*c)[3];
+	    c = p->curve.c;
+	    top=height;
+	    left=width;
+	    bottom=0;
+	    right=0;
+	    for (int i=0; i<n; i++) 
+	      {
+		switch (tag[i]) 
+		  {
+		  case POTRACE_CORNER:
+		    if (c[i][1].x<left) {left=int(c[i][1].x);}
+		    if (c[i][1].x>right) {right=int(c[i][1].x);}
+		    if (c[i][1].y<top) {top=int(c[i][1].y);}
+		    if (c[i][1].y>bottom) {bottom=int(c[i][1].y);}
+		    break;
+		  case POTRACE_CURVETO:
+		    if (c[i][0].x<left) {left=int(c[i][0].x);}
+		    if (c[i][0].x>right) {right=int(c[i][0].x);}
+		    if (c[i][0].y<top) {top=int(c[i][0].y);}
+		    if (c[i][0].y>bottom) {bottom=int(c[i][0].y);}
+		    if (c[i][1].x<left) {left=int(c[i][1].x);}
+		    if (c[i][1].x>right) {right=int(c[i][1].x);}
+		    if (c[i][1].y<top) {top=int(c[i][1].y);}
+		    if (c[i][1].y>bottom) {bottom=int(c[i][1].y);}
+		    break;
+		  }
+		if (c[i][2].x<left) {left=int(c[i][2].x);}
+		if (c[i][2].x>right) {right=int(c[i][2].x);}
+		if (c[i][2].y<top) {top=int(c[i][2].y);}
+		if (c[i][2].y>bottom) {bottom=int(c[i][2].y);}
+		
+		if (left<0) left=0;
+		if (top<0) top=0;
+		if (right>width-1) right=width-1;
+		if (bottom>height-1) bottom=height-1;
+	      }
+	    int area=calculate_area(p);
+	    double ratio=0,aspect=0;
+	    if ((bottom!=top) && (right!=left)) ratio=1.*area/((bottom-top)*(right-left));
+	    if (right!=left)  aspect=1.*(bottom-top)/(right-left);
+#define MAX_RATIO 0.2
+	    if ((ratio<MAX_RATIO) && (ratio>0) && (aspect>MIN_ASPECT) && 
+		(aspect<MAX_ASPECT) &&
+		(!check_boxes(left,top,right,bottom,boxes,n_boxes)))
+	      {
+		adjust_box(image,THRESHOLD_BOND,bgColor,width,height,boundary, 
+			   0,top,left,bottom,right,height,width);
+		//left=0;top=0;right=width;bottom=height;
+		if (left<0) left=0;
+		if (top<0) top=0;
+		if (right>width) right=width;
+		if (bottom>height) bottom=height;
+		if ((right-left)*300/working_resolution<MAX_WIDTH 
+		    && (bottom-top)*300/working_resolution<MAX_HEIGHT 
+		    && (right-left)>MIN_WIDTH && (bottom-top)>MIN_HEIGHT
+		    || working_resolution<150)
+		  {
+		    boxes[n_boxes].x1=left;
+		    boxes[n_boxes].x2=right;
+		    boxes[n_boxes].y1=top;
+		    boxes[n_boxes].y2=bottom;
+		    n_boxes++;
+		    if (n_boxes>=NUM_BOXES) n_boxes--;
+		  }
+	      }
+	  }
+
+	p = p->next;
+      }
+    //draw_box(image,boxes,n_boxes,"tmp.gif");
+    potrace_state_free(st);
+    potrace_param_free(param);
+    free(bm);
+    return(n_boxes);
+}
+
+
 int count_pages(string input)
 {
   list<Image> imageList;
@@ -3776,7 +3966,7 @@ int clean_unrecognized_characters(bond_t *bond,int n_bond,atom_t *atom,
   return(n_letters);
 }
 
-
+/*
 int getValency(string s)
 {
   if (s=="C") return(4);
@@ -3803,6 +3993,8 @@ int count_fragments(string input)
     }
   return(r);
 }
+*/
+
 
 double confidence_function(int C_Count,int N_Count,int O_Count,int F_Count,
 			   int S_Count,int Cl_Count,int num_rings,int num_aromatic,
@@ -3966,8 +4158,11 @@ int main(int argc,char **argv)
 	    bool thick=true;
 	    if (resolution<=150) thick=false;
 
-	    vector < vector < box_t > > v_box_assembly=find_assembly(image,THRESHOLD_BOND,bgColor,width,height,max_font_height/2, working_resolution,boxes,n_boxes);
-
+	    //	    vector < vector < box_t > > v_box_assembly=find_assembly(image,THRESHOLD_BOND,bgColor,width,height,max_font_height/2, working_resolution,boxes,n_boxes);
+	    int boundary=10;
+	    if (resolution<300)	boundary=5;
+	    n_boxes=find_boxes(boxes,image,THRESHOLD_BOND,bgColor,width,height,
+			       100,boundary,working_resolution);
 	    qsort(boxes,n_boxes,sizeof(box_t),comp_boxes);
 	    for (int k=0;k<n_boxes;k++)
 	      {
@@ -3980,7 +4175,17 @@ int main(int argc,char **argv)
 		potrace_path_t *p;
 		potrace_state_t *st;
 
-	
+		Image orig_box=image;
+		width=orig_box.columns();
+		height=orig_box.rows();
+		if (boxes[k].x1>MIN_FONT_HEIGHT 
+		    || boxes[k].y1>MIN_FONT_HEIGHT 
+		    || width-boxes[k].x2>MIN_FONT_HEIGHT 
+		    || height-boxes[k].y2>MIN_FONT_HEIGHT)
+		  orig_box.crop(Geometry(boxes[k].x2-boxes[k].x1,
+					 boxes[k].y2-boxes[k].y1,
+					 boxes[k].x1,boxes[k].y1));
+		/*
 		Image orig_box( Geometry(boxes[k].x2-boxes[k].x1+3,boxes[k].y2-boxes[k].y1+3), bgColor );
 		orig_box.type( GrayscaleType );
 		unsigned int assembly=boxes[k].assembly;
@@ -3998,7 +4203,7 @@ int main(int argc,char **argv)
 			  orig_box.pixelColor(i-boxes[k].x1+1,j-boxes[k].y1+1,c);
 			}
 		  }
-
+		*/
 		width=orig_box.columns();
 		height=orig_box.rows();
 		Image thick_box;
