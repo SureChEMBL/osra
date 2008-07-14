@@ -4158,11 +4158,11 @@ int main(int argc,char **argv)
 	    bool thick=true;
 	    if (resolution<=150) thick=false;
 
-	    //	    vector < vector < box_t > > v_box_assembly=find_assembly(image,THRESHOLD_BOND,bgColor,width,height,max_font_height/2, working_resolution,boxes,n_boxes);
 	    int boundary=10;
 	    if (resolution<300)	boundary=5;
-	    n_boxes=find_boxes(boxes,image,THRESHOLD_BOND,bgColor,width,height,
-			       100,boundary,working_resolution);
+	    vector < vector < box_t > > v_box_assembly=find_assembly(image,THRESHOLD_BOND,bgColor,width,height,boundary, working_resolution,boxes,n_boxes);
+	    
+	    //n_boxes=find_boxes(boxes,image,THRESHOLD_BOND,bgColor,width,height,100,boundary,working_resolution);
 	    qsort(boxes,n_boxes,sizeof(box_t),comp_boxes);
 	    for (int k=0;k<n_boxes;k++)
 	      {
@@ -4175,6 +4175,7 @@ int main(int argc,char **argv)
 		potrace_path_t *p;
 		potrace_state_t *st;
 
+		/*
 		Image orig_box=image;
 		width=orig_box.columns();
 		height=orig_box.rows();
@@ -4185,7 +4186,8 @@ int main(int argc,char **argv)
 		  orig_box.crop(Geometry(boxes[k].x2-boxes[k].x1,
 					 boxes[k].y2-boxes[k].y1,
 					 boxes[k].x1,boxes[k].y1));
-		/*
+		*/
+		// begin assembly piece
 		Image orig_box( Geometry(boxes[k].x2-boxes[k].x1+3,boxes[k].y2-boxes[k].y1+3), bgColor );
 		orig_box.type( GrayscaleType );
 		unsigned int assembly=boxes[k].assembly;
@@ -4203,7 +4205,9 @@ int main(int argc,char **argv)
 			  orig_box.pixelColor(i-boxes[k].x1+1,j-boxes[k].y1+1,c);
 			}
 		  }
-		*/
+	       
+		// end assembly piece
+
 		width=orig_box.columns();
 		height=orig_box.rows();
 		Image thick_box;

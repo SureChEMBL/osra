@@ -463,6 +463,7 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
           mol->getBondWithIdx(bondid)->setBondDir(Bond::BEGINWEDGE);
 	bondid_to_i[bondid]=i;
       }
+
   MolOps::findSSSR(*mol);
   for(ROMol::BondIterator bondIt=mol->beginBonds();bondIt!=mol->endBonds();++bondIt)
     if( ((*bondIt)->getIsAromatic() || (*bondIt)->getBondType()==Bond::AROMATIC)
@@ -569,13 +570,14 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
 
  bool doSubstruct=true;
  try {
-  ROMol *test=SmilesToMol(smiles);
+   ROMol *test=NULL;
+   test=SmilesToMol(smiles);
   if (test==NULL) doSubstruct=false;
  } catch (...)
  {
   doSubstruct=false;
  }
-
+ // cout<<"foo "<<smiles<<" ";
  if (doSubstruct)
  {
   std::vector<MatchVectType> matches;
@@ -588,7 +590,7 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
       rotors=-1;
     }
  } 
-
+ //cout<<"bar"<<endl;
   vector<int> Num_Rings(8,0);
   VECT_INT_VECT atomRings; // VECT_INT_VECT is vector< vector<int> >
   atomRings=ringInfo->atomRings();
@@ -612,7 +614,13 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
 //  smiles = MolToSmiles(*(static_cast<ROMol *>(mol)),true,false); 
 //  num_fragments=count_fragments(smiles);
   VECT_INT_VECT frags;	 
-  num_fragments= MolOps::getMolFrags(*(static_cast<ROMol *>(mol)),frags);
+  try {
+    num_fragments= MolOps::getMolFrags(*(static_cast<ROMol *>(mol)),frags);	
+    } catch (...)
+    {
+     num_fragments=INT_MAX;
+    }
+
 
   confidence=confidence_function(C_Count,N_Count,O_Count,F_Count,S_Count,Cl_Count,
 				 num_rings,num_aromatic,num_fragments,&Num_Rings);
