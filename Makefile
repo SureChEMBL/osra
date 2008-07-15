@@ -1,15 +1,15 @@
 ARCH=unix
 #unix,win32
 
-OPENBABEL_OR_RDKIT=openbabel
+OPENBABEL_OR_RDKIT=rdkit
 #openbabel,rdkit
 
-POTRACE=../../potrace-1.7/
+POTRACE=../../potrace-1.8/
 GOCR=../../gocr-0.45/
 OCRAD=../../ocrad-0.17/
 
 ifeq ($(OPENBABEL_OR_RDKIT),rdkit)
-RDKIT=../../RDKit_64/
+RDKIT=../../rdkit-svn/
 BOOST=../../boost_1_34_1
 endif
 

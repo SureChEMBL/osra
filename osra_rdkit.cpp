@@ -380,7 +380,6 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
   int bondid=0;
   int anum;
   double scale=CC_BOND_LENGTH/avg;
-
   Conformer *conf = new Conformer(real_atoms);	
   std::string smiles="";
   rotors=0;
@@ -398,6 +397,7 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
   for (int i=0;i<n_bond;i++)
     if (bond[i].exists) 
       {
+        bool a_added=false;
 	if (atom[bond[i].a].n<0)
 	  {
   	    RDGeom::Point3D pos;
@@ -420,7 +420,9 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
 	    superatom(atom[bond[i].a].label,mol,aid);
 	    conf->setAtomPos(aid, pos);
 	    atom[bond[i].a].n=aid;
+	    a_added=true;
 	  }
+        bool b_added=false;
 	if (atom[bond[i].b].n<0)
 	  {
 	    RDGeom::Point3D pos;
@@ -443,7 +445,11 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
 	    superatom(atom[bond[i].b].label,mol,aid);
 	    conf->setAtomPos(aid, pos);
 	    atom[bond[i].b].n=aid;
+	    b_added=true;
 	  }
+        if (atom[bond[i].a].n!=atom[bond[i].b].n)
+        {
+        try {
 	if (bond[i].arom)
 	  bondid=mol->addBond(atom[bond[i].a].n,atom[bond[i].b].n,Bond::AROMATIC)-1;
 	else if (bond[i].type==2)
@@ -462,10 +468,26 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
         if(bond[i].wedge)
           mol->getBondWithIdx(bondid)->setBondDir(Bond::BEGINWEDGE);
 	bondid_to_i[bondid]=i;
+      } catch(...) 
+       {
+        if (a_added)
+         {
+          mol->removeAtom(atom[bond[i].a].n);
+          atom[bond[i].a].n=-1;
+         }
+        if (b_added)
+         {
+          mol->removeAtom(atom[bond[i].b].n);
+          atom[bond[i].b].n=-1;
+         }
+       }
       }
-
-  MolOps::findSSSR(*mol);
-  for(ROMol::BondIterator bondIt=mol->beginBonds();bondIt!=mol->endBonds();++bondIt)
+    }
+//   cout<<"========================="<<endl;
+//   mol->updatePropertyCache(false);
+//   mol->debugMol(std::cout);
+   MolOps::findSSSR(*mol);
+   for(ROMol::BondIterator bondIt=mol->beginBonds();bondIt!=mol->endBonds();++bondIt)
     if( ((*bondIt)->getIsAromatic() || (*bondIt)->getBondType()==Bond::AROMATIC)
         && !mol->getRingInfo()->numBondRings((*bondIt)->getIdx()) )
       {
