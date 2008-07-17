@@ -631,7 +631,8 @@ int double_triple_bonds(atom_t *atom,bond_t *bond,int n_bond,double avg,int &n_a
 	      double dij=distance_between_bonds(bond,i,j,atom);
 	      if (dij<=max_dist_double_bond && bonds_within_each_other(bond,i,j,atom))
 		{
-		  /*for (int k=j+1;k<n_bond;k++)
+		  // start triple bond search
+		  for (int k=j+1;k<n_bond;k++)
 		    if ((bond[k].exists) && 
 			(fabs(angle_between_bonds(bond,k,j,atom))>D_T_TOLERANCE))
 		      {
@@ -665,7 +666,9 @@ int double_triple_bonds(atom_t *atom,bond_t *bond,int n_bond,double avg,int &n_a
 			    }
 		      }
 	       
-		      if (!bond[j].exists) continue;*/
+		  if (!bond[j].exists) continue;
+		  // end triple bond search
+
 		  int ii=i,jj=j;
 		  double l11=l1,l22=l2;
 		  bool extended_triple=false;
