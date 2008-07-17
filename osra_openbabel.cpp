@@ -351,7 +351,6 @@ void addOiBu(OBMol *mol,int *n)
   a->SetAtomicNum(6);
   mol->AddAtom(*a);
   (*n)++;
-  //mol->AddBond((*n)-1,(*n)-2,1);
   mol->AddBond((*n)-2,(*n),1);
   a=mol->CreateAtom();
   a->SetAtomicNum(6);
@@ -677,7 +676,6 @@ string get_smiles(atom_t *atom, int real_atoms, bond_t *bond, int n_bond, int &r
  
  std::vector< std::vector< int > > cfl;
  mol.ContigFragList(cfl);
- //num_fragments=count_fragments(str);
  num_fragments=cfl.size();
 
  confidence=confidence_function(C_Count,N_Count,O_Count,F_Count,S_Count,Cl_Count,

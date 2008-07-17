@@ -219,10 +219,6 @@ double distance_between_bonds(bond_t *bond,int i,int j,atom_t *atom)
 				 atom[bond[i].b].y,atom[bond[j].a].x,atom[bond[j].a].y);
   double y4=distance_from_bond_y(atom[bond[i].a].x,atom[bond[i].a].y,atom[bond[i].b].x,
 				 atom[bond[i].b].y,atom[bond[j].b].x,atom[bond[j].b].y);
-  /*double ratio=1.;
-  if (fabs(y3)>=1 && (fabs(y3)>2 || fabs(y4)>2)) ratio=y4/y3;
-  if (fabs(y3)<1 && fabs(y4)>2) ratio=FLT_MAX;
-  if (ratio>2.5 || ratio<0.4) return(FLT_MAX);*/
   if (fabs(y3-y4)>=4) return(FLT_MAX);
   return(max(fabs(y3),fabs(y4)));
 }
@@ -3965,35 +3961,6 @@ int clean_unrecognized_characters(bond_t *bond,int n_bond,atom_t *atom,
       }
   return(n_letters);
 }
-
-/*
-int getValency(string s)
-{
-  if (s=="C") return(4);
-  if (s=="N") return(5);
-  if (s=="H") return(1);
-  if (s=="O") return(2);
-  if (s=="F") return(1);
-  if (s=="P") return(5);
-  if (s=="S") return(6);
-  if (s=="I") return(1);
-  if (s=="Cl") return(1);
-  if (s=="Br") return(1);
-  if (s=="Ar") return(1);
-  return(4);
-}
-
-int count_fragments(string input)
-{
-  int r=1;
-  for(string::size_type i = input.find(".", 0); i != string::npos; i = input.find(".", i))
-    {
-      r++;
-      i++;
-    }
-  return(r);
-}
-*/
 
 
 double confidence_function(int C_Count,int N_Count,int O_Count,int F_Count,
