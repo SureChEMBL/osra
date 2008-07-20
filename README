@@ -56,7 +56,7 @@ if installing from RPM make sure you have the following packages:
 http://openbabel.sourceforge.net/wiki/Main_Page
 
 - OR alternatively you can use RDKit as the molecular builder back-end,
-version Jan2008_1  or later:
+version Jan2008_1  or later (svn snapshot recommended):
  http://www.rdkit.org/
 
 =============================================================================
@@ -84,10 +84,13 @@ OSRA will automatically patch it and compile the object files it needs.
 Compile and/or install all the other necessary dependencies.
 Unpack OSRA package.
 Edit the included Makefile to make sure you have the correct locations
-for ImageMagick, potrace, gocr, ocrad, openbabel (or rdkit), and tclap.  
-Set ARCH variable to one of the following: i386 - for 32-bit linux, x86_64
-for 64-bit linux, win32 - for building on Windows MinGW environment, and
-osx for Mac OS X environment (the last one hasn't been tested yet).
+for potrace, gocr, ocrad, openbabel (or rdkit), and tclap.
+Check that Magick++-config  location (it's a script that
+comes from ImageMagick installation) is in your PATH. You might have to set 
+LD_LIBRARY_PATH=$(RDKIT)/bin when using RDKit, or /usr/local/bin when using
+OpenBabel.
+Set ARCH variable to one of the following: unix - for linux,unix,osx;
+win32 - for building on Windows MinGW environment.
 Set OPENBABEL_OR_RDKIT to either openbabel or rdkit depending on what toolkit you
 have installed.
 Running make should then generate the executable - osra.
@@ -171,7 +174,7 @@ The archive includes:
 	           osra.exe, 
 	osra.exe - main executable. It is recommended that you use osra.bat
 		   and not osra.exe directly,
-	README   - this file,
+	README.txt   - this file,
         delegates.xml - a configuration file for ImageMagick library,
         Read Image Document (OSRA).xml - a simple Scitegic Pipeline Pilot
 	                                 component to read in an image
@@ -224,9 +227,14 @@ seems to apply to ImageMagick as well: http://www.graphicsmagick.org/www/README.
 Whenever "configure" script was available I used the following options:
 ./configure --disable-shared LDFLAGS=-L/usr/local/lib CPPFLAGS=-I/usr/local/include
 
+To configure ImageMagick I used the following options:
+./configure --disable-shared --without-threads --disable-openmp LDFLAGS=-L/usr/local/lib/ CPPFLAGS=-I/usr/local/include/
+
 Compile and install ImageMagick, GOCR, Potrace, TCLAP.
 
-To compile OpenBabel first edit obmolecformat.h to comment out lines
+To compile OpenBabel:
+--- version 2.1.x ---
+first edit obmolecformat.h to comment out lines
 involving hash_map, as per instructions here:
 http://www.bioinformatics.org/molekel/wiki/Main/OpenBabel
 
@@ -238,6 +246,14 @@ the following commands:
 cd src/formats/
 g++ -DHAVE_CONFIG_H -I. -I../../src -I../../include -I../../data -I../../include -g -O2 -MT cansmilesformat.lo -MD -MP -MF .deps/cansmilesformat.Tpo -c cansmilesformat.cpp -o cansmilesformat.o
 
+--- version 2.2.x ---
+Run configure with the following options:
+./configure --without-boost --disable-dynamic-modules --with-zlib=/usr/local/ CXX=g++-sjlj
+
+Run make and make install. Compilation breaks for babel.exe but the library
+libopenbabel-3.dll is generated. You need to keep this library with osra if
+you plan on running osra on a different machine.
+---------------------------
 
 Compiling osra:
 Edit the Makefile to set ARCH variable to win32 and OPENBABEL_OR_RDKIT to openbabel.
@@ -277,3 +293,7 @@ Ghostscript installation or some other utility.
 
 - OpenMP doesn't seem to work as expected (crashes, slowdowns or results different
 from the serial version).
+
+
+
+
