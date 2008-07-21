@@ -215,20 +215,20 @@ double distance_from_bond_y(double x0,double y0,double x1,double y1,double x,dou
 
 double distance_between_bonds(bond_t *bond,int i,int j,atom_t *atom)
 {
-  double y1=distance_from_bond_y(atom[bond[j].a].x,atom[bond[j].a].y,atom[bond[j].b].x,
+/*  double y1=distance_from_bond_y(atom[bond[j].a].x,atom[bond[j].a].y,atom[bond[j].b].x,
 				 atom[bond[j].b].y,atom[bond[i].a].x,atom[bond[i].a].y);
   double y2=distance_from_bond_y(atom[bond[j].a].x,atom[bond[j].a].y,atom[bond[j].b].x,
 				 atom[bond[j].b].y,atom[bond[i].b].x,atom[bond[i].b].y);
   if (fabs(y1-y2)>=4) return(FLT_MAX);
   double r1=max(fabs(y1),fabs(y2));
-
+*/
   double y3=distance_from_bond_y(atom[bond[i].a].x,atom[bond[i].a].y,atom[bond[i].b].x,
 				 atom[bond[i].b].y,atom[bond[j].a].x,atom[bond[j].a].y);
   double y4=distance_from_bond_y(atom[bond[i].a].x,atom[bond[i].a].y,atom[bond[i].b].x,
 				 atom[bond[i].b].y,atom[bond[j].b].x,atom[bond[j].b].y);
   if (fabs(y3-y4)>=4) return(FLT_MAX);
   double r2=max(fabs(y3),fabs(y4));
-  return(min(r1,r2));
+  return(r2);
 }
 
 double distance_from_bond_x_a(double x0,double y0,double x1,double y1,double x,double y)

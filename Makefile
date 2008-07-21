@@ -4,7 +4,7 @@ ARCH=unix
 OPENBABEL_OR_RDKIT=openbabel
 #openbabel,rdkit
 
-POTRACE=../../potrace-1.7/
+POTRACE=../../potrace-1.8/
 GOCR=../../gocr-0.45/
 OCRAD=../../ocrad-0.17/
 
