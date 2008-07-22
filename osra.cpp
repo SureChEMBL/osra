@@ -4157,13 +4157,18 @@ int main(int argc,char **argv)
 		Image orig_box=image;
 		width=orig_box.columns();
 		height=orig_box.rows();
+		
 		if (boxes[k].x1>MIN_FONT_HEIGHT 
 		    || boxes[k].y1>MIN_FONT_HEIGHT 
 		    || width-boxes[k].x2>MIN_FONT_HEIGHT 
 		    || height-boxes[k].y2>MIN_FONT_HEIGHT)
-		  orig_box.crop(Geometry(boxes[k].x2-boxes[k].x1,
-					 boxes[k].y2-boxes[k].y1,
-					 boxes[k].x1,boxes[k].y1));
+		  {
+		    try {
+		      orig_box.crop(Geometry(boxes[k].x2-boxes[k].x1,
+					     boxes[k].y2-boxes[k].y1,
+					     boxes[k].x1,boxes[k].y1));
+		    } catch(...) {}
+		  }
 		
 		// begin assembly piece
 		/*
