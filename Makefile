@@ -4,12 +4,12 @@ ARCH=unix
 OPENBABEL_OR_RDKIT=openbabel
 #openbabel,rdkit
 
-POTRACE=../../potrace-1.7/
+POTRACE=../../potrace-1.8/
 GOCR=../../gocr-0.45/
 OCRAD=../../ocrad-0.17/
 
 ifeq ($(OPENBABEL_OR_RDKIT),rdkit)
-RDKIT=../../rdkit-svn/
+RDKIT=../../RDKit_64/
 BOOST=../../boost_1_34_1
 endif
 
@@ -32,7 +32,7 @@ SRCDIR=./
 TCLAPINC=-I/usr/local/include/tclap/ -I/usr/local/include
 
 RDKITINC=-I$(RDKIT)/Code/ -I$(RDKIT)/External/vflib-2.0/include/ -I$(BOOST)
-RDKITLIB=-L$(RDKIT)/bin/ -lRDGeneral -lSmilesParse -lGraphMol -lFileParsers -lDepictor -lRDGeometry -lSubstruct -L$(RDKIT)/External/vflib-2.0/lib -lvf
+RDKITLIB=-L$(RDKIT)/bin/ -lRDGeneral -lSmilesParse -lGraphMol -lFileParsers -lDepictor -lRDGeometry -lSubstruct -lDistGeomHelpers -lDistGeom -lForceFieldHelpers -lForceField -lEigenSolvers -lAlignment -lOptimizer -L$(RDKIT)/External/vflib-2.0/lib -lvf
 
 ifneq ($(ARCH),win32)
 NETPBM=-lnetpbm

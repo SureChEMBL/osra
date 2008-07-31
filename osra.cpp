@@ -2868,12 +2868,12 @@ int find_small_bonds(potrace_path_t *p, atom_t *atom,bond_t *bond,int n_atom,
 }
 
 int resolve_bridge_bonds(atom_t* atom,int n_atom,bond_t* bond,int n_bond,
-			 double thickness,int &real_atoms,double avg)
+			 double thickness,int &real_atoms,double avg, string format)
 {
   int rotors1,rotors2,f1,f2,rings1,rings2;
   double confidence;
   string smiles1=get_smiles(atom,real_atoms,bond,n_bond,rotors1,confidence,f1,
-			    rings1,avg);
+			    rings1,avg,format);
   for (int i=0;i<n_atom;i++)
     if ((atom[i].exists) && (atom[i].label==" "))
       {
@@ -2940,7 +2940,7 @@ int resolve_bridge_bonds(atom_t* atom,int n_atom,bond_t* bond,int n_bond,
 		    else if (bond[c].b==bond[d].a) bond[c].b=bond[d].b;
 		    else if (bond[c].b==bond[d].b) bond[c].b=bond[d].a;
 		    string smiles2=get_smiles(atom,real_atoms,bond,n_bond,rotors2,
-					      confidence,f2,rings2,avg);
+					      confidence,f2,rings2,avg,format);
 		    if (f1!=f2 || rotors1!=rotors2 || rings1-rings2==2)
 		      {
 			bond[b].exists=true;
@@ -3997,7 +3997,15 @@ double confidence=0.316030
  return(confidence);
 }
 
-
+void printProperty(string name,string format,string value)
+{
+  if (format=="smi" || format=="can") cout<<" "<<value;
+  if (format=="mol") 
+    {
+      cout<<">  <"<<name<<">"<<endl;
+      cout<<value<<endl<<endl;
+    }
+}
 
 job_t *JOB;
 
@@ -4023,6 +4031,8 @@ int main(int argc,char **argv)
     cmd.add(conf);
     TCLAP::SwitchArg guess("g","guess","Print out resolution guess",false);
     cmd.add(guess);
+    TCLAP::ValueArg<string> format("f","format","Output format",false,"can","can/smi/mol");
+    cmd.add(format);
     cmd.parse( argc, argv );
 
     int input_resolution=resolution_param.getValue();
@@ -4086,7 +4096,7 @@ int main(int argc,char **argv)
 	    select_resolution[2]=300;
 	  }
 	int res_iter;
-#pragma omp parallel for default(shared) shared(threshold,invert,output,resize,type,page,l,num_resolutions,select_resolution,array_of_smiles,array_of_confidence,array_of_images,image,image_count,conf,guess) private(res_iter,JOB)
+#pragma omp parallel for default(shared) shared(threshold,invert,output,format,resize,type,page,l,num_resolutions,select_resolution,array_of_smiles,array_of_confidence,array_of_images,image,image_count,conf,guess) private(res_iter,JOB)
     for (res_iter=0;res_iter<num_resolutions;res_iter++)
       {
 	int n_boxes=0,total_boxes=0;
@@ -4394,7 +4404,7 @@ int main(int argc,char **argv)
 		  {
 
 		    int f=resolve_bridge_bonds(atom,n_atom,bond,n_bond,2*thickness,
-					       real_atoms,avg_bond);
+					       real_atoms,avg_bond,format.getValue());
                     collapse_bonds(atom,bond,n_bond,avg_bond/4);
                     collapse_atoms(atom,bond,n_atom,n_bond,3);
                     remove_zero_bonds(bond,n_bond,atom);
@@ -4407,7 +4417,8 @@ int main(int argc,char **argv)
 		    int rotors,rings;
 		    double confidence=0;
 		    string smiles=get_smiles(atom,real_atoms,bond,n_bond,rotors,
-					     confidence,f,rings,avg_bond);
+					     confidence,f,rings,avg_bond,
+					     format.getValue());
 		    if (f<5 && smiles!="")
 		      {
 			array_of_smiles[res_iter].push_back(smiles);
@@ -4438,9 +4449,20 @@ int main(int argc,char **argv)
     for (unsigned int i=0;i<array_of_smiles[max_res].size();i++)
       {
 	cout<<array_of_smiles[max_res][i];
-	if (guess.getValue()) cout<<" "<<select_resolution[max_res];
-	if (conf.getValue()) cout<<" "<<max_conf;
-	cout<<endl;
+	if (guess.getValue()) 
+	  {
+	    stringstream prop;
+	    prop<<select_resolution[max_res];
+	    printProperty("Resolution",format.getValue(),prop.str());
+	  }
+	if (conf.getValue()) 
+	  {
+	    stringstream prop;
+	    prop<<max_conf;
+	    printProperty("Confidence Estimate",format.getValue(),prop.str());
+	  }
+	if (format.getValue()=="mol") cout<<"$$$$"<<endl;
+	else cout<<endl;
 	stringstream fname;
 	if (output.getValue()!="") fname<<output.getValue()<<image_count<<".png";
 	image_count++;

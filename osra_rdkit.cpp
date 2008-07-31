@@ -33,6 +33,7 @@
 #include <GraphMol/FileParsers/FileParsers.h>
 #include <GraphMol/FileParsers/MolFileStereochem.h>
 #include <GraphMol/RDKitQueries.h>
+#include <GraphMol/DistGeomHelpers/Embedder.h>
 #include <vector>
 #include <algorithm>
 using namespace RDKit;
@@ -374,7 +375,8 @@ void superatom(string s,RWMol *mol,unsigned int n)
 }
 
 string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &rotors, 
-		  double &confidence, int &num_fragments, int &r56, double avg)
+		  double &confidence, int &num_fragments, int &r56, double avg,
+		  string format)
 {
   RWMol *mol=new RWMol();
   int bondid=0;
@@ -649,7 +651,16 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
 
   r56=Num_Rings[5]+Num_Rings[6];
 
-
+  if (format=="mol")
+    {
+      try {
+	//	RDDepict::compute3DCoords(*mol);
+	DGeomHelpers::EmbedMolecule(*mol);
+	//        UFFOptimizeMolecule(*mol);
+	smiles=MolToMolBlock(*(static_cast<ROMol *>(mol)));
+      } catch (...) 
+	{smiles="";}
+    }
   return(smiles);
 }
 
