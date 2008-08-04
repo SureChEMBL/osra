@@ -56,7 +56,7 @@ OPENBABELLIB=-L/usr/local/lib -lopenbabel
 OPENBABELINC=-I$(OPENBABEL)/include
 else
 OPENBABELLIB=-L/usr/local/lib -lopenbabel   
-OPENBABELINC=-I/usr/local/include/openbabel-2.0/
+OPENBABELINC=-I/usr/include/openbabel-2.0/ -I/usr/local/include/openbabel-2.0/
 endif
 
 ifeq ($(OPENBABEL_OR_RDKIT),rdkit)

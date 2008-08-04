@@ -24,10 +24,11 @@
 
 #include "osra.h"
 
+
 #include "openbabel/mol.h"
 #include "openbabel/obconversion.h" 
 using namespace OpenBabel;
-
+//#include <openbabel/generic.h>
 
 void addMeX(OBMol *mol,int *n)
 {
@@ -566,7 +567,7 @@ int getAnum(string s, OBMol *mol,int *n)
 
 string get_smiles(atom_t *atom, int real_atoms, bond_t *bond, int n_bond, int &rotors, 
 		  double &confidence, int &num_fragments, int &r56, double avg,
-		  string format)
+		  string format,int resolution,bool conf, bool guess)
 {
  OBMol mol;
  OBAtom *a,*b;
@@ -673,7 +674,6 @@ string get_smiles(atom_t *atom, int real_atoms, bond_t *bond, int n_bond, int &r
        Num_Rings[(*iter)->Size()]++;
    }
  rotors=mol.NumRotors();
- str=conv.WriteString(&mol,true);
  
  std::vector< std::vector< int > > cfl;
  mol.ContigFragList(cfl);
@@ -684,17 +684,45 @@ string get_smiles(atom_t *atom, int real_atoms, bond_t *bond, int n_bond, int &r
 
  r56=Num_Rings[5]+Num_Rings[6];
 
+ if (conf)
+   {
+     OBPairData *label = new OBPairData;
+     label->SetAttribute("Confidence_Estimate");
+     stringstream cs;
+     cs<<confidence;
+     label->SetValue(cs.str());
+     //label->SetOrigin(userInput); // set by user, not by Open Babel
+     mol.SetData(label);
+   }
+ if (guess)
+   {
+     OBPairData *label = new OBPairData;
+     label->SetAttribute("Resolution");
+     stringstream cs;
+     cs<<resolution;
+     label->SetValue(cs.str());
+     //label->SetOrigin(userInput); // set by user, not by Open Babel
+     mol.SetData(label);
+   }
+
+
+ str=conv.WriteString(&mol,true);
+
  for (int i=0;i<n_bond;i++)
    if (bond[i].exists) 
      {
        atom[bond[i].a].n=0;
        atom[bond[i].b].n=0;
      }
- if (format=="mol")
+ stringstream strstr;
+ strstr<<str;
+ if (format=="smi" || format=="can")
    {
-     stringstream strstr;
-     strstr<<str<<endl;
-     str=strstr.str();
+     if (guess)
+       strstr<<" "<<resolution;
+     if (conf)
+       strstr<<" "<<confidence;
    }
- return(str);
+ strstr<<endl;
+ return(strstr.str());
 }
