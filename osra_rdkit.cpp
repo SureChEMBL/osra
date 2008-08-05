@@ -34,6 +34,7 @@
 #include <GraphMol/FileParsers/MolFileStereochem.h>
 #include <GraphMol/RDKitQueries.h>
 #include <GraphMol/DistGeomHelpers/Embedder.h>
+#include <GraphMol/FileParsers/MolWriters.h>
 #include <vector>
 #include <algorithm>
 using namespace RDKit;
@@ -376,13 +377,13 @@ void superatom(string s,RWMol *mol,unsigned int n)
 
 string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &rotors, 
 		  double &confidence, int &num_fragments, int &r56, double avg,
-		  string format)
+		  string format,int resolution,bool conf, bool guess)
 {
   RWMol *mol=new RWMol();
   int bondid=0;
   int anum;
   double scale=CC_BOND_LENGTH/avg;
-  Conformer *conf = new Conformer(real_atoms);	
+  Conformer *conform = new Conformer(real_atoms);	
   std::string smiles="";
   rotors=0;
   confidence=-1000;
@@ -420,7 +421,7 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
              }  
 	    unsigned int aid=mol->addAtom(a);                         
 	    superatom(atom[bond[i].a].label,mol,aid);
-	    conf->setAtomPos(aid, pos);
+	    conform->setAtomPos(aid, pos);
 	    atom[bond[i].a].n=aid;
 	    a_added=true;
 	  }
@@ -445,7 +446,7 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
 	       }
 	    unsigned int aid=mol->addAtom(b);
 	    superatom(atom[bond[i].b].label,mol,aid);
-	    conf->setAtomPos(aid, pos);
+	    conform->setAtomPos(aid, pos);
 	    atom[bond[i].b].n=aid;
 	    b_added=true;
 	  }
@@ -504,7 +505,7 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
       }
    bool doStereo=true;
    try {
-    mol->addConformer(conf, true);
+    mol->addConformer(conform, true);
    }
    catch (...)
      {
@@ -590,10 +591,10 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
  int num_rings=ringInfo->numRings();
  ROMol *pattern_rotors=SmartsToMol("[!$(*#*)&!D1]-&!@[!$(*#*)&!D1]");
  rotors=-1;
- smiles = MolToSmiles(*(static_cast<ROMol *>(mol)),true,false);
+// smiles = MolToSmiles(*(static_cast<ROMol *>(mol)),true,false);
 
  bool doSubstruct=true;
- try {
+/* try {
    ROMol *test=NULL;
    test=SmilesToMol(smiles);
   if (test==NULL) doSubstruct=false;
@@ -601,6 +602,7 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
  {
   doSubstruct=false;
  }
+ */
  // cout<<"foo "<<smiles<<" ";
  if (doSubstruct)
  {
@@ -650,17 +652,51 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
 				 num_rings,num_aromatic,num_fragments,&Num_Rings);
 
   r56=Num_Rings[5]+Num_Rings[6];
+  STR_VECT propNames;
+  propNames.clear();
+  if (guess)
+    {
+      mol->setProp("Resolution",resolution);
+      propNames.push_back(std::string("Resolution"));
+    }
+  if (conf)
+     {
+       mol->setProp("Confidence_Estimate",confidence);
+       propNames.push_back(std::string("Confidence_Estimate"));
+      }
 
-  if (format=="mol")
+  if (format=="sdf")
     {
       try {
-	//	RDDepict::compute3DCoords(*mol);
 	DGeomHelpers::EmbedMolecule(*mol);
-	//        UFFOptimizeMolecule(*mol);
-	smiles=MolToMolBlock(*(static_cast<ROMol *>(mol)));
+	//smiles=MolToMolBlock(*(static_cast<ROMol *>(mol)));
+	std::stringstream ss;
+        SDWriter *writer = new SDWriter(&ss);
+        writer->setProps(propNames);
+	writer->write(*mol);
+	writer->flush();
+	delete mol;
+	delete writer;
+	smiles=ss.str();
       } catch (...) 
 	{smiles="";}
     }
+  else
+   {
+    try {
+         //smiles = MolToSmiles(*(static_cast<ROMol *>(mol)),true,false);
+         std::stringstream ss;
+         SmilesWriter *writer = new SmilesWriter(&ss," ","Name",false);
+         mol->setProp("_Name","");
+         writer->setProps(propNames);
+         writer->write(*mol);
+         writer->flush();
+         delete mol;
+         delete writer;
+         smiles=ss.str();
+        } catch (...)
+        {smiles="";}
+   }
   return(smiles);
 }
 
