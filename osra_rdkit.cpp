@@ -668,7 +668,9 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
   if (format=="sdf")
     {
       try {
-	DGeomHelpers::EmbedMolecule(*mol);
+        DGeomHelpers::EmbedMolecule(*mol);
+        } catch (...) {}
+      try {
 	//smiles=MolToMolBlock(*(static_cast<ROMol *>(mol)));
 	std::stringstream ss;
         SDWriter *writer = new SDWriter(&ss);
