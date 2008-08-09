@@ -665,20 +665,22 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
        propNames.push_back(std::string("Confidence_Estimate"));
       }
 
+try {
+        DGeomHelpers::EmbedMolecule(*mol);
+    } catch (...) {}
+                
   if (format=="sdf")
     {
       try {
-        DGeomHelpers::EmbedMolecule(*mol);
-        } catch (...) {}
-      try {
-	//smiles=MolToMolBlock(*(static_cast<ROMol *>(mol)));
+	smiles=MolToMolBlock(*(static_cast<ROMol *>(mol)));
 	std::stringstream ss;
-        SDWriter *writer = new SDWriter(&ss);
+        /*SDWriter *writer = new SDWriter(&ss);
         writer->setProps(propNames);
 	writer->write(*mol);
 	writer->flush();
 	delete mol;
-	delete writer;
+	delete writer;*/
+	ss<<smiles<<"$$$$"<<endl;
 	smiles=ss.str();
       } catch (...) 
 	{smiles="";}
@@ -695,6 +697,7 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
          writer->flush();
          delete mol;
          delete writer;
+         //ss<<smiles<<endl;
          smiles=ss.str();
         } catch (...)
         {smiles="";}
