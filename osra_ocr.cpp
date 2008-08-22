@@ -169,7 +169,7 @@ char get_atom_label(Magick::Image image, Magick::ColorGray bg, int x1, int y1, i
 	      b->find_holes();
 	      Character a(b);
 	      a.recognize1(control.charset,Rectangle::Rectangle( a.left(), a.top(), a.right(), a.bottom()));
-	      c2=a.result(control);
+	      c2=a.result();
 	      //cout<<"c2="<<c2<<endl;
 	      string patern=job.cfg.cfilter;
 	      if (patern.find(c2,0)==string::npos) c2='_';
@@ -249,6 +249,7 @@ string fix_atom_name(string s,int n)
   return(r);
 }
 
+/*
 char Character::result( const Control & control ) const throw()
   {
 
@@ -275,3 +276,15 @@ char Character::result( const Control & control ) const throw()
     }
   return('_');
   }
+*/
+
+unsigned char Character::result() const throw()
+{
+   if( guesses() )
+    {
+      const unsigned char ch = UCS::map_to_byte( gv[0].code );
+      if( ch ) return ch;
+    }
+  return '_';
+}
+                          

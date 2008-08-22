@@ -4,5 +4,5 @@
  
    void recognize1( const Charset & charset, const Rectangle & charbox ) throw();
    void apply_filter( const Filter & filter ) throw();
-+  char result( const Control & control ) const throw();
++  unsigned char result() const throw();
    };
