@@ -4,13 +4,13 @@ ARCH=unix
 OPENBABEL_OR_RDKIT=openbabel
 #openbabel,rdkit
 
-POTRACE=../../potrace-1.8/
-GOCR=../../gocr-0.45/
-OCRAD=../../ocrad-0.18-pre3/
+POTRACE=../potrace-1.8/
+GOCR=../gocr-0.45/
+OCRAD=../ocrad-0.18-pre4/
 
 ifeq ($(OPENBABEL_OR_RDKIT),rdkit)
-RDKIT=../../rdkit-svn/
-BOOST=../../boost_1_34_1
+RDKIT=../RDKit_Q32008_1
+BOOST=../boost_1_35_0
 endif
 
 ifeq ($(ARCH),win32)

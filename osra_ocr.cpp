@@ -202,7 +202,8 @@ string fix_atom_name(string s,int n)
   if (s=="Ci" || s=="Cf" || s=="Cll") r="Cl";
   else if (s=="H" && n>1) r="N";
   else if (s=="HN" || s=="NH" || s=="M" || s=="Hm" || s=="MN" || s=="N2"
-      || s=="NM" || s=="NH2" || s=="H2N" || s=="NHZ" || s=="HZN" || s=="NH3")   r="N";
+	   || s=="NM" || s=="NH2" || s=="H2N" || s=="NHZ" || s=="HZN" || s=="NH3"
+	   || s=="nu")   r="N";
   else if (s=="OH" || s=="oH" || s=="Ho" || s=="HO" || s=="ol"
 	   || s=="On" || s=="on" || s=="no" || s=="nO") r="O";
   else if (s=="Meo" || s=="oMe" || s=="oMg" || s=="omg" || s=="Mgo"
@@ -248,35 +249,6 @@ string fix_atom_name(string s,int n)
   //cout<<r<<endl;
   return(r);
 }
-
-/*
-char Character::result( const Control & control ) const throw()
-  {
-
-  if( guesses() )
-    {
-    switch( control.format )
-      {
-      case Control::byte:
-        { char ch = UCS::map_to_byte( gv[0].code );
-        if( ch ) return(ch); }
-        break;
-      case Control::utf8:
-        if( gv[0].code )
-	  {
-	    char *ch= UCS::ucs_to_utf8( gv[0].code );
-	    return( ch[0]);
-	  }
-	break;
-      default:
-        { char ch = UCS::map_to_byte( gv[0].code );
-	  if( ch ) return(ch); }
-        break;
-      }
-    }
-  return('_');
-  }
-*/
 
 unsigned char Character::result() const throw()
 {
