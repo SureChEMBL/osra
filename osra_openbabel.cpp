@@ -27,6 +27,7 @@
 
 #include "openbabel/mol.h"
 #include "openbabel/obconversion.h" 
+#include <openbabel/builder.h> 
 using namespace OpenBabel;
 //#include <openbabel/generic.h>
 
@@ -611,11 +612,11 @@ string get_smiles(atom_t *atom, int real_atoms, bond_t *bond, int n_bond, int &r
 	 }
        else if (bond[i].wedge)
 	 {
-	   mol.AddBond(atom[bond[i].a].n,atom[bond[i].b].n,bond[i].type,OB_HASH_BOND);
+	   mol.AddBond(atom[bond[i].a].n,atom[bond[i].b].n,bond[i].type,OB_WEDGE_BOND);
 	 }
        else if (bond[i].hash)
 	 {
-	   mol.AddBond(atom[bond[i].a].n,atom[bond[i].b].n,bond[i].type,OB_WEDGE_BOND);
+	   mol.AddBond(atom[bond[i].a].n,atom[bond[i].b].n,bond[i].type,OB_HASH_BOND);
 	 }
        else if (bond[i].up)
 	 {
@@ -705,6 +706,12 @@ string get_smiles(atom_t *atom, int real_atoms, bond_t *bond, int n_bond, int &r
      mol.SetData(label);
    }
 
+ /*if (format=="sdf")
+   {
+     OBBuilder builder;
+     builder.Build(mol);
+   }
+ */
 
  str=conv.WriteString(&mol,true);
 

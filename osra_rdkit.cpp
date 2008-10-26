@@ -469,9 +469,9 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
 	  mol->getBondWithIdx(bondid)->setBondDir(Bond::ENDUPRIGHT);
 	if(bond[i].down)
 	  mol->getBondWithIdx(bondid)->setBondDir(Bond::ENDDOWNRIGHT);
-        if(bond[i].wedge)
-          mol->getBondWithIdx(bondid)->setBondDir(Bond::BEGINDASH);
         if(bond[i].hash)
+          mol->getBondWithIdx(bondid)->setBondDir(Bond::BEGINDASH);
+        if(bond[i].wedge)
           mol->getBondWithIdx(bondid)->setBondDir(Bond::BEGINWEDGE);
 	bondid_to_i[bondid]=i;
       } catch(...) 
