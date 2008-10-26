@@ -390,6 +390,7 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
   num_fragments=0;
   r56=0;
   vector<int> bondid_to_i(MAX_ATOMS,-1);
+  RDGeom::INT_POINT2D_MAP crdMap;
 
   for (int i=0;i<n_bond;i++)
     if (bond[i].exists) 
@@ -423,6 +424,7 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
 	    superatom(atom[bond[i].a].label,mol,aid);
 	    conform->setAtomPos(aid, pos);
 	    atom[bond[i].a].n=aid;
+	    crdMap[aid] = RDGeom::Point2D(pos.x,pos.y);
 	    a_added=true;
 	  }
         bool b_added=false;
@@ -448,6 +450,7 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
 	    superatom(atom[bond[i].b].label,mol,aid);
 	    conform->setAtomPos(aid, pos);
 	    atom[bond[i].b].n=aid;
+	    crdMap[aid] = RDGeom::Point2D(pos.x,pos.y);
 	    b_added=true;
 	  }
         if (atom[bond[i].a].n!=atom[bond[i].b].n)
@@ -476,11 +479,13 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
         if (a_added)
          {
           mol->removeAtom(atom[bond[i].a].n);
+	  crdMap.erase(crdMap.find(atom[bond[i].a].n));
           atom[bond[i].a].n=-1;
          }
         if (b_added)
          {
           mol->removeAtom(atom[bond[i].b].n);
+	  crdMap.erase(crdMap.find(atom[bond[i].b].n));
           atom[bond[i].b].n=-1;
          }
        }
@@ -504,14 +509,15 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
 	    (*bondIt)->setBondType(Bond::TRIPLE);
       }
    bool doStereo=true;
+  
    try {
-    conform->set3D(false);
-    mol->addConformer(conform, true);
+     conform->set3D(false);
+     mol->addConformer(conform, true);
    }
-   catch (...)
-     {
-       doStereo=false;
-     }
+     catch (...)
+       {
+	 doStereo=false;
+       }
   
     for(RWMol::AtomIterator atomIt=mol->beginAtoms();atomIt!=mol->endAtoms();atomIt++) 
     {
@@ -520,13 +526,20 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
      }
      catch (...)
      {
+       //RDGeom::Point3D *pos;
        string symbol=(*atomIt)->getSymbol();
        int id=(*atomIt)->getIdx();
        QueryAtom *query=new QueryAtom(0);
        query->setQuery(makeAtomNullQuery());
        query->setProp("dummyLabel",symbol);
+       //crdMap.erase(crdMap.find(id));
+       //pos=conform->getAtomPos(id);
        mol->replaceAtom(id,query);
+       //crdMap[id] = RDGeom::Point2D(pos.x,pos.y);
+       //conform->setAtomPos(id,pos);
      }
+
+
      try {
        (*atomIt)->calcImplicitValence();
      }
@@ -675,14 +688,21 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
 	} catch (...) {}
           */      
 	//smiles=MolToMolBlock(*(static_cast<ROMol *>(mol)));
+	try {
+	   unsigned int cid1 = RDDepict::compute2DCoords(*mol, &crdMap, false);
+	} catch (...) {}
+
 	std::stringstream ss;
-        SDWriter *writer = new SDWriter(&ss);
+	SDWriter *writer = new SDWriter(&ss);
         writer->setProps(propNames);
 	writer->write(*mol);
 	writer->flush();
 	delete mol;
 	delete writer;
+	
+	//smiles=MolToMolBlock(*(static_cast<ROMol *>(mol)));
 	//ss<<smiles<<"$$$$"<<endl;
+
 	smiles=ss.str();
       } catch (...) 
 	{smiles="";}

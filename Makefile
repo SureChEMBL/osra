@@ -1,7 +1,7 @@
 ARCH=unix
 #unix,win32
 
-OPENBABEL_OR_RDKIT=openbabel
+OPENBABEL_OR_RDKIT=rdkit
 #openbabel,rdkit
 
 POTRACE=../potrace-1.8/
@@ -9,8 +9,8 @@ GOCR=../gocr-0.45/
 OCRAD=../ocrad-0.18-pre4/
 
 ifeq ($(OPENBABEL_OR_RDKIT),rdkit)
-RDKIT=../RDKit_Q32008_1
-BOOST=../boost_1_35_0
+RDKIT=../RDKit_Q32008_1/
+BOOST=../boost_1_36_0/
 endif
 
 ifeq ($(ARCH),win32)

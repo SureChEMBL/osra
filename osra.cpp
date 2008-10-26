@@ -4394,13 +4394,11 @@ int main(int argc,char **argv)
 		if ((real_atoms>MIN_A_COUNT) && (real_atoms<MAX_A_COUNT))
 		  {
 
-		    int f=resolve_bridge_bonds(atom,n_atom,bond,n_bond,2*thickness,
-					       real_atoms,avg_bond);
+		    int f=resolve_bridge_bonds(atom,n_atom,bond,n_bond,2*thickness,real_atoms,avg_bond);
                     collapse_bonds(atom,bond,n_bond,avg_bond/4);
                     collapse_atoms(atom,bond,n_atom,n_bond,3);
                     remove_zero_bonds(bond,n_bond,atom);
-		    extend_terminal_bond_to_bonds(atom,bond,n_bond,avg_bond,
-						  7,0);
+		    extend_terminal_bond_to_bonds(atom,bond,n_bond,avg_bond,7,0);
 					      
 		    collapse_atoms(atom,bond,n_atom,n_bond,1);
 		    remove_zero_bonds(bond,n_bond,atom);
