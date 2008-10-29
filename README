@@ -49,14 +49,14 @@ http://www.gnu.org/software/ocrad/ocrad.html
 - TCLAP, Templatized C++ Command Line Parser Library, version 1.1.0,
 http://tclap.sourceforge.net/
 
-- OpenBabel, open source chemistry toolbox, version 2.1.0 or later; 
+- OpenBabel, open source chemistry toolbox, version 2.2.0 or later; 
 if installing from RPM make sure you have the following packages:
 	 openbabel 
 	 openbabel-devel
 http://openbabel.sourceforge.net/wiki/Main_Page
 
 - OR alternatively you can use RDKit as the molecular builder back-end,
-version Jan2008_1  or later (svn snapshot recommended):
+version Q32008_1  or later (svn snapshot recommended):
  http://www.rdkit.org/
 
 =============================================================================
