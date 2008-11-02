@@ -564,9 +564,15 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
 	return(smiles);
       }
 
-
+   if (doStereo)
+    {
+     ClearSingleBondDirFlags(*mol);
+     const Conformer &conf2 = mol->getConformer();
+     DetectBondStereoChemistry(*mol, &conf2);
+    }
     try {
-      RDKit::MolOps::assignBondStereoCodes(*mol);
+      RDKit::MolOps::assignStereochemistry(*mol,true);
+//      RDKit::MolOps::assignBondStereoCodes(*mol);
     } catch (...)
       {
 	// do nothing?

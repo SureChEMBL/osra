@@ -9,7 +9,8 @@ GOCR=../gocr-0.45/
 OCRAD=../ocrad-0.18-pre4/
 
 ifeq ($(OPENBABEL_OR_RDKIT),rdkit)
-RDKIT=../RDKit_Q32008_1/
+#RDKIT=../RDKit_Q32008_1/
+RDKIT=../rdkit-svn/
 BOOST=../boost_1_36_0/
 endif
 
