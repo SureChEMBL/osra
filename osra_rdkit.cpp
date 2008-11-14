@@ -348,31 +348,32 @@ int getAnum(string s)
   return(6);
 }
 
-void superatom(string s,RWMol *mol,unsigned int n)
+bool superatom(string s,RWMol *mol,unsigned int n)
 {
-  if (s=="MeO") addMeX(mol,n);
-  if (s=="CF")  addCF(mol,n);
-  if (s=="CF3") addCF3(mol,n);
-  if (s=="F3CN") addF3CN(mol,n);
-  if (s=="CN")   addNC(mol,n);
-  if (s=="nBu")  addnBu(mol,n);
-  if (s=="EtO")  addEtO(mol,n);
-  if (s=="OiBu") addOiBu(mol,n);
-  if (s=="iPr")  addiPr(mol,n);
-  if (s=="tBu")  addtBu(mol,n);
-  if (s=="COOH") addCOOH(mol,n);
-  if (s=="Ac")   addAc(mol,n);
-  if (s=="AcO")  addAcO(mol,n);
-  if (s=="NO2")  addNO2(mol,n);
-  if (s=="NO")  addNO(mol,n);
-  if (s=="Ph")   addPh(mol,n);
-  if (s=="MeS")  addMeX(mol,n);
-  if (s=="MeN")  addMeX(mol,n);
-  if (s=="SO3H") addSO3H(mol,n);
-  if (s=="OR")   addOR(mol,n);
-  if (s=="BzO")  addBzO(mol,n);
-  if (s=="N(OH)CH3")  addNOHCH3(mol,n);
-  if (s=="THPO")      addTHPO(mol,n);
+  if (s=="MeO") {addMeX(mol,n);return(true);}
+  if (s=="CF")  {addCF(mol,n);return(true);}
+  if (s=="CF3") {addCF3(mol,n);return(true);}
+  if (s=="F3CN") {addF3CN(mol,n);return(true);}
+  if (s=="CN")   {addNC(mol,n);return(true);}
+  if (s=="nBu")  {addnBu(mol,n);return(true);}
+  if (s=="EtO")  {addEtO(mol,n);return(true);}
+  if (s=="OiBu") {addOiBu(mol,n);return(true);}
+  if (s=="iPr")  {addiPr(mol,n);return(true);}
+  if (s=="tBu")  {addtBu(mol,n);return(true);}
+  if (s=="COOH") {addCOOH(mol,n);return(true);}
+  if (s=="Ac")   {addAc(mol,n);return(true);}
+  if (s=="AcO")  {addAcO(mol,n);return(true);}
+  if (s=="NO2")  {addNO2(mol,n);return(true);}
+  if (s=="NO")  {addNO(mol,n);return(true);}
+  if (s=="Ph")   {addPh(mol,n);return(true);}
+  if (s=="MeS")  {addMeX(mol,n);return(true);}
+  if (s=="MeN")  {addMeX(mol,n);return(true);}
+  if (s=="SO3H") {addSO3H(mol,n);return(true);}
+  if (s=="OR")   {addOR(mol,n);return(true);}
+  if (s=="BzO")  {addBzO(mol,n);return(true);}
+  if (s=="N(OH)CH3")  {addNOHCH3(mol,n);return(true);}
+  if (s=="THPO")      {addTHPO(mol,n);return(true);}
+  return(false);
 }
 
 string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &rotors, 
@@ -385,6 +386,7 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
   double scale=CC_BOND_LENGTH/avg;
   Conformer *conform = new Conformer(real_atoms);	
   std::string smiles="";
+  bool genCoords=false;
   rotors=0;
   confidence=-1000;
   num_fragments=0;
@@ -421,7 +423,7 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
 	      a->setProp("dummyLabel",std::string("?"));
              }  
 	    unsigned int aid=mol->addAtom(a);                         
-	    superatom(atom[bond[i].a].label,mol,aid);
+	    genCoords|=superatom(atom[bond[i].a].label,mol,aid);
 	    conform->setAtomPos(aid, pos);
 	    atom[bond[i].a].n=aid;
 	    crdMap[aid] = RDGeom::Point2D(pos.x,pos.y);
@@ -447,7 +449,7 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
                  b->setProp("dummyLabel",std::string("?"));
 	       }
 	    unsigned int aid=mol->addAtom(b);
-	    superatom(atom[bond[i].b].label,mol,aid);
+	    genCoords|=superatom(atom[bond[i].b].label,mol,aid);
 	    conform->setAtomPos(aid, pos);
 	    atom[bond[i].b].n=aid;
 	    crdMap[aid] = RDGeom::Point2D(pos.x,pos.y);
@@ -671,18 +673,20 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
 	} catch (...) {}
           */      
 	//smiles=MolToMolBlock(*(static_cast<ROMol *>(mol)));
-
-	try {
-	  /*   cout<<"========================="<<endl;
-	     mol->updatePropertyCache(false);
-	     mol->debugMol(std::cout);
-	     std::cout<<endl<<"++++++"<<endl;
-	     for (int i=0;i<crdMap.size();i++)
-	       {
-		 std::cout<<i<<" "<<crdMap[i].x<<" "<<crdMap[i].y<<endl;
-		 }*/
-	  unsigned int cid1 = RDDepict::compute2DCoords(*mol, &crdMap, false);
-	} catch (...) {}
+	if (genCoords)
+	  {
+	    try {
+	      /*   cout<<"========================="<<endl;
+		   mol->updatePropertyCache(false);
+		   mol->debugMol(std::cout);
+		   std::cout<<endl<<"++++++"<<endl;
+		   for (int i=0;i<crdMap.size();i++)
+		   {
+		   std::cout<<i<<" "<<crdMap[i].x<<" "<<crdMap[i].y<<endl;
+		   }*/
+	      unsigned int cid1 = RDDepict::compute2DCoords(*mol, &crdMap, false);
+	    } catch (...) {}
+	  }
 	ROMol* mol1;
 	try {
 	  mol1=RDKit::MolOps::addHs(*mol,true,true);
