@@ -524,17 +524,12 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
      }
      catch (...)
      {
-       //RDGeom::Point3D *pos;
        string symbol=(*atomIt)->getSymbol();
        int id=(*atomIt)->getIdx();
        QueryAtom *query=new QueryAtom(0);
        query->setQuery(makeAtomNullQuery());
        query->setProp("dummyLabel",symbol);
-       //crdMap.erase(crdMap.find(id));
-       //pos=conform->getAtomPos(id);
        mol->replaceAtom(id,query);
-       //crdMap[id] = RDGeom::Point2D(pos.x,pos.y);
-       //conform->setAtomPos(id,pos);
      }
 
 
@@ -570,11 +565,7 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
     }
     try {
       RDKit::MolOps::assignStereochemistry(*mol,true);
-//      RDKit::MolOps::assignBondStereoCodes(*mol);
-    } catch (...)
-      {
-	// do nothing?
-      }
+    } catch (...)  { }
              
 
   RingInfo *ringInfo = mol->getRingInfo();
@@ -609,19 +600,9 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
  int num_rings=ringInfo->numRings();
  ROMol *pattern_rotors=SmartsToMol("[!$(*#*)&!D1]-&!@[!$(*#*)&!D1]");
  rotors=-1;
-// smiles = MolToSmiles(*(static_cast<ROMol *>(mol)),true,false);
 
  bool doSubstruct=true;
-/* try {
-   ROMol *test=NULL;
-   test=SmilesToMol(smiles);
-  if (test==NULL) doSubstruct=false;
- } catch (...)
- {
-  doSubstruct=false;
- }
- */
- // cout<<"foo "<<smiles<<" ";
+
  if (doSubstruct)
  {
   std::vector<MatchVectType> matches;
@@ -634,7 +615,7 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
       rotors=-1;
     }
  } 
- //cout<<"bar"<<endl;
+
   vector<int> Num_Rings(8,0);
   VECT_INT_VECT atomRings; // VECT_INT_VECT is vector< vector<int> >
   atomRings=ringInfo->atomRings();
@@ -655,8 +636,6 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
      if(isAromatic) num_aromatic++;
    }
   
-//  smiles = MolToSmiles(*(static_cast<ROMol *>(mol)),true,false); 
-//  num_fragments=count_fragments(smiles);
   VECT_INT_VECT frags;	 
   try {
     num_fragments= MolOps::getMolFrags(*(static_cast<ROMol *>(mol)),frags);	
@@ -683,14 +662,7 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
        propNames.push_back(std::string("Confidence_Estimate"));
       }
 
-  ROMol* mol1;
-  try {
-    mol1=RDKit::MolOps::addHs(*mol,true);
-  } catch (...) 
-    {
-      mol1=mol;
-    }
-  
+ 
   if (format=="sdf")
     {
       try {
@@ -701,22 +673,34 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
 	//smiles=MolToMolBlock(*(static_cast<ROMol *>(mol)));
 
 	try {
-	  //   cout<<"========================="<<endl;
-	  //   mol->updatePropertyCache(false);
-	  //   mol->debugMol(std::cout);
-	  unsigned int cid1 = RDDepict::compute2DCoords(*mol1, &crdMap, false);
+	  /*   cout<<"========================="<<endl;
+	     mol->updatePropertyCache(false);
+	     mol->debugMol(std::cout);
+	     std::cout<<endl<<"++++++"<<endl;
+	     for (int i=0;i<crdMap.size();i++)
+	       {
+		 std::cout<<i<<" "<<crdMap[i].x<<" "<<crdMap[i].y<<endl;
+		 }*/
+	  unsigned int cid1 = RDDepict::compute2DCoords(*mol, &crdMap, false);
 	} catch (...) {}
-
+	ROMol* mol1;
+	try {
+	  mol1=RDKit::MolOps::addHs(*mol,true,true);
+	} catch (...) 
+	  {
+	    mol1=mol;
+	  }
+  
 	std::stringstream ss;
 	SDWriter *writer = new SDWriter(&ss);
         writer->setProps(propNames);
 	writer->write(*mol1);
 	writer->flush();
 	delete writer;
-	
+	if (mol1!=mol) delete mol1;
 	//smiles=MolToMolBlock(*(static_cast<ROMol *>(mol)));
 	//ss<<smiles<<"$$$$"<<endl;
-
+	
 	smiles=ss.str();
       } catch (...) 
 	{smiles="";}
@@ -729,7 +713,7 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
          SmilesWriter *writer = new SmilesWriter(&ss," ","",false,false,true);
          mol->setProp("_Name","");
          writer->setProps(propNames);
-         writer->write(*mol1);
+         writer->write(*mol);
          writer->flush();
          delete writer;
          //ss<<smiles<<endl;
@@ -738,14 +722,7 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
         {smiles="";}
    }
 
-
-  if (mol!=mol1)
-    {
-      delete mol;
-      delete mol1;
-    }
-  else
-    delete mol;
+  delete mol;
   return(smiles);
 }
 
