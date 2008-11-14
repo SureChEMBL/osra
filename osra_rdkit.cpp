@@ -491,9 +491,7 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
        }
       }
     }
-//   cout<<"========================="<<endl;
-//   mol->updatePropertyCache(false);
-//   mol->debugMol(std::cout);
+
    MolOps::findSSSR(*mol);
    for(ROMol::BondIterator bondIt=mol->beginBonds();bondIt!=mol->endBonds();++bondIt)
     if( ((*bondIt)->getIsAromatic() || (*bondIt)->getBondType()==Bond::AROMATIC)
@@ -685,7 +683,14 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
        propNames.push_back(std::string("Confidence_Estimate"));
       }
 
-
+  ROMol* mol1;
+  try {
+    mol1=RDKit::MolOps::addHs(*mol,true);
+  } catch (...) 
+    {
+      mol1=mol;
+    }
+  
   if (format=="sdf")
     {
       try {
@@ -694,16 +699,19 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
 	} catch (...) {}
           */      
 	//smiles=MolToMolBlock(*(static_cast<ROMol *>(mol)));
+
 	try {
-	   unsigned int cid1 = RDDepict::compute2DCoords(*mol, &crdMap, false);
+	  //   cout<<"========================="<<endl;
+	  //   mol->updatePropertyCache(false);
+	  //   mol->debugMol(std::cout);
+	  unsigned int cid1 = RDDepict::compute2DCoords(*mol1, &crdMap, false);
 	} catch (...) {}
 
 	std::stringstream ss;
 	SDWriter *writer = new SDWriter(&ss);
         writer->setProps(propNames);
-	writer->write(*mol);
+	writer->write(*mol1);
 	writer->flush();
-	delete mol;
 	delete writer;
 	
 	//smiles=MolToMolBlock(*(static_cast<ROMol *>(mol)));
@@ -721,15 +729,23 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
          SmilesWriter *writer = new SmilesWriter(&ss," ","",false,false,true);
          mol->setProp("_Name","");
          writer->setProps(propNames);
-         writer->write(*mol);
+         writer->write(*mol1);
          writer->flush();
-         delete mol;
          delete writer;
          //ss<<smiles<<endl;
          smiles=ss.str();
         } catch (...)
         {smiles="";}
    }
+
+
+  if (mol!=mol1)
+    {
+      delete mol;
+      delete mol1;
+    }
+  else
+    delete mol;
   return(smiles);
 }
 

@@ -712,6 +712,7 @@ string get_smiles(atom_t *atom, int real_atoms, bond_t *bond, int n_bond, int &r
      builder.Build(mol);
    }
  */
+ // mol.AddHydrogens(true,false);
 
  str=conv.WriteString(&mol,true);
 
