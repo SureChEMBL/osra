@@ -1,7 +1,7 @@
 ARCH=unix
 #unix,win32
 
-OPENBABEL_OR_RDKIT=rdkit
+OPENBABEL_OR_RDKIT=openbabel
 #openbabel,rdkit
 
 POTRACE=../potrace-1.8/
@@ -71,6 +71,7 @@ MOL_BACKEND_INC=$(OPENBABELINC)
 MOL_BACKEND_LIB=$(OPENBABELLIB)
 MOL_BACKEND_CPP=osra_openbabel.cpp
 MOL_BACKEND_OBJ=osra_openbabel.o
+MCDLUTIL=mcdlutil.o
 endif
 
 
@@ -81,7 +82,7 @@ OCRADOBJ=$(OCRADSRC:.cc=.o)
 CPPFLAGS= -g -O2 -fPIC -I$(OCRAD) -I/usr/local/include -D_LIB -D_MT -Wall $(POTRACEINC) $(GOCRINC) $(MOL_BACKEND_INC) $(TCLAPINC) $(MAGIKINC)
 
 LIBS=$(POTRACELIB) -lm  $(MAGIKLIB) $(GOCRLIB) $(MOL_BACKEND_LIB) -lz
-OBJ = osra.o osra_anisotropic.o osra_ocr.o $(MOL_BACKEND_OBJ) $(OCRADOBJ)
+OBJ = osra.o osra_anisotropic.o osra_ocr.o $(MOL_BACKEND_OBJ) $(OCRADOBJ) $(MCDLUTIL)
 
 
 all:	$(OBJ)
@@ -94,6 +95,8 @@ osra.o:	osra.cpp osra.h pgm2asc.h output.h list.h unicode.h gocr.h
 $(MOL_BACKEND_OBJ): $(MOL_BACKEND_CPP) osra.h
 	$(CPP) $(CPPFLAGS) -c $(MOL_BACKEND_CPP)
 
+$(MCDLUTIL):	mcdlutil.cpp mcdlutil.h
+	$(CPP) $(CPPFLAGS) -c mcdlutil.cpp
 
 osra_anisotropic.o:	osra_anisotropic.cpp osra.h CImg.h greycstoration.h
 	$(CPP) $(CPPFLAGS) -c osra_anisotropic.cpp

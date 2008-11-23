@@ -28,10 +28,11 @@
 #include "openbabel/mol.h"
 #include "openbabel/obconversion.h" 
 #include <openbabel/builder.h> 
+#include "mcdlutil.h"
 using namespace OpenBabel;
 //#include <openbabel/generic.h>
 
-void addMeX(OBMol *mol,int *n)
+void addMeX(OBMol *mol,int *n,int *bondn)
 {
   OBAtom *a;
   a=mol->CreateAtom();
@@ -39,9 +40,10 @@ void addMeX(OBMol *mol,int *n)
   mol->AddAtom(*a);
   (*n)++;
   mol->AddBond((*n)-1,(*n),1);
+  (*bondn)++;
 }
 
-void addOR(OBMol *mol,int *n)
+void addOR(OBMol *mol,int *n,int *bondn)
 {
   OBAtom *a;
   a=mol->CreateAtom();
@@ -49,9 +51,10 @@ void addOR(OBMol *mol,int *n)
   mol->AddAtom(*a);
   (*n)++;
   mol->AddBond((*n)-1,(*n),1);
+  (*bondn)++;
 }
 
-void addCF(OBMol *mol,int *n)
+void addCF(OBMol *mol,int *n,int *bondn)
 {
   OBAtom *a;
   a=mol->CreateAtom();
@@ -59,29 +62,10 @@ void addCF(OBMol *mol,int *n)
   mol->AddAtom(*a);
   (*n)++;
   mol->AddBond((*n)-1,(*n),1);
+  (*bondn)++;
 }
 
-void addCF3(OBMol *mol,int *n)
-{
-  OBAtom *a;
-  a=mol->CreateAtom();
-  a->SetAtomicNum(9);
-  mol->AddAtom(*a);
-  (*n)++;
-  a=mol->CreateAtom();
-  a->SetAtomicNum(9);
-  mol->AddAtom(*a);
-  (*n)++;
-  a=mol->CreateAtom();
-  a->SetAtomicNum(9);
-  mol->AddAtom(*a);
-  (*n)++;
-  mol->AddBond((*n)-3,(*n),1);
-  mol->AddBond((*n)-2,(*n),1);
-  mol->AddBond((*n)-1,(*n),1);
-}
-
-void addF3CN(OBMol *mol,int *n)
+void addCF3(OBMol *mol,int *n,int *bondn)
 {
   OBAtom *a;
   a=mol->CreateAtom();
@@ -97,16 +81,43 @@ void addF3CN(OBMol *mol,int *n)
   mol->AddAtom(*a);
   (*n)++;
   mol->AddBond((*n)-3,(*n),1);
+  (*bondn)++;
   mol->AddBond((*n)-2,(*n),1);
+  (*bondn)++;
   mol->AddBond((*n)-1,(*n),1);
+  (*bondn)++;
+}
+
+void addF3CN(OBMol *mol,int *n,int *bondn)
+{
+  OBAtom *a;
+  a=mol->CreateAtom();
+  a->SetAtomicNum(9);
+  mol->AddAtom(*a);
+  (*n)++;
+  a=mol->CreateAtom();
+  a->SetAtomicNum(9);
+  mol->AddAtom(*a);
+  (*n)++;
+  a=mol->CreateAtom();
+  a->SetAtomicNum(9);
+  mol->AddAtom(*a);
+  (*n)++;
+  mol->AddBond((*n)-3,(*n),1);
+  (*bondn)++;
+  mol->AddBond((*n)-2,(*n),1);
+  (*bondn)++;
+  mol->AddBond((*n)-1,(*n),1);
+  (*bondn)++;
   a=mol->CreateAtom();
   a->SetAtomicNum(6);
   mol->AddAtom(*a);
   (*n)++;
   mol->AddBond((*n)-1,(*n),1);
+  (*bondn)++;
 }
 
-void addPh(OBMol *mol,int *n)
+void addPh(OBMol *mol,int *n,int *bondn)
 {
   OBAtom *a;
   a=mol->CreateAtom();
@@ -130,14 +141,20 @@ void addPh(OBMol *mol,int *n)
   mol->AddAtom(*a);
   (*n)++;
   mol->AddBond((*n)-5,(*n)-4,5);
+  (*bondn)++;
   mol->AddBond((*n)-4,(*n)-3,5);
+  (*bondn)++;
   mol->AddBond((*n)-3,(*n)-2,5);
+  (*bondn)++;
   mol->AddBond((*n)-2,(*n)-1,5);
+  (*bondn)++;
   mol->AddBond((*n)-1,(*n),5);
+  (*bondn)++;
   mol->AddBond((*n)-5,(*n),5);
+  (*bondn)++;
 }
 
-void addBzO(OBMol *mol,int *n)
+void addBzO(OBMol *mol,int *n,int *bondn)
 {
   OBAtom *a;
   a=mol->CreateAtom();
@@ -164,21 +181,29 @@ void addBzO(OBMol *mol,int *n)
   a->SetAtomicNum(6);
   mol->AddAtom(*a);
   mol->AddBond((*n)-5,(*n)-4,5);
+  (*bondn)++;
   mol->AddBond((*n)-4,(*n)-3,5);
+  (*bondn)++;
   mol->AddBond((*n)-3,(*n)-2,5);
+  (*bondn)++;
   mol->AddBond((*n)-2,(*n)-1,5);
+  (*bondn)++;
   mol->AddBond((*n)-1,(*n),5);
+  (*bondn)++;
   mol->AddBond((*n)-5,(*n),5);
+  (*bondn)++;
   (*n)++;
   a=mol->CreateAtom();
   a->SetAtomicNum(6);
   mol->AddAtom(*a);
   mol->AddBond((*n)-1,(*n),1);
+  (*bondn)++;
   (*n)++;
   mol->AddBond((*n)-1,(*n),1);
+  (*bondn)++;
 }
 
-void addTHPO(OBMol *mol,int *n)
+void addTHPO(OBMol *mol,int *n,int *bondn)
 {
   OBAtom *a;
   a=mol->CreateAtom();
@@ -205,16 +230,23 @@ void addTHPO(OBMol *mol,int *n)
   a->SetAtomicNum(6);
   mol->AddAtom(*a);
   mol->AddBond((*n)-5,(*n)-4,1);
+  (*bondn)++;
   mol->AddBond((*n)-4,(*n)-3,1);
+  (*bondn)++;
   mol->AddBond((*n)-3,(*n)-2,1);
+  (*bondn)++;
   mol->AddBond((*n)-2,(*n)-1,1);
+  (*bondn)++;
   mol->AddBond((*n)-1,(*n),1);
+  (*bondn)++;
   mol->AddBond((*n)-5,(*n),1);
+  (*bondn)++;
   (*n)++;
   mol->AddBond((*n)-1,(*n),1);
+  (*bondn)++;
 }
 
-void addNO2(OBMol *mol,int *n)
+void addNO2(OBMol *mol,int *n,int *bondn)
 {
   OBAtom *a;
   a=mol->CreateAtom();
@@ -226,10 +258,12 @@ void addNO2(OBMol *mol,int *n)
   mol->AddAtom(*a);
   (*n)++;
   mol->AddBond((*n)-2,(*n),2);
+  (*bondn)++;
   mol->AddBond((*n)-1,(*n),2);
+  (*bondn)++;
 }
 
-void addNO(OBMol *mol,int *n)
+void addNO(OBMol *mol,int *n,int *bondn)
 {
   OBAtom *a;
   a=mol->CreateAtom();
@@ -237,10 +271,11 @@ void addNO(OBMol *mol,int *n)
   mol->AddAtom(*a);
   (*n)++;
   mol->AddBond((*n)-1,(*n),2);
+  (*bondn)++;
 }
 
 
-void addNOHCH3(OBMol *mol,int *n)
+void addNOHCH3(OBMol *mol,int *n,int *bondn)
 {
   OBAtom *a;
   a=mol->CreateAtom();
@@ -252,10 +287,12 @@ void addNOHCH3(OBMol *mol,int *n)
   mol->AddAtom(*a);
   (*n)++;
   mol->AddBond((*n)-2,(*n),1);
+  (*bondn)++;
   mol->AddBond((*n)-1,(*n),1);
+  (*bondn)++;
 }
 
-void addSO3H(OBMol *mol,int *n)
+void addSO3H(OBMol *mol,int *n,int *bondn)
 {
   OBAtom *a;
   a=mol->CreateAtom();
@@ -271,12 +308,15 @@ void addSO3H(OBMol *mol,int *n)
   mol->AddAtom(*a);
   (*n)++;
   mol->AddBond((*n)-3,(*n),1);
+  (*bondn)++;
   mol->AddBond((*n)-2,(*n),2);
+  (*bondn)++;
   mol->AddBond((*n)-1,(*n),2);
+  (*bondn)++;
 }
 
 
-void addNC(OBMol *mol,int *n)
+void addNC(OBMol *mol,int *n,int *bondn)
 {
   OBAtom *a;
   a=mol->CreateAtom();
@@ -284,9 +324,10 @@ void addNC(OBMol *mol,int *n)
   mol->AddAtom(*a);
   (*n)++;
   mol->AddBond((*n)-1,(*n),3);
+  (*bondn)++;
 }
 
-void addnBu(OBMol *mol,int *n)
+void addnBu(OBMol *mol,int *n,int *bondn)
 {
   OBAtom *a;
   a=mol->CreateAtom();
@@ -294,19 +335,22 @@ void addnBu(OBMol *mol,int *n)
   mol->AddAtom(*a);
   (*n)++;
   mol->AddBond((*n)-1,(*n),1);
+  (*bondn)++;
   a=mol->CreateAtom();
   a->SetAtomicNum(6);
   mol->AddAtom(*a);
   (*n)++;
   mol->AddBond((*n)-1,(*n),1);
+  (*bondn)++;
   a=mol->CreateAtom();
   a->SetAtomicNum(6);
   mol->AddAtom(*a);
   (*n)++;
   mol->AddBond((*n)-1,(*n),1);
+  (*bondn)++;
 }
 
-void addiPr(OBMol *mol,int *n)
+void addiPr(OBMol *mol,int *n,int *bondn)
 {
   OBAtom *a;
   a=mol->CreateAtom();
@@ -314,14 +358,16 @@ void addiPr(OBMol *mol,int *n)
   mol->AddAtom(*a);
   (*n)++;
   mol->AddBond((*n)-1,(*n),1);
+  (*bondn)++;
   a=mol->CreateAtom();
   a->SetAtomicNum(6);
   mol->AddAtom(*a);
   (*n)++;
   mol->AddBond((*n)-1,(*n),1);
+  (*bondn)++;
 }
 
-void addEtO(OBMol *mol,int *n)
+void addEtO(OBMol *mol,int *n,int *bondn)
 {
   OBAtom *a;
   a=mol->CreateAtom();
@@ -329,14 +375,16 @@ void addEtO(OBMol *mol,int *n)
   mol->AddAtom(*a);
   (*n)++;
   mol->AddBond((*n)-1,(*n),1);
+  (*bondn)++;
   a=mol->CreateAtom();
   a->SetAtomicNum(6);
   mol->AddAtom(*a);
   (*n)++;
   mol->AddBond((*n)-1,(*n),1);
+  (*bondn)++;
 }
 
-void addOiBu(OBMol *mol,int *n)
+void addOiBu(OBMol *mol,int *n,int *bondn)
 {
   OBAtom *a;
   a=mol->CreateAtom();
@@ -344,24 +392,28 @@ void addOiBu(OBMol *mol,int *n)
   mol->AddAtom(*a);
   (*n)++;
   mol->AddBond((*n)-1,(*n),1);
+  (*bondn)++;
   a=mol->CreateAtom();
   a->SetAtomicNum(6);
   mol->AddAtom(*a);
   (*n)++;
   mol->AddBond((*n)-1,(*n),1);
- a=mol->CreateAtom();
+  (*bondn)++;
+  a=mol->CreateAtom();
   a->SetAtomicNum(6);
   mol->AddAtom(*a);
   (*n)++;
   mol->AddBond((*n)-2,(*n),1);
+  (*bondn)++;
   a=mol->CreateAtom();
   a->SetAtomicNum(6);
   mol->AddAtom(*a);
   (*n)++;
   mol->AddBond((*n)-1,(*n),1);
+  (*bondn)++;
 }
 
-void addtBu(OBMol *mol,int *n)
+void addtBu(OBMol *mol,int *n,int *bondn)
 {
   OBAtom *a;
   a=mol->CreateAtom();
@@ -377,12 +429,15 @@ void addtBu(OBMol *mol,int *n)
   mol->AddAtom(*a);
   (*n)++;
   mol->AddBond((*n)-3,(*n),1);
+  (*bondn)++;
   mol->AddBond((*n)-2,(*n),1);
+  (*bondn)++;
   mol->AddBond((*n)-1,(*n),1);
+  (*bondn)++;
 }
 
 
-void addCOOH(OBMol *mol,int *n)
+void addCOOH(OBMol *mol,int *n,int *bondn)
 {
   OBAtom *a;
   a=mol->CreateAtom();
@@ -394,10 +449,12 @@ void addCOOH(OBMol *mol,int *n)
   mol->AddAtom(*a);
   (*n)++;
   mol->AddBond((*n)-2,(*n),2);
+  (*bondn)++;
   mol->AddBond((*n)-1,(*n),1);
+  (*bondn)++;
 }
 
-void addAc(OBMol *mol,int *n)
+void addAc(OBMol *mol,int *n,int *bondn)
 {
   OBAtom *a;
   a=mol->CreateAtom();
@@ -409,10 +466,12 @@ void addAc(OBMol *mol,int *n)
   mol->AddAtom(*a);
   (*n)++;
   mol->AddBond((*n)-2,(*n),2);
+  (*bondn)++;
   mol->AddBond((*n)-1,(*n),1);
+  (*bondn)++;
 }
 
-void addAcO(OBMol *mol,int *n)
+void addAcO(OBMol *mol,int *n,int *bondn)
 {
   OBAtom *a;
   a=mol->CreateAtom();
@@ -424,15 +483,18 @@ void addAcO(OBMol *mol,int *n)
   mol->AddAtom(*a);
   (*n)++;
   mol->AddBond((*n)-1,(*n),2);
+  (*bondn)++;
   mol->AddBond((*n)-2,(*n),1);
+  (*bondn)++;
   a=mol->CreateAtom();
   a->SetAtomicNum(6);
   mol->AddAtom(*a);
   (*n)++;
   mol->AddBond((*n)-1,(*n),1);
+  (*bondn)++;
 }
 
-int getAnum(string s, OBMol *mol,int *n)
+int getAnum(string s, OBMol *mol,int *n, int *bondn)
 {
   if (s=="C") return(6);
   if (s=="N") return(7);
@@ -448,117 +510,117 @@ int getAnum(string s, OBMol *mol,int *n)
   if (s=="Ar") return(18);
   if (s=="MeO") 
     {
-      addMeX(mol,n);
+      addMeX(mol,n,bondn);
       return(8);
     }
   if (s=="CF")
     {
-      addCF(mol,n);
+      addCF(mol,n,bondn);
       return(6);
     }
   if (s=="CF3")
     {
-      addCF3(mol,n);
+      addCF3(mol,n,bondn);
       return(6);
     }
   if (s=="F3CN")
     {
-      addF3CN(mol,n);
+      addF3CN(mol,n,bondn);
       return(7);
     }
   if (s=="CN")
     {
-      addNC(mol,n);
+      addNC(mol,n,bondn);
       return(6);
     }
   if (s=="nBu")
     {
-      addnBu(mol,n);
+      addnBu(mol,n,bondn);
       return(6);
     }
   if (s=="EtO")
     {
-      addEtO(mol,n);
+      addEtO(mol,n,bondn);
       return(8);
     }
   if (s=="OiBu")
     {
-      addOiBu(mol,n);
+      addOiBu(mol,n,bondn);
       return(8);
     }
   if (s=="iPr")
     {
-      addiPr(mol,n);
+      addiPr(mol,n,bondn);
       return(6);
     }
   if (s=="tBu")
     {
-      addtBu(mol,n);
+      addtBu(mol,n,bondn);
       return(6);
     }
   if (s=="COOH")
     {
-      addCOOH(mol,n);
+      addCOOH(mol,n,bondn);
       return(6);
     }
   if (s=="Ac")
     {
-      addAc(mol,n);
+      addAc(mol,n,bondn);
       return(6);
     }
   if (s=="AcO")
     {
-      addAcO(mol,n);
+      addAcO(mol,n,bondn);
       return(8);
     }
   if (s=="NO2")
     {
-      addNO2(mol,n);
+      addNO2(mol,n,bondn);
       return(7);
     }
   if (s=="NO")
     {
-      addNO(mol,n);
+      addNO(mol,n,bondn);
       return(7);
     }
   if (s=="Ph")
     {
-      addPh(mol,n);
+      addPh(mol,n,bondn);
       return(6);
     }
   if (s=="MeS") 
     {
-      addMeX(mol,n);
+      addMeX(mol,n,bondn);
       return(16);
     }
   if (s=="MeN") 
     {
-      addMeX(mol,n);
+      addMeX(mol,n,bondn);
       return(7);
     }
   if (s=="SO3H") 
     {
-      addSO3H(mol,n);
+      addSO3H(mol,n,bondn);
       return(16);
     }
   if (s=="OR") 
     {
-      addOR(mol,n);
+      addOR(mol,n,bondn);
       return(8);
     }
   if (s=="BzO")
     {
-      addBzO(mol,n);
+      addBzO(mol,n,bondn);
       return(8);
     }
   if (s=="N(OH)CH3")
     {
-      addNOHCH3(mol,n);
+      addNOHCH3(mol,n,bondn);
       return(7);
     }
   if (s=="THPO")
     {
-      addTHPO(mol,n);
+      addTHPO(mol,n,bondn);
       return(8);
     }
   return(6);
@@ -577,6 +639,8 @@ string get_smiles(atom_t *atom, int real_atoms, bond_t *bond, int n_bond, int &r
  int n=1;
  int anum;
  double scale=CC_BOND_LENGTH/avg;
+ vector<int> atomN,bondN;
+ int bondn=0;
 
  conv.SetOutFormat(format.c_str());
  conv.Read(&mol);
@@ -587,7 +651,13 @@ string get_smiles(atom_t *atom, int real_atoms, bond_t *bond, int n_bond, int &r
        if (atom[bond[i].a].n==0)
 	 {
 	   a=mol.CreateAtom();
-	   anum=getAnum(atom[bond[i].a].label,&mol,&n);
+	   int oldn=n;
+	   anum=getAnum(atom[bond[i].a].label,&mol,&n,&bondn);
+	   if (oldn!=n) 
+	     {
+	       atomN.push_back(n);
+	       bondN.push_back(bondn);
+	     }
 	   a->SetAtomicNum(anum);
 	   if (atom[bond[i].a].charge!=0)
 	     a->SetFormalCharge(atom[bond[i].a].charge);
@@ -598,7 +668,13 @@ string get_smiles(atom_t *atom, int real_atoms, bond_t *bond, int n_bond, int &r
        if (atom[bond[i].b].n==0)
 	 {
 	   b=mol.CreateAtom();
-	   anum=getAnum(atom[bond[i].b].label,&mol,&n);
+	   int oldn=n;
+	   anum=getAnum(atom[bond[i].b].label,&mol,&n,&bondn);
+	   if (oldn!=n) 
+	     {
+	       atomN.push_back(n);
+	       bondN.push_back(bondn);
+	     }
 	   b->SetAtomicNum(anum);
 	   if (atom[bond[i].b].charge!=0)
 	     b->SetFormalCharge(atom[bond[i].b].charge);
@@ -606,28 +682,37 @@ string get_smiles(atom_t *atom, int real_atoms, bond_t *bond, int n_bond, int &r
 	   mol.AddAtom(*b);
 	   atom[bond[i].b].n=n++;
 	 }
+
        if (bond[i].arom)
 	 {
 	   mol.AddBond(atom[bond[i].a].n,atom[bond[i].b].n,5);
+	   bondn++;
 	 }
        else if (bond[i].wedge)
 	 {
 	   mol.AddBond(atom[bond[i].a].n,atom[bond[i].b].n,bond[i].type,OB_WEDGE_BOND);
+	   bondn++;
 	 }
        else if (bond[i].hash)
 	 {
 	   mol.AddBond(atom[bond[i].a].n,atom[bond[i].b].n,bond[i].type,OB_HASH_BOND);
+	   bondn++;
 	 }
        else if (bond[i].up)
 	 {
 	   mol.AddBond(atom[bond[i].a].n,atom[bond[i].b].n,bond[i].type,OB_TORUP_BOND);
+	   bondn++;
 	 }
        else if (bond[i].down)
 	 {
 	   mol.AddBond(atom[bond[i].a].n,atom[bond[i].b].n,bond[i].type,OB_TORDOWN_BOND);
+	   bondn++;
          }
        else
-	 mol.AddBond(atom[bond[i].a].n,atom[bond[i].b].n,bond[i].type);
+	 {
+	   mol.AddBond(atom[bond[i].a].n,atom[bond[i].b].n,bond[i].type);
+	   bondn++;
+	 }
      }
  mol.FindRingAtomsAndBonds();
  for (unsigned int j=1;j<=mol.NumBonds();j++)
@@ -706,12 +791,14 @@ string get_smiles(atom_t *atom, int real_atoms, bond_t *bond, int n_bond, int &r
      mol.SetData(label);
    }
 
- /*if (format=="sdf")
+if (format=="sdf")
    {
-     OBBuilder builder;
-     builder.Build(mol);
+     for (int i=0;i<atomN.size();i++)
+       {
+	 groupRedraw(&mol,bondN[i],atomN[i]);
+       }
    }
- */
+
  // mol.AddHydrogens(true,false);
 
  str=conv.WriteString(&mol,true);

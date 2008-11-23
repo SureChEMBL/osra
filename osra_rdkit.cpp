@@ -664,6 +664,14 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
        propNames.push_back(std::string("Confidence_Estimate"));
       }
 
+cout<<"========================="<<endl;
+		   mol->updatePropertyCache(false);
+		   mol->debugMol(std::cout);
+		   std::cout<<endl<<"++++++"<<endl;
+		   for (int i=0;i<crdMap.size();i++)
+		   {
+		   std::cout<<i<<" "<<crdMap[i].x<<" "<<crdMap[i].y<<endl;
+		   }
  
   if (format=="sdf")
     {
@@ -676,14 +684,7 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
 	if (genCoords)
 	  {
 	    try {
-	      /*   cout<<"========================="<<endl;
-		   mol->updatePropertyCache(false);
-		   mol->debugMol(std::cout);
-		   std::cout<<endl<<"++++++"<<endl;
-		   for (int i=0;i<crdMap.size();i++)
-		   {
-		   std::cout<<i<<" "<<crdMap[i].x<<" "<<crdMap[i].y<<endl;
-		   }*/
+	         
 	      unsigned int cid1 = RDDepict::compute2DCoords(*mol, &crdMap, false);
 	    } catch (...) {}
 	  }
