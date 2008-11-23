@@ -1,7 +1,7 @@
 ARCH=unix
 #unix,win32
 
-OPENBABEL_OR_RDKIT=openbabel
+OPENBABEL_OR_RDKIT=rdkit
 #openbabel,rdkit
 
 POTRACE=../potrace-1.8/
@@ -95,8 +95,10 @@ osra.o:	osra.cpp osra.h pgm2asc.h output.h list.h unicode.h gocr.h
 $(MOL_BACKEND_OBJ): $(MOL_BACKEND_CPP) osra.h
 	$(CPP) $(CPPFLAGS) -c $(MOL_BACKEND_CPP)
 
+ifeq ($(OPENBABEL_OR_RDKIT),openbabel)
 $(MCDLUTIL):	mcdlutil.cpp mcdlutil.h
 	$(CPP) $(CPPFLAGS) -c mcdlutil.cpp
+endif
 
 osra_anisotropic.o:	osra_anisotropic.cpp osra.h CImg.h greycstoration.h
 	$(CPP) $(CPPFLAGS) -c osra_anisotropic.cpp
