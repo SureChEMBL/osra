@@ -376,7 +376,7 @@ bool superatom(string s,RWMol *mol,unsigned int n)
   return(false);
 }
 
-string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &rotors, 
+string get_smiles(atom_t *atom, bond_t *bond, int n_bond, int &rotors, 
 		  double &confidence, int &num_fragments, int &r56, double avg,
 		  string format,int resolution,bool conf, bool guess)
 {
@@ -384,7 +384,6 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
   int bondid=0;
   int anum;
   double scale=CC_BOND_LENGTH/avg;
-  Conformer *conform = new Conformer(real_atoms);	
   std::string smiles="";
   bool genCoords=false;
   rotors=0;
@@ -392,7 +391,8 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
   num_fragments=0;
   r56=0;
   vector<int> bondid_to_i(MAX_ATOMS,-1);
-  RDGeom::INT_POINT2D_MAP crdMap;
+  vector<int> aid_vec;
+  vector<double> x_coord,y_coord;
 
   for (int i=0;i<n_bond;i++)
     if (bond[i].exists) 
@@ -406,10 +406,8 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
         bool a_added=false;
 	if (atom[bond[i].a].n<0)
 	  {
-  	    RDGeom::Point3D pos;
-  	    pos.x=atom[bond[i].a].x*scale;
-  	    pos.y=-atom[bond[i].a].y*scale;
-  	    pos.z=0;
+  	    x_coord.push_back(atom[bond[i].a].x*scale);
+  	    y_coord.push_back(-atom[bond[i].a].y*scale);
 	    anum=getAnum(atom[bond[i].a].label);
 	    Atom *a=new Atom(anum);
 	    if (atom[bond[i].a].charge!=0)
@@ -424,18 +422,15 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
              }  
 	    unsigned int aid=mol->addAtom(a);                         
 	    genCoords|=superatom(atom[bond[i].a].label,mol,aid);
-	    //conform->setAtomPos(aid, pos);
 	    atom[bond[i].a].n=aid;
-	    crdMap[aid] = RDGeom::Point2D(pos.x,pos.y);
+	    aid_vec.push_back(aid);
 	    a_added=true;
 	  }
         bool b_added=false;
 	if (atom[bond[i].b].n<0)
 	  {
-	    RDGeom::Point3D pos;
-	    pos.x=atom[bond[i].b].x*scale;
-	    pos.y=-atom[bond[i].b].y*scale;
-	    pos.z=0;
+	    x_coord.push_back(atom[bond[i].b].x*scale);
+	    y_coord.push_back(-atom[bond[i].b].y*scale);
 	    anum=getAnum(atom[bond[i].b].label);
 	    Atom *b=new Atom(anum);
 	    if (atom[bond[i].b].charge!=0)
@@ -450,9 +445,8 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
 	       }
 	    unsigned int aid=mol->addAtom(b);
 	    genCoords|=superatom(atom[bond[i].b].label,mol,aid);
-	    //conform->setAtomPos(aid, pos);
 	    atom[bond[i].b].n=aid;
-	    crdMap[aid] = RDGeom::Point2D(pos.x,pos.y);
+	    aid_vec.push_back(aid);
 	    b_added=true;
 	  }
         if (atom[bond[i].a].n!=atom[bond[i].b].n)
@@ -481,20 +475,22 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
         if (a_added)
          {
           mol->removeAtom(atom[bond[i].a].n);
-	  crdMap.erase(crdMap.find(atom[bond[i].a].n));
           atom[bond[i].a].n=-1;
-	  //	  conform->resize(conform->getNumAtoms()-1);
+	  aid_vec.pop_back();
+	  x_coord.pop_back();
+	  y_coord.pop_back();
          }
         if (b_added)
          {
           mol->removeAtom(atom[bond[i].b].n);
-	  crdMap.erase(crdMap.find(atom[bond[i].b].n));
           atom[bond[i].b].n=-1;
-	  //conform->resize(conform->getNumAtoms()-1);
+	  aid_vec.pop_back();
+	  x_coord.pop_back();
+	  y_coord.pop_back();
          }
        }
       }
-    }
+     }
 
    MolOps::findSSSR(*mol);
    for(ROMol::BondIterator bondIt=mol->beginBonds();bondIt!=mol->endBonds();++bondIt)
@@ -511,18 +507,31 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
 	    (*bondIt)->setBondType(Bond::TRIPLE);
       }
    bool doStereo=true;
-  
+
+
+   RDGeom::INT_POINT2D_MAP crdMap;
+   for (int i=0;i<aid_vec.size();i++)
+     {
+       crdMap[aid_vec[i]]=RDGeom::Point2D(x_coord[i], y_coord[i]);
+       //       cout<<aid_vec[i]<<" "<<x_coord[i]<<" "<<y_coord[i]<<endl;
+     }
+
+   Conformer *conform = new Conformer(mol->getNumAtoms());	
+   for(RWMol::AtomIterator atomIt=mol->beginAtoms();atomIt!=mol->endAtoms();atomIt++) 
+     {
+       RDGeom::Point3D pos;
+       int id=(*atomIt)->getIdx();
+       RDGeom::INT_POINT2D_MAP::iterator it=crdMap.find(id);
+       if (it!=crdMap.end())
+	 {
+	   pos.x=crdMap[id].x;
+	   pos.y=crdMap[id].y;
+	   pos.z=0.0;
+	   conform->setAtomPos(id, pos);
+	 }
+     }
+
    try {
-     conform->resize(mol->getNumAtoms());
-     for(RWMol::AtomIterator atomIt=mol->beginAtoms();atomIt!=mol->endAtoms();atomIt++) 
-       {
-	 RDGeom::Point3D pos;
-	 int id=(*atomIt)->getIdx();
-	 pos.x=crdMap[id].x;
-	 pos.y=crdMap[id].y;
-	 pos.z=0.0;
-	 conform->setAtomPos(id, pos);
-       }
      conform->set3D(false);
      mol->addConformer(conform, true);
    }
@@ -676,15 +685,12 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
        propNames.push_back(std::string("Confidence_Estimate"));
       }
 
-  /*cout<<"========================="<<endl;
+  /*  cout<<"========================="<<endl;
 		   mol->updatePropertyCache(false);
 		   mol->debugMol(std::cout);
-		   std::cout<<endl<<"++++++"<<endl;
-		   for (int i=0;i<crdMap.size();i++)
-		   {
-		   std::cout<<i<<" "<<crdMap[i].x<<" "<<crdMap[i].y<<endl;
-		   }
-  */
+		   std::cout<<endl<<"++++++"<<endl;*/
+
+  
   if (format=="sdf")
     {
       try {
@@ -696,9 +702,8 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
 	if (genCoords)
 	  {
 	    try {
-	         
-	      unsigned int cid1 = RDDepict::compute2DCoords(*mol, &crdMap, false);
-	    } catch (...) {}
+	      unsigned int cid1 = RDDepict::compute2DCoords(*mol, &crdMap, false,true);
+	    } catch (...)   { }
 	  }
 	ROMol* mol1;
 	try {
