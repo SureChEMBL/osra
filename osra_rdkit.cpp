@@ -424,7 +424,7 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
              }  
 	    unsigned int aid=mol->addAtom(a);                         
 	    genCoords|=superatom(atom[bond[i].a].label,mol,aid);
-	    conform->setAtomPos(aid, pos);
+	    //conform->setAtomPos(aid, pos);
 	    atom[bond[i].a].n=aid;
 	    crdMap[aid] = RDGeom::Point2D(pos.x,pos.y);
 	    a_added=true;
@@ -450,7 +450,7 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
 	       }
 	    unsigned int aid=mol->addAtom(b);
 	    genCoords|=superatom(atom[bond[i].b].label,mol,aid);
-	    conform->setAtomPos(aid, pos);
+	    //conform->setAtomPos(aid, pos);
 	    atom[bond[i].b].n=aid;
 	    crdMap[aid] = RDGeom::Point2D(pos.x,pos.y);
 	    b_added=true;
@@ -483,12 +483,14 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
           mol->removeAtom(atom[bond[i].a].n);
 	  crdMap.erase(crdMap.find(atom[bond[i].a].n));
           atom[bond[i].a].n=-1;
+	  //	  conform->resize(conform->getNumAtoms()-1);
          }
         if (b_added)
          {
           mol->removeAtom(atom[bond[i].b].n);
 	  crdMap.erase(crdMap.find(atom[bond[i].b].n));
           atom[bond[i].b].n=-1;
+	  //conform->resize(conform->getNumAtoms()-1);
          }
        }
       }
@@ -511,6 +513,16 @@ string get_smiles(atom_t *atom, int real_atoms,bond_t *bond, int n_bond, int &ro
    bool doStereo=true;
   
    try {
+     conform->resize(mol->getNumAtoms());
+     for(RWMol::AtomIterator atomIt=mol->beginAtoms();atomIt!=mol->endAtoms();atomIt++) 
+       {
+	 RDGeom::Point3D pos;
+	 int id=(*atomIt)->getIdx();
+	 pos.x=crdMap[id].x;
+	 pos.y=crdMap[id].y;
+	 pos.z=0.0;
+	 conform->setAtomPos(id, pos);
+       }
      conform->set3D(false);
      mol->addConformer(conform, true);
    }
