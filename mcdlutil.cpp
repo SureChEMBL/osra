@@ -7153,6 +7153,40 @@ void implementBondStereo(const std::vector<int> iA1, const std::vector<int> iA2,
 //****************************************************************************
 //Group redraw - generate 2D coordinates  for chemical group
 //****************************************************************************
+  void groupRedrawBeginEnd(OBMol * pmol, int atomB, int atomN, int bondB, int bondN)
+  {
+    TSimpleMolecule sm;
+    std::vector<int> allAtomList(NATOMSMAX);
+    std::vector<int> atomList(NATOMSMAX);
+    std::vector<int> bondList(NBONDSMAX);
+    int na,atEx;
+    sm.readOBMol(pmol);
+
+    if (sm.getBond(bondN)->at[0] == atomN-1) 
+      {
+	atEx=sm.getBond(bondN)->at[1];
+      } 
+    else 
+      {
+	atEx=sm.getBond(bondN)->at[0];
+      }
+    sm.makeFragment(na,atomList,atomB-1,atEx);
+    
+    int nb=0;
+    for (int j=bondB;j<bondN;j++)  bondList[nb++]=j;
+    //    cout<<na<<" "<<nb<<" "<<atomList[0]<<" "<<bondList[0]<<" "<<atomN-1<<" "<<bondN<<endl;
+    double x0=sm.getAtom(atomN-1)->rx;
+    double y0=sm.getAtom(atomN-1)->ry;
+    sm.redraw(atomList,bondList,na,nb,1,atomN-1,bondN,false);
+    double x1=sm.getAtom(atomN-1)->rx;
+    double y1=sm.getAtom(atomN-1)->ry;
+    for (int k=0; k<na; k++) 
+      {
+	int n=atomList[k]; 
+	pmol->GetAtom(n+1)->SetVector(sm.getAtom(n)->rx+x0-x1,sm.getAtom(n)->ry+y0-y1,0.0);
+      }
+  }
+
   int groupRedraw(OBMol * pmol, int bondN, int atomN) {
     //bondN - index of acyclic bond in pmol (zero-based). atomN - index of atom attached to bond bondN to start redraw from it (1-based)
     //returns 0 - all OK, =1 - number of atoms or bond are outside defined, = 2-cyclic bond 

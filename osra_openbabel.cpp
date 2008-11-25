@@ -639,7 +639,7 @@ string get_smiles(atom_t *atom, bond_t *bond, int n_bond, int &rotors,
  int n=1;
  int anum;
  double scale=CC_BOND_LENGTH/avg;
- vector<int> atomN,bondN;
+ vector<int> atomB,atomN,bondB,bondN;
  int bondn=0;
 
  conv.SetOutFormat(format.c_str());
@@ -652,10 +652,13 @@ string get_smiles(atom_t *atom, bond_t *bond, int n_bond, int &rotors,
 	 {
 	   a=mol.CreateAtom();
 	   int oldn=n;
+	   int oldbond=bondn;
 	   anum=getAnum(atom[bond[i].a].label,&mol,&n,&bondn);
 	   if (oldn!=n) 
 	     {
+	       atomB.push_back(oldn);
 	       atomN.push_back(n);
+	       bondB.push_back(oldbond);
 	       bondN.push_back(bondn);
 	     }
 	   a->SetAtomicNum(anum);
@@ -669,10 +672,13 @@ string get_smiles(atom_t *atom, bond_t *bond, int n_bond, int &rotors,
 	 {
 	   b=mol.CreateAtom();
 	   int oldn=n;
+	   int oldbond=bondn;
 	   anum=getAnum(atom[bond[i].b].label,&mol,&n,&bondn);
 	   if (oldn!=n) 
 	     {
+	       atomB.push_back(oldn);
 	       atomN.push_back(n);
+	       bondB.push_back(oldbond);
 	       bondN.push_back(bondn);
 	     }
 	   b->SetAtomicNum(anum);
@@ -795,7 +801,7 @@ if (format=="sdf")
    {
      for (int i=0;i<atomN.size();i++)
        {
-	 groupRedraw(&mol,bondN[i],atomN[i]);
+	 groupRedrawBeginEnd(&mol,atomB[i],atomN[i],bondB[i],bondN[i]);
        }
    }
 

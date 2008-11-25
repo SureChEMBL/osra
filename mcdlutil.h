@@ -81,7 +81,7 @@ std::string getBondMCDL(OBMol * pmol, int nbStore, int ntatoms, const std::vecto
 void implementAtomStereo(std::vector<int>& iA1, std::vector<int>& iA2, std::vector<int>& stereoBonds, const std::vector<double>rx, const std::vector<double> ry, int acount, int bcount, std::string astereo);
 void implementBondStereo(const std::vector<int> iA1, const std::vector<int> iA2, std::vector<double>& rx, std::vector<double>& ry, int acount, int bcount, std::string bstereo);
 
-
+  void groupRedrawBeginEnd(OBMol * pmol, int atomB, int atomN, int bondB, int bondN);
 int  groupRedraw(OBMol * pmol, int bondN, int atomN);
 int  canonizeMCDL(const std::string atomBlock, std::vector<std::string> & structureList);
 void prepareTest(OBMol * pmol, std::ostream & ofs);
