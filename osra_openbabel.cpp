@@ -802,6 +802,7 @@ if (format=="sdf")
      for (int i=0;i<atomN.size();i++)
        {
 	 groupRedrawBeginEnd(&mol,atomB[i],atomN[i],bondB[i],bondN[i]);
+//         groupRedraw(&mol,bondN[i],atomN[i],true);
        }
    }
 

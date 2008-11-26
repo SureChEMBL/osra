@@ -7225,6 +7225,7 @@ void implementBondStereo(const std::vector<int> iA1, const std::vector<int> iA2,
         bondList[nb]=i;
 		nb++;
 	  };
+//	  cout<<na<<" "<<nb<<" "<<atomList[0]<<" "<<bondList[0]<<" "<<atomN<<" "<<bondN<<endl;
 	  sm.redraw(atomList,bondList,na,nb,3,atomN,bondN,false);
 	  //Setting OBMOL coordinates
 	  for (int i=0; i<na; i++) {

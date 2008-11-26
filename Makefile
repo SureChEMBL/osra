@@ -9,15 +9,17 @@ GOCR=../gocr-0.45/
 OCRAD=../ocrad-0.18-pre4/
 
 ifeq ($(OPENBABEL_OR_RDKIT),rdkit)
-#RDKIT=../RDKit_Q32008_1/
 RDKIT=../rdkit-svn/
 BOOST=../boost_1_37_0/
+else
+OPENBABEL=../openbabel-inst/
 endif
 
-ifeq ($(ARCH),win32)
-OPENBABEL=../openbabel-2.2.0/
-endif
+#ifeq ($(ARCH),win32)
+#OPENBABEL=../openbabel-2.2.0/
+#endif
 
+TCLAPINC=-I/usr/local/include/tclap/
 
 CPP = g++
 LD=g++ -g -O2 -fPIC
@@ -28,9 +30,8 @@ PATCH=patch
 
 SRCDIR=./
 
-################ Hopefully you won't have to change anything below this line #########
 
-TCLAPINC=-I/usr/local/include/tclap/ -I/usr/local/include
+################ Hopefully you won't have to change anything below this line #########
 
 RDKITINC=-I$(RDKIT)/Code/ -I$(RDKIT)/External/vflib-2.0/include/ -I$(BOOST)
 RDKITLIB=-L$(RDKIT)/bin/ -lRDGeneral -lSmilesParse -lGraphMol -lFileParsers -lDepictor -lRDGeometry -lSubstruct -lDistGeomHelpers -lDistGeom -lForceFieldHelpers -lForceField -lEigenSolvers -lAlignment -lOptimizer -L$(RDKIT)/External/vflib-2.0/lib -lvf
@@ -51,14 +52,9 @@ GOCRSRC=$(GOCR)/src/
 GOCRINC= -I$(GOCRSRC) -I$(GOCR)/include/
 GOCRLIB= -L$(GOCRSRC) -lPgm2asc $(NETPBM)
 
-ifeq ($(ARCH),win32)
-#OPENBABELLIB=$(OPENBABEL)/src/formats/cansmilesformat.o $(OPENBABEL)/src/formats/obmolecformat.o -L/usr/local/lib -lopenbabel
-OPENBABELLIB=-L/usr/local/lib -lopenbabel
-OPENBABELINC=-I$(OPENBABEL)/include
-else
-OPENBABELLIB=-L/usr/local/lib -lopenbabel   
-OPENBABELINC=-I/usr/include/openbabel-2.0/ -I/usr/local/include/openbabel-2.0/
-endif
+OPENBABELLIB=-L$(OPENBABEL)/lib -lopenbabel   
+OPENBABELINC=-I$(OPENBABEL)/include/openbabel-2.0/
+
 
 ifeq ($(OPENBABEL_OR_RDKIT),rdkit)
 MOL_BACKEND_INC=$(RDKITINC)
@@ -79,7 +75,7 @@ OCRADSRC=$(wildcard $(OCRAD)*.cc)
 OCRADINC=$(wildcard $(OCRAD)*.h)
 OCRADOBJ=$(OCRADSRC:.cc=.o)
 
-CPPFLAGS= -g -O2 -fPIC -I$(OCRAD) -I/usr/local/include -D_LIB -D_MT -Wall $(POTRACEINC) $(GOCRINC) $(MOL_BACKEND_INC) $(TCLAPINC) $(MAGIKINC)
+CPPFLAGS= -g -O2 -fPIC -I$(OCRAD) -D_LIB -D_MT -Wall $(POTRACEINC) $(GOCRINC) $(MOL_BACKEND_INC) $(TCLAPINC) $(MAGIKINC)
 
 LIBS=$(POTRACELIB) -lm  $(MAGIKLIB) $(GOCRLIB) $(MOL_BACKEND_LIB) -lz
 OBJ = osra.o osra_anisotropic.o osra_ocr.o $(MOL_BACKEND_OBJ) $(OCRADOBJ) $(MCDLUTIL)
