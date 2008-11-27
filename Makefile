@@ -12,7 +12,7 @@ ifeq ($(OPENBABEL_OR_RDKIT),rdkit)
 RDKIT=../rdkit-svn/
 BOOST=../boost_1_37_0/
 else
-OPENBABEL=../openbabel-inst/
+OPENBABEL=/usr/
 endif
 
 #ifeq ($(ARCH),win32)
