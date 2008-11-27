@@ -7162,60 +7162,77 @@ void implementBondStereo(const std::vector<int> iA1, const std::vector<int> iA2,
     int na,atEx;
     sm.readOBMol(pmol);
 
-    if (sm.getBond(bondN)->at[0] == atomN-1) 
+    if ((abs(sm.getAtom(atomB-1)->rx)<0.001) && (abs(sm.getAtom(atomB-1)->ry)<0.001))
       {
-	atEx=sm.getBond(bondN)->at[1];
-      } 
-    else 
-      {
-	atEx=sm.getBond(bondN)->at[0];
-      }
-
-    if (sm.getBond(bondN)->db > 0)
-      {
-	double dx=0;
-	double dy=0;
-	int n=0;
-	int j;
-	for (unsigned int i=0;i<sm.nBonds();i++)
-	  if (((i<bondB) || (i>=bondN)) && ((sm.getBond(i)->at[0] == atomN-1) || (sm.getBond(i)->at[1] == atomN-1)))
+	if (sm.getBond(bondN)->at[0] == atomN-1) 
 	  {
-	    if (sm.getBond(i)->at[0] == atomN-1) j=sm.getBond(i)->at[1];
-	    else j=sm.getBond(i)->at[0];
-	    double x=sm.getAtom(j)->rx;
-	    double y=sm.getAtom(j)->ry;
-	    if ((abs(x)>0.001) || (abs(y)>0.001))
-	      {
-		dx+=x;
-		dy+=y;
-		n++;
-	      }
+	    atEx=sm.getBond(bondN)->at[1];
+	  } 
+	else 
+	  {
+	    atEx=sm.getBond(bondN)->at[0];
 	  }
-	dx/=n;
-	dy/=n;
-	dx=sm.getAtom(atomN-1)->rx-dx;
-        dy=sm.getAtom(atomN-1)->ry-dy;
-        double l=sqrt(dx*dx+dy*dy);   
-        dx/=l;
-        dy/=l;
-	pmol->GetAtom(atomB)->SetVector(sm.getAtom(atomN-1)->rx+dx,sm.getAtom(atomN-1)->ry+dy,0.0);
-      }
-    else
-      {
-	sm.makeFragment(na,atomList,atomB-1,atEx);
-	
-	int nb=0;
-	for (int j=bondB;j<bondN;j++)  bondList[nb++]=j;
-	//    cout<<na<<" "<<nb<<" "<<atomList[0]<<" "<<bondList[0]<<" "<<atomN-1<<" "<<bondN<<endl;
-	double x0=sm.getAtom(atomN-1)->rx;
-	double y0=sm.getAtom(atomN-1)->ry;
-	sm.redraw(atomList,bondList,na,nb,1,atomN-1,bondN,false);
-	double x1=sm.getAtom(atomN-1)->rx;
-	double y1=sm.getAtom(atomN-1)->ry;
-	for (int k=0; k<na; k++) 
+
+	if (sm.getBond(bondN)->db > 0)
 	  {
-	    int n=atomList[k]; 
-	    pmol->GetAtom(n+1)->SetVector(sm.getAtom(n)->rx+x0-x1,sm.getAtom(n)->ry+y0-y1,0.0);
+	    double dx=0;
+	    double dy=0;
+	    int n=0;
+	    int j;
+	    for (unsigned int i=0;i<sm.nBonds();i++)
+	  if (((i<bondB) || (i>=bondN)) && ((sm.getBond(i)->at[0] == atomN-1) || (sm.getBond(i)->at[1] == atomN-1)))
+	    {
+	      if (sm.getBond(i)->at[0] == atomN-1) j=sm.getBond(i)->at[1];
+	      else j=sm.getBond(i)->at[0];
+	      double x=sm.getAtom(j)->rx;
+	      double y=sm.getAtom(j)->ry;
+	      if ((abs(x)>0.001) || (abs(y)>0.001))
+		{
+		  dx+=x;
+		  dy+=y;
+		  n++;
+		}
+	    }
+	    dx/=n;
+	    dy/=n;
+	    dx=sm.getAtom(atomN-1)->rx-dx;
+	    dy=sm.getAtom(atomN-1)->ry-dy;
+	    double l=sqrt(dx*dx+dy*dy);   
+	    dx/=l;
+	    dy/=l;
+	    pmol->GetAtom(atomB)->SetVector(sm.getAtom(atomN-1)->rx+dx,sm.getAtom(atomN-1)->ry+dy,0.0);
+	  }
+	else
+	  {
+	    sm.makeFragment(na,atomList,atomB-1,atEx);
+	    
+	    int nb=0;
+	    bool ringDetected=false;
+	    for (int j=bondB;j<bondN;j++)  
+	      {
+		if (sm.getBond(j)->db > 0) ringDetected=true;
+		bondList[nb++]=j;
+	      }
+	    if (ringDetected)
+	      {
+		for (int i=0; i<sm.nAtoms(); i++) atomList[i]=i;
+		for (int i=0; i<sm.nBonds(); i++) bondList[i]=i;
+		na=sm.nAtoms();
+		nb=sm.nBonds();
+		atomN=2;
+		bondN=0;
+	      }
+	    
+	    double x0=sm.getAtom(atomN-1)->rx;
+	    double y0=sm.getAtom(atomN-1)->ry;
+	    sm.redraw(atomList,bondList,na,nb,1,atomN-1,bondN,false);
+	    double x1=sm.getAtom(atomN-1)->rx;
+	    double y1=sm.getAtom(atomN-1)->ry;
+	    for (int k=0; k<na; k++) 
+	      {
+		int n=atomList[k]; 
+		pmol->GetAtom(n+1)->SetVector(sm.getAtom(n)->rx+x0-x1,sm.getAtom(n)->ry+y0-y1,0.0);
+	      }
 	  }
       }
   }
