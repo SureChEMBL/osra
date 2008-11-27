@@ -7161,15 +7161,29 @@ void implementBondStereo(const std::vector<int> iA1, const std::vector<int> iA2,
     std::vector<int> bondList(NBONDSMAX);
     int na,atEx;
     sm.readOBMol(pmol);
+
+    if (sm.getBond(bondN)->at[0] == atomN-1) 
+      {
+	atEx=sm.getBond(bondN)->at[1];
+      } 
+    else 
+      {
+	atEx=sm.getBond(bondN)->at[0];
+      }
+
     if (sm.getBond(bondN)->db > 0)
       {
 	double dx=0;
 	double dy=0;
 	int n=0;
-	for (unsigned int i=1;i<=pmol->NumAtoms();i++)
+	int j;
+	for (unsigned int i=0;i<sm.nBonds();i++)
+	  if (((i<bondB) || (i>=bondN)) && ((sm.getBond(i)->at[0] == atomN-1) || (sm.getBond(i)->at[1] == atomN-1)))
 	  {
-	    double x=pmol->GetAtom(i)->x();
-	    double y=pmol->GetAtom(i)->y();
+	    if (sm.getBond(i)->at[0] == atomN-1) j=sm.getBond(i)->at[1];
+	    else j=sm.getBond(i)->at[0];
+	    double x=sm.getAtom(j)->rx;
+	    double y=sm.getAtom(j)->ry;
 	    if ((abs(x)>0.001) || (abs(y)>0.001))
 	      {
 		dx+=x;
@@ -7180,22 +7194,14 @@ void implementBondStereo(const std::vector<int> iA1, const std::vector<int> iA2,
 	dx/=n;
 	dy/=n;
 	dx=sm.getAtom(atomN-1)->rx-dx;
-	dy=sm.getAtom(atomN-1)->ry-dy;
-	double l=sqrt(dx*dx+dy*dy);
-	dx/=l;
-	dy/=l;
+        dy=sm.getAtom(atomN-1)->ry-dy;
+        double l=sqrt(dx*dx+dy*dy);   
+        dx/=l;
+        dy/=l;
 	pmol->GetAtom(atomB)->SetVector(sm.getAtom(atomN-1)->rx+dx,sm.getAtom(atomN-1)->ry+dy,0.0);
       }
     else
       {
-	if (sm.getBond(bondN)->at[0] == atomN-1) 
-	  {
-	    atEx=sm.getBond(bondN)->at[1];
-	  } 
-	else 
-	  {
-	    atEx=sm.getBond(bondN)->at[0];
-	  }
 	sm.makeFragment(na,atomList,atomB-1,atEx);
 	
 	int nb=0;
@@ -7213,6 +7219,7 @@ void implementBondStereo(const std::vector<int> iA1, const std::vector<int> iA2,
 	  }
       }
   }
+
 
   int groupRedraw(OBMol * pmol, int bondN, int atomN) {
     //bondN - index of acyclic bond in pmol (zero-based). atomN - index of atom attached to bond bondN to start redraw from it (1-based)
