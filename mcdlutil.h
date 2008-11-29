@@ -40,6 +40,7 @@ static const int MAXFRAGS=200;
 static const int MAXCHARS=1000;
 static const int MAX_DEPTH=10;
 static const int NELEMMAX=120;
+#define NELEMMCDL 121
 
 
 
@@ -81,9 +82,13 @@ std::string getBondMCDL(OBMol * pmol, int nbStore, int ntatoms, const std::vecto
 void implementAtomStereo(std::vector<int>& iA1, std::vector<int>& iA2, std::vector<int>& stereoBonds, const std::vector<double>rx, const std::vector<double> ry, int acount, int bcount, std::string astereo);
 void implementBondStereo(const std::vector<int> iA1, const std::vector<int> iA2, std::vector<double>& rx, std::vector<double>& ry, int acount, int bcount, std::string bstereo);
 
-  void groupRedrawBeginEnd(OBMol * pmol, int atomB, int atomN, int bondB, int bondN);
-int  groupRedraw(OBMol * pmol, int bondN, int atomN);
+
+int  groupRedraw(OBMol * pmol, int bondN, int atomN, bool atomNInGroup);
+//int  groupRedrawFrameAtom(OBMol * pmol, int bondN, int atomInFrame);
+
 int  canonizeMCDL(const std::string atomBlock, std::vector<std::string> & structureList);
+bool parseFormula(const std::string formulaString, std::vector <int>& enumber, int & valency);
+
 void prepareTest(OBMol * pmol, std::ostream & ofs);
 
 } // namespace OpenBabel
