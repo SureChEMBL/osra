@@ -7194,6 +7194,7 @@ void implementBondStereo(const std::vector<int> iA1, const std::vector<int> iA2,
 	if (sm.getBond(bondN)->db > 0) {   
 	  double dx=0;
 	  double dy=0;
+	  double av=0;
 	  int n=0;
 	  int j;
 	  for (unsigned int i=0;i<sm.nBonds();i++)
@@ -7207,16 +7208,19 @@ void implementBondStereo(const std::vector<int> iA1, const std::vector<int> iA2,
 		{
 		  dx+=x;
 		  dy+=y;
+		  av+=sm.bondLength(i);
 		  n++;
 		}
 	    }
 	  dx/=n;
 	  dy/=n;
+	  av/=n;
 	  dx=sm.getAtom(atomN)->rx-dx;
 	  dy=sm.getAtom(atomN)->ry-dy;
-	  double l=sqrt(dx*dx+dy*dy);   
-	  dx/=l;
-	  dy/=l;
+	  double f=av/sqrt(dx*dx+dy*dy);   
+	  dx*=f;
+	  dy*=f;
+	  
 	  pmol->GetAtom(atomN)->SetVector(sm.getAtom(atomN)->rx+dx,sm.getAtom(atomN)->ry+dy,0.0); // tricky! first atomN in OBMol notation (1...), second - in MCDL notation (0...)
 	  result=2;
 	  return result;
