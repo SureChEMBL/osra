@@ -690,15 +690,6 @@ string get_smiles(atom_t *atom, bond_t *bond, int n_bond, int &rotors,
 		   mol->debugMol(std::cout);
 		   std::cout<<endl<<"++++++"<<endl;*/
 
-  
-  if (format=="sdf")
-    {
-      try {
-	/*try {
-	  DGeomHelpers::EmbedMolecule(*mol);
-	} catch (...) {}
-          */      
-	//smiles=MolToMolBlock(*(static_cast<ROMol *>(mol)));
 	if (genCoords)
 	  {
 	    try {
@@ -712,6 +703,16 @@ string get_smiles(atom_t *atom, bond_t *bond, int n_bond, int &rotors,
 	  {
 	    mol1=mol;
 	  }
+
+  if (format=="sdf")
+    {
+      try {
+	/*try {
+	  DGeomHelpers::EmbedMolecule(*mol);
+	} catch (...) {}
+          */      
+	//smiles=MolToMolBlock(*(static_cast<ROMol *>(mol)));
+
   
 	std::stringstream ss;
 	SDWriter *writer = new SDWriter(&ss);
@@ -733,11 +734,12 @@ string get_smiles(atom_t *atom, bond_t *bond, int n_bond, int &rotors,
          //smiles = MolToSmiles(*(static_cast<ROMol *>(mol)),true,false);
          std::stringstream ss;
          SmilesWriter *writer = new SmilesWriter(&ss," ","",false,false,true);
-         mol->setProp("_Name","");
+         mol1->setProp("_Name","");
          writer->setProps(propNames);
-         writer->write(*mol);
+         writer->write(*mol1);
          writer->flush();
          delete writer;
+	 if (mol1!=mol) delete mol1;
          //ss<<smiles<<endl;
          smiles=ss.str();
         } catch (...)
