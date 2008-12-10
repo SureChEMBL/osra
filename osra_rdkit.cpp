@@ -690,19 +690,24 @@ string get_smiles(atom_t *atom, bond_t *bond, int n_bond, int &rotors,
 		   mol->debugMol(std::cout);
 		   std::cout<<endl<<"++++++"<<endl;*/
 
-	if (genCoords)
-	  {
-	    try {
-	      unsigned int cid1 = RDDepict::compute2DCoords(*mol, &crdMap, false,true);
-	    } catch (...)   { }
-	  }
-	ROMol* mol1;
-	try {
-	  mol1=RDKit::MolOps::addHs(*mol,true,true);
-	} catch (...) 
-	  {
-	    mol1=mol;
-	  }
+
+  if ((genCoords) && (format=="sdf"))
+    {
+      try {
+	unsigned int cid1 = RDDepict::compute2DCoords(*mol, &crdMap);
+      } catch (...)   { }
+    }
+
+  ROMol* mol1;
+
+  if (format=="sdf")
+    {
+      mol1=RDKit::MolOps::addHs(*mol,true,true); //explicitOnly, addCoordinates
+    }
+  else
+    {
+      mol1=RDKit::MolOps::addHs(*mol,true,false);  //explicitOnly, addCoordinates
+    }
 
   if (format=="sdf")
     {

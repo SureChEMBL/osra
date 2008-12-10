@@ -1,7 +1,7 @@
 ARCH=unix
 #unix,win32
 
-OPENBABEL_OR_RDKIT=openbabel
+OPENBABEL_OR_RDKIT=rdkit
 #openbabel,rdkit
 
 POTRACE=../potrace-1.8/

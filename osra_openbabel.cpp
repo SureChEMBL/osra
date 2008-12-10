@@ -808,7 +808,7 @@ if (format=="sdf")
        }
    }
 
- mol.AddHydrogens(false,false);
+ mol.AddHydrogens(true,false); // polarOnly, correctForPh
 
  str=conv.WriteString(&mol,true);
 
