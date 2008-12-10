@@ -645,6 +645,7 @@ string get_smiles(atom_t *atom, bond_t *bond, int n_bond, int &rotors,
  conv.SetOutFormat(format.c_str());
  conv.Read(&mol);
  mol.SetDimension(2);
+ mol.BeginModify();
  for (int i=0;i<n_bond;i++)
    if (bond[i].exists) 
      {
@@ -720,6 +721,7 @@ string get_smiles(atom_t *atom, bond_t *bond, int n_bond, int &rotors,
 	   bondn++;
 	 }
      }
+ mol.EndModify();
  mol.FindRingAtomsAndBonds();
  for (unsigned int j=1;j<=mol.NumBonds();j++)
      {
@@ -806,7 +808,7 @@ if (format=="sdf")
        }
    }
 
- // mol.AddHydrogens(true,false);
+ mol.AddHydrogens(false,false);
 
  str=conv.WriteString(&mol,true);
 
