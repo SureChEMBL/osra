@@ -40,7 +40,8 @@ http://www.imagemagick.com/
 - POTRACE, vector tracing library, version 1.7 or later,
 http://potrace.sourceforge.net/
 
-- GOCR/JOCR, optical character recognition library, version 0.43 or later,
+- GOCR/JOCR, optical character recognition library, version 0.43 or later - NOTE
+version 0.46 is NOT RECOMMENDED! It lacks the necessary libPgm2asc library.
 http://jocr.sourceforge.net/
 
 - OCRAD, optical character recognition program, version 0.17,
@@ -76,9 +77,13 @@ http://www.greyc.ensicaen.fr/~dtschump/greycstoration/
 
 - CImg, The C++ Template Image Processing Library,
 http://cimg.sourceforge.net
+
+- MCDL utility from Sergei Trepalin and Andrei Gakh for 2D coordinate generation
+
 =============================================================================
 Compilation:
 
+On Linux/Unix systems:
 Unpack downloaded source code for the OCRAD package. Do not compile or install it -
 OSRA will automatically patch it and compile the object files it needs.
 Compile and/or install all the other necessary dependencies.
@@ -95,22 +100,45 @@ Set OPENBABEL_OR_RDKIT to either openbabel or rdkit depending on what toolkit yo
 have installed.
 Running make should then generate the executable - osra.
 
-For compiling with MinGW or Cygwin environment see more detailed
-instructions at the end of this file.
 
-Using OpenMP (EXPERIMENTAL):
-For automatic resolution determination it is now possible to use parallel "for" loop
-with OpenMP-aware compiler. Note that I have had mixed results with gcc OpenMP
-implementation and cannot recommend it for OSRA other than as food for thought.
-Sometimes the parallel version crashes, other times the results are different from
-the serial version, yet other times it can be slower or faster than the serial version.
-The problem could be with gcc OpenMP implementation, with the underlying libraries
-(OpenBabel, ImageMagick, gocr etc.) or with OSRA itself. If you are able to figure it
-out and to make it work reliably do let me know!
-To use you need g++ version 4.1 or later. Uncomment "#include <omp.h>" line in
-osra.cpp and add "-fopenmp" flag in the Makefile for both compiler and linker.
-You will need to define environment variable OMP_NUM_THREADS to specify the number
-of threads to run before using OSRA.
+Compiling OSRA on Windows systems:
+It is possible to compile OSRA using either Cygwin or MinGW environment,
+however it appears that Cygwin-compiled executable runs about two orders of
+magnitude slower than a Linux version running on an equivalent class CPU.
+Therefore it is strongly recommended NOT to use Cygwin to compile OSRA.
+
+The instructions below are for MinGW environment.
+Before you compile ImageMagick it is necessary to install the pre-requisite
+libraries - zlib, bzip2, jasper (I was able to compile only version 1.701.0
+and not the later 1.900.1), jbigkit, jpeg-6b, lcms, libpng, tiff.
+You can read "ADD-ON LIBRARIES & PROGRAMS" for GraphicsMagick which
+seems to apply to ImageMagick as well: http://www.graphicsmagick.org/www/README.html
+
+Whenever "configure" script was available I used the following options:
+./configure --disable-shared LDFLAGS=-L/usr/local/lib CPPFLAGS=-I/usr/local/include
+
+To configure ImageMagick I used the following options:
+./configure --disable-shared --without-threads --disable-openmp LDFLAGS=-L/usr/local/lib/ CPPFLAGS=-I/usr/local/include/
+
+Compile and install ImageMagick, GOCR, Potrace, TCLAP.
+
+Compiling OpenBabel version 2.2.x:
+Run configure with the following options:
+./configure --without-boost --disable-dynamic-modules --with-zlib=/usr/local/ CXX=g++-sjlj
+
+Run make and make install. Compilation breaks for babel.exe but the library
+libopenbabel-3.dll is generated. You need to keep this library with osra if
+you plan on running osra on a different machine.
+
+
+Compiling osra:
+Edit the Makefile to set ARCH variable to win32 and OPENBABEL_OR_RDKIT to openbabel.
+Running make should (hopefully) generate osra.exe. You're done!
+Make sure you take a look at osra.bat to see that the environment is set
+correctly. You will still need delegates.xml from ImageMagick installation
+and a separately installed Ghostscript if you'd like to process PDF and
+PostScript files.
+
 =============================================================================
 Usage:
 
@@ -166,6 +194,9 @@ Other options:
 -p,  --print:    Prints out the value of confidence function estimate
 
 
+-f,  --format:  Output format (either smi for SMILES or sdf for SD file format)
+
+
 =============================================================================
 Windows users:
 You can download and use the zip archive with the pre-compiled binary.
@@ -209,91 +240,3 @@ USA. See also http://www.gnu.org/.
 
 See the file COPYING for details.
 ====================================================================
-Compiling OSRA on Windows systems:
-
-It is possible to compile OSRA using either Cygwin or MinGW environment,
-however it appears that Cygwin-compiled executable runs about two orders of
-magnitude slower than a Linux version running on an equivalent class CPU.
-Therefore it is strongly recommended NOT to use Cygwin to compile OSRA.
-
-The instructions below are for MinGW environment.
-
-Before you compile ImageMagick it is necessary to install the pre-requisite
-libraries - zlib, bzip2, jasper (I was able to compile only version 1.701.0
-and not the later 1.900.1), jbigkit, jpeg-6b, lcms, libpng, tiff.
-You can read "ADD-ON LIBRARIES & PROGRAMS" for GraphicsMagick which
-seems to apply to ImageMagick as well: http://www.graphicsmagick.org/www/README.html
-
-Whenever "configure" script was available I used the following options:
-./configure --disable-shared LDFLAGS=-L/usr/local/lib CPPFLAGS=-I/usr/local/include
-
-To configure ImageMagick I used the following options:
-./configure --disable-shared --without-threads --disable-openmp LDFLAGS=-L/usr/local/lib/ CPPFLAGS=-I/usr/local/include/
-
-Compile and install ImageMagick, GOCR, Potrace, TCLAP.
-
-To compile OpenBabel:
---- version 2.1.x ---
-first edit obmolecformat.h to comment out lines
-involving hash_map, as per instructions here:
-http://www.bioinformatics.org/molekel/wiki/Main/OpenBabel
-
-Run configure, make, make install. Compilation breaks at some point but not
-before generating libopenbabel.a which is what we need. Check that
-src/formats/obmolecformat.o and src/formats/cansmilesformat.o have also been
-generated. If for some reason the latter is not present you can compile it with
-the following commands:
-cd src/formats/
-g++ -DHAVE_CONFIG_H -I. -I../../src -I../../include -I../../data -I../../include -g -O2 -MT cansmilesformat.lo -MD -MP -MF .deps/cansmilesformat.Tpo -c cansmilesformat.cpp -o cansmilesformat.o
-
---- version 2.2.x ---
-Run configure with the following options:
-./configure --without-boost --disable-dynamic-modules --with-zlib=/usr/local/ CXX=g++-sjlj
-
-Run make and make install. Compilation breaks for babel.exe but the library
-libopenbabel-3.dll is generated. You need to keep this library with osra if
-you plan on running osra on a different machine.
----------------------------
-
-Compiling osra:
-Edit the Makefile to set ARCH variable to win32 and OPENBABEL_OR_RDKIT to openbabel.
-Running make should (hopefully) generate osra.exe. You're done!
-Make sure you take a look at osra.bat to see that the environment is set
-correctly. You will still need delegates.xml from ImageMagick installation
-and a separately installed Ghostscript if you'd like to process PDF and
-PostScript files.
-
-Using OpenMP (EXPERIMENTAL):
-For automatic resolution determination it is now possible to use parallel "for" loop
-with OpenMP-aware compiler. Note that I have had mixed results with gcc OpenMP
-implementation and cannot recommend it for OSRA other than as food for thought.
-Sometimes the parallel version crashes, other times the results are different from
-the serial version, yet other times it can be slower or faster than the serial version.
-The problem could be with gcc OpenMP implementation, with the underlying libraries
-(OpenBabel, ImageMagick, gocr etc.) or with OSRA itself. If you are able to figure it
-out and to make it work reliably do let me know!
-To use you need g++ version 4.1 or later. Uncomment "#include <omp.h>" line in
-osra.cpp and add "-fopenmp" flag in the Makefile for both compiler and linker.
-You will need to define environment variable OMP_NUM_THREADS to specify the number
-of threads to run before using OSRA (osra.bat defines it as equal to 1 right now).
-
-Install gcc and g++ 4.1 or later and pthreads-win32 libraries.
-Edit libgomp.spec to read:
-*Link_gomp: -lgomp -lpthread
-
-Copy include files from pthreads-win32 to /mingw/include
-Copy libpthreadGC2.a to /mingw/lib/libpthread.a
-Copy pthreadGC2.dll and mingwm10.dll to the same directory as osra.exe
-===============================================================
-Known bugs:
-
-- Some PDF files cause the program to crash. As a workaround you can
-try to first convert such problematic files to PostScript by using pdf2ps from
-Ghostscript installation or some other utility.
-
-- OpenMP doesn't seem to work as expected (crashes, slowdowns or results different
-from the serial version).
-
-
-
-
