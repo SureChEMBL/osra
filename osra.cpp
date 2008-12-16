@@ -3343,7 +3343,7 @@ double find_wedge_bonds(Image image,atom_t* atom, int n_atom,bond_t* bond,int n_
 			ColorGray bgColor,double THRESHOLD_BOND, 
 			double max_dist_double_bond, double avg, int mindiff)
 {
-  double l,t=0;
+  double l;
   double a[MAX_ATOMS];
   int n=0;
   a[0]=1.5;
@@ -3357,7 +3357,8 @@ double find_wedge_bonds(Image image,atom_t* atom, int n_atom,bond_t* bond,int n_
 	double x2=atom[bond[i].b].x+(atom[bond[i].a].x-atom[bond[i].b].x)*d/l;
 	double y2=atom[bond[i].b].y+(atom[bond[i].a].y-atom[bond[i].b].y)*d/l;
 	
-	double w1,w2,w3;
+	double flag=0;
+	int w=0;
 	double w3_ver=thickness_ver(image,int((x1+x2)/2),int((y1+y2)/2),bgColor,
 				    THRESHOLD_BOND);
 	double w3_hor=thickness_hor(image,int((x1+x2)/2),int((y1+y2)/2),bgColor,
@@ -3365,48 +3366,76 @@ double find_wedge_bonds(Image image,atom_t* atom, int n_atom,bond_t* bond,int n_
 	if (w3_ver==0 && w3_hor==0) continue;
 	if ((w3_ver<w3_hor && w3_ver>0) || w3_hor==0)
 	  {
-	    w1=thickness_ver(image,int(x1),int(y1),bgColor,THRESHOLD_BOND);
-	    w2=thickness_ver(image,int(x2),int(y2),bgColor,THRESHOLD_BOND);
-	    w3=w3_ver;
+	    int dir=1;
+	    if (x2<x1) dir=-1;
+	    int old=-1,countplus=0,countminus=0,count0=0;
+	    for (int j=int(x1);j!=int(x2);j+=dir)
+	      {
+		int y=int(y1)+int((y2-y1)*(j-x1)/(x2-x1));
+		int t=thickness_ver(image,j,y,bgColor,THRESHOLD_BOND);
+		if (t<2*MAX_BOND_THICKNESS && t<avg/3) 
+		  {
+		    if (old>=0)
+		      {
+			if ((t-old)>0) countplus++;
+			else if ((t-old)<0) countminus++;
+			else count0++;
+		      }
+		    old=t;
+		    w=max(w,t);
+		  }
+	      }
+	    flag=1.*(countplus-countminus)/(countplus+count0+countminus);
 	  }
 	else
 	  {
-	    w1=thickness_hor(image,int(x1),int(y1),bgColor,THRESHOLD_BOND);
-	    w2=thickness_hor(image,int(x2),int(y2),bgColor,THRESHOLD_BOND);
-	    w3=w3_hor;
+	    int dir=1;
+	    if (y2<y1) dir=-1;
+	    int old=-1,countplus=0,countminus=0,count0=0;
+	    for (int j=int(y1);j!=int(y2);j+=dir)
+	      {
+		int x=int(x1)+int((x2-x1)*(j-y1)/(y2-y1));
+		int t=thickness_hor(image,x,j,bgColor,THRESHOLD_BOND);
+		if (t<2*MAX_BOND_THICKNESS && t<avg/3) 
+		  {
+		    if (old>=0)
+		      {
+			if ((t-old)>0) countplus++;
+			else if ((t-old)<0) countminus++;
+			else count0++;
+		      }
+		    old=t;
+		    w=max(w,t);
+		  }
+	      }
+	    flag=1.*(countplus-countminus)/(countplus+count0+countminus);
 	  }
-	if (w2-w3>mindiff && w3-w1>mindiff && 
-	    w2<2*MAX_BOND_THICKNESS && w2<avg/3 && w1>0)
+
+	if (fabs(flag)>WEDGE_BOND_RATIO)
 	  {
 	    bond[i].wedge=true;
-	  }
-	if (w1-w3>mindiff && w3-w2>mindiff 
-	    && w1<2*MAX_BOND_THICKNESS && w1<avg/3 && w2>0)
-	  {
-	    bond[i].wedge=true;
-	    bond_end_swap(bond,i);
+	    if (flag<0)  bond_end_swap(bond,i);
 	  }
 	if (bond[i].wedge)
 	  {
-	    double w=max(w1,w2);
-	    if (w<2*MAX_BOND_THICKNESS && w<avg/3) 
-	      for (int j=0;j<n_atom;j++)
-		if (atom[j].exists && j!=bond[i].b &&
-		    distance(atom[bond[i].b].x,atom[bond[i].b].y,
-			     atom[j].x,atom[j].y)<=w)
-		  {
-		    atom[j].exists=false;
-		    atom[bond[i].b].x=(atom[bond[i].b].x+atom[j].x)/2;
-		    atom[bond[i].b].y=(atom[bond[i].b].y+atom[j].y)/2;
-		    for (int k=0;k<n_bond;k++)
-		      if (bond[k].exists)
-			if (bond[k].a==j) {bond[k].a=bond[i].b;}
-			else if (bond[k].b==j) {bond[k].b=bond[i].b;}
-		  }
+	    for (int j=0;j<n_atom;j++)
+	      if (atom[j].exists && j!=bond[i].b &&
+		  distance(atom[bond[i].b].x,atom[bond[i].b].y,
+			   atom[j].x,atom[j].y)<=w)
+		{
+		  atom[j].exists=false;
+		  atom[bond[i].b].x=(atom[bond[i].b].x+atom[j].x)/2;
+		  atom[bond[i].b].y=(atom[bond[i].b].y+atom[j].y)/2;
+		  for (int k=0;k<n_bond;k++)
+		    if (bond[k].exists)
+		      if (bond[k].a==j) {bond[k].a=bond[i].b;}
+		      else if (bond[k].b==j) {bond[k].b=bond[i].b;}
+		}
 	  }
-	if (!bond[i].wedge) a[n++]=w3;
+	if (!bond[i].wedge) a[n++]=double(w);
       }
   qsort(a,n,sizeof(double),num_comp);
+  double t;
   if (n>0) t=a[(n-1)/2];
   else t=1.5;
   return(t);

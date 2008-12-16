@@ -723,18 +723,25 @@ string get_smiles(atom_t *atom, bond_t *bond, int n_bond, int &rotors,
      }
  mol.EndModify();
  mol.FindRingAtomsAndBonds();
+ mol.FindChiralCenters();
  for (unsigned int j=1;j<=mol.NumBonds();j++)
      {
        OBBond *b=mol.GetBond(j);
-       if (b!=NULL && b->IsInRing())
+       if (b!=NULL)
+       {
+        if (b->IsInRing())
 	 {
-	   //b->UnsetHash();
-	   //b->UnsetWedge();
 	   b->UnsetUp();
 	   b->UnsetDown();
 	 }
-       else if (b!=NULL && !b->IsInRing())
-	 b->UnsetAromatic();
+	 else
+	   b->UnsetAromatic();
+        if (!b->GetBeginAtom()->IsChiral())
+         {
+          b->UnsetHash(); 
+          b->UnsetWedge();
+         }
+       }
      }
  int C_Count=0;
  int N_Count=0;
