@@ -3341,80 +3341,132 @@ double thickness_ver(Image image,int x1,int y1, ColorGray bgColor,
 
 double find_wedge_bonds(Image image,atom_t* atom, int n_atom,bond_t* bond,int n_bond, 
 			ColorGray bgColor,double THRESHOLD_BOND, 
-			double max_dist_double_bond, double avg, int mindiff)
+			double max_dist_double_bond, double avg)
 {
   double l;
   double a[MAX_ATOMS];
   int n=0;
   a[0]=1.5;
+  vector<int> x_reg,y_reg;
   for (int i=0;i<n_bond;i++)
     if (bond[i].exists && !bond[i].hash && bond[i].type==1 
 	&& (l=bond_length(bond,i,atom))>max_dist_double_bond)
       {
-	double d=l/16;
-	double x1=atom[bond[i].a].x+(atom[bond[i].b].x-atom[bond[i].a].x)*d/l;
-	double y1=atom[bond[i].a].y+(atom[bond[i].b].y-atom[bond[i].a].y)*d/l;
-	double x2=atom[bond[i].b].x+(atom[bond[i].a].x-atom[bond[i].b].x)*d/l;
-	double y2=atom[bond[i].b].y+(atom[bond[i].a].y-atom[bond[i].b].y)*d/l;
+        x_reg.clear();
+        y_reg.clear();
+        double avg_x=0,avg_y=0;
+	int x1=int((atom[bond[i].a].x+atom[bond[i].b].x)/2);
+	int y1=int((atom[bond[i].a].y+atom[bond[i].b].y)/2);
 	
-	double flag=0;
-	int w=0;
-	double w3_ver=thickness_ver(image,int((x1+x2)/2),int((y1+y2)/2),bgColor,
-				    THRESHOLD_BOND);
-	double w3_hor=thickness_hor(image,int((x1+x2)/2),int((y1+y2)/2),bgColor,
-				    THRESHOLD_BOND);
+	int w=0,mid_w=1,max_c,min_c,sign=1;
+	double w3_ver=thickness_ver(image,x1,y1,bgColor,THRESHOLD_BOND);
+	double w3_hor=thickness_hor(image,x1,y1,bgColor,THRESHOLD_BOND);
 	if (w3_ver==0 && w3_hor==0) continue;
 	if ((w3_ver<w3_hor && w3_ver>0) || w3_hor==0)
 	  {
-	    int dir=1;
-	    if (x2<x1) dir=-1;
-	    int old=-1,countplus=0,countminus=0,count0=0;
-	    for (int j=int(x1);j!=int(x2);j+=dir)
+	    w=w3_ver;
+	    mid_w=w3_ver;
+	    int old=w3_ver;
+	    max_c=int(max(atom[bond[i].a].x,atom[bond[i].b].x));
+	    min_c=int(min(atom[bond[i].a].x,atom[bond[i].b].x));
+	    if (atom[bond[i].b].x<atom[bond[i].a].x) sign=-1;
+	    for (int j=x1+1;j<=max_c;j++)
 	      {
-		int y=int(y1)+int((y2-y1)*(j-x1)/(x2-x1));
+		int y=int(atom[bond[i].a].y+
+			  (atom[bond[i].b].y-atom[bond[i].a].y)*
+			  (j-atom[bond[i].a].x)/(atom[bond[i].b].x-atom[bond[i].a].x));
 		int t=thickness_ver(image,j,y,bgColor,THRESHOLD_BOND);
-		if (t<2*MAX_BOND_THICKNESS && t<avg/3) 
+		if (abs(t-old)>2) break;
+		if (t<2*MAX_BOND_THICKNESS && t<avg/3 && t>0) 
 		  {
-		    if (old>=0)
-		      {
-			if ((t-old)>0) countplus++;
-			else if ((t-old)<0) countminus++;
-			else count0++;
-		      }
-		    old=t;
+		    x_reg.push_back(j);
+		    y_reg.push_back(t);
+		    avg_x+=j;
+		    avg_y+=t;
 		    w=max(w,t);
 		  }
+		old=t;
 	      }
-	    flag=1.*(countplus-countminus)/(countplus+count0+countminus);
+	    old=w3_ver;
+	    for (int j=x1-1;j>=min_c;j--)
+	      {
+		int y=int(atom[bond[i].a].y+
+			  (atom[bond[i].b].y-atom[bond[i].a].y)*
+			  (j-atom[bond[i].a].x)/(atom[bond[i].b].x-atom[bond[i].a].x));
+		int t=thickness_ver(image,j,y,bgColor,THRESHOLD_BOND);
+		if (abs(t-old)>2) break;
+		if (t<2*MAX_BOND_THICKNESS && t<avg/3 && t>0) 
+		  {
+		    x_reg.push_back(j);
+		    y_reg.push_back(t);
+		    avg_x+=j;
+		    avg_y+=t;
+		    w=max(w,t);
+		  }
+		old=t;
+	      }
+
 	  }
 	else
 	  {
-	    int dir=1;
-	    if (y2<y1) dir=-1;
-	    int old=-1,countplus=0,countminus=0,count0=0;
-	    for (int j=int(y1);j!=int(y2);j+=dir)
+	    w=w3_hor;
+	    mid_w=w3_hor;
+	    int old=w3_hor;
+	    max_c=int(max(atom[bond[i].a].y,atom[bond[i].b].y));
+	    min_c=int(min(atom[bond[i].a].y,atom[bond[i].b].y));
+	    if (atom[bond[i].b].y<atom[bond[i].a].y) sign=-1;
+	    for (int j=y1+1;j<=max_c;j++)
 	      {
-		int x=int(x1)+int((x2-x1)*(j-y1)/(y2-y1));
+		int x=int(atom[bond[i].a].x+
+			  (atom[bond[i].b].x-atom[bond[i].a].x)*
+			  (j-atom[bond[i].a].y)/(atom[bond[i].b].y-atom[bond[i].a].y));
 		int t=thickness_hor(image,x,j,bgColor,THRESHOLD_BOND);
-		if (t<2*MAX_BOND_THICKNESS && t<avg/3) 
+		if (abs(t-old)>2) break;
+		if (t<2*MAX_BOND_THICKNESS && t<avg/3 && t>0) 
 		  {
-		    if (old>=0)
-		      {
-			if ((t-old)>0) countplus++;
-			else if ((t-old)<0) countminus++;
-			else count0++;
-		      }
-		    old=t;
-		    w=max(w,t);
+		    x_reg.push_back(j);
+                    y_reg.push_back(t);
+                    avg_x+=j;
+                    avg_y+=t;
+                    w=max(w,t);
 		  }
+		old=t;
 	      }
-	    flag=1.*(countplus-countminus)/(countplus+count0+countminus);
+	    old=w3_hor;
+	    for (int j=y1-1;j>=min_c;j--)
+	      {
+		int x=int(atom[bond[i].a].x+
+			  (atom[bond[i].b].x-atom[bond[i].a].x)*
+			  (j-atom[bond[i].a].y)/(atom[bond[i].b].y-atom[bond[i].a].y));
+		int t=thickness_hor(image,x,j,bgColor,THRESHOLD_BOND);
+		if (abs(t-old)>2) break;
+		if (t<2*MAX_BOND_THICKNESS && t<avg/3 && t>0) 
+		  {
+		    x_reg.push_back(j);
+                    y_reg.push_back(t);
+                    avg_x+=j;
+                    avg_y+=t;
+                    w=max(w,t);
+		  }
+		old=t;
+	      }
 	  }
+        avg_x/=x_reg.size();
+        avg_y/=y_reg.size();
+        double numerator=0,denominator=0;
+        for (int j=0;j<x_reg.size();j++)
+        {
+	  numerator+=1.*(x_reg[j]-avg_x)*(y_reg[j]-avg_y);
+	  denominator+=1.*(x_reg[j]-avg_x)*(x_reg[j]-avg_x);
+        }
+        double beta=0;
+        if (denominator!=0) beta=numerator/denominator; 
 
-	if (fabs(flag)>WEDGE_BOND_RATIO)
+	if (fabs(beta)*(max_c-min_c)>4)
 	  {
+	    //cout<<fabs(beta)*(max_c-min_c)<<" "<<(max_c-min_c)<<" "<<avg<<endl;
 	    bond[i].wedge=true;
-	    if (flag<0)  bond_end_swap(bond,i);
+	    if (beta*sign<0)  bond_end_swap(bond,i);
 	  }
 	if (bond[i].wedge)
 	  {
@@ -3438,6 +3490,7 @@ double find_wedge_bonds(Image image,atom_t* atom, int n_atom,bond_t* bond,int n_
   double t;
   if (n>0) t=a[(n-1)/2];
   else t=1.5;
+  //  cout<<"----------------"<<endl;
   return(t);
 }
 
@@ -4358,12 +4411,10 @@ int main(int argc,char **argv)
 							n_letters);
 
 
-		int mindiff=0;
-		if (thick) mindiff=1;
 
 		thickness=find_wedge_bonds(thick_box,atom,n_atom,bond,n_bond,bgColor,
 					   THRESHOLD_BOND,max_dist_double_bond,
-					   avg_bond,mindiff);
+					   avg_bond);
 
 
 		n_label=assemble_labels(letters,n_letters,label);

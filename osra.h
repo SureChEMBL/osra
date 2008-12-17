@@ -124,7 +124,7 @@ double confidence_function(int C_Count,int N_Count,int O_Count,int F_Count,
 #define MIN_CHAR_POINTS 2
 #define WHITE_SPACE_FRACTION 0.3 
 #define MAX_BOND_THICKNESS 10
-#define WEDGE_BOND_RATIO 0.1
+//#define WEDGE_BOND_RATIO 0.1
 #define SMALL_PICTURE_AREA 6000
 #define MAX_HEIGHT 1100
 #define MAX_WIDTH 1700

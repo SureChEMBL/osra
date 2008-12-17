@@ -695,14 +695,14 @@ string get_smiles(atom_t *atom, bond_t *bond, int n_bond, int &rotors,
 	   mol.AddBond(atom[bond[i].a].n,atom[bond[i].b].n,5);
 	   bondn++;
 	 }
-       else if (bond[i].wedge)
-	 {
-	   mol.AddBond(atom[bond[i].a].n,atom[bond[i].b].n,bond[i].type,OB_WEDGE_BOND);
-	   bondn++;
-	 }
        else if (bond[i].hash)
 	 {
 	   mol.AddBond(atom[bond[i].a].n,atom[bond[i].b].n,bond[i].type,OB_HASH_BOND);
+	   bondn++;
+	 }
+       else if (bond[i].wedge)
+	 {
+	   mol.AddBond(atom[bond[i].a].n,atom[bond[i].b].n,bond[i].type,OB_WEDGE_BOND);
 	   bondn++;
 	 }
        else if (bond[i].up)
@@ -723,7 +723,6 @@ string get_smiles(atom_t *atom, bond_t *bond, int n_bond, int &rotors,
      }
  mol.EndModify();
  mol.FindRingAtomsAndBonds();
- mol.FindChiralCenters();
  for (unsigned int j=1;j<=mol.NumBonds();j++)
      {
        OBBond *b=mol.GetBond(j);
@@ -736,11 +735,6 @@ string get_smiles(atom_t *atom, bond_t *bond, int n_bond, int &rotors,
 	 }
 	 else
 	   b->UnsetAromatic();
-        if (!b->GetBeginAtom()->IsChiral())
-         {
-          b->UnsetHash(); 
-          b->UnsetWedge();
-         }
        }
      }
  int C_Count=0;
@@ -808,7 +802,7 @@ string get_smiles(atom_t *atom, bond_t *bond, int n_bond, int &rotors,
 
 if (format=="sdf")
    {
-     for (int i=0;i<atomN.size();i++)
+     for (unsigned int i=0;i<atomN.size();i++)
        {
 	 //	 groupRedrawBeginEnd(&mol,atomB[i],atomN[i],bondB[i],bondN[i]);
          groupRedraw(&mol,bondN[i],atomN[i],true);
@@ -816,6 +810,20 @@ if (format=="sdf")
    }
 
  mol.AddHydrogens(true,false); // polarOnly, correctForPh
+
+ mol.FindChiralCenters();
+ for (unsigned int j=1;j<=mol.NumBonds();j++)
+     {
+       OBBond *b=mol.GetBond(j);
+       if (b!=NULL)
+       {
+	 if (!b->GetBeginAtom()->IsChiral())
+	   {
+	     b->UnsetHash(); 
+	     b->UnsetWedge();
+	   }
+       }
+     }
 
  str=conv.WriteString(&mol,true);
 
