@@ -197,7 +197,7 @@ char get_atom_label(Magick::Image image, Magick::ColorGray bg, int x1, int y1, i
 string fix_atom_name(string s,int n)
 {
   string r=s;
-  //  cout<<s<<"-->";
+  //    cout<<s<<"-->";
   if (s.length()==1) r=toupper(s.at(0));
   if (s=="Ci" || s=="Cf" || s=="Cll") r="Cl";
   else if (s=="H" && n>1) r="N";
@@ -246,7 +246,7 @@ string fix_atom_name(string s,int n)
   else if (s=="lHPO" || s=="OlHP") r="THPO";
   else if (s=="NCOlRlH3") r="N(OH)CH3";
   else if (s=="pZO" || s=="p2O" || s=="OBX" || s=="BZO" || s=="B2O" || s=="OB2") r="BzO";
-  //cout<<r<<endl;
+  //  cout<<r<<endl;
   return(r);
 }
 
