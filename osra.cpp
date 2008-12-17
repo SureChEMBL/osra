@@ -3362,14 +3362,13 @@ double find_wedge_bonds(Image image,atom_t* atom, int n_atom,bond_t* bond,int n_
 	int x1=int((atom[bond[i].a].x+atom[bond[i].b].x)/2);
 	int y1=int((atom[bond[i].a].y+atom[bond[i].b].y)/2);
 	
-	int w=0,mid_w=1,max_c,min_c,sign=1;
+	int w=0,max_c,min_c,sign=1;
 	double w3_ver=thickness_ver(image,x1,y1,bgColor,THRESHOLD_BOND);
 	double w3_hor=thickness_hor(image,x1,y1,bgColor,THRESHOLD_BOND);
 	if (w3_ver==0 && w3_hor==0) continue;
 	if ((w3_ver<w3_hor && w3_ver>0) || w3_hor==0)
 	  {
 	    w=w3_ver;
-	    mid_w=w3_ver;
 	    int old=w3_ver;
 	    max_c=int(max(atom[bond[i].a].x,atom[bond[i].b].x));
 	    min_c=int(min(atom[bond[i].a].x,atom[bond[i].b].x));
@@ -3414,7 +3413,6 @@ double find_wedge_bonds(Image image,atom_t* atom, int n_atom,bond_t* bond,int n_
 	else
 	  {
 	    w=w3_hor;
-	    mid_w=w3_hor;
 	    int old=w3_hor;
 	    max_c=int(max(atom[bond[i].a].y,atom[bond[i].b].y));
 	    min_c=int(min(atom[bond[i].a].y,atom[bond[i].b].y));
@@ -3490,7 +3488,7 @@ double find_wedge_bonds(Image image,atom_t* atom, int n_atom,bond_t* bond,int n_
 		      }
 		}
 	  }
-	if (!bond[i].wedge) a[n++]=double(w);
+	if (!bond[i].wedge) a[n++]=avg_y;
       }
   qsort(a,n,sizeof(double),num_comp);
   double t;

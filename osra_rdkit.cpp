@@ -709,6 +709,11 @@ string get_smiles(atom_t *atom, bond_t *bond, int n_bond, int &rotors,
       mol1=RDKit::MolOps::addHs(*mol,true,false);  //explicitOnly, addCoordinates
     }
 
+  //  std::vector<ROMOL_SPTR> frags;
+  //frags = MolOps::getMolFrags(*mol1);
+  // frags.size()
+  //frags[0]->getNumAtoms()
+
   if (format=="sdf")
     {
       try {

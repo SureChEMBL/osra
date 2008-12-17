@@ -825,6 +825,9 @@ if (format=="sdf")
        }
      }
 
+ mol.ConnectTheDots();
+ // mol.Separate();
+
  str=conv.WriteString(&mol,true);
 
  for (int i=0;i<n_bond;i++)
