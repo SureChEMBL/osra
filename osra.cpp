@@ -3463,10 +3463,9 @@ double find_wedge_bonds(Image image,atom_t* atom, int n_atom,bond_t* bond,int n_
         }
         double beta=0;
         if (denominator!=0) beta=numerator/denominator; 
-
-	if (fabs(beta)*(max_c-min_c)>4)
+	//cout<<fabs(beta)*(max_c-min_c)<<" "<<(max_c-min_c)<<" "<<avg<<endl;
+	if (fabs(beta)*(max_c-min_c)>3)
 	  {
-	    //cout<<fabs(beta)*(max_c-min_c)<<" "<<(max_c-min_c)<<" "<<avg<<endl;
 	    bond[i].wedge=true;
 	    if (beta*sign<0)  bond_end_swap(bond,i);
 	  }
