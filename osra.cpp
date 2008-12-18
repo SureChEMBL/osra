@@ -3488,7 +3488,7 @@ double find_wedge_bonds(Image image,atom_t* atom, int n_atom,bond_t* bond,int n_
 		      }
 		}
 	  }
-	if (!bond[i].wedge) a[n++]=avg_y;
+	if (!bond[i].wedge) a[n++]=int(avg_y);
       }
   qsort(a,n,sizeof(double),num_comp);
   double t;
