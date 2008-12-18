@@ -4521,7 +4521,7 @@ int main(int argc,char **argv)
 							real_font_width,0,
 							letters,n_letters);
 
-		remove_small_terminal_bonds(bond,n_bond,atom,avg_bond);
+
 		
 	
 		assign_charge(atom,bond,n_atom,n_bond);
@@ -4535,7 +4535,8 @@ int main(int argc,char **argv)
                     collapse_atoms(atom,bond,n_atom,n_bond,3);
                     remove_zero_bonds(bond,n_bond,atom);
 		    extend_terminal_bond_to_bonds(atom,bond,n_bond,avg_bond,7,0);
-					      
+
+		    remove_small_terminal_bonds(bond,n_bond,atom,avg_bond);
 		    collapse_atoms(atom,bond,n_atom,n_bond,1);
 		    remove_zero_bonds(bond,n_bond,atom);
 
