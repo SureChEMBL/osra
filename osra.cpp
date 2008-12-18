@@ -4067,6 +4067,48 @@ int clean_unrecognized_characters(bond_t *bond,int n_bond,atom_t *atom,
   return(n_letters);
 }
 
+void remove_small_terminal_bonds(bond_t *bond,int n_bond,atom_t *atom, double avg)
+{
+  bool found=true;
+  while (found)
+    {
+      found=false;
+      for (int j=0;j<n_bond;j++)
+	if (bond[j].exists && bond[j].type==1 && 
+	    !bond[j].wedge && !bond[j].hash && !bond[j].arom &&
+	    bond_length(bond,j,atom)<avg/3)
+	  {
+	    bool not_corner_a=terminal_bond(bond[j].a,j,bond,n_bond);
+	    bool not_corner_b=terminal_bond(bond[j].b,j,bond,n_bond);
+	    if (not_corner_a)
+	      {
+		bond[j].exists=false;
+		atom[bond[j].a].exists=false;
+		found=true;
+		if (atom[bond[j].b].label==" ") 
+		  {
+		    if (atom[bond[j].a].label!=" ") 
+		      atom[bond[j].b].label=atom[bond[j].a].label;
+		    else
+		      atom[bond[j].b].label="X";
+		  }
+	      }
+	    if (not_corner_b)
+	      {
+		bond[j].exists=false;
+		atom[bond[j].b].exists=false;
+		found=true;
+		if (atom[bond[j].a].label==" ") 
+		  {
+		    if (atom[bond[j].b].label!=" ") 
+		      atom[bond[j].a].label=atom[bond[j].b].label;
+		    else
+		      atom[bond[j].a].label="X";
+		  }
+	      }
+	  }
+    }
+}
 
 double confidence_function(int C_Count,int N_Count,int O_Count,int F_Count,
 			   int S_Count,int Cl_Count,int num_rings,int num_aromatic,
@@ -4479,7 +4521,7 @@ int main(int argc,char **argv)
 							real_font_width,0,
 							letters,n_letters);
 
-
+		remove_small_terminal_bonds(bond,n_bond,atom,avg_bond);
 		
 	
 		assign_charge(atom,bond,n_atom,n_bond);
