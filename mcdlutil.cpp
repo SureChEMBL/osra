@@ -25,9 +25,9 @@ GNU General Public License for more details.
 #include <openbabel/data.h>
 #include <openbabel/obconversion.h>
 
-#ifndef WIN32
+//#ifndef WIN32
 #include <cmath>
-#endif
+//#endif
 
 using namespace std;
 

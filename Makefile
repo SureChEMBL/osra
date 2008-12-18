@@ -6,18 +6,14 @@ OPENBABEL_OR_RDKIT=openbabel
 
 POTRACE=../potrace-1.8/
 GOCR=../gocr-0.45/
-OCRAD=../ocrad-0.18-pre4/
+OCRAD=../ocrad-0.17/
 
 ifeq ($(OPENBABEL_OR_RDKIT),rdkit)
 RDKIT=../rdkit-svn/
 BOOST=../boost_1_37_0/
 else
-OPENBABEL=/usr/
+OPENBABEL=/usr/local/
 endif
-
-#ifeq ($(ARCH),win32)
-#OPENBABEL=../openbabel-2.2.0/
-#endif
 
 TCLAPINC=-I/usr/local/include/tclap/
 
@@ -40,6 +36,7 @@ ifneq ($(ARCH),win32)
 NETPBM=-lnetpbm
 else
 MAGIKLIB_WIN32=-lgdi32 -llcms -ljbig  -ltiff -ljasper  -ljpeg -lpng
+MINGWINC=-I/usr/local/include
 endif
 
 MAGIKINC := $(shell Magick++-config --cppflags) $(shell Magick++-config --cxxflags)
@@ -52,9 +49,13 @@ GOCRSRC=$(GOCR)/src/
 GOCRINC= -I$(GOCRSRC) -I$(GOCR)/include/
 GOCRLIB= -L$(GOCRSRC) -lPgm2asc $(NETPBM)
 
+ifneq ($(ARCH),win32)
 OPENBABELLIB=-L$(OPENBABEL)/lib -lopenbabel   
 OPENBABELINC=-I$(OPENBABEL)/include/openbabel-2.0/
-
+else
+OPENBABELLIB=-L/usr/local/lib -lopenbabel   
+OPENBABELINC=-I$(OPENBABEL)/include/
+endif
 
 ifeq ($(OPENBABEL_OR_RDKIT),rdkit)
 MOL_BACKEND_INC=$(RDKITINC)
@@ -75,7 +76,7 @@ OCRADSRC=$(wildcard $(OCRAD)*.cc)
 OCRADINC=$(wildcard $(OCRAD)*.h)
 OCRADOBJ=$(OCRADSRC:.cc=.o)
 
-CPPFLAGS= -g -O2 -fPIC -I$(OCRAD) -D_LIB -D_MT -Wall $(POTRACEINC) $(GOCRINC) $(MOL_BACKEND_INC) $(TCLAPINC) $(MAGIKINC)
+CPPFLAGS= -g -O2 -fPIC -I$(OCRAD) $(MINGWINC) -D_LIB -D_MT -Wall $(POTRACEINC) $(GOCRINC) $(MOL_BACKEND_INC) $(TCLAPINC) $(MAGIKINC)
 
 LIBS=$(POTRACELIB) -lm  $(MAGIKLIB) $(GOCRLIB) $(MOL_BACKEND_LIB) -lz
 OBJ = osra.o osra_anisotropic.o osra_ocr.o $(MOL_BACKEND_OBJ) $(OCRADOBJ) $(MCDLUTIL)
