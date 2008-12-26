@@ -508,6 +508,7 @@ int getAnum(string s, OBMol *mol,int *n, int *bondn)
   if (s=="Br") return(35);
   if (s=="X") return(0);
   if (s=="Ar") return(18);
+  if (s=="Si") return(14);
   if (s=="MeO") 
     {
       addMeX(mol,n,bondn);

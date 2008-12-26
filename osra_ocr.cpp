@@ -203,7 +203,7 @@ string fix_atom_name(string s,int n)
   else if (s=="H" && n>1) r="N";
   else if (s=="HN" || s=="NH" || s=="M" || s=="Hm" || s=="MN" || s=="N2"
 	   || s=="NM" || s=="NH2" || s=="H2N" || s=="NHZ" || s=="HZN" || s=="NH3"
-	   || s=="nu" || s=="Hu" )   r="N";
+	   || s=="nu" || s=="Hu"  || s=="lU" || s=="HlU")   r="N";
   else if (s=="OH" || s=="oH" || s=="Ho" || s=="HO" || s=="ol"
 	   || s=="On" || s=="on" || s=="no" || s=="nO") r="O";
   else if (s=="Meo" || s=="oMe" || s=="oMg" || s=="omg" || s=="Mgo"
@@ -246,7 +246,8 @@ string fix_atom_name(string s,int n)
   else if (s=="lHPO" || s=="OlHP") r="THPO";
   else if (s=="NCOlRlH3") r="N(OH)CH3";
   else if (s=="pZO" || s=="p2O" || s=="OBX" || s=="BZO" || s=="B2O" || s=="OB2") r="BzO";
-  //  cout<<r<<endl;
+  else if (s=="Sl") r="Si";
+  // cout<<r<<endl;
   return(r);
 }
 

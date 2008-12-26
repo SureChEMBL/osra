@@ -4433,7 +4433,7 @@ int main(int argc,char **argv)
 		n_letters=find_fused_chars(bond,n_bond,atom,letters,n_letters,
 					   real_font_height,real_font_width,
 					   'R',orig_box,bgColor,
-					   THRESHOLD_CHAR,4);
+					   THRESHOLD_CHAR,3);
 		
 
 		flatten_bonds(bond,n_bond,atom,3);
@@ -4470,7 +4470,6 @@ int main(int argc,char **argv)
 					   avg_bond);
 
 	
-		
 
 		n_label=assemble_labels(letters,n_letters,label);
 
@@ -4479,11 +4478,7 @@ int main(int argc,char **argv)
 
 
 		collapse_atoms(atom,bond,n_atom,n_bond,thickness);
-		/*if (ttt++==5) 
-		  {
-		    debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");	
-		  }   
-		*/
+		
 		remove_zero_bonds(bond,n_bond,atom);
 
 		flatten_bonds(bond,n_bond,atom,2*thickness);
@@ -4495,10 +4490,16 @@ int main(int argc,char **argv)
 
 		collapse_double_bonds(bond,n_bond,atom,max_dist_double_bond);
 
-
+	
 		extend_terminal_bond_to_label(atom,letters,n_letters,bond,n_bond,
 					      label,n_label,avg_bond/2,
 					      thickness,max_dist_double_bond);
+
+		if (ttt++==1) 
+		  {
+		    debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");	
+		  }   
+		
 	
 		remove_disconnected_atoms(atom,bond,n_atom,n_bond);
 		collapse_atoms(atom,bond,n_atom,n_bond,thickness);
@@ -4522,7 +4523,7 @@ int main(int argc,char **argv)
 							letters,n_letters);
 
 
-		
+	
 	
 		assign_charge(atom,bond,n_atom,n_bond);
 		find_up_down_bonds(bond,n_bond,atom,thickness);
