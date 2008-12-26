@@ -235,7 +235,7 @@ string fix_atom_name(string s,int n)
   else if (s=="F3C" || s=="CF" || s=="FC" || s=="Co" || s=="F8l" || s=="CFS"
       || s=="FSC") r="CF3";
   else if (s=="F3Co") r="F3CN";
-  else if (s=="S3" || s=="Se" || s=="lS" || s=="8") r="S";
+  else if (s=="S3" || s=="Se" || s=="lS" || s=="8" || s=="SH" || s=="HS") r="S";
   else if (s=="lH") r="H";
   else if (s=="NHnC") r="NHAc";
   else if (s=="OlHP" || s=="lHPO") r="THPO";
