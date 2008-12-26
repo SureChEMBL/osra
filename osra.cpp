@@ -4433,7 +4433,7 @@ int main(int argc,char **argv)
 		n_letters=find_fused_chars(bond,n_bond,atom,letters,n_letters,
 					   real_font_height,real_font_width,
 					   'R',orig_box,bgColor,
-					   THRESHOLD_CHAR,3);
+					   THRESHOLD_CHAR,4);
 		
 
 		flatten_bonds(bond,n_bond,atom,3);
@@ -4495,11 +4495,11 @@ int main(int argc,char **argv)
 					      label,n_label,avg_bond/2,
 					      thickness,max_dist_double_bond);
 
-		if (ttt++==1) 
+		/*if (ttt++==1) 
 		  {
 		    debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");	
 		  }   
-		
+		*/
 	
 		remove_disconnected_atoms(atom,bond,n_atom,n_bond);
 		collapse_atoms(atom,bond,n_atom,n_bond,thickness);
