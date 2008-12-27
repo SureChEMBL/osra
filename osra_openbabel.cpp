@@ -828,6 +828,7 @@ if (format=="sdf")
 
   mol.ConnectTheDots();
  // mol.Separate();
+  mol.StripSalts(MIN_A_COUNT);
 
  str=conv.WriteString(&mol,true);
 

@@ -1,7 +1,7 @@
 ARCH=unix
 #unix,win32
 
-OPENBABEL_OR_RDKIT=openbabel
+OPENBABEL_OR_RDKIT=rdkit
 #openbabel,rdkit
 
 POTRACE=../potrace-1.8/
@@ -10,7 +10,7 @@ OCRAD=../ocrad-0.18-pre4/
 
 ifeq ($(OPENBABEL_OR_RDKIT),rdkit)
 RDKIT=../rdkit-svn/
-BOOST=../boost_1_37_0/
+BOOST=../boost_1_36_0/
 else
 OPENBABEL=/usr/
 endif

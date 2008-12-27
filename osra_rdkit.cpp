@@ -502,16 +502,18 @@ string get_smiles(atom_t *atom, bond_t *bond, int n_bond, int &rotors,
 	(*bondIt)->setBondType(Bond::SINGLE);
 	int i=bondid_to_i[(*bondIt)->getIdx()];
 	if (i>=0)
-	  if (bond[i].type==2)
-	    (*bondIt)->setBondType(Bond::DOUBLE);
-	  else if (bond[i].type==3)
-	    (*bondIt)->setBondType(Bond::TRIPLE);
+	  {
+	    if (bond[i].type==2)
+	      (*bondIt)->setBondType(Bond::DOUBLE);
+	    else if (bond[i].type==3)
+	      (*bondIt)->setBondType(Bond::TRIPLE);
+	  }
       }
    bool doStereo=true;
 
 
    RDGeom::INT_POINT2D_MAP crdMap;
-   for (int i=0;i<aid_vec.size();i++)
+   for (unsigned int i=0;i<aid_vec.size();i++)
      {
        crdMap[aid_vec[i]]=RDGeom::Point2D(x_coord[i], y_coord[i]);
        //       cout<<aid_vec[i]<<" "<<x_coord[i]<<" "<<y_coord[i]<<endl;
@@ -699,6 +701,17 @@ string get_smiles(atom_t *atom, bond_t *bond, int n_bond, int &rotors,
       } catch (...)   { }
     }
 
+  std::vector<ROMOL_SPTR> frag;
+  frag = MolOps::getMolFrags(*(static_cast<ROMol *>(mol)));
+  for (unsigned int i=0;i< frag.size();i++)
+    if (frag[i]->getNumAtoms()<MIN_A_COUNT)
+      {
+	for(ROMol::BondIterator bondIt=frag[i]->beginBonds();bondIt!=frag[i]->endBonds();++bondIt)
+	  mol->removeBond((*bondIt)->getBeginAtomIdx(),(*bondIt)->getEndAtomIdx());
+	/*	for(RWMol::AtomIterator atomIt=frag[i]->beginAtoms();atomIt!=frag[i]->endAtoms();atomIt++)
+		mol->removeAtom((*atomIt)->getIdx());*/
+      }
+
   ROMol* mol1;
 
   if (format=="sdf")
@@ -710,10 +723,9 @@ string get_smiles(atom_t *atom, bond_t *bond, int n_bond, int &rotors,
       mol1=RDKit::MolOps::addHs(*mol,true,false);  //explicitOnly, addCoordinates
     }
 
-  //  std::vector<ROMOL_SPTR> frags;
-  //frags = MolOps::getMolFrags(*mol1);
-  // frags.size()
-  //frags[0]->getNumAtoms()
+  
+
+
 
   if (format=="sdf")
     {

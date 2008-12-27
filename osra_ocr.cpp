@@ -203,7 +203,7 @@ string fix_atom_name(string s,int n)
   else if (s=="H" && n>1) r="N";
   else if (s=="HN" || s=="NH" || s=="M" || s=="Hm" || s=="MN" || s=="N2"
 	   || s=="NM" || s=="NH2" || s=="H2N" || s=="NHZ" || s=="HZN" || s=="NH3"
-	   || s=="nu" || s=="Hu"  || s=="lU" || s=="HlU")   r="N";
+	   || s=="nu" || s=="Hu"  || s=="lU" || s=="HlU" || s=="lUH")   r="N";
   else if (s=="OH" || s=="oH" || s=="Ho" || s=="HO" || s=="ol"
 	   || s=="On" || s=="on" || s=="no" || s=="nO") r="O";
   else if (s=="Meo" || s=="oMe" || s=="oMg" || s=="omg" || s=="Mgo"
