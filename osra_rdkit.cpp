@@ -701,10 +701,38 @@ string get_smiles(atom_t *atom, bond_t *bond, int n_bond, int &rotors,
       } catch (...)   { }
     }
 
+  const Conformer &conf1 = mol->getConformer();
+  for (unsigned int i=0;i<frags.size();i++)
+    for (unsigned int j=i+1;j<frags.size();j++)
+      {
+	double l=MAX_DOUBLE;
+	unsigned int atom1, atom2;
+	for(unsigned int a=0;a!=frags[i].size();a++) 
+	  for(unsigned int b=0;b!=frags[j].size();b++) 
+	    {
+	      RDGeom::Point3D pos1=conf1.getAtomPos(frags[i][a]);
+	      RDGeom::Point3D pos2=conf1.getAtomPos(frags[j][b]);
+	      pos1-=pos2;
+	      double d=pos1.length();
+	      if (d<l)
+		{
+		  l=d;
+		  atom1=frags[i][a];
+		  atom2=frags[j][b];
+		}
+	    }
+
+	cout<<atom1<<" "<<atom2<<" "<<l<<endl;
+	if (l<CC_BOND_LENGTH && l>CC_BOND_LENGTH/3)
+	  {
+	    mol->addBond(atom1,atom2,Bond::SINGLE);
+	  }
+      }
+
   RWMol *newMol=new RWMol();
   std::vector<ROMOL_SPTR> frag;
   frag = MolOps::getMolFrags(*(static_cast<ROMol *>(mol)));
-  for (unsigned int i=0;i< frag.size();i++)
+  for (unsigned int i=0;i<frag.size();i++)
     if (frag[i]->getNumAtoms()>=MIN_A_COUNT)
 	newMol->insertMol(*frag[i]);
 
@@ -720,7 +748,7 @@ string get_smiles(atom_t *atom, bond_t *bond, int n_bond, int &rotors,
       mol1=RDKit::MolOps::addHs(*newMol,true,false);  //explicitOnly, addCoordinates
     }
 
-  
+  delete newMol;
 
 
 
