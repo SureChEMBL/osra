@@ -701,26 +701,23 @@ string get_smiles(atom_t *atom, bond_t *bond, int n_bond, int &rotors,
       } catch (...)   { }
     }
 
+  RWMol *newMol=new RWMol();
   std::vector<ROMOL_SPTR> frag;
   frag = MolOps::getMolFrags(*(static_cast<ROMol *>(mol)));
   for (unsigned int i=0;i< frag.size();i++)
-    if (frag[i]->getNumAtoms()<MIN_A_COUNT)
-      {
-	for(ROMol::BondIterator bondIt=frag[i]->beginBonds();bondIt!=frag[i]->endBonds();++bondIt)
-	  mol->removeBond((*bondIt)->getBeginAtomIdx(),(*bondIt)->getEndAtomIdx());
-	/*	for(RWMol::AtomIterator atomIt=frag[i]->beginAtoms();atomIt!=frag[i]->endAtoms();atomIt++)
-		mol->removeAtom((*atomIt)->getIdx());*/
-      }
+    if (frag[i]->getNumAtoms()>=MIN_A_COUNT)
+	newMol->insertMol(*frag[i]);
+
 
   ROMol* mol1;
 
   if (format=="sdf")
     {
-      mol1=RDKit::MolOps::addHs(*mol,true,true); //explicitOnly, addCoordinates
+      mol1=RDKit::MolOps::addHs(*newMol,true,true); //explicitOnly, addCoordinates
     }
   else
     {
-      mol1=RDKit::MolOps::addHs(*mol,true,false);  //explicitOnly, addCoordinates
+      mol1=RDKit::MolOps::addHs(*newMol,true,false);  //explicitOnly, addCoordinates
     }
 
   
