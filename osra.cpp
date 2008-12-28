@@ -3350,7 +3350,7 @@ double thickness_ver(Image image,int x1,int y1, ColorGray bgColor,
 
 double find_wedge_bonds(Image image,atom_t* atom, int n_atom,bond_t* bond,int n_bond, 
 			ColorGray bgColor,double THRESHOLD_BOND, 
-			double max_dist_double_bond, double avg)
+			double max_dist_double_bond, double avg,int limit)
 {
   double l;
   double a[MAX_ATOMS];
@@ -3469,7 +3469,7 @@ double find_wedge_bonds(Image image,atom_t* atom, int n_atom,bond_t* bond,int n_
         double beta=0;
         if (denominator!=0) beta=numerator/denominator; 
 	//cout<<fabs(beta)*(max_c-min_c)<<" "<<(max_c-min_c)<<" "<<avg<<endl;
-	if (fabs(beta)*(max_c-min_c)>3)
+	if (fabs(beta)*(max_c-min_c)>limit)
 	  {
 	    bond[i].wedge=true;
 	    if (beta*sign<0)  bond_end_swap(bond,i);
@@ -4177,47 +4177,58 @@ int reconnect_fragments(bond_t *bond,int n_bond,atom_t *atom,double avg)
 {
   vector < vector<int> > frags;
   frags=find_fragments(bond,n_bond,atom);
-  for (unsigned int i=0;i<frags.size();i++)
-    for (unsigned int j=i+1;j<frags.size();j++)
-      {
-	double l=FLT_MAX;
-	int atom1,atom2;
-	for (unsigned int ii=0;ii<frags[i].size();ii++)
-	  for (unsigned int jj=0;jj<frags[j].size();jj++)
-	    {
-	      double d=atom_distance(atom,frags[i][ii],frags[j][jj]);
-	      if (d<l) 
+  if (frags.size()<=3)
+    {
+      for (unsigned int i=0;i<frags.size();i++)
+	for (unsigned int j=i+1;j<frags.size();j++)
+	  {
+	    double l=FLT_MAX;
+	    int atom1,atom2;
+	    for (unsigned int ii=0;ii<frags[i].size();ii++)
+	      for (unsigned int jj=0;jj<frags[j].size();jj++)
 		{
-		  l=d;
-		  atom1=frags[i][ii];
-		  atom2=frags[j][jj];
+		  double d=atom_distance(atom,frags[i][ii],frags[j][jj]);
+		  if (d<l) 
+		    {
+		      l=d;
+		      atom1=frags[i][ii];
+		      atom2=frags[j][jj];
+		    }
 		}
-	    }
-	if (l<avg && l>avg/3)
-	  {
-	    bond[n_bond].a=atom1;
-	    bond[n_bond].exists=true;
-	    bond[n_bond].type=1;
-	    bond[n_bond].b=atom2;
-	    bond[n_bond].curve=atom[atom1].curve;
-	    bond[n_bond].hash=false;
-	    bond[n_bond].wedge=false;
-	    bond[n_bond].up=false;
-	    bond[n_bond].down=false;
-	    bond[n_bond].Small=false;
-	    n_bond++;
+	    if (l<avg && l>avg/3)
+	      {
+		bond[n_bond].a=atom1;
+		bond[n_bond].exists=true;
+		bond[n_bond].type=1;
+		bond[n_bond].b=atom2;
+		bond[n_bond].curve=atom[atom1].curve;
+		bond[n_bond].hash=false;
+		bond[n_bond].wedge=false;
+		bond[n_bond].up=false;
+		bond[n_bond].down=false;
+		bond[n_bond].Small=false;
+		n_bond++;
+	      }
+	    if (l<avg/3)
+	      {
+		atom[atom2].x=atom[atom1].x;
+		atom[atom2].y=atom[atom1].y;
+	      }
 	  }
-	if (l<avg/3)
-	  {
-	    atom[atom2].x=atom[atom1].x;
-	    atom[atom2].y=atom[atom1].y;
-	  }
-      }
+    }
 
   return(n_bond);
 }
 
-	
+void remove_small_fragments(bond_t *bond, int n_bond, atom_t *atom,unsigned int fsize)
+{
+  vector < vector<int> > frags=find_fragments(bond,n_bond,atom);
+  if (frags.size()<=3)
+    for (unsigned int i=0;i<frags.size();i++)
+      if (frags[i].size()<=fsize)
+	for (unsigned int j=0;j<frags[i].size();j++)
+	  atom[frags[i][j]].exists=false;
+}	
 
 double confidence_function(int C_Count,int N_Count,int O_Count,int F_Count,
 			   int S_Count,int Cl_Count,int num_rings,int num_aromatic,
@@ -4576,7 +4587,7 @@ int main(int argc,char **argv)
 
 		thickness=find_wedge_bonds(thick_box,atom,n_atom,bond,n_bond,bgColor,
 					   THRESHOLD_BOND,max_dist_double_bond,
-					   avg_bond);
+					   avg_bond,3);
 
 	
 
@@ -4651,11 +4662,7 @@ int main(int argc,char **argv)
 		    n_bond=reconnect_fragments(bond,n_bond,atom,avg_bond);
 		    collapse_atoms(atom,bond,n_atom,n_bond,1);
 
-		    vector < vector<int> > frags=find_fragments(bond,n_bond,atom);
-		    for (unsigned int i=0;i<frags.size();i++)
-		      if (frags[i].size()<=MIN_A_COUNT)
-			for (unsigned int j=0;j<frags[i].size();j++)
-			  atom[frags[i][j]].exists=false;
+		    remove_small_fragments(bond,n_bond,atom,MIN_A_COUNT);
 
 		    remove_zero_bonds(bond,n_bond,atom);
 
@@ -4665,7 +4672,8 @@ int main(int argc,char **argv)
 					     confidence,f,rings,avg_bond,
 					     format.getValue(),resolution,
 					     conf.getValue(),guess.getValue());
-		    if (f<5 && smiles!="")
+
+		    if (f<5 && f>0 && smiles!="")
 		      {
 			array_of_smiles[res_iter].push_back(smiles);
 			total_boxes++;
