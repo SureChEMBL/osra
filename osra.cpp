@@ -3288,7 +3288,7 @@ double noise_factor(Image image, int width, int height, ColorGray bgColor,
   return(nf);
 }
 
-double thickness_hor(Image image,int x1,int y1, ColorGray bgColor, 
+int thickness_hor(Image image,int x1,int y1, ColorGray bgColor, 
 		     double THRESHOLD_BOND)
 {
   int i=0,s=0,w=0;
@@ -3314,10 +3314,10 @@ double thickness_hor(Image image,int x1,int y1, ColorGray bgColor,
 	s=getPixel(image,bgColor,x1-i++,y1,THRESHOLD_BOND);
       w+=i-1;
     }
-  return(1.*w);
+  return(w);
 }
 
-double thickness_ver(Image image,int x1,int y1, ColorGray bgColor, 
+int thickness_ver(Image image,int x1,int y1, ColorGray bgColor, 
 		     double THRESHOLD_BOND)
 {
   int i=0,s=0,w=0;
@@ -3343,7 +3343,7 @@ double thickness_ver(Image image,int x1,int y1, ColorGray bgColor,
 	s=getPixel(image,bgColor,x1,y1-i++,THRESHOLD_BOND);
       w+=i-1;
     }
-  return(1.*w);
+  return(w);
 }
 
 
@@ -3368,8 +3368,8 @@ double find_wedge_bonds(Image image,atom_t* atom, int n_atom,bond_t* bond,int n_
 	int y1=int((atom[bond[i].a].y+atom[bond[i].b].y)/2);
 	
 	int w=0,max_c,min_c,sign=1;
-	double w3_ver=thickness_ver(image,x1,y1,bgColor,THRESHOLD_BOND);
-	double w3_hor=thickness_hor(image,x1,y1,bgColor,THRESHOLD_BOND);
+	int w3_ver=thickness_ver(image,x1,y1,bgColor,THRESHOLD_BOND);
+	int w3_hor=thickness_hor(image,x1,y1,bgColor,THRESHOLD_BOND);
 	if (w3_ver==0 && w3_hor==0) continue;
 	if ((w3_ver<w3_hor && w3_ver>0) || w3_hor==0)
 	  {
