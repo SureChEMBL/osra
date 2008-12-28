@@ -94,6 +94,11 @@ double distance(double x1, double y1, double x2, double y2)
   return(sqrt((x1-x2)*(x1-x2)+(y1-y2)*(y1-y2)));
 }
 
+double atom_distance(atom_t *atom,int a, int b)
+{
+  return(distance(atom[a].x,atom[a].y,atom[b].x,atom[b].y));
+}
+
 double angle4(double x1,double y1, double x2, double y2, 
 	      double x3, double y3, double x4, double y4)
 {
@@ -4110,6 +4115,110 @@ void remove_small_terminal_bonds(bond_t *bond,int n_bond,atom_t *atom, double av
     }
 }
 
+vector < vector<int> > find_fragments(bond_t *bond,int n_bond,atom_t *atom)
+{
+  vector < vector<int> > frags;
+  vector<int> pool;
+  int n=0;
+  for(int i=0;i<n_bond;i++)
+    if (bond[i].exists && atom[bond[i].a].exists && atom[bond[i].b].exists)
+	pool.push_back(i);
+
+  while (!pool.empty())
+    {
+      frags.resize(n+1);
+      frags[n].push_back(bond[pool.back()].a);
+      frags[n].push_back(bond[pool.back()].b);
+      pool.pop_back();
+      bool found=true;
+
+      while (found)
+	{
+	  found=false;
+	  unsigned int i=0;
+	  while(i<pool.size())
+	    {
+	      bool found_a=false;
+	      bool found_b=false;
+	      bool newfound=false;
+	      for (unsigned int k=0;k<frags[n].size();k++)
+		{
+		  if (frags[n][k]==bond[pool[i]].a) found_a=true;
+		  else if  (frags[n][k]==bond[pool[i]].b) found_b=true;
+		}
+	      if (found_a && !found_b) 
+		{
+		  frags[n].push_back(bond[pool[i]].b);
+		  pool.erase(pool.begin()+i);
+		  found=true;
+		  newfound=true;
+		}
+	      if (!found_a && found_b) 
+		{
+		  frags[n].push_back(bond[pool[i]].a);
+		  pool.erase(pool.begin()+i);
+		  found=true;
+		  newfound=true;
+		}
+	      if (found_a && found_b)
+		{
+		  pool.erase(pool.begin()+i);
+		  newfound=true;
+		}
+	      if (!newfound) i++;
+	    }
+	}
+      n++;
+    }
+  return(frags);
+}
+
+int reconnect_fragments(bond_t *bond,int n_bond,atom_t *atom,double avg)
+{
+  vector < vector<int> > frags;
+  frags=find_fragments(bond,n_bond,atom);
+  for (unsigned int i=0;i<frags.size();i++)
+    for (unsigned int j=i+1;j<frags.size();j++)
+      {
+	double l=FLT_MAX;
+	int atom1,atom2;
+	for (unsigned int ii=0;ii<frags[i].size();ii++)
+	  for (unsigned int jj=0;jj<frags[j].size();jj++)
+	    {
+	      double d=atom_distance(atom,frags[i][ii],frags[j][jj]);
+	      if (d<l) 
+		{
+		  l=d;
+		  atom1=frags[i][ii];
+		  atom2=frags[j][jj];
+		}
+	    }
+	if (l<avg && l>avg/3)
+	  {
+	    bond[n_bond].a=atom1;
+	    bond[n_bond].exists=true;
+	    bond[n_bond].type=1;
+	    bond[n_bond].b=atom2;
+	    bond[n_bond].curve=atom[atom1].curve;
+	    bond[n_bond].hash=false;
+	    bond[n_bond].wedge=false;
+	    bond[n_bond].up=false;
+	    bond[n_bond].down=false;
+	    bond[n_bond].Small=false;
+	    n_bond++;
+	  }
+	if (l<avg/3)
+	  {
+	    atom[atom2].x=atom[atom1].x;
+	    atom[atom2].y=atom[atom1].y;
+	  }
+      }
+
+  return(n_bond);
+}
+
+	
+
 double confidence_function(int C_Count,int N_Count,int O_Count,int F_Count,
 			   int S_Count,int Cl_Count,int num_rings,int num_aromatic,
 			   int num_fragments,vector<int> *Num_Rings)
@@ -4538,7 +4647,16 @@ int main(int argc,char **argv)
 		    extend_terminal_bond_to_bonds(atom,bond,n_bond,avg_bond,7,0);
 
 		    remove_small_terminal_bonds(bond,n_bond,atom,avg_bond);
+
+		    n_bond=reconnect_fragments(bond,n_bond,atom,avg_bond);
 		    collapse_atoms(atom,bond,n_atom,n_bond,1);
+
+		    vector < vector<int> > frags=find_fragments(bond,n_bond,atom);
+		    for (unsigned int i=0;i<frags.size();i++)
+		      if (frags[i].size()<=MIN_A_COUNT)
+			for (unsigned int j=0;j<frags[i].size();j++)
+			  atom[frags[i][j]].exists=false;
+
 		    remove_zero_bonds(bond,n_bond,atom);
 
 		    int rotors,rings;

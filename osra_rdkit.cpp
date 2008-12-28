@@ -694,14 +694,9 @@ string get_smiles(atom_t *atom, bond_t *bond, int n_bond, int &rotors,
 		   std::cout<<endl<<"++++++"<<endl;*/
 
 
-  if ((genCoords) && (format=="sdf"))
-    {
-      try {
-	unsigned int cid1 = RDDepict::compute2DCoords(*mol, &crdMap);
-      } catch (...)   { }
-    }
+ 
 
-  const Conformer &conf1 = mol->getConformer();
+  /*const Conformer &conf1 = mol->getConformer();
   for (unsigned int i=0;i<frags.size();i++)
     for (unsigned int j=i+1;j<frags.size();j++)
       {
@@ -722,33 +717,52 @@ string get_smiles(atom_t *atom, bond_t *bond, int n_bond, int &rotors,
 		}
 	    }
 
-	cout<<atom1<<" "<<atom2<<" "<<l<<endl;
-	if (l<CC_BOND_LENGTH && l>CC_BOND_LENGTH/3)
+	//cout<<l<<" "<<CC_BOND_LENGTH/3<<endl;
+	if (l<CC_BOND_LENGTH/3)
+	  {
+	    Atom *a=mol->getAtomWithIdx(atom1);
+	    unsigned int id=atom2;
+	    if (a->getSymbol()=="C")
+	      {
+		a=mol->getAtomWithIdx(atom2);
+		id=atom1;
+	      }
+	    mol->replaceAtom(id,a);
+	  }
+	  else if (l<CC_BOND_LENGTH && l>CC_BOND_LENGTH/3)
 	  {
 	    mol->addBond(atom1,atom2,Bond::SINGLE);
 	  }
       }
 
+  // RWMol *newMol=mol;
   RWMol *newMol=new RWMol();
   std::vector<ROMOL_SPTR> frag;
   frag = MolOps::getMolFrags(*(static_cast<ROMol *>(mol)));
   for (unsigned int i=0;i<frag.size();i++)
     if (frag[i]->getNumAtoms()>=MIN_A_COUNT)
 	newMol->insertMol(*frag[i]);
-
+  */
 
   ROMol* mol1;
 
+ if ((genCoords) && (format=="sdf"))
+    {
+      try {
+	unsigned int cid1 = RDDepict::compute2DCoords(*mol, &crdMap);
+      } catch (...)   { }
+    }
+
   if (format=="sdf")
     {
-      mol1=RDKit::MolOps::addHs(*newMol,true,true); //explicitOnly, addCoordinates
+      mol1=RDKit::MolOps::addHs(*mol,true,true); //explicitOnly, addCoordinates
     }
   else
     {
-      mol1=RDKit::MolOps::addHs(*newMol,true,false);  //explicitOnly, addCoordinates
+      mol1=RDKit::MolOps::addHs(*mol,true,false);  //explicitOnly, addCoordinates
     }
 
-  delete newMol;
+  //  delete newMol;
 
 
 
