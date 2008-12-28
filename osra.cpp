@@ -4180,7 +4180,9 @@ int reconnect_fragments(bond_t *bond,int n_bond,atom_t *atom,double avg)
   if (frags.size()<=3)
     {
       for (unsigned int i=0;i<frags.size();i++)
+       if (frags[i].size()>2)	
 	for (unsigned int j=i+1;j<frags.size();j++)
+	 if (frags[j].size()>2)
 	  {
 	    double l=FLT_MAX;
 	    int atom1,atom2;
