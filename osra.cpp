@@ -1815,7 +1815,7 @@ int find_atoms(potrace_path_t *p, atom_t *atom,bond_t *bond,int *n_bond)
 }
 
 
-
+/*
 bool overlap_boxes(int x1,int y1,int x2, int y2,int x3, int y3, int x4, int y4)
 {
   int t,l,r,b;
@@ -1828,294 +1828,6 @@ bool overlap_boxes(int x1,int y1,int x2, int y2,int x3, int y3, int x4, int y4)
   else return(false);
 }
 
-int distance_between_boxes(int x1,int y1,int x2, int y2,int x3, int y3, int x4, int y4)
-{
-  int r;
-  if (overlap_boxes(x1,y1,x2,y2,x3,y3,x4,y4)) return(0);
-  if ((x1>=x3 && x1<=x4) || (x2>=x3 && x2<=x4))
-    {
-      r=min(abs(y3-y1),abs(y4-y1));
-      r=min(r,abs(y3-y2));
-      r=min(r,abs(y4-y2));
-    }
-  else if ((y1>=y3 && y1<=y4) || (y2>=y3 && y2<=y4))
-    {
-      r=min(abs(x3-x1),abs(x4-x1));
-      r=min(r,abs(x3-x2));
-      r=min(r,abs(x4-x2));
-    }
-  else if (x1<x3 && x2>x4) 
-    {
-      r=min(abs(y3-y1),abs(y4-y1));
-      r=min(r,abs(y3-y2));
-      r=min(r,abs(y4-y2));
-    }
-  else if (y1<y3 && y2>y4) 
-    {
-      r=min(abs(x3-x1),abs(x4-x1));
-      r=min(r,abs(x3-x2));
-      r=min(r,abs(x4-x2));
-    }
-  else
-    {
-      int rx=min(abs(x3-x1),abs(x4-x1));
-      rx=min(rx,abs(x3-x2));
-      rx=min(rx,abs(x4-x2));
-      int ry=min(abs(y4-y1),abs(y3-y1));
-      ry=min(ry,abs(y3-y2));
-      ry=min(ry,abs(y4-y2));
-      r=max(rx,ry);
-    }
-  return(r);
-}
-
-int distance_from_assembly(vector < box_t > assembly, box_t box)
-{
-  int d=INT_MAX;
-  for (unsigned int i=0;i<assembly.size();i++)
-    {
-      int d1=distance_between_boxes(assembly[i].x1,assembly[i].y1,assembly[i].x2,
-				    assembly[i].y2,box.x1,box.y1,box.x2,box.y2);
-      if (d>d1)  d=d1;
-    }
-  return(d);
-}
-
-bool box_in_box(int x1,int y1,int x2, int y2,int x3, int y3, int x4, int y4)
-{
-  if (x1>=x3 && x1<=x4 && y1>=y3 && y1<=y4 &&
-      x2>=x3 && x2<=x4 && y2>=y3 && y2<=y4)
-    return(true);
-  return(false);
-}
-
-bool assembly_in_box(vector < box_t > assembly, box_t box)
-{
-  for (unsigned int i=0;i<assembly.size();i++)
-    if (!box_in_box(assembly[i].x1,assembly[i].y1,assembly[i].x2,
-		    assembly[i].y2,box.x1,box.y1,box.x2,box.y2))
-      return(false);
-  return(true);
-}
-
-bool assembly_in_box_assembly(vector < box_t > assembly1,vector < box_t > assembly2)
-{
-  for (unsigned int i=0;i<assembly2.size();i++)
-    if (assembly_in_box(assembly1,assembly2[i])) return(true);
-  return(false);
-}
-
-
-vector < vector < box_t > > find_assembly(Image image,double THRESHOLD_BOND,
-					  ColorGray bgColor,int width,int height,
-					  int boundary, int working_resolution,
-					  box_t *boxes,int &n_boxes)
-{
-  potrace_bitmap_t *bm;
-  potrace_param_t *param;
-  potrace_path_t *p;
-  potrace_state_t *st;
-  vector < vector < box_t > > v_box_assembly;
-  box_t box;
-
-
-  param = potrace_param_default();
-  param->alphamax=0.;
-  //param->turnpolicy=POTRACE_TURNPOLICY_MINORITY;
-  bm = bm_new(width,height);
-  param->turdsize=1;
-  //param->turdsize=res;
-
-    for(int i=0;i<width;i++)
-      for(int j=0;j<height;j++)
-	BM_PUT(bm,i,j,getPixel(image,bgColor,i,j,THRESHOLD_BOND));
-    
-    st = potrace_trace(param, bm);
-    p = st->plist;
-    while (p != NULL) 
-      {
-	int top=0;
-	int left=0;
-	int bottom=0;
-	int right=0;
-	if ((p->sign == int('+')))
-	  {
-	    long n = p->curve.n;
-	    int *tag = p->curve.tag;
-	    potrace_dpoint_t (*c)[3];
-	    c = p->curve.c;
-	    top=height;
-	    left=width;
-	    bottom=0;
-	    right=0;
-	    for (int i=0; i<n; i++) 
-	      {
-		switch (tag[i]) 
-		  {
-		  case POTRACE_CORNER:
-		    if (c[i][1].x<left) {left=int(c[i][1].x);}
-		    if (c[i][1].x>right) {right=int(c[i][1].x);}
-		    if (c[i][1].y<top) {top=int(c[i][1].y);}
-		    if (c[i][1].y>bottom) {bottom=int(c[i][1].y);}
-		    break;
-		  case POTRACE_CURVETO:
-		    if (c[i][0].x<left) {left=int(c[i][0].x);}
-		    if (c[i][0].x>right) {right=int(c[i][0].x);}
-		    if (c[i][0].y<top) {top=int(c[i][0].y);}
-		    if (c[i][0].y>bottom) {bottom=int(c[i][0].y);}
-		    if (c[i][1].x<left) {left=int(c[i][1].x);}
-		    if (c[i][1].x>right) {right=int(c[i][1].x);}
-		    if (c[i][1].y<top) {top=int(c[i][1].y);}
-		    if (c[i][1].y>bottom) {bottom=int(c[i][1].y);}
-		    break;
-		  }
-		if (c[i][2].x<left) {left=int(c[i][2].x);}
-		if (c[i][2].x>right) {right=int(c[i][2].x);}
-		if (c[i][2].y<top) {top=int(c[i][2].y);}
-		if (c[i][2].y>bottom) {bottom=int(c[i][2].y);}
-		
-		if (left<0) left=0;
-		if (top<0) top=0;
-		if (right>width-1) right=width-1;
-		if (bottom>height-1) bottom=height-1;
-	      }
-	    box.x1=left;
-	    box.y1=top;
-	    box.x2=right;
-	    box.y2=bottom;
-	    
-	    double aspect=0;
-	    if (right!=left)  aspect=1.*(bottom-top)/(right-left);
-
-	    if ((right-left)*300/working_resolution<MAX_WIDTH &&
-		(bottom-top)*300/working_resolution<MAX_HEIGHT &&
-		!(((right-left)>MIN_WIDTH || (bottom-top)>MIN_HEIGHT) &&
-		  (aspect<MIN_ASPECT || aspect>MAX_ASPECT)))
-	      {
-		vector < box_t > new_assembly;
-		new_assembly.push_back(box);
-		v_box_assembly.push_back(new_assembly);
-	      }
-
-         }
-	p = p->next;
-     }
-	
-    bool cont=true;
-    while (cont)
-      {
-	cont=false;
-	for (unsigned int i=0;i<v_box_assembly.size();i++)
-	  if (!v_box_assembly[i].empty())
-	    {
-	      int minj=i;
-	      int mindist=INT_MAX;
-	      for (unsigned j=i+1;j<v_box_assembly.size();j++)
-		if (!v_box_assembly[j].empty())
-		  for (unsigned int k=0;k<v_box_assembly[j].size();k++)
-		    {
-		      int dist=distance_from_assembly(v_box_assembly[i],v_box_assembly[j][k]);
-		      if (dist<mindist)
-			{
-			  mindist=dist;
-			  minj=j;
-			}
-		    }
-	     
-	      if (mindist<boundary && minj!=i)
-		{
-		  int j=minj;
-		  /*bool fits_inside1=assembly_in_box_assembly(v_box_assembly[i],
-							     v_box_assembly[j]);
-		  bool fits_inside2=assembly_in_box_assembly(v_box_assembly[j],
-							     v_box_assembly[i]);
-		 if (!fits_inside1 && !fits_inside2)
-		  */
-		    {
-		      int top=height;
-		      int left=width;
-		      int bottom=0;
-		      int right=0;
-		      for (unsigned int k=0;k<v_box_assembly[i].size();k++)
-			{
-			  if (v_box_assembly[i][k].x1<left) left=v_box_assembly[i][k].x1;
-			  if (v_box_assembly[i][k].y1<top) top=v_box_assembly[i][k].y1;
-			  if (v_box_assembly[i][k].x2>right) right=v_box_assembly[i][k].x2;
-			  if (v_box_assembly[i][k].y2>bottom) bottom=v_box_assembly[i][k].y2;
-			}
-		      for (unsigned int k=0;k<v_box_assembly[j].size();k++)
-			{
-			  if (v_box_assembly[j][k].x1<left) left=v_box_assembly[j][k].x1;
-			  if (v_box_assembly[j][k].y1<top) top=v_box_assembly[j][k].y1;
-			  if (v_box_assembly[j][k].x2>right) right=v_box_assembly[j][k].x2;
-			  if (v_box_assembly[j][k].y2>bottom) bottom=v_box_assembly[j][k].y2;
-			}
-		      if (((right-left)*300/working_resolution>MAX_WIDTH 
-			   || (bottom-top)*300/working_resolution>MAX_HEIGHT) 
-			  && mindist>0)
-			continue;
-
-		      for (unsigned int k=0;k<v_box_assembly[j].size();k++)
-			v_box_assembly[i].push_back(v_box_assembly[j][k]);
-		      v_box_assembly[j].clear();
-		      cont=true;
-		    }
-		}
-	    }
-      }
-	
-	
-    n_boxes=0;
-    for (unsigned int i=0;i<v_box_assembly.size();i++)
-      if (!v_box_assembly[i].empty())
-	{
-	  if (v_box_assembly[i].size()>MAX_ASSEMBLY_SIZE)
-	    {
-	      v_box_assembly[i].clear();
-	      continue;
-	    }
-	  int top=height;
-	  int left=width;
-	  int bottom=0;
-	  int right=0;
-	  bool big_segment=false;
-	  for (unsigned int j=0;j<v_box_assembly[i].size();j++)
-	    {
-	      if (v_box_assembly[i][j].x1<left) left=v_box_assembly[i][j].x1;
-	      if (v_box_assembly[i][j].y1<top) top=v_box_assembly[i][j].y1;
-	      if (v_box_assembly[i][j].x2>right) right=v_box_assembly[i][j].x2;
-	      if (v_box_assembly[i][j].y2>bottom) bottom=v_box_assembly[i][j].y2;
-	      if ((v_box_assembly[i][j].x2-v_box_assembly[i][j].x1)>MIN_WIDTH
-		  || (v_box_assembly[i][j].y2-v_box_assembly[i][j].y1)>MIN_HEIGHT)
-		big_segment=true;
-	    }
-	  if (!big_segment && working_resolution>=150)
-	    {
-	      v_box_assembly[i].clear();
-	      continue;
-	    }
-	  double aspect=0;
-	  if (right!=left)  aspect=1.*(bottom-top)/(right-left);
-	  
-	  if (aspect<MIN_ASPECT || aspect>MAX_ASPECT)
-	    v_box_assembly[i].clear();
-	  else
-	    {
-	      boxes[n_boxes].x1=left;
-	      boxes[n_boxes].y1=top;
-	      boxes[n_boxes].x2=right;
-	      boxes[n_boxes].y2=bottom;
-	      boxes[n_boxes].assembly=i;
-	      n_boxes++;
-	      if (n_boxes>=NUM_BOXES) n_boxes--;
-	    }
-	}
-    potrace_state_free(st);
-    potrace_param_free(param);
-    free(bm);
-    //            draw_box(image,boxes,n_boxes,"tmp.gif");
-    return(v_box_assembly);
-}
 
 void adjust_box(Image image,double THRESHOLD_BOND,ColorGray bgColor,
 		int width,int height,int boundary,int allowed,
@@ -2306,7 +2018,7 @@ int find_boxes(box_t *boxes,Image image,double THRESHOLD_BOND,ColorGray bgColor,
     return(n_boxes);
 }
 
-
+*/
 int count_pages(string input)
 {
   list<Image> imageList;
@@ -4232,6 +3944,182 @@ void remove_small_fragments(bond_t *bond, int n_bond, atom_t *atom,unsigned int 
 	  atom[frags[i][j]].exists=false;
 }	
 
+int distance_between_points(point_t p1,point_t p2)
+{
+   return max(abs(p1.x-p2.x),abs(p1.y-p2.y));
+}
+
+int distance_between_segments(list<point_t> s1,list<point_t> s2)
+{
+  int r=INT_MAX;
+  for (list<point_t>::iterator i=s1.begin();i!=s1.end();i++)
+    for (list<point_t>::iterator j=s2.begin();j!=s2.end();j++)
+      {
+	int d=distance_between_points(*i,*j);
+	if (d<r) r=d;
+      }
+  return r;
+}
+
+list < list < list<point_t> > > find_segments(Image image,double threshold,
+					      ColorGray bgColor)
+{
+  point_t p;
+  list<point_t> points;
+  list < list<point_t> > segments;
+
+  for(unsigned int i=0;i<image.columns();i++)
+    for(unsigned int j=0;j<image.rows();j++)
+      if (getPixel(image,bgColor,i,j,threshold)==1) // populate with low threshold for future anisotropic smoothing
+	{
+	  p.x=i;
+	  p.y=j;
+	  points.push_back(p);
+	}
+
+ while (!points.empty())
+    {
+      segments.resize(segments.size()+1);
+      list < list<point_t> >::iterator current=segments.end();
+      current--;
+      (*current).push_back(points.back());
+      points.pop_back();
+      bool found=true;
+
+      while (found)
+	{
+	  found=false;
+	  list<point_t>::iterator i=points.begin();
+	  while(i!=points.end())
+	    {
+	      bool found_this_pass=false;
+	      for (list<point_t>::iterator k=(*current).begin();k!=(*current).end();k++)
+		if (distance_between_points(*i,*k)<=1)
+		  {
+		    (*current).push_back(*i);
+		    i=points.erase(i);
+		    found=true;
+		    found_this_pass=true;
+		  }
+	      if (!found_this_pass) i++;
+	    }
+	  
+	}
+    }
+
+
+ list < list<point_t> >::iterator s1,s2;
+ list<int> min_dist;
+ for (s1=segments.begin();s1!=segments.end();s1++)
+   {
+     int dist=INT_MAX;
+     bool higher=false,found=false;
+     for (s2=segments.begin();s2!=segments.end();s2++)
+       {
+	 if (s2!=s1)
+	   {
+	     int d=distance_between_segments(*s1,*s2);
+	     if (d<dist)
+	       {
+		 dist=d;
+		 if (higher) found=true;
+	       }
+	   }
+	 else
+	   {
+	     higher=true;
+	   }
+       }
+     if (found)  
+       min_dist.push_back(dist);
+   }
+
+ min_dist.sort();
+ list<int>::iterator i=min_dist.begin();
+ advance(i,min_dist.size()*3/4);
+ int border=(*i)*3/2+1;
+
+ list < list < list<point_t> > > clusters;
+ while (!segments.empty())
+    {
+      clusters.resize(clusters.size()+1);
+      list < list < list<point_t> > >::iterator current=clusters.end();
+      current--;
+      (*current).push_back(segments.back());
+      segments.pop_back();
+      bool found=true;
+
+      while (found)
+	{
+	  found=false;
+	  list < list<point_t> >::iterator i=segments.begin();
+	  while(i!=segments.end())
+	    {
+	      bool found_this_pass=false;
+	      for (list < list<point_t> >::iterator k=(*current).begin();
+		   k!=(*current).end();k++)
+		if (distance_between_segments(*i,*k)<border)
+		  {
+		    (*current).push_back(*i);
+		    i=segments.erase(i);
+		    found=true;
+		    found_this_pass=true;
+		  }
+	      if (!found_this_pass) i++;
+	    }
+	  
+	}
+    }
+
+ 
+ return clusters;
+}
+
+
+int prune_clusters(list < list < list<point_t> > > clusters,box_t *boxes)
+{
+  int n_boxes=0;
+  list < list < list<point_t> > >::iterator c=clusters.begin();
+  while(c!=clusters.end())
+   {
+     unsigned int area=0;
+     double ratio=0,aspect=0;
+     int top=INT_MAX,left=INT_MAX,bottom=0,right=0;
+     for(list < list<point_t> >::iterator s=c->begin();s!=c->end();s++)
+       {
+	 area+=s->size();
+	 for (list<point_t>::iterator p=s->begin();p!=s->end();p++)
+	   {
+	     if (p->x<left) left=p->x;
+	     if (p->x>right) right=p->x;
+	     if (p->y<top) top=p->y;
+	     if (p->y>bottom) bottom=p->y;
+	   }
+       }
+	 
+     if ((bottom!=top) && (right!=left)) ratio=1.*area/((bottom-top)*(right-left));
+     if (right!=left)  aspect=1.*(bottom-top)/(right-left);
+     if (ratio<MAX_RATIO && ratio>0 && aspect>MIN_ASPECT && aspect<MAX_ASPECT)
+       {
+	 boxes[n_boxes].x1=left;
+	 boxes[n_boxes].y1=top;
+	 boxes[n_boxes].x2=right;
+	 boxes[n_boxes].y2=bottom;
+	 boxes[n_boxes].c=c;
+	 c++;
+	 n_boxes++;
+	 if (n_boxes>=NUM_BOXES) n_boxes--;
+	 
+       }
+     else
+       {
+	 c=clusters.erase(c);
+       }
+   }
+  return(n_boxes);
+}
+
+
 double confidence_function(int C_Count,int N_Count,int O_Count,int F_Count,
 			   int S_Count,int Cl_Count,int num_rings,int num_aromatic,
 			   int num_fragments,vector<int> *Num_Rings)
@@ -4344,12 +4232,21 @@ int main(int argc,char **argv)
 	    select_resolution[2]=300;
 	  }
 	int res_iter;
-#pragma omp parallel for default(shared) shared(threshold,invert,output,format,resize,type,page,l,num_resolutions,select_resolution,array_of_smiles,array_of_confidence,array_of_images,image,image_count,conf,guess) private(res_iter,JOB)
+
+
+	ColorGray bgColor=getBgColor(image,invert);
+	list < list < list<point_t> > > clusters=find_segments(image,0.01,bgColor);
+
+	box_t boxes[NUM_BOXES];
+	int n_boxes=prune_clusters(clusters,boxes);
+	qsort(boxes,n_boxes,sizeof(box_t),comp_boxes);
+	
+
+#pragma omp parallel for default(shared) shared(threshold,output,format,resize,type,page,l,num_resolutions,select_resolution,array_of_smiles,array_of_confidence,array_of_images,image,image_count,conf,guess) private(res_iter,JOB)
     for (res_iter=0;res_iter<num_resolutions;res_iter++)
       {
-	int n_boxes=0,total_boxes=0;
+	int total_boxes=0;
 	double total_confidence=0;
-	box_t boxes[NUM_BOXES];
 
 	int resolution=select_resolution[res_iter];
 	int working_resolution=resolution;
@@ -4384,23 +4281,18 @@ int main(int argc,char **argv)
 		working_resolution=300;
 	      }
 
-	    ColorGray bgColor=getBgColor(image,invert);
-
-
-	    int width=image.columns();
-	    int height=image.rows();
 	    int max_font_height=MAX_FONT_HEIGHT*resolution/150;
 	    int max_font_width=MAX_FONT_WIDTH*resolution/150;
 	    bool thick=true;
 	    if (resolution<=150) thick=false;
 
-	    int boundary=10;
-	    if (resolution<300)	boundary=5;
-	    //vector < vector < box_t > > v_box_assembly=find_assembly(image,THRESHOLD_BOND,bgColor,width,height,max_font_height, working_resolution,boxes,n_boxes);
-	    
-	    n_boxes=find_boxes(boxes,image,THRESHOLD_BOND,bgColor,width,height,100,boundary,working_resolution);
-	    qsort(boxes,n_boxes,sizeof(box_t),comp_boxes);
 	    for (int k=0;k<n_boxes;k++)
+	      if (((boxes[k].x2-boxes[k].x1)*300/working_resolution<MAX_WIDTH 
+		  && (boxes[k].y2-boxes[k].y1)*300/working_resolution<MAX_HEIGHT 
+		  && (boxes[k].x2-boxes[k].x1)>MIN_WIDTH 
+		   && (boxes[k].y2-boxes[k].y1)>MIN_HEIGHT)
+		  || working_resolution<150)
+	 
 	      {
 		int n_atom=0,n_bond=0,n_letters=0,n_label=0;
 		atom_t atom[MAX_ATOMS];
@@ -4411,47 +4303,20 @@ int main(int argc,char **argv)
 		potrace_path_t *p;
 		potrace_state_t *st;
 
-		// begin boxes piece
-		Image orig_box=image;
-		width=orig_box.columns();
-		height=orig_box.rows();
-		
-		if (boxes[k].x1>MIN_FONT_HEIGHT 
-		    || boxes[k].y1>MIN_FONT_HEIGHT 
-		    || width-boxes[k].x2>MIN_FONT_HEIGHT 
-		    || height-boxes[k].y2>MIN_FONT_HEIGHT)
-		  {
-		    try {
-		      orig_box.crop(Geometry(boxes[k].x2-boxes[k].x1,
-					     boxes[k].y2-boxes[k].y1,
-					     boxes[k].x1,boxes[k].y1));
-		    } catch(...) {}
-		  }
-		
-		// begin assembly piece
-		/*
-		Image orig_box( Geometry(boxes[k].x2-boxes[k].x1+3,boxes[k].y2-boxes[k].y1+3), bgColor );
-		orig_box.type( GrayscaleType );
-		unsigned int assembly=boxes[k].assembly;
-		for (unsigned int kk=0;kk<v_box_assembly[assembly].size();kk++)
-		  {
-		    int x1=v_box_assembly[assembly][kk].x1;
-		    int y1=v_box_assembly[assembly][kk].y1;
-		    int x2=v_box_assembly[assembly][kk].x2;
-		    int y2=v_box_assembly[assembly][kk].y2;
-		    for (int i=x1;i<=x2;i++)
-		      for (int j=y1;j<=y2;j++)
-			{
-			  ColorRGB c;
-			  c=image.pixelColor(i,j);
-			  orig_box.pixelColor(i-boxes[k].x1+1,j-boxes[k].y1+1,c);
-			}
-		  }
-	       */
-		// end assembly piece
 
-		width=orig_box.columns();
-		height=orig_box.rows();
+		Image orig_box( Geometry(boxes[k].x2-boxes[k].x1,
+					 boxes[k].y2-boxes[k].y1), "white" );
+		
+		for(list < list<point_t> >::iterator s=boxes[k].c->begin();
+		    s!=boxes[k].c->end();s++)
+		  for (list<point_t>::iterator p=s->begin();p!=s->end();p++)
+		    {
+		      ColorGray color=image.pixelColor(p->x,p->y);
+		      orig_box.pixelColor(p->x-boxes[k].x1,p->y-boxes[k].y1,color);
+		    }
+
+		int width=orig_box.columns();
+		int height=orig_box.rows();
 		Image thick_box;
 
 		

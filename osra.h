@@ -71,10 +71,14 @@ struct label_s {
 };
 typedef struct label_s label_t;
 
+struct point_s {
+  int x,y;
+};
+typedef struct point_s point_t;
 
 struct box_s {
   int x1,y1,x2,y2;
-  unsigned int assembly;
+  list < list < list<point_t> > >::iterator c;
 };
 typedef struct box_s box_t;
 
@@ -94,6 +98,8 @@ struct dash_s {
 typedef struct dash_s dash_t;
 
 
+
+
 string fix_atom_name(string s,int n);
 string get_smiles(atom_t *atom,bond_t *bond, int n_bond, int &rotors, double &confidence, int &num_fragments, int &r56,double avg,string format,int resolution,bool conf, bool guess);
 Magick::Image anisotropic_smoothing(Magick::Image image,int width,int height, const float amplitude,const float alpha, const float sigma);
@@ -105,7 +111,7 @@ double confidence_function(int C_Count,int N_Count,int O_Count,int F_Count,
 			   int num_fragments,vector<int> *Num_Rings);
 
 
-#define OSRA_VERSION "1.1.0"
+#define OSRA_VERSION "1.2.0"
 #define MAX_ATOMS 10000
 #define NUM_BOXES 100
 #define MAX_FONT_HEIGHT 22
@@ -117,6 +123,7 @@ double confidence_function(int C_Count,int N_Count,int O_Count,int F_Count,
 #define DIR_CHANGE 2
 #define THRESHOLD_GLOBAL 0.4
 #define THRESHOLD_LOW_RES 0.2
+#define MAX_RATIO 0.2
 #define MIN_ASPECT 0.1
 #define MAX_ASPECT 10.
 #define MIN_A_COUNT 5
