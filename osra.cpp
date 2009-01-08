@@ -4105,7 +4105,7 @@ int prune_clusters(list < list < list<point_t> > > clusters,box_t *boxes)
 	 boxes[n_boxes].y1=top;
 	 boxes[n_boxes].x2=right;
 	 boxes[n_boxes].y2=bottom;
-	 boxes[n_boxes].c=c;
+	 boxes[n_boxes].c=(*c);
 	 c++;
 	 n_boxes++;
 	 if (n_boxes>=NUM_BOXES) n_boxes--;
@@ -4287,11 +4287,11 @@ int main(int argc,char **argv)
 	    if (resolution<=150) thick=false;
 
 	    for (int k=0;k<n_boxes;k++)
-	      if (((boxes[k].x2-boxes[k].x1)*300/working_resolution<MAX_WIDTH 
-		  && (boxes[k].y2-boxes[k].y1)*300/working_resolution<MAX_HEIGHT 
-		  && (boxes[k].x2-boxes[k].x1)>MIN_WIDTH 
-		   && (boxes[k].y2-boxes[k].y1)>MIN_HEIGHT)
-		  || working_resolution<150)
+	      if ((boxes[k].x2-boxes[k].x1)>2*max_font_width &&
+		  (boxes[k].y2-boxes[k].y1)>2*max_font_height)
+      //		  (boxes[k].x2-boxes[k].x1)*300/working_resolution<MAX_WIDTH 
+	  //		  && (boxes[k].y2-boxes[k].y1)*300/working_resolution<MAX_HEIGHT 
+		  
 	 
 	      {
 		int n_atom=0,n_bond=0,n_letters=0,n_label=0;
@@ -4304,15 +4304,16 @@ int main(int argc,char **argv)
 		potrace_state_t *st;
 
 
-		Image orig_box( Geometry(boxes[k].x2-boxes[k].x1,
-					 boxes[k].y2-boxes[k].y1), "white" );
-		
-		for(list < list<point_t> >::iterator s=boxes[k].c->begin();
-		    s!=boxes[k].c->end();s++)
+		Image orig_box( Geometry(boxes[k].x2-boxes[k].x1+10,
+					 boxes[k].y2-boxes[k].y1+10), "white" );
+
+		list < list<point_t> > cluster=boxes[k].c;
+		for(list < list<point_t> >::iterator s=cluster.begin();
+		    s!=cluster.end();s++)
 		  for (list<point_t>::iterator p=s->begin();p!=s->end();p++)
 		    {
 		      ColorGray color=image.pixelColor(p->x,p->y);
-		      orig_box.pixelColor(p->x-boxes[k].x1,p->y-boxes[k].y1,color);
+		      orig_box.pixelColor(p->x-boxes[k].x1+5,p->y-boxes[k].y1+5,color);
 		    }
 
 		int width=orig_box.columns();
