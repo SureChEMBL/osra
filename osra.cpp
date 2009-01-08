@@ -4305,7 +4305,7 @@ int main(int argc,char **argv)
 
 
 		Image orig_box( Geometry(boxes[k].x2-boxes[k].x1+10,
-					 boxes[k].y2-boxes[k].y1+10), "white" );
+					 boxes[k].y2-boxes[k].y1+10), bgColor);
 
 		list < list<point_t> > cluster=boxes[k].c;
 		for(list < list<point_t> >::iterator s=cluster.begin();
@@ -4483,7 +4483,7 @@ int main(int argc,char **argv)
 					      label,n_label,avg_bond/2,
 					      thickness,max_dist_double_bond);
 
-		/*if (ttt++==1) 
+		/*		if (ttt++==1) 
 		  {
 		    debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");	
 		  }   
