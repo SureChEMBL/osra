@@ -78,7 +78,7 @@ typedef struct point_s point_t;
 
 struct box_s {
   int x1,y1,x2,y2;
-  list < list<point_t> > c;
+  vector<point_t> c;
 };
 typedef struct box_s box_t;
 

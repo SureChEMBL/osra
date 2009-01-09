@@ -1814,211 +1814,6 @@ int find_atoms(potrace_path_t *p, atom_t *atom,bond_t *bond,int *n_bond)
  return(n_atom);
 }
 
-
-/*
-bool overlap_boxes(int x1,int y1,int x2, int y2,int x3, int y3, int x4, int y4)
-{
-  int t,l,r,b;
-  l=(x1>x3 ? x1 : x3);
-  t=(y1>y3 ? y1 : y3);
-  r=(x2<x4 ? x2 : x4);
-  b=(y2<y4 ? y2 : y4);
-  
-  if (r>l && b>t) return(true);
-  else return(false);
-}
-
-
-void adjust_box(Image image,double THRESHOLD_BOND,ColorGray bgColor,
-		int width,int height,int boundary,int allowed,
-		int &top,int &left, int &bottom, int &right,int maxh,int maxw)
-{
-  int oldtop=top-1;
-  int oldbottom=bottom-1;
-  int oldleft=left-1;
-  int oldright=right-1;
-  while (((oldtop!=top) || (oldbottom!=bottom) || (oldleft!=left) || (oldright!=right)) &&
-	 ((right-left)<=maxw) && ((bottom-top)<=maxh))
-    {
-      oldtop=top;
-      oldbottom=bottom;
-      oldleft=left;
-      oldright=right;
-      int s=1;
-      while((top>0) && (s>allowed)  && ((right-left)<=maxw) && ((bottom-top)<=maxh))
-	{
-	  s=0;
-	  for (int i=top;i<top+boundary;i++)
-	    {
-	      for (int j=left;j<=right;j++) s+=getPixel(image,bgColor,j,i,THRESHOLD_BOND);
-	    }
-	  if (s>allowed) top--;
-	}
-      s=1;
-      while((bottom<height) && (s>allowed) && ((right-left)<=maxw) && ((bottom-top)<=maxh))
-	{
-	  s=0;
-	  for (int i=bottom;i>bottom-boundary;i--)
-	    {
-	      for (int j=left;j<=right;j++) s+=getPixel(image,bgColor,j,i,THRESHOLD_BOND);
-	    }
-	  if (s>allowed) bottom++;
-	}
-      s=1;
-      while((left>0) && (s>allowed) && ((right-left)<=maxw) && ((bottom-top)<=maxh))
-	{
-	  s=0;
-	  for (int i=top;i<=bottom;i++)
-	    {
-	      for (int j=left;j<left+boundary;j++) s+=getPixel(image,bgColor,j,i,THRESHOLD_BOND);
-	    }
-	  if (s>allowed) left--;
-	}
-      s=1;
-      while((right<width) && (s>allowed) && ((right-left)<=maxw) && ((bottom-top)<=maxh))
-	{
-	  s=0;
-	  for (int i=top;i<=bottom;i++)
-	    {
-	      for (int j=right;j>right-boundary;j--) s+=getPixel(image,bgColor,j,i,THRESHOLD_BOND);
-	    }
-	  if (s>allowed) right++;
-	}
-    }
-
-}
-
-int calculate_area(potrace_path_t *p)
-{
-  int area=p->area;
-  potrace_path_t *child=p->childlist;
-  while (child !=NULL)
-    {
-      area-=child->area;
-      child=child->sibling;
-    }
-  return(area);
-}
-
-bool check_boxes(int left,int top,int right,int bottom,box_t *boxes,int n_boxes)
-{
-  for (int i=0;i<n_boxes;i++)
-    if (overlap_boxes(left,top,right,bottom,
-		      boxes[i].x1,boxes[i].y1,boxes[i].x2,boxes[i].y2))
-      return(true);
-  return(false);
-}
-
-int find_boxes(box_t *boxes,Image image,double THRESHOLD_BOND,ColorGray bgColor,
-	       int width,int height,int res,int boundary, int working_resolution)
-{
-  potrace_bitmap_t *bm;
-  potrace_param_t *param;
-  potrace_path_t *p;
-  potrace_state_t *st;
-  int n_boxes=0;
-
-  param = potrace_param_default();
-  param->alphamax=0.;
-  //param->turnpolicy=POTRACE_TURNPOLICY_MINORITY;
-  bm = bm_new(width,height);
-  param->turdsize=res;
-  //param->turdsize=1;
-
-    for(int i=0;i<width;i++)
-      for(int j=0;j<height;j++)
-	BM_PUT(bm,i,j,getPixel(image,bgColor,i,j,THRESHOLD_BOND));
-    
-    st = potrace_trace(param, bm);
-    p = st->plist;
-    while (p != NULL) 
-      {
-	int top=0;
-	int left=0;
-	int bottom=0;
-	int right=0;
-	if ((p->sign == int('+')))
-	  {
-	    long n = p->curve.n;
-	    int *tag = p->curve.tag;
-	    potrace_dpoint_t (*c)[3];
-	    c = p->curve.c;
-	    top=height;
-	    left=width;
-	    bottom=0;
-	    right=0;
-	    for (int i=0; i<n; i++) 
-	      {
-		switch (tag[i]) 
-		  {
-		  case POTRACE_CORNER:
-		    if (c[i][1].x<left) {left=int(c[i][1].x);}
-		    if (c[i][1].x>right) {right=int(c[i][1].x);}
-		    if (c[i][1].y<top) {top=int(c[i][1].y);}
-		    if (c[i][1].y>bottom) {bottom=int(c[i][1].y);}
-		    break;
-		  case POTRACE_CURVETO:
-		    if (c[i][0].x<left) {left=int(c[i][0].x);}
-		    if (c[i][0].x>right) {right=int(c[i][0].x);}
-		    if (c[i][0].y<top) {top=int(c[i][0].y);}
-		    if (c[i][0].y>bottom) {bottom=int(c[i][0].y);}
-		    if (c[i][1].x<left) {left=int(c[i][1].x);}
-		    if (c[i][1].x>right) {right=int(c[i][1].x);}
-		    if (c[i][1].y<top) {top=int(c[i][1].y);}
-		    if (c[i][1].y>bottom) {bottom=int(c[i][1].y);}
-		    break;
-		  }
-		if (c[i][2].x<left) {left=int(c[i][2].x);}
-		if (c[i][2].x>right) {right=int(c[i][2].x);}
-		if (c[i][2].y<top) {top=int(c[i][2].y);}
-		if (c[i][2].y>bottom) {bottom=int(c[i][2].y);}
-		
-		if (left<0) left=0;
-		if (top<0) top=0;
-		if (right>width-1) right=width-1;
-		if (bottom>height-1) bottom=height-1;
-	      }
-	    int area=calculate_area(p);
-	    double ratio=0,aspect=0;
-	    if ((bottom!=top) && (right!=left)) ratio=1.*area/((bottom-top)*(right-left));
-	    if (right!=left)  aspect=1.*(bottom-top)/(right-left);
-#define MAX_RATIO 0.2
-	    if ((ratio<MAX_RATIO) && (ratio>0) && (aspect>MIN_ASPECT) && 
-		(aspect<MAX_ASPECT) &&
-		(!check_boxes(left,top,right,bottom,boxes,n_boxes)))
-	      {
-		adjust_box(image,THRESHOLD_BOND,bgColor,width,height,boundary, 
-			   0,top,left,bottom,right,height,width);
-		//left=0;top=0;right=width;bottom=height;
-		if (left<0) left=0;
-		if (top<0) top=0;
-		if (right>width) right=width;
-		if (bottom>height) bottom=height;
-		if ((right-left)*300/working_resolution<MAX_WIDTH 
-		    && (bottom-top)*300/working_resolution<MAX_HEIGHT 
-		    && (right-left)>MIN_WIDTH && (bottom-top)>MIN_HEIGHT
-		    || working_resolution<150)
-		  {
-		    boxes[n_boxes].x1=left;
-		    boxes[n_boxes].x2=right;
-		    boxes[n_boxes].y1=top;
-		    boxes[n_boxes].y2=bottom;
-		    n_boxes++;
-		    if (n_boxes>=NUM_BOXES) n_boxes--;
-		  }
-	      }
-	  }
-
-	p = p->next;
-      }
-    //draw_box(image,boxes,n_boxes,"tmp.gif");
-    potrace_state_free(st);
-    potrace_param_free(param);
-    free(bm);
-    return(n_boxes);
-}
-
-*/
 int count_pages(string input)
 {
   list<Image> imageList;
@@ -3944,12 +3739,12 @@ void remove_small_fragments(bond_t *bond, int n_bond, atom_t *atom,unsigned int 
 	  atom[frags[i][j]].exists=false;
 }	
 
-int distance_between_points(point_t p1,point_t p2)
+unsigned int distance_between_points(point_t p1,point_t p2)
 {
    return max(abs(p1.x-p2.x),abs(p1.y-p2.y));
 }
 
-int distance_between_segments(list<point_t> s1,list<point_t> s2)
+unsigned int distance_between_segments(list<point_t> s1,list<point_t> s2)
 {
   int r=INT_MAX;
   for (list<point_t>::iterator i=s1.begin();i!=s1.end();i++)
@@ -3966,72 +3761,81 @@ list < list < list<point_t> > > find_segments(Image image,double threshold,
 {
   point_t p;
   list<point_t> points;
-  list < list<point_t> > segments;
+  vector < list<point_t> > segments,margins;
+  vector < vector<int> > tmp(image.columns(),vector<int>(image.rows(),0));
 
   for(unsigned int i=0;i<image.columns();i++)
     for(unsigned int j=0;j<image.rows();j++)
       if (getPixel(image,bgColor,i,j,threshold)==1) // populate with low threshold for future anisotropic smoothing
+	tmp[i][j]=1;
+
+
+  for(unsigned int i=0;i<image.columns();i++)
+    for(unsigned int j=0;j<image.rows();j++)
+      if (tmp[i][j]==1)
 	{
+	  tmp[i][j]=2;
 	  p.x=i;
 	  p.y=j;
 	  points.push_back(p);
-	}
-
- while (!points.empty())
-    {
-      segments.resize(segments.size()+1);
-      list < list<point_t> >::iterator current=segments.end();
-      current--;
-      (*current).push_back(points.back());
-      points.pop_back();
-      bool found=true;
-
-      while (found)
-	{
-	  found=false;
-	  list<point_t>::iterator i=points.begin();
-	  while(i!=points.end())
+	  list<point_t> new_segment,new_margin;
+	  point_t p1;
+	  while (!points.empty())
 	    {
-	      bool found_this_pass=false;
-	      for (list<point_t>::iterator k=(*current).begin();k!=(*current).end();k++)
-		if (distance_between_points(*i,*k)<=1)
+	      p=points.back();
+	      points.pop_back();
+	      new_segment.push_back(p);
+	      tmp[p.x][p.y]=0;
+	      bool on_the_margin=false;
+	      for(int k=p.x-1;k<p.x+2;k++)
+		for(int l=p.y-1;l<p.y+2;l++)
 		  {
-		    (*current).push_back(*i);
-		    i=points.erase(i);
-		    found=true;
-		    found_this_pass=true;
+		    if (k>=0 && l>=0 && k<image.columns() && l<image.rows() && tmp[k][l]==1)
+		      {
+			p1.x=k;
+			p1.y=l;
+			points.push_back(p1);
+			tmp[k][l]=2;
+		      }
+		    else if (k>=0 && l>=0 && k<image.columns() && l<image.rows() && k!=p.x && l!=p.y && tmp[k][l]==0)
+		      on_the_margin=true;
 		  }
-	      if (!found_this_pass) i++;
+	      if (on_the_margin)
+		new_margin.push_back(p);
 	    }
-	  
+	  segments.push_back(new_segment);
+	  margins.push_back(new_margin);
 	}
-    }
 
 
- list < list<point_t> >::iterator s1,s2;
  list<int> min_dist;
- for (s1=segments.begin();s1!=segments.end();s1++)
+ unsigned int max_dist=50;
+ vector < vector<int> > distance_matrix(segments.size(), vector<int>(segments.size(),INT_MAX));
+ for (unsigned int s1=0;s1<margins.size();s1++)
    {
-     int dist=INT_MAX;
-     bool higher=false,found=false;
-     for (s2=segments.begin();s2!=segments.end();s2++)
-       {
-	 if (s2!=s1)
+     for (unsigned int s2=s1+1;s2<margins.size();s2++)
+       if (distance_between_points(margins[s1].front(),margins[s2].front())<margins[s1].size()+margins[s2].size()+max_dist)
 	   {
-	     int d=distance_between_segments(*s1,*s2);
-	     if (d<dist)
-	       {
-		 dist=d;
-		 if (higher) found=true;
-	       }
+	     int d=distance_between_segments(margins[s1],margins[s2]);
+	     distance_matrix[s1][s2]=d;
+	     distance_matrix[s2][s1]=d;
 	   }
-	 else
+     int dist=INT_MAX;
+     unsigned int sf=s1;
+     for (unsigned int s2=0;s2<margins.size();s2++)
+       {
+	 int d=distance_matrix[s1][s2];
+	 if (d<dist) 
 	   {
-	     higher=true;
+	     dist=d;
+	     sf=s2;
 	   }
        }
-     if (found)  
-       min_dist.push_back(dist);
+     if (dist<INT_MAX && sf>s1)
+       {
+	 min_dist.push_back(dist);
+	 //	 cout<<dist<<" ";
+       }
    }
 
  min_dist.sort();
@@ -4039,40 +3843,46 @@ list < list < list<point_t> > > find_segments(Image image,double threshold,
  advance(i,min_dist.size()*3/4);
  int border=(*i)*3/2+1;
 
- list < list < list<point_t> > > clusters;
- while (!segments.empty())
+ // border=10;
+ list < list <int> > clusters;
+ for (unsigned int s=0;s<margins.size();s++)
+   if (!margins[s].empty())
     {
-      clusters.resize(clusters.size()+1);
-      list < list < list<point_t> > >::iterator current=clusters.end();
+      list <int> tmp;
+      tmp.push_back(s);
+      clusters.push_back(tmp);
+      list < list <int> >::iterator current=clusters.end();
       current--;
-      (*current).push_back(segments.back());
-      segments.pop_back();
+      margins[s].clear();
       bool found=true;
 
       while (found)
 	{
 	  found=false;
-	  list < list<point_t> >::iterator i=segments.begin();
-	  while(i!=segments.end())
-	    {
-	      bool found_this_pass=false;
-	      for (list < list<point_t> >::iterator k=(*current).begin();
-		   k!=(*current).end();k++)
-		if (distance_between_segments(*i,*k)<border)
+	  for (unsigned int i=0;i<margins.size();i++)
+	    if (!margins[i].empty())
+	      for (list <int>::iterator k=current->begin();k!=current->end();k++)
+		if (distance_matrix[i][*k]<border)
 		  {
-		    (*current).push_back(*i);
-		    i=segments.erase(i);
+		    current->push_back(i);
+		    margins[i].clear();
 		    found=true;
-		    found_this_pass=true;
 		  }
-	      if (!found_this_pass) i++;
-	    }
-	  
 	}
+	  
     }
 
- 
- return clusters;
+ list < list < list<point_t> > > explicit_clusters;
+ for (list < list <int> >::iterator c=clusters.begin();c!=clusters.end();c++)
+   {
+     list < list<point_t> > set_of_segments;
+     for (list <int>::iterator s=c->begin();s!=c->end();s++)
+       if (!segments[*s].empty())
+	 set_of_segments.push_back(segments[*s]);
+     if (!set_of_segments.empty())
+       explicit_clusters.push_back(set_of_segments);
+   }
+ return explicit_clusters;
 }
 
 
@@ -4105,7 +3915,9 @@ int prune_clusters(list < list < list<point_t> > > clusters,box_t *boxes)
 	 boxes[n_boxes].y1=top;
 	 boxes[n_boxes].x2=right;
 	 boxes[n_boxes].y2=bottom;
-	 boxes[n_boxes].c=(*c);
+	 for(list < list<point_t> >::iterator s=c->begin();s!=c->end();s++)
+	   for (list<point_t>::iterator p=s->begin();p!=s->end();p++)
+	     boxes[n_boxes].c.push_back(*p);
 	 c++;
 	 n_boxes++;
 	 if (n_boxes>=NUM_BOXES) n_boxes--;
@@ -4233,12 +4045,11 @@ int main(int argc,char **argv)
 	  }
 	int res_iter;
 
-
 	ColorGray bgColor=getBgColor(image,invert);
-	list < list < list<point_t> > > clusters=find_segments(image,0.01,bgColor);
-
+	list < list < list<point_t> > > clusters=find_segments(image,0.1,bgColor);
 	box_t boxes[NUM_BOXES];
 	int n_boxes=prune_clusters(clusters,boxes);
+	//draw_box(image,boxes,n_boxes,"tmp.gif");
 	qsort(boxes,n_boxes,sizeof(box_t),comp_boxes);
 	
 
@@ -4288,7 +4099,7 @@ int main(int argc,char **argv)
 
 	    for (int k=0;k<n_boxes;k++)
 	      if ((boxes[k].x2-boxes[k].x1)>2*max_font_width &&
-		  (boxes[k].y2-boxes[k].y1)>2*max_font_height)
+		  (boxes[k].y2-boxes[k].y1)>2*max_font_height && !boxes[k].c.empty())
       //		  (boxes[k].x2-boxes[k].x1)*300/working_resolution<MAX_WIDTH 
 	  //		  && (boxes[k].y2-boxes[k].y1)*300/working_resolution<MAX_HEIGHT 
 		  
@@ -4307,19 +4118,23 @@ int main(int argc,char **argv)
 		Image orig_box( Geometry(boxes[k].x2-boxes[k].x1+10,
 					 boxes[k].y2-boxes[k].y1+10), bgColor);
 
-		list < list<point_t> > cluster=boxes[k].c;
-		for(list < list<point_t> >::iterator s=cluster.begin();
-		    s!=cluster.end();s++)
-		  for (list<point_t>::iterator p=s->begin();p!=s->end();p++)
-		    {
-		      ColorGray color=image.pixelColor(p->x,p->y);
-		      orig_box.pixelColor(p->x-boxes[k].x1+5,p->y-boxes[k].y1+5,color);
-		    }
+		for(unsigned int p=0;p<boxes[k].c.size();p++)
+		  {
+		    int x=boxes[k].c[p].x;
+		    int y=boxes[k].c[p].y;
+		    ColorGray color=image.pixelColor(x,y);
+		    orig_box.pixelColor(x-boxes[k].x1+5,y-boxes[k].y1+5,color);
+		  }
 
 		int width=orig_box.columns();
 		int height=orig_box.rows();
 		Image thick_box;
 
+
+		if (ttt++==1) 
+		  {
+		    debug(orig_box,atom,n_atom,bond,n_bond,"tmp.png");	
+		  }   
 		
 		if (resolution>=300)
 		  {
@@ -4348,6 +4163,7 @@ int main(int argc,char **argv)
 		    else thick_box=orig_box;*/
 		else 
 		  thick_box=orig_box;
+		
 		
 		    
 		param->turnpolicy=POTRACE_TURNPOLICY_MINORITY;
@@ -4482,12 +4298,8 @@ int main(int argc,char **argv)
 		extend_terminal_bond_to_label(atom,letters,n_letters,bond,n_bond,
 					      label,n_label,avg_bond/2,
 					      thickness,max_dist_double_bond);
-
-		/*		if (ttt++==1) 
-		  {
-		    debug(thick_box,atom,n_atom,bond,n_bond,"tmp.png");	
-		  }   
-		*/
+		
+		
 	
 		remove_disconnected_atoms(atom,bond,n_atom,n_bond);
 		collapse_atoms(atom,bond,n_atom,n_bond,thickness);
