@@ -3811,65 +3811,53 @@ list < list < list<point_t> > > find_segments(Image image,double threshold,
  list<int> min_dist;
  unsigned int max_dist=50;
  vector < vector<int> > distance_matrix(segments.size(), vector<int>(segments.size(),INT_MAX));
+ vector<int> stats(max_dist,0);
+
  for (unsigned int s1=0;s1<margins.size();s1++)
-   {
-     for (unsigned int s2=s1+1;s2<margins.size();s2++)
-       if (distance_between_points(margins[s1].front(),margins[s2].front())<margins[s1].size()+margins[s2].size()+max_dist)
+   for (unsigned int s2=s1+1;s2<margins.size();s2++)
+     if (distance_between_points(margins[s1].front(),margins[s2].front())<margins[s1].size()+margins[s2].size()+max_dist)
+       {
+	 int d=distance_between_segments(margins[s1],margins[s2]);
+	 if (d<max_dist)
 	   {
-	     int d=distance_between_segments(margins[s1],margins[s2]);
 	     distance_matrix[s1][s2]=d;
 	     distance_matrix[s2][s1]=d;
-	   }
-     int dist=INT_MAX;
-     unsigned int sf=s1;
-     for (unsigned int s2=0;s2<margins.size();s2++)
-       {
-	 int d=distance_matrix[s1][s2];
-	 if (d<dist) 
-	   {
-	     dist=d;
-	     sf=s2;
+	     stats[d]++;
 	   }
        }
-     if (dist<INT_MAX && sf>s1)
-       {
-	 min_dist.push_back(dist);
-	 //	 cout<<dist<<" ";
-       }
-   }
 
- min_dist.sort();
- list<int>::iterator i=min_dist.begin();
- advance(i,min_dist.size()*3/4);
- int border=(*i)*3/2+1;
+ int border=0,top=0;
+ for(int i=1;i<max_dist;i++)
+   if (stats[i]>=top)
+     {
+       top=stats[i];
+       border=i;
+     }
+ border++;
 
- // border=10;
+ vector<int> avail(margins.size(),1);
  list < list <int> > clusters;
+ list<int> bag;
  for (unsigned int s=0;s<margins.size();s++)
-   if (!margins[s].empty())
+   if (avail[s]==1)
     {
-      list <int> tmp;
-      tmp.push_back(s);
-      clusters.push_back(tmp);
-      list < list <int> >::iterator current=clusters.end();
-      current--;
-      margins[s].clear();
-      bool found=true;
-
-      while (found)
+      bag.push_back(s);
+      avail[s]=2;
+      list<int> new_cluster;
+      while (!bag.empty())
 	{
-	  found=false;
+	  int c=bag.back();
+	  bag.pop_back();
+	  new_cluster.push_back(c);
+	  avail[c]=0;
 	  for (unsigned int i=0;i<margins.size();i++)
-	    if (!margins[i].empty())
-	      for (list <int>::iterator k=current->begin();k!=current->end();k++)
-		if (distance_matrix[i][*k]<border)
-		  {
-		    current->push_back(i);
-		    margins[i].clear();
-		    found=true;
-		  }
+	    if (avail[i]==1 && distance_matrix[c][i]<border)
+	      {
+		bag.push_back(i);
+		avail[i]=2;
+	      }
 	}
-	  
+      clusters.push_back(new_cluster);
     }
 
  list < list < list<point_t> > > explicit_clusters;
@@ -3892,22 +3880,28 @@ int prune_clusters(list < list < list<point_t> > > clusters,box_t *boxes)
   list < list < list<point_t> > >::iterator c=clusters.begin();
   while(c!=clusters.end())
    {
-     unsigned int area=0;
+     unsigned int area=0,square_area=0;
      double ratio=0,aspect=0;
      int top=INT_MAX,left=INT_MAX,bottom=0,right=0;
      for(list < list<point_t> >::iterator s=c->begin();s!=c->end();s++)
        {
 	 area+=s->size();
+	 int stop=INT_MAX,sleft=INT_MAX,sbottom=0,sright=0;
 	 for (list<point_t>::iterator p=s->begin();p!=s->end();p++)
 	   {
-	     if (p->x<left) left=p->x;
-	     if (p->x>right) right=p->x;
-	     if (p->y<top) top=p->y;
-	     if (p->y>bottom) bottom=p->y;
+	     if (p->x<sleft) sleft=p->x;
+	     if (p->x>sright) sright=p->x;
+	     if (p->y<stop) stop=p->y;
+	     if (p->y>sbottom) sbottom=p->y;
 	   }
+	 square_area+=(sbottom-stop)*(sright-sleft);
+	 if(sleft<left) left=sleft;
+	 if(sright>right) right=sright;
+	 if(stop<top) top=stop;
+	 if(sbottom>bottom) bottom=sbottom;
        }
 	 
-     if ((bottom!=top) && (right!=left)) ratio=1.*area/((bottom-top)*(right-left));
+     if (square_area!=0) ratio=1.*area/square_area;
      if (right!=left)  aspect=1.*(bottom-top)/(right-left);
      if (ratio<MAX_RATIO && ratio>0 && aspect>MIN_ASPECT && aspect<MAX_ASPECT)
        {
@@ -4049,9 +4043,8 @@ int main(int argc,char **argv)
 	list < list < list<point_t> > > clusters=find_segments(image,0.1,bgColor);
 	box_t boxes[NUM_BOXES];
 	int n_boxes=prune_clusters(clusters,boxes);
-	//draw_box(image,boxes,n_boxes,"tmp.gif");
+	//	draw_box(image,boxes,n_boxes,"tmp.gif");
 	qsort(boxes,n_boxes,sizeof(box_t),comp_boxes);
-	
 
 #pragma omp parallel for default(shared) shared(threshold,output,format,resize,type,page,l,num_resolutions,select_resolution,array_of_smiles,array_of_confidence,array_of_images,image,image_count,conf,guess) private(res_iter,JOB)
     for (res_iter=0;res_iter<num_resolutions;res_iter++)
@@ -4131,11 +4124,11 @@ int main(int argc,char **argv)
 		Image thick_box;
 
 
-		if (ttt++==1) 
+		/*if (ttt++==1) 
 		  {
 		    debug(orig_box,atom,n_atom,bond,n_bond,"tmp.png");	
 		  }   
-		
+		*/
 		if (resolution>=300)
 		  {
 		    double nf=noise_factor(orig_box,width,height,bgColor,
