@@ -3786,7 +3786,7 @@ void find_connected_components(Image image,double threshold,ColorGray bgColor,ve
 	      p=points.back();
 	      points.pop_back();
 	      new_segment.push_back(p);
-	      tmp[p.x][p.y]=0;
+	      tmp[p.x][p.y]=-1;
 	      bool on_the_margin=false;
 	      for(int k=p.x-1;k<p.x+2;k++)
 		for(int l=p.y-1;l<p.y+2;l++)
@@ -3842,64 +3842,80 @@ list < list < list<point_t> > > build_explicit_clusters(list < list <int> > clus
   return explicit_clusters;
 }
 
+
+vector<int> smooth_distribution(vector<int> in,int w)
+{
+  vector<int> out(in.size(),0);
+  for(unsigned int i=w;i<in.size()-w;i++)
+    {
+      for(int j=i-w;j<=i+w;j++)
+	out[i]+=in[j];
+      out[i]/=2*w+1;
+      cout<<i<<" "<<out[i]<<endl;
+    }
+  return(out);
+}
+
 list < list < list<point_t> > > find_segments(Image image,double threshold,
 					      ColorGray bgColor)
 {
   vector < list<point_t> > segments,margins;
   find_connected_components(image,threshold,bgColor,segments,margins);
 
- unsigned int max_dist=50;
- vector < vector<int> > distance_matrix(segments.size(), vector<int>(segments.size(),INT_MAX));
- vector<int> stats(max_dist,0);
- build_distance_matrix(margins,max_dist,distance_matrix,stats);
- 
- vector<int> smoothed(max_dist,0);
- int w=2;
- for(unsigned int i=w;i<max_dist-w;i++)
-   {
-     for(int j=i-w;j<=i+w;j++)
-       smoothed[i]+=stats[j];
-     smoothed[i]/=2*w+1;
-     cout<<i<<" "<<smoothed[i]<<endl;
-   }
- exit(0);
- int border=0,top=0;
- for(int i=1;i<max_dist;i++)
-   if (stats[i]>=top)
-     {
-       top=stats[i];
-       border=i;
-     }
- border++;
+  int max_size=1000;
+  vector<int> seg_stats(max_size,0);
+  for(int i=0;i<segments.size();i++)
+    if (segments[i].size()<max_size)
+      seg_stats[segments[i].size()]++;
+  vector<int> smooth_size=smooth_distribution(seg_stats,5);
+  exit(0);
+	
 
- vector<int> avail(margins.size(),1);
- list < list <int> > clusters;
- list<int> bag;
- for (unsigned int s=0;s<margins.size();s++)
-   if (avail[s]==1)
-    {
-      bag.push_back(s);
-      avail[s]=2;
-      list<int> new_cluster;
-      while (!bag.empty())
-	{
-	  int c=bag.back();
-	  bag.pop_back();
-	  new_cluster.push_back(c);
-	  avail[c]=0;
-	  for (unsigned int i=0;i<margins.size();i++)
-	    if (avail[i]==1 && distance_matrix[c][i]<border)
-	      {
-		bag.push_back(i);
-		avail[i]=2;
-	      }
-	}
-      clusters.push_back(new_cluster);
+  unsigned int max_dist=50;
+  vector < vector<int> > distance_matrix(segments.size(), vector<int>(segments.size(),INT_MAX));
+  vector<int> stats(max_dist,0);
+  build_distance_matrix(margins,max_dist,distance_matrix,stats);
+  
+  vector<int> smoothed=smooth_distribution(stats,2);
+  exit(0);
+
+  int border=0,top=0;
+  for(int i=1;i<max_dist;i++)
+    if (stats[i]>=top)
+      {
+	top=stats[i];
+	border=i;
+      }
+  border++;
+  
+  vector<int> avail(margins.size(),1);
+  list < list <int> > clusters;
+  list<int> bag;
+  for (unsigned int s=0;s<margins.size();s++)
+    if (avail[s]==1)
+      {
+	bag.push_back(s);
+	avail[s]=2;
+	list<int> new_cluster;
+	while (!bag.empty())
+	  {
+	    int c=bag.back();
+	    bag.pop_back();
+	    new_cluster.push_back(c);
+	    avail[c]=0;
+	    for (unsigned int i=0;i<margins.size();i++)
+	      if (avail[i]==1 && distance_matrix[c][i]<border)
+		{
+		  bag.push_back(i);
+		  avail[i]=2;
+		}
+	  }
+	clusters.push_back(new_cluster);
     }
 
 
- list < list < list<point_t> > > explicit_clusters=build_explicit_clusters(clusters,segments);
- return explicit_clusters;
+  list < list < list<point_t> > > explicit_clusters=build_explicit_clusters(clusters,segments);
+  return explicit_clusters;
 }
 
 
