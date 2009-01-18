@@ -51,6 +51,7 @@ extern "C" {
 
 
 using namespace Magick;
+
 #define PI 3.14159265358979323846
 
 
@@ -3756,12 +3757,12 @@ unsigned int distance_between_segments(list<point_t> s1,list<point_t> s2)
   return r;
 }
 
-list < list < list<point_t> > > find_segments(Image image,double threshold,
-					      ColorGray bgColor)
+void find_connected_components(Image image,double threshold,ColorGray bgColor,vector < list<point_t> > &segments,
+			       vector < list<point_t> > &margins)
 {
   point_t p;
   list<point_t> points;
-  vector < list<point_t> > segments,margins;
+  
   vector < vector<int> > tmp(image.columns(),vector<int>(image.rows(),0));
 
   for(unsigned int i=0;i<image.columns();i++)
@@ -3807,25 +3808,61 @@ list < list < list<point_t> > > find_segments(Image image,double threshold,
 	  margins.push_back(new_margin);
 	}
 
+ }
 
- list<int> min_dist;
+void build_distance_matrix(vector < list<point_t> > margins, int max_dist, vector < vector<int> > &distance_matrix,
+			   vector<int> &stats)
+{
+  for (unsigned int s1=0;s1<margins.size();s1++)
+    for (unsigned int s2=s1+1;s2<margins.size();s2++)
+      if (distance_between_points(margins[s1].front(),margins[s2].front())<margins[s1].size()+margins[s2].size()+max_dist)
+	{
+	  int d=distance_between_segments(margins[s1],margins[s2]);
+	  if (d<max_dist)
+	    {
+	      distance_matrix[s1][s2]=d;
+	      distance_matrix[s2][s1]=d;
+	      stats[d]++;
+	    }
+	}
+}
+
+list < list < list<point_t> > > build_explicit_clusters(list < list <int> > clusters,vector < list<point_t> > segments)
+{
+  list < list < list<point_t> > > explicit_clusters;
+  for (list < list <int> >::iterator c=clusters.begin();c!=clusters.end();c++)
+    {
+      list < list<point_t> > set_of_segments;
+      for (list <int>::iterator s=c->begin();s!=c->end();s++)
+	if (!segments[*s].empty())
+	  set_of_segments.push_back(segments[*s]);
+      if (!set_of_segments.empty())
+	explicit_clusters.push_back(set_of_segments);
+    }
+  return explicit_clusters;
+}
+
+list < list < list<point_t> > > find_segments(Image image,double threshold,
+					      ColorGray bgColor)
+{
+  vector < list<point_t> > segments,margins;
+  find_connected_components(image,threshold,bgColor,segments,margins);
+
  unsigned int max_dist=50;
  vector < vector<int> > distance_matrix(segments.size(), vector<int>(segments.size(),INT_MAX));
  vector<int> stats(max_dist,0);
-
- for (unsigned int s1=0;s1<margins.size();s1++)
-   for (unsigned int s2=s1+1;s2<margins.size();s2++)
-     if (distance_between_points(margins[s1].front(),margins[s2].front())<margins[s1].size()+margins[s2].size()+max_dist)
-       {
-	 int d=distance_between_segments(margins[s1],margins[s2]);
-	 if (d<max_dist)
-	   {
-	     distance_matrix[s1][s2]=d;
-	     distance_matrix[s2][s1]=d;
-	     stats[d]++;
-	   }
-       }
-
+ build_distance_matrix(margins,max_dist,distance_matrix,stats);
+ 
+ vector<int> smoothed(max_dist,0);
+ int w=2;
+ for(unsigned int i=w;i<max_dist-w;i++)
+   {
+     for(int j=i-w;j<=i+w;j++)
+       smoothed[i]+=stats[j];
+     smoothed[i]/=2*w+1;
+     cout<<i<<" "<<smoothed[i]<<endl;
+   }
+ exit(0);
  int border=0,top=0;
  for(int i=1;i<max_dist;i++)
    if (stats[i]>=top)
@@ -3860,16 +3897,8 @@ list < list < list<point_t> > > find_segments(Image image,double threshold,
       clusters.push_back(new_cluster);
     }
 
- list < list < list<point_t> > > explicit_clusters;
- for (list < list <int> >::iterator c=clusters.begin();c!=clusters.end();c++)
-   {
-     list < list<point_t> > set_of_segments;
-     for (list <int>::iterator s=c->begin();s!=c->end();s++)
-       if (!segments[*s].empty())
-	 set_of_segments.push_back(segments[*s]);
-     if (!set_of_segments.empty())
-       explicit_clusters.push_back(set_of_segments);
-   }
+
+ list < list < list<point_t> > > explicit_clusters=build_explicit_clusters(clusters,segments);
  return explicit_clusters;
 }
 
@@ -3993,7 +4022,8 @@ int main(int argc,char **argv)
 	stringstream pname;
 	pname<<input.getValue()<<"["<<l<<"]";
 	image.read(pname.str());
-	
+	//	cout<<image.IsGrayImage()<<endl;
+
 	image.modifyImage();
 	image.type( TrueColorType );
 	if (!invert)
@@ -4043,7 +4073,7 @@ int main(int argc,char **argv)
 	list < list < list<point_t> > > clusters=find_segments(image,0.1,bgColor);
 	box_t boxes[NUM_BOXES];
 	int n_boxes=prune_clusters(clusters,boxes);
-	//	draw_box(image,boxes,n_boxes,"tmp.gif");
+		draw_box(image,boxes,n_boxes,"tmp.gif");
 	qsort(boxes,n_boxes,sizeof(box_t),comp_boxes);
 
 #pragma omp parallel for default(shared) shared(threshold,output,format,resize,type,page,l,num_resolutions,select_resolution,array_of_smiles,array_of_confidence,array_of_images,image,image_count,conf,guess) private(res_iter,JOB)
