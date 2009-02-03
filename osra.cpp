@@ -3862,16 +3862,16 @@ list < list < list<point_t> > > find_segments(Image image,double threshold,
   vector < list<point_t> > segments,margins;
   find_connected_components(image,threshold,bgColor,segments,margins);
 
-  int max_size=1000;
+  /*  int max_size=1000;
   vector<int> seg_stats(max_size,0);
   for(int i=0;i<segments.size();i++)
     if (segments[i].size()<max_size)
       seg_stats[segments[i].size()]++;
   vector<int> smooth_size=smooth_distribution(seg_stats,5);
-  exit(0);
+  */
 	
 
-  unsigned int max_dist=50;
+  unsigned int max_dist=100;
   vector < vector<int> > distance_matrix(segments.size(), vector<int>(segments.size(),INT_MAX));
   vector<int> stats(max_dist,0);
   build_distance_matrix(margins,max_dist,distance_matrix,stats);
@@ -4041,6 +4041,7 @@ int main(int argc,char **argv)
 	//	cout<<image.IsGrayImage()<<endl;
 
 	image.modifyImage();
+	image.matte(false);
 	image.type( TrueColorType );
 	if (!invert)
 	  {
