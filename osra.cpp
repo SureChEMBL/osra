@@ -4038,10 +4038,12 @@ int main(int argc,char **argv)
 	stringstream pname;
 	pname<<input.getValue()<<"["<<l<<"]";
 	image.read(pname.str());
-	//	cout<<image.IsGrayImage()<<endl;
+	if (image.matte())
+	  {
+	    image.channel(MatteChannel);
+	  }
 
 	image.modifyImage();
-	image.matte(false);
 	image.type( TrueColorType );
 	if (!invert)
 	  {
