@@ -4040,7 +4040,17 @@ int main(int argc,char **argv)
 	image.read(pname.str());
 	if (image.matte())
 	  {
-	    image.channel(MatteChannel);
+	    bool transparent=false;
+	    Color c;
+	    for (int i=0;i<BG_PICK_POINTS;i++)
+	      {
+		int x=(image.columns()*rand())/RAND_MAX;
+		int y=(image.rows()*rand())/RAND_MAX;
+		c=image.pixelColor(x,y);
+		if (c.alpha()==1) transparent=true;
+	      }
+	    if (transparent)
+	      image.channel(MatteChannel);
 	  }
 
 	image.modifyImage();
@@ -4059,10 +4069,10 @@ int main(int argc,char **argv)
 	    a/=BG_PICK_POINTS;
 	    if (a<0.5) invert=true;
 	  }
+        ColorRGB c,b;
 	for (unsigned int i=0;i<image.columns();i++)
 	  for (unsigned int j=0;j<image.rows();j++)
 	    {
-	      ColorRGB c,b;
 	      b=image.pixelColor(i,j);
 	      double a=min(b.red(),min(b.green(),b.blue()));
 	      if (invert)
