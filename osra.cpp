@@ -3851,9 +3851,15 @@ vector<int> smooth_distribution(vector<int> in,int w)
       for(int j=i-w;j<=i+w;j++)
 	out[i]+=in[j];
       out[i]/=2*w+1;
-      cout<<i<<" "<<out[i]<<endl;
+      //      cout<<i<<" "<<out[i]<<endl;
     }
   return(out);
+}
+
+double area_ratio(int a,int b)
+{
+  double r=1.*max(a,b)/min(a,b);
+  return r;
 }
 
 list < list < list<point_t> > > find_segments(Image image,double threshold,
@@ -3877,16 +3883,33 @@ list < list < list<point_t> > > find_segments(Image image,double threshold,
   build_distance_matrix(margins,max_dist,distance_matrix,stats);
   
   vector<int> smoothed=smooth_distribution(stats,2);
-  exit(0);
-
-  int border=0,top=0;
-  for(int i=1;i<max_dist;i++)
-    if (stats[i]>=top)
+  int p1=smoothed[0],p2=smoothed[0],v1=0,v2=0;
+  for (unsigned int i=1;i<max_dist-1;i++)
+    if (smoothed[i]>=smoothed[i-1] && smoothed[i]>smoothed[i+1] && smoothed[i]>p1)
       {
-	top=stats[i];
-	border=i;
+	p1=smoothed[i];
+	v1=i;
       }
-  border++;
+  for (unsigned int i=1;i<max_dist-1;i++)
+    if (smoothed[i]>=smoothed[i-1] && smoothed[i]>smoothed[i+1] && smoothed[i]>p2 && i!=v1)
+      {
+	p2=smoothed[i];
+	v2=i;
+      }
+  if (v1>v2)
+    {
+      int tmp=v2;
+      v2=v1;
+      v1=tmp;
+      tmp=p2;
+      p2=p1;
+      p1=tmp;
+    }
+  //cout<<v1<<" "<<v2<<endl;
+
+  int Td1=v1;
+  int Td2=50;
+  int Ta=40;
   
   vector<int> avail(margins.size(),1);
   list < list <int> > clusters;
@@ -3904,7 +3927,8 @@ list < list < list<point_t> > > find_segments(Image image,double threshold,
 	    new_cluster.push_back(c);
 	    avail[c]=0;
 	    for (unsigned int i=0;i<margins.size();i++)
-	      if (avail[i]==1 && distance_matrix[c][i]<border)
+	      if (avail[i]==1 && 
+		  (distance_matrix[c][i]<Td1 || (1.*distance_matrix[c][i]/Td2+area_ratio(segments[c].size(),segments[i].size())/Ta)<1))
 		{
 		  bag.push_back(i);
 		  avail[i]=2;
@@ -4103,6 +4127,7 @@ int main(int argc,char **argv)
 	box_t boxes[NUM_BOXES];
 	int n_boxes=prune_clusters(clusters,boxes);
 		draw_box(image,boxes,n_boxes,"tmp.gif");
+		exit(0);
 	qsort(boxes,n_boxes,sizeof(box_t),comp_boxes);
 
 #pragma omp parallel for default(shared) shared(threshold,output,format,resize,type,page,l,num_resolutions,select_resolution,array_of_smiles,array_of_confidence,array_of_images,image,image_count,conf,guess) private(res_iter,JOB)
