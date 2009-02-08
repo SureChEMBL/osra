@@ -3859,6 +3859,7 @@ vector<int> smooth_distribution(vector<int> in,int w)
 double area_ratio(int a,int b)
 {
   double r=1.*max(a,b)/min(a,b);
+  //cout<<r<<endl;
   return r;
 }
 
@@ -3919,7 +3920,7 @@ list < list < list<point_t> > > find_segments(Image image,double threshold,
   //  cout<<Td2<<endl;
 
   int Td1=v1;
-  int Ta=40;
+  int Ta=300;
   
   vector<int> avail(margins.size(),1);
   list < list <int> > clusters;
