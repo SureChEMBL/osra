@@ -3877,7 +3877,7 @@ list < list < list<point_t> > > find_segments(Image image,double threshold,
   */
 	
 
-  unsigned int max_dist=100;
+  unsigned int max_dist=60;
   vector < vector<int> > distance_matrix(segments.size(), vector<int>(segments.size(),INT_MAX));
   vector<int> stats(max_dist,0);
   build_distance_matrix(margins,max_dist,distance_matrix,stats);
@@ -3906,9 +3906,19 @@ list < list < list<point_t> > > find_segments(Image image,double threshold,
       p1=tmp;
     }
   //cout<<v1<<" "<<v2<<endl;
+  int Td2=50;
+  double t=0.5;
+
+  for (unsigned int i=v2+1;i<max_dist;i++)
+    if (smoothed[i]<t*p2)
+      {
+	Td2=i;
+	break;
+      }
+
+  //  cout<<Td2<<endl;
 
   int Td1=v1;
-  int Td2=50;
   int Ta=40;
   
   vector<int> avail(margins.size(),1);
