@@ -3920,7 +3920,7 @@ list < list < list<point_t> > > find_segments(Image image,double threshold,
   //  cout<<Td2<<endl;
 
   int Td1=v1;
-  int Ta=300;
+  int Ta=250;
   
   vector<int> avail(margins.size(),1);
   list < list <int> > clusters;
@@ -4132,13 +4132,20 @@ int main(int argc,char **argv)
 	    select_resolution[2]=300;
 	  }
 	int res_iter;
+	if (input_resolution>300)
+	  {
+	    int percent=(100*300)/input_resolution;
+	    stringstream scale;
+	    scale<<percent<<"%";
+	    image.scale(scale.str());
+	  }
 
 	ColorGray bgColor=getBgColor(image,invert);
 	list < list < list<point_t> > > clusters=find_segments(image,0.1,bgColor);
 	box_t boxes[NUM_BOXES];
 	int n_boxes=prune_clusters(clusters,boxes);
-		draw_box(image,boxes,n_boxes,"tmp.gif");
-		exit(0);
+	//	draw_box(image,boxes,n_boxes,"tmp.gif");
+	//	exit(0);
 	qsort(boxes,n_boxes,sizeof(box_t),comp_boxes);
 
 #pragma omp parallel for default(shared) shared(threshold,output,format,resize,type,page,l,num_resolutions,select_resolution,array_of_smiles,array_of_confidence,array_of_images,image,image_count,conf,guess) private(res_iter,JOB)
@@ -4149,6 +4156,7 @@ int main(int argc,char **argv)
 
 	int resolution=select_resolution[res_iter];
 	int working_resolution=resolution;
+	if (resolution>300) working_resolution=300;
 
 	potrace_param_t *param;
 	param = potrace_param_default();
@@ -4171,15 +4179,7 @@ int main(int argc,char **argv)
 	  }
 	THRESHOLD_CHAR=THRESHOLD_BOND;
 
-	    if (resolution>300)
-	      {
-		int percent=(100*300)/resolution;
-		stringstream scale;
-		scale<<percent<<"%";
-		image.scale(scale.str());
-		working_resolution=300;
-	      }
-
+	   
 	    int max_font_height=MAX_FONT_HEIGHT*resolution/150;
 	    int max_font_width=MAX_FONT_WIDTH*resolution/150;
 	    bool thick=true;
