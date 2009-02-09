@@ -3851,7 +3851,7 @@ vector<int> smooth_distribution(vector<int> in,int w)
       for(int j=i-w;j<=i+w;j++)
 	out[i]+=in[j];
       out[i]/=2*w+1;
-      //      cout<<i<<" "<<out[i]<<endl;
+      //          cout<<i<<" "<<out[i]<<endl;
     }
   return(out);
 }
@@ -3883,44 +3883,39 @@ list < list < list<point_t> > > find_segments(Image image,double threshold,
   vector<int> stats(max_dist,0);
   build_distance_matrix(margins,max_dist,distance_matrix,stats);
   
-  vector<int> smoothed=smooth_distribution(stats,2);
+  vector<int> smoothed=smooth_distribution(stats,4);
   int p1=smoothed[0],p2=smoothed[0],v1=0,v2=0;
   for (unsigned int i=1;i<max_dist-1;i++)
-    if (smoothed[i]>=smoothed[i-1] && smoothed[i]>smoothed[i+1] && smoothed[i]>p1)
+    if (smoothed[i]>=smoothed[i-1] && smoothed[i]>smoothed[i+1])
       {
 	p1=smoothed[i];
 	v1=i;
+	break;
       }
-  for (unsigned int i=1;i<max_dist-1;i++)
-    if (smoothed[i]>=smoothed[i-1] && smoothed[i]>smoothed[i+1] && smoothed[i]>p2 && i!=v1)
+  for (unsigned int i=v1+1;i<max_dist-1;i++)
+    if (smoothed[i]>=smoothed[i-1] && smoothed[i]>smoothed[i+1])
       {
 	p2=smoothed[i];
 	v2=i;
+	break;
       }
-  if (v1>v2)
-    {
-      int tmp=v2;
-      v2=v1;
-      v1=tmp;
-      tmp=p2;
-      p2=p1;
-      p1=tmp;
-    }
-  //cout<<v1<<" "<<v2<<endl;
-  int Td2=50;
-  double t=0.5;
 
-  for (unsigned int i=v2+1;i<max_dist;i++)
+  //cout<<v1<<" "<<v2<<endl;
+  int Td2=v2+1;
+  double t=0.5;
+  int Td1=v1+1;
+  int Ta=250;
+
+  /*  for (unsigned int i=v2+1;i<max_dist;i++)
     if (smoothed[i]<t*p2)
       {
 	Td2=i;
 	break;
       }
-
+  */
   //  cout<<Td2<<endl;
 
-  int Td1=v1;
-  int Ta=250;
+
   
   vector<int> avail(margins.size(),1);
   list < list <int> > clusters;
