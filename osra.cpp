@@ -3863,20 +3863,43 @@ double area_ratio(int a,int b)
   return r;
 }
 
+void remove_separators(vector < list<point_t> > &segments, vector < list<point_t> > &margins)
+{
+  vector < list<point_t> >::iterator s,m;
+  s=segments.begin();
+  m=margins.begin();
+  while (s!=segments.end() && m!=margins.end())
+    {
+      int stop=INT_MAX,sleft=INT_MAX,sbottom=0,sright=0;
+      for (list<point_t>::iterator p=s->begin();p!=s->end();p++)
+	{
+	  if (p->x<sleft) sleft=p->x;
+	  if (p->x>sright) sright=p->x;
+	  if (p->y<stop) stop=p->y;
+	  if (p->y>sbottom) sbottom=p->y;
+	}
+      double aspect=0;
+      if (right!=left)  aspect=1.*(sbottom-stop)/(sright-sleft);
+      if ((aspect>100 || aspect<0.01) && s->size()>300)
+	{
+	  s=segments.erase(s);
+	  m=margins.erase(m);
+	}
+      else
+	{
+	  s++;
+	  m++;
+	}
+    }
+
+}
+
 list < list < list<point_t> > > find_segments(Image image,double threshold,
 					      ColorGray bgColor)
 {
   vector < list<point_t> > segments,margins;
   find_connected_components(image,threshold,bgColor,segments,margins);
-
-  /*  int max_size=1000;
-  vector<int> seg_stats(max_size,0);
-  for(int i=0;i<segments.size();i++)
-    if (segments[i].size()<max_size)
-      seg_stats[segments[i].size()]++;
-  vector<int> smooth_size=smooth_distribution(seg_stats,5);
-  */
-	
+  remove_separators(segments,margins);
 
   unsigned int max_dist=60;
   vector < vector<int> > distance_matrix(segments.size(), vector<int>(segments.size(),INT_MAX));
@@ -3902,7 +3925,7 @@ list < list < list<point_t> > > find_segments(Image image,double threshold,
 
   //cout<<v1<<" "<<v2<<endl;
   int Td2=v2+1;
-  double t=0.5;
+  //double t=0.5;
   int Td1=v1+1;
   int Ta=250;
 
@@ -4139,8 +4162,8 @@ int main(int argc,char **argv)
 	list < list < list<point_t> > > clusters=find_segments(image,0.1,bgColor);
 	box_t boxes[NUM_BOXES];
 	int n_boxes=prune_clusters(clusters,boxes);
-	//	draw_box(image,boxes,n_boxes,"tmp.gif");
-	//	exit(0);
+	//draw_box(image,boxes,n_boxes,"tmp.gif");
+	//exit(0);
 	qsort(boxes,n_boxes,sizeof(box_t),comp_boxes);
 
 #pragma omp parallel for default(shared) shared(threshold,output,format,resize,type,page,l,num_resolutions,select_resolution,array_of_smiles,array_of_confidence,array_of_images,image,image_count,conf,guess) private(res_iter,JOB)
@@ -4183,10 +4206,6 @@ int main(int argc,char **argv)
 	    for (int k=0;k<n_boxes;k++)
 	      if ((boxes[k].x2-boxes[k].x1)>2*max_font_width &&
 		  (boxes[k].y2-boxes[k].y1)>2*max_font_height && !boxes[k].c.empty())
-      //		  (boxes[k].x2-boxes[k].x1)*300/working_resolution<MAX_WIDTH 
-	  //		  && (boxes[k].y2-boxes[k].y1)*300/working_resolution<MAX_HEIGHT 
-		  
-	 
 	      {
 		int n_atom=0,n_bond=0,n_letters=0,n_label=0;
 		atom_t atom[MAX_ATOMS];
