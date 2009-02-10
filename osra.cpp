@@ -3843,15 +3843,15 @@ list < list < list<point_t> > > build_explicit_clusters(list < list <int> > clus
 }
 
 
-vector<int> smooth_distribution(vector<int> in,int w)
+vector<double> smooth_distribution(vector<int> in,int w)
 {
-  vector<int> out(in.size(),0);
+  vector<double> out(in.size(),0);
   for(unsigned int i=w;i<in.size()-w;i++)
     {
       for(int j=i-w;j<=i+w;j++)
 	out[i]+=in[j];
       out[i]/=2*w+1;
-      //          cout<<i<<" "<<out[i]<<endl;
+      // cout<<i<<" "<<out[i]<<endl;
     }
   return(out);
 }
@@ -3906,16 +3906,18 @@ list < list < list<point_t> > > find_segments(Image image,double threshold,
   vector<int> stats(max_dist,0);
   build_distance_matrix(margins,max_dist,distance_matrix,stats);
   
-  vector<int> smoothed=smooth_distribution(stats,4);
-  int p1=smoothed[0],p2=smoothed[0],v1=0,v2=0;
-  for (unsigned int i=1;i<max_dist-1;i++)
+  int w=4;
+  vector<double> smoothed=smooth_distribution(stats,w);
+  double p1=smoothed[w],p2=smoothed[w];
+  int v1=0,v2=0;
+  for (unsigned int i=w+1;i<max_dist-w-1;i++)
     if (smoothed[i]>=smoothed[i-1] && smoothed[i]>smoothed[i+1])
       {
 	p1=smoothed[i];
 	v1=i;
 	break;
       }
-  for (unsigned int i=v1+1;i<max_dist-1;i++)
+  for (unsigned int i=max(w+1,v1+1);i<max_dist-w-1;i++)
     if (smoothed[i]>=smoothed[i-1] && smoothed[i]>smoothed[i+1])
       {
 	p2=smoothed[i];
@@ -3936,7 +3938,7 @@ list < list < list<point_t> > > find_segments(Image image,double threshold,
 	break;
       }
   */
-  //  cout<<Td2<<endl;
+  //cout<<Td1<<" "<<Td2<<endl;
 
 
   
