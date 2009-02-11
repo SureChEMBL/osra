@@ -3851,8 +3851,9 @@ vector<double> smooth_distribution(vector<int> in,int w)
       for(int j=i-w;j<=i+w;j++)
 	out[i]+=in[j];
       out[i]/=2*w+1;
-      //      cout<<i<<" "<<out[i]<<endl;
+      //       cout<<i<<" "<<out[i]<<endl;
     }
+  //  exit(0);
   return(out);
 }
 
@@ -3933,21 +3934,21 @@ list < list < list<point_t> > > find_segments(Image image,double threshold,
 	}
     }
 
-  //cout<<v1<<" "<<v2<<endl;
+
   int Td2=v2+1;
-  //double t=0.5;
+  double t=0.5;
   int Td1=v1+1;
   int Ta=250;
 
-  /*  for (unsigned int i=v2+1;i<max_dist;i++)
+  for (unsigned int i=v2+1;i<max_dist-w;i++)
     if (smoothed[i]<t*p2)
       {
 	Td2=i;
 	break;
       }
-  */
-  // cout<<Td1<<" "<<Td2<<endl;
-
+  
+  //cout<<Td1<<" "<<Td2<<endl;
+  //exit(0);
 
   
   vector<int> avail(margins.size(),1);
