@@ -3954,6 +3954,42 @@ list < list < list<point_t> > > find_segments(Image image,double threshold,
   vector<int> avail(margins.size(),1);
   list < list <int> > clusters;
   list<int> bag;
+
+  /*for (unsigned int s=0;s<margins.size();s++)
+    if (avail[s]==1)
+      {
+	bag.push_back(s);
+	avail[s]=2;
+	list<int> new_cluster;
+	while (!bag.empty())
+	  {
+	    int c=bag.back();
+	    bag.pop_back();
+	    new_cluster.push_back(c);
+	    avail[c]=0;
+	    for (unsigned int i=0;i<margins.size();i++)
+	      if (avail[i]==1 && 
+		  (distance_matrix[c][i]<Td1 && area_ratio(segments[c].size(),segments[i].size())<4))
+		{
+		  bag.push_back(i);
+		  avail[i]=2;
+		}
+	  }
+	clusters.push_back(new_cluster);
+      }
+      
+
+	
+  avail.clear();
+  avail.resize(margins.size(),1);
+  for (list < list <int> >::iterator c=clusters.begin();c!=clusters.end();c++)
+    if (c->size()>5)
+      for (list <int>::iterator s=c->begin();s!=c->end();s++)
+	avail[*s]=-1;
+
+  clusters.clear();
+  bag.clear();
+  */
   for (unsigned int s=0;s<margins.size();s++)
     if (avail[s]==1)
       {
@@ -3992,9 +4028,9 @@ int prune_clusters(list < list < list<point_t> > > clusters,box_t *boxes)
      unsigned int area=0,square_area=0;
      double ratio=0,aspect=0;
      int top=INT_MAX,left=INT_MAX,bottom=0,right=0;
+     bool fill_below_max=false;
      for(list < list<point_t> >::iterator s=c->begin();s!=c->end();s++)
        {
-	 area+=s->size();
 	 int stop=INT_MAX,sleft=INT_MAX,sbottom=0,sright=0;
 	 for (list<point_t>::iterator p=s->begin();p!=s->end();p++)
 	   {
@@ -4003,16 +4039,21 @@ int prune_clusters(list < list < list<point_t> > > clusters,box_t *boxes)
 	     if (p->y<stop) stop=p->y;
 	     if (p->y>sbottom) sbottom=p->y;
 	   }
-	 square_area+=(sbottom-stop)*(sright-sleft);
+
+	 area=s->size();
+	 square_area=(sbottom-stop)*(sright-sleft);
+	 ratio=0;
+	 if (square_area!=0) ratio=1.*area/square_area;
+	 if (ratio<MAX_RATIO && ratio>0) fill_below_max=true;
+
 	 if(sleft<left) left=sleft;
 	 if(sright>right) right=sright;
 	 if(stop<top) top=stop;
 	 if(sbottom>bottom) bottom=sbottom;
        }
 	 
-     if (square_area!=0) ratio=1.*area/square_area;
      if (right!=left)  aspect=1.*(bottom-top)/(right-left);
-     if (ratio<MAX_RATIO && ratio>0 && aspect>MIN_ASPECT && aspect<MAX_ASPECT)
+     if (fill_below_max  && aspect>MIN_ASPECT && aspect<MAX_ASPECT)
        {
 	 boxes[n_boxes].x1=left;
 	 boxes[n_boxes].y1=top;
@@ -4173,8 +4214,8 @@ int main(int argc,char **argv)
 	list < list < list<point_t> > > clusters=find_segments(image,0.1,bgColor);
 	box_t boxes[NUM_BOXES];
 	int n_boxes=prune_clusters(clusters,boxes);
-	//	draw_box(image,boxes,n_boxes,"tmp.gif");
-	//exit(0);
+	//		draw_box(image,boxes,n_boxes,"tmp.gif");
+	//	exit(0);
 	qsort(boxes,n_boxes,sizeof(box_t),comp_boxes);
 
 #pragma omp parallel for default(shared) shared(threshold,output,format,resize,type,page,l,num_resolutions,select_resolution,array_of_smiles,array_of_confidence,array_of_images,image,image_count,conf,guess) private(res_iter,JOB)
