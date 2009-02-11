@@ -3936,7 +3936,7 @@ list < list < list<point_t> > > find_segments(Image image,double threshold,
 
 
   int Td2=v2+1;
-  double t=0.5;
+  double t=2./3;
   int Td1=v1+1;
   int Ta=250;
 
@@ -3947,8 +3947,8 @@ list < list < list<point_t> > > find_segments(Image image,double threshold,
 	break;
       }
   
-  //cout<<Td1<<" "<<Td2<<endl;
-  //exit(0);
+  // cout<<Td1<<" "<<Td2<<endl;
+
 
   
   vector<int> avail(margins.size(),1);
@@ -4214,8 +4214,8 @@ int main(int argc,char **argv)
 	list < list < list<point_t> > > clusters=find_segments(image,0.1,bgColor);
 	box_t boxes[NUM_BOXES];
 	int n_boxes=prune_clusters(clusters,boxes);
-	//		draw_box(image,boxes,n_boxes,"tmp.gif");
-	//	exit(0);
+	//draw_box(image,boxes,n_boxes,"tmp.gif");
+	//exit(0);
 	qsort(boxes,n_boxes,sizeof(box_t),comp_boxes);
 
 #pragma omp parallel for default(shared) shared(threshold,output,format,resize,type,page,l,num_resolutions,select_resolution,array_of_smiles,array_of_confidence,array_of_images,image,image_count,conf,guess) private(res_iter,JOB)
@@ -4507,7 +4507,7 @@ int main(int argc,char **argv)
 					     format.getValue(),resolution,
 					     conf.getValue(),guess.getValue());
 
-		    if (f<5 && f>0 && smiles!="")
+		    if (f<10 && f>0 && smiles!="")
 		      {
 			array_of_smiles[res_iter].push_back(smiles);
 			total_boxes++;
