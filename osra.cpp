@@ -3851,7 +3851,7 @@ vector<double> smooth_distribution(vector<int> in,int w)
       for(int j=i-w;j<=i+w;j++)
 	out[i]+=in[j];
       out[i]/=2*w+1;
-      // cout<<i<<" "<<out[i]<<endl;
+      //      cout<<i<<" "<<out[i]<<endl;
     }
   return(out);
 }
@@ -3908,22 +3908,30 @@ list < list < list<point_t> > > find_segments(Image image,double threshold,
   
   int w=4;
   vector<double> smoothed=smooth_distribution(stats,w);
-  double p1=smoothed[w],p2=smoothed[w];
+  
+  double p1=smoothed[w],p2=smoothed[w],l1=smoothed[w];
   int v1=0,v2=0;
   for (unsigned int i=w+1;i<max_dist-w-1;i++)
-    if (smoothed[i]>=smoothed[i-1] && smoothed[i]>smoothed[i+1])
-      {
-	p1=smoothed[i];
-	v1=i;
-	break;
-      }
+    {
+      if (smoothed[i]<l1) l1=smoothed[i];
+      if (smoothed[i]>=smoothed[i-1] && smoothed[i]>smoothed[i+1] && smoothed[i]>l1)
+	{
+	  p1=smoothed[i];
+	  v1=i;
+	  break;
+	}
+    }
+  double l2=p1;
   for (unsigned int i=max(w+1,v1+1);i<max_dist-w-1;i++)
-    if (smoothed[i]>=smoothed[i-1] && smoothed[i]>smoothed[i+1])
-      {
-	p2=smoothed[i];
-	v2=i;
-	break;
-      }
+    {
+      if (smoothed[i]<l2) l2=smoothed[i];
+      if (smoothed[i]>=smoothed[i-1] && smoothed[i]>smoothed[i+1] && smoothed[i]>1.5*l2)
+	{
+	  p2=smoothed[i];
+	  v2=i;
+	  break;
+	}
+    }
 
   //cout<<v1<<" "<<v2<<endl;
   int Td2=v2+1;
@@ -3938,7 +3946,7 @@ list < list < list<point_t> > > find_segments(Image image,double threshold,
 	break;
       }
   */
-  //cout<<Td1<<" "<<Td2<<endl;
+  // cout<<Td1<<" "<<Td2<<endl;
 
 
   
@@ -4164,7 +4172,7 @@ int main(int argc,char **argv)
 	list < list < list<point_t> > > clusters=find_segments(image,0.1,bgColor);
 	box_t boxes[NUM_BOXES];
 	int n_boxes=prune_clusters(clusters,boxes);
-	//draw_box(image,boxes,n_boxes,"tmp.gif");
+	//	draw_box(image,boxes,n_boxes,"tmp.gif");
 	//exit(0);
 	qsort(boxes,n_boxes,sizeof(box_t),comp_boxes);
 
