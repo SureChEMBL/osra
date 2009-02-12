@@ -3810,8 +3810,8 @@ void find_connected_components(Image image,double threshold,ColorGray bgColor,ve
 
  }
 
-void build_distance_matrix(vector < list<point_t> > margins, int max_dist, vector < vector<int> > &distance_matrix,
-			   vector<int> &stats)
+void build_distance_matrix(vector < list<point_t> > margins, int max_dist, vector < vector<int> > &distance_matrix)
+			   
 {
   for (unsigned int s1=0;s1<margins.size();s1++)
     for (unsigned int s2=s1+1;s2<margins.size();s2++)
@@ -3822,7 +3822,6 @@ void build_distance_matrix(vector < list<point_t> > margins, int max_dist, vecto
 	    {
 	      distance_matrix[s1][s2]=d;
 	      distance_matrix[s2][s1]=d;
-	      stats[d]++;
 	    }
 	}
 }
@@ -3842,7 +3841,7 @@ list < list < list<point_t> > > build_explicit_clusters(list < list <int> > clus
   return explicit_clusters;
 }
 
-
+/*
 vector<double> smooth_distribution(vector<int> in,int w)
 {
   vector<double> out(in.size(),0);
@@ -3856,15 +3855,15 @@ vector<double> smooth_distribution(vector<int> in,int w)
   //  exit(0);
   return(out);
 }
-
-double area_ratio(int a,int b)
+*/
+unsigned int area_ratio(unsigned int a, unsigned int b)
 {
-  double r=1.*max(a,b)/min(a,b);
+  double r=max(a,b)/min(a,b);
   //cout<<r<<endl;
   return r;
 }
 
-void remove_separators(vector < list<point_t> > &segments, vector < list<point_t> > &margins)
+void remove_separators(vector < list<point_t> > &segments, vector < list<point_t> > &margins, double max_aspect, unsigned int size)
 {
   vector < list<point_t> >::iterator s,m;
   s=segments.begin();
@@ -3881,7 +3880,7 @@ void remove_separators(vector < list<point_t> > &segments, vector < list<point_t
 	}
       double aspect=0;
       if (right!=left)  aspect=1.*(sbottom-stop)/(sright-sleft);
-      if ((aspect>100 || aspect<0.01) && s->size()>300)
+      if ((aspect>max_aspect || aspect<1./max_aspect) && s->size()>size)
 	{
 	  s=segments.erase(s);
 	  m=margins.erase(m);
@@ -3900,96 +3899,87 @@ list < list < list<point_t> > > find_segments(Image image,double threshold,
 {
   vector < list<point_t> > segments,margins;
   find_connected_components(image,threshold,bgColor,segments,margins);
-  remove_separators(segments,margins);
+  remove_separators(segments,margins,100.,300);
 
   unsigned int max_dist=60;
   vector < vector<int> > distance_matrix(segments.size(), vector<int>(segments.size(),INT_MAX));
+  build_distance_matrix(margins,max_dist,distance_matrix);
+  unsigned int max_area_ratio=250;
+  vector < vector<int> > features(max_area_ratio, vector<int>(max_dist,0));
+  for (unsigned int i=0;i<margins.size();i++)
+    for (unsigned int j=0;j<margins.size();j++)
+      if (area_ratio(segments[i].size(),segments[j].size())<max_area_ratio && distance_matrix[i][j]<max_dist)
+	features[area_ratio(segments[i].size(),segments[j].size())][distance_matrix[i][j]]++;
+
+  int start_a=1;
+  bool found;
+  for (unsigned int i=1;i<max_area_ratio;i++)
+    {
+      start_a=i;
+      found=false;
+      for (unsigned int j=2;j<max_dist;j++)
+	if (features[i][j]!=0)
+	  {
+	    found=true;
+	    break;
+	  }
+      if (found) break;
+    }
+  int start_b=start_a;
+  for (unsigned int i=start_a;i<max_area_ratio;i++)
+    {
+      start_b=i;
+      found=false;
+      for (unsigned int j=4;j<max_dist;j++)  // ignore a few initial zeros
+	if (features[i][j]==0)
+	  {
+	    found=true;
+	    break;
+	  }
+      if (found) break;
+    }
+  
   vector<int> stats(max_dist,0);
-  build_distance_matrix(margins,max_dist,distance_matrix,stats);
-  
-  int w=4;
-  vector<double> smoothed=smooth_distribution(stats,w);
-  
-  double p1=smoothed[w],p2=smoothed[w],l1=smoothed[w];
-  int v1=0,v2=0;
-  for (unsigned int i=w+1;i<max_dist-w-1;i++)
+  for (unsigned int i=start_b;i<max_area_ratio;i++)
+    for (unsigned int j=2;j<max_dist;j++)
+      stats[j]+=features[i][j];
+
+  unsigned int p1=2,p2=3,p3;;
+  vector<unsigned int> valleys, lows;
+  unsigned int low=p1;
+  while (p2<max_dist-1)
     {
-      if (smoothed[i]<l1) l1=smoothed[i];
-      if (smoothed[i]>=smoothed[i-1] && smoothed[i]>smoothed[i+1] && smoothed[i]>l1)
+      if (stats[p2]<stats[low]) low=p2;
+      if (stats[p2-1]<stats[p2] && stats[p2+1]<=stats[p2])
 	{
-	  p1=smoothed[i];
-	  v1=i;
-	  break;
+	  p3=p2;
+	  while (stats[p2]==stats[p3]) p3++;
+	  if (stats[p3]<stats[p2])
+	    {
+	      valleys.push_back(p2-p1);
+	      lows.push_back(low);
+	      p1=p3-1;
+	      p2=p3;
+	      low=p1;
+	    }
 	}
+      p2++;
     }
-  double l2=p1;
-  for (unsigned int i=max(w+1,v1+1);i<max_dist-w-1;i++)
-    {
-      if (smoothed[i]<l2) l2=smoothed[i];
-      if (smoothed[i]>=smoothed[i-1] && smoothed[i]>smoothed[i+1] && smoothed[i]>1.5*l2)
-	{
-	  p2=smoothed[i];
-	  v2=i;
-	  break;
-	}
-    }
+  valleys.push_back(p2-p1);
+  lows.push_back(low);
 
-
-  int Td2=v2+1;
-  double t=2./3;
-  int Td1=v1+1;
-  int Ta=250;
-
-  for (unsigned int i=v2+1;i<max_dist-w;i++)
-    if (smoothed[i]<t*p2)
-      {
-	Td2=i;
-	break;
-      }
-  
-  // cout<<Td1<<" "<<Td2<<endl;
-
+  unsigned int loc=0;
+  for (unsigned int i=1;i<valleys.size();i++)
+    if (valleys[i]>valleys[loc]) loc=i;
+  int dist=lows[loc];
+  // cout<<dist<<endl;
+  //exit(0);
 
   
   vector<int> avail(margins.size(),1);
   list < list <int> > clusters;
   list<int> bag;
 
-  /*for (unsigned int s=0;s<margins.size();s++)
-    if (avail[s]==1)
-      {
-	bag.push_back(s);
-	avail[s]=2;
-	list<int> new_cluster;
-	while (!bag.empty())
-	  {
-	    int c=bag.back();
-	    bag.pop_back();
-	    new_cluster.push_back(c);
-	    avail[c]=0;
-	    for (unsigned int i=0;i<margins.size();i++)
-	      if (avail[i]==1 && 
-		  (distance_matrix[c][i]<Td1 && area_ratio(segments[c].size(),segments[i].size())<4))
-		{
-		  bag.push_back(i);
-		  avail[i]=2;
-		}
-	  }
-	clusters.push_back(new_cluster);
-      }
-      
-
-	
-  avail.clear();
-  avail.resize(margins.size(),1);
-  for (list < list <int> >::iterator c=clusters.begin();c!=clusters.end();c++)
-    if (c->size()>5)
-      for (list <int>::iterator s=c->begin();s!=c->end();s++)
-	avail[*s]=-1;
-
-  clusters.clear();
-  bag.clear();
-  */
   for (unsigned int s=0;s<margins.size();s++)
     if (avail[s]==1)
       {
@@ -4003,8 +3993,7 @@ list < list < list<point_t> > > find_segments(Image image,double threshold,
 	    new_cluster.push_back(c);
 	    avail[c]=0;
 	    for (unsigned int i=0;i<margins.size();i++)
-	      if (avail[i]==1 && 
-		  (distance_matrix[c][i]<Td1 || (1.*distance_matrix[c][i]/Td2+area_ratio(segments[c].size(),segments[i].size())/Ta)<1))
+	      if (avail[i]==1 && distance_matrix[c][i]<dist)
 		{
 		  bag.push_back(i);
 		  avail[i]=2;
@@ -4214,8 +4203,8 @@ int main(int argc,char **argv)
 	list < list < list<point_t> > > clusters=find_segments(image,0.1,bgColor);
 	box_t boxes[NUM_BOXES];
 	int n_boxes=prune_clusters(clusters,boxes);
-	//draw_box(image,boxes,n_boxes,"tmp.gif");
-	//exit(0);
+	//	draw_box(image,boxes,n_boxes,"tmp.gif");
+	//	exit(0);
 	qsort(boxes,n_boxes,sizeof(box_t),comp_boxes);
 
 #pragma omp parallel for default(shared) shared(threshold,output,format,resize,type,page,l,num_resolutions,select_resolution,array_of_smiles,array_of_confidence,array_of_images,image,image_count,conf,guess) private(res_iter,JOB)
