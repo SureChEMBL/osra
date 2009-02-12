@@ -3944,7 +3944,7 @@ list < list < list<point_t> > > find_segments(Image image,double threshold,
     for (unsigned int j=2;j<max_dist;j++)
       stats[j]+=features[i][j];
 
-  unsigned int p1=2,p2=3,p3;;
+  /*  unsigned int p1=2,p2=3,p3;;
   vector<unsigned int> valleys, lows;
   unsigned int low=p1;
   while (p2<max_dist-1)
@@ -3967,14 +3967,40 @@ list < list < list<point_t> > > find_segments(Image image,double threshold,
     }
   valleys.push_back(p2-p1);
   lows.push_back(low);
+  */
+  unsigned int loc=4; // skip possible few initial zeros
+  for (unsigned int i=5;i<stats.size();i++)
+    if (stats[i]<stats[loc]) loc=i;
+  int loc_min=stats[loc];
+  vector<unsigned int> valleys,lows;
+  unsigned int pos=4;
+  while(pos<stats.size())
+    {
+      if (stats[pos]==loc_min)
+	{
+	  int l=0;
+	  lows.push_back(pos);
+	  while(stats[pos++]==loc_min) l++;
+	  valleys.push_back(l);
+	}
+      else pos++;
+    }
+  loc=lows[0];
+  unsigned int valley_max=valleys[0];
+  for(unsigned int i=1;i<valleys.size();i++)
+    if (valleys[i]>valley_max)
+      {
+	valley_max=valleys[i];
+	loc=lows[i];
+      }
+      
 
-  unsigned int loc=0;
-  for (unsigned int i=1;i<valleys.size();i++)
-    if (valleys[i]>valleys[loc]) loc=i;
-  int dist=lows[loc];
-  // cout<<dist<<endl;
-  //exit(0);
-
+  int dist=loc;
+  /*     cout<<dist<<endl;
+   for (unsigned int j=2;j<max_dist;j++)
+     cout<<j<<" "<<stats[j]<<endl;
+  exit(0);
+  */
   
   vector<int> avail(margins.size(),1);
   list < list <int> > clusters;
@@ -4245,8 +4271,10 @@ int main(int argc,char **argv)
 	    if (resolution<=150) thick=false;
 
 	    for (int k=0;k<n_boxes;k++)
-	      if ((boxes[k].x2-boxes[k].x1)>2*max_font_width &&
-		  (boxes[k].y2-boxes[k].y1)>2*max_font_height && !boxes[k].c.empty())
+	      if ((boxes[k].x2-boxes[k].x1)>max_font_width &&
+		  (boxes[k].y2-boxes[k].y1)>max_font_height && !boxes[k].c.empty()
+		  && ((boxes[k].x2-boxes[k].x1)>2*max_font_width ||
+		      (boxes[k].y2-boxes[k].y1)>2*max_font_height))
 	      {
 		int n_atom=0,n_bond=0,n_letters=0,n_label=0;
 		atom_t atom[MAX_ATOMS];
