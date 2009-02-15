@@ -3911,32 +3911,26 @@ list < list < list<point_t> > > find_segments(Image image,double threshold,
       if (area_ratio(segments[i].size(),segments[j].size())<max_area_ratio && distance_matrix[i][j]<max_dist)
 	features[area_ratio(segments[i].size(),segments[j].size())][distance_matrix[i][j]]++;
 
-  int start_a=1;
-  bool found;
+
+  vector<double> entropy(max_area_ratio,0);
   for (unsigned int i=1;i<max_area_ratio;i++)
     {
-      start_a=i;
-      found=false;
+      int count=0;
       for (unsigned int j=2;j<max_dist;j++)
 	if (features[i][j]!=0)
-	  {
-	    found=true;
-	    break;
-	  }
-      if (found) break;
+	  count++;
+      if (count>0)
+	{
+	  double probability=1.*count/(max_dist-2);
+	  entropy[i]=-probability*log(probability);
+	}
+	    
     }
-  int start_b=start_a;
-  for (unsigned int i=start_a;i<max_area_ratio;i++)
+  int start_b=1;
+  for (unsigned int i=2;i<max_area_ratio;i++)
     {
-      start_b=i;
-      found=false;
-      for (unsigned int j=4;j<max_dist;j++)  // ignore a few initial zeros
-	if (features[i][j]==0)
-	  {
-	    found=true;
-	    break;
-	  }
-      if (found) break;
+      if(entropy[i]>entropy[start_b])
+	start_b=i;
     }
   
   vector<int> stats(max_dist,0);
@@ -3996,11 +3990,12 @@ list < list < list<point_t> > > find_segments(Image image,double threshold,
       
 
   int dist=loc;
-  /*     cout<<dist<<endl;
+  /*cout<<start_b<<endl; 
+  cout<<dist<<endl;
    for (unsigned int j=2;j<max_dist;j++)
-     cout<<j<<" "<<stats[j]<<endl;
-  exit(0);
-  */
+   cout<<j<<" "<<stats[j]<<endl;*/
+   //exit(0);
+  
   
   vector<int> avail(margins.size(),1);
   list < list <int> > clusters;
@@ -4229,7 +4224,7 @@ int main(int argc,char **argv)
 	list < list < list<point_t> > > clusters=find_segments(image,0.1,bgColor);
 	box_t boxes[NUM_BOXES];
 	int n_boxes=prune_clusters(clusters,boxes);
-	//	draw_box(image,boxes,n_boxes,"tmp.gif");
+	//		draw_box(image,boxes,n_boxes,"tmp.gif");
 	//	exit(0);
 	qsort(boxes,n_boxes,sizeof(box_t),comp_boxes);
 
