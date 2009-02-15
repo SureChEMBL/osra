@@ -3934,38 +3934,16 @@ list < list < list<point_t> > > find_segments(Image image,double threshold,
     }
   
   vector<int> stats(max_dist,0);
-  for (unsigned int i=start_b;i<max_area_ratio;i++)
+  //for (unsigned int i=start_b;i<max_area_ratio;i++)
     for (unsigned int j=2;j<max_dist;j++)
-      stats[j]+=features[i][j];
+      stats[j]+=features[start_b][j];
 
-  /*  unsigned int p1=2,p2=3,p3;;
-  vector<unsigned int> valleys, lows;
-  unsigned int low=p1;
-  while (p2<max_dist-1)
-    {
-      if (stats[p2]<stats[low]) low=p2;
-      if (stats[p2-1]<stats[p2] && stats[p2+1]<=stats[p2])
-	{
-	  p3=p2;
-	  while (stats[p2]==stats[p3]) p3++;
-	  if (stats[p3]<stats[p2])
-	    {
-	      valleys.push_back(p2-p1);
-	      lows.push_back(low);
-	      p1=p3-1;
-	      p2=p3;
-	      low=p1;
-	    }
-	}
-      p2++;
-    }
-  valleys.push_back(p2-p1);
-  lows.push_back(low);
-  */
+
   unsigned int loc=4; // skip possible few initial zeros
   for (unsigned int i=5;i<stats.size();i++)
     if (stats[i]<stats[loc]) loc=i;
   int loc_min=stats[loc];
+
   vector<unsigned int> valleys,lows;
   unsigned int pos=4;
   while(pos<stats.size())
@@ -3979,23 +3957,22 @@ list < list < list<point_t> > > find_segments(Image image,double threshold,
 	}
       else pos++;
     }
-  loc=lows[0];
-  unsigned int valley_max=valleys[0];
-  for(unsigned int i=1;i<valleys.size();i++)
+
+  
+  loc=lows[valleys.size()-1];
+  unsigned int valley_max=valleys[valleys.size()-1];
+  for(int i=valleys.size()-2;i>=0;i--)
     if (valleys[i]>valley_max)
       {
 	valley_max=valleys[i];
 	loc=lows[i];
       }
-      
 
   int dist=loc;
-  /*cout<<start_b<<endl; 
-  cout<<dist<<endl;
-   for (unsigned int j=2;j<max_dist;j++)
-   cout<<j<<" "<<stats[j]<<endl;*/
-   //exit(0);
-  
+  /*   for (unsigned int j=2;j<max_dist;j++)
+   cout<<j<<" "<<stats[j]<<endl;
+   exit(0);
+  */
   
   vector<int> avail(margins.size(),1);
   list < list <int> > clusters;
@@ -4224,7 +4201,7 @@ int main(int argc,char **argv)
 	list < list < list<point_t> > > clusters=find_segments(image,0.1,bgColor);
 	box_t boxes[NUM_BOXES];
 	int n_boxes=prune_clusters(clusters,boxes);
-	//		draw_box(image,boxes,n_boxes,"tmp.gif");
+	//	draw_box(image,boxes,n_boxes,"tmp.gif");
 	//	exit(0);
 	qsort(boxes,n_boxes,sizeof(box_t),comp_boxes);
 
