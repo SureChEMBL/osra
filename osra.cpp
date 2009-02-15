@@ -3894,6 +3894,76 @@ void remove_separators(vector < list<point_t> > &segments, vector < list<point_t
 
 }
 
+list < list <int> > assemble_clusters(vector < list<point_t> > margins,int dist,vector < vector<int> > distance_matrix,
+				      vector<int> &avail)
+{
+  list < list <int> > clusters;
+  list<int> bag;
+
+  for (unsigned int s=0;s<margins.size();s++)
+    if (avail[s]==1)
+      {
+	bag.push_back(s);
+	avail[s]=2;
+	list<int> new_cluster;
+	while (!bag.empty())
+	  {
+	    int c=bag.back();
+	    bag.pop_back();
+	    new_cluster.push_back(c);
+	    avail[c]=0;
+	    for (unsigned int i=0;i<margins.size();i++)
+	      if (avail[i]==1 && distance_matrix[c][i]<dist)
+		{
+		  bag.push_back(i);
+		  avail[i]=2;
+		}
+	  }
+	clusters.push_back(new_cluster);
+    }
+
+  return(clusters);
+}
+
+void remove_text_blocks(list < list <int> > clusters,vector < list<point_t> > segments,vector<int> &avail)
+{
+for (list < list <int> >::iterator c=clusters.begin();c!=clusters.end();c++)
+    {
+      unsigned int area=0,square_area=0;
+      double ratio=0,aspect=0;
+      int top=INT_MAX,left=INT_MAX,bottom=0,right=0;
+      for (list <int>::iterator i=c->begin();i!=c->end();i++)
+	if (!segments[*i].empty())
+	  {
+	    int stop=INT_MAX,sleft=INT_MAX,sbottom=0,sright=0;
+	    for (list<point_t>::iterator p=segments[*i].begin();p!=segments[*i].end();p++)
+	      {
+		if (p->x<sleft) sleft=p->x;
+		if (p->x>sright) sright=p->x;
+		if (p->y<stop) stop=p->y;
+		if (p->y>sbottom) sbottom=p->y;
+	      }
+
+	    area+=segments[*i].size();
+	    square_area+=(sbottom-stop)*(sright-sleft);
+
+	    if(sleft<left) left=sleft;
+	    if(sright>right) right=sright;
+	    if(stop<top) top=stop;
+	    if(sbottom>bottom) bottom=sbottom;
+	  }
+
+      if (c->size()>8)
+	{
+	  if (square_area!=0) ratio=1.*area/square_area;
+	  if (right!=left)  aspect=1.*(bottom-top)/(right-left);
+	  if (aspect<MIN_ASPECT || aspect>MAX_ASPECT || ratio>=MAX_RATIO || ratio==0) 
+	    for (list <int>::iterator i=c->begin();i!=c->end();i++)
+	      avail[*i]=-1;
+	}
+    }
+}
+
 list < list < list<point_t> > > find_segments(Image image,double threshold,
 					      ColorGray bgColor)
 {
@@ -3905,12 +3975,31 @@ list < list < list<point_t> > > find_segments(Image image,double threshold,
   vector < vector<int> > distance_matrix(segments.size(), vector<int>(segments.size(),INT_MAX));
   build_distance_matrix(margins,max_dist,distance_matrix);
   unsigned int max_area_ratio=250;
+
+  vector<int> text_stats(max_dist,0);
+
+  for (unsigned int i=0;i<margins.size();i++)
+    for (unsigned int j=0;j<margins.size();j++)
+      if (area_ratio(segments[i].size(),segments[j].size())<2 && distance_matrix[i][j]<max_dist)
+	text_stats[distance_matrix[i][j]]++;
+
+
+  int dist_text=1;
+  for (unsigned int j=2;j<max_dist;j++)
+    if (text_stats[j]>text_stats[dist_text])
+      dist_text=j;
+  dist_text++;
+  vector<int> avail(margins.size(),1);
+  list < list <int> > text_blocks=assemble_clusters(margins,dist_text,distance_matrix,avail);
+  remove_text_blocks(text_blocks,segments,avail);
+
+
   vector < vector<int> > features(max_area_ratio, vector<int>(max_dist,0));
   for (unsigned int i=0;i<margins.size();i++)
     for (unsigned int j=0;j<margins.size();j++)
-      if (area_ratio(segments[i].size(),segments[j].size())<max_area_ratio && distance_matrix[i][j]<max_dist)
+      if (area_ratio(segments[i].size(),segments[j].size())<max_area_ratio && distance_matrix[i][j]<max_dist 
+	  && avail[i]!=-1 && avail[j]!=-1)
 	features[area_ratio(segments[i].size(),segments[j].size())][distance_matrix[i][j]]++;
-
 
   vector<double> entropy(max_area_ratio,0);
   for (unsigned int i=1;i<max_area_ratio;i++)
@@ -3939,74 +4028,38 @@ list < list < list<point_t> > > find_segments(Image image,double threshold,
       stats[j]+=features[start_b][j];
 
 
-  unsigned int loc=4; // skip possible few initial zeros
-  for (unsigned int i=5;i<stats.size();i++)
-    if (stats[i]<stats[loc]) loc=i;
-  int loc_min=stats[loc];
+    unsigned int loc=2;
+    int a=2,b=2; 
+    int v=0;
+    int dist=dist_text;  
 
-  vector<unsigned int> valleys,lows;
-  unsigned int pos=4;
-  while(pos<stats.size())
-    {
-      if (stats[pos]==loc_min)
-	{
-	  int l=0;
-	  int a=pos;
-	  while(stats[pos++]==loc_min) l++;
-	  lows.push_back(a+l/2);
-	  valleys.push_back(l);
-	  
-	}
-      else pos++;
-    }
-
-  
-  loc=lows[valleys.size()-1];
-  unsigned int valley_max=valleys[valleys.size()-1];
-  for(int i=valleys.size()-2;i>=0;i--)
-    if (valleys[i]>valley_max)
+    while (loc<stats.size())
       {
-	valley_max=valleys[i];
-	loc=lows[i];
+	while(stats[loc]==0 && loc<stats.size()) loc++;
+	while(stats[loc]!=0 && loc<stats.size()) loc++;
+	a=loc;
+	while(stats[loc]==0 && loc<stats.size()) loc++;
+	b=loc-1;
+	if ((b-a)>=v)
+	  {
+	    v=b-a;
+	    dist=(a+b)/2;
+	  }
       }
 
-  int dist=loc;
-  /*cout<<start_b<<endl;
-  cout<<dist<<endl;
+    /* cout<<start_b<<endl;
+    cout<<dist<<endl;
      for (unsigned int j=2;j<max_dist;j++)
      cout<<j<<" "<<stats[j]<<endl;*/
      // exit(0);
+     
+     for(unsigned int i=0;i<margins.size();i++)
+       if (avail[i]!=-1)
+	 avail[i]=1;
   
-  
-  vector<int> avail(margins.size(),1);
-  list < list <int> > clusters;
-  list<int> bag;
-
-  for (unsigned int s=0;s<margins.size();s++)
-    if (avail[s]==1)
-      {
-	bag.push_back(s);
-	avail[s]=2;
-	list<int> new_cluster;
-	while (!bag.empty())
-	  {
-	    int c=bag.back();
-	    bag.pop_back();
-	    new_cluster.push_back(c);
-	    avail[c]=0;
-	    for (unsigned int i=0;i<margins.size();i++)
-	      if (avail[i]==1 && distance_matrix[c][i]<dist)
-		{
-		  bag.push_back(i);
-		  avail[i]=2;
-		}
-	  }
-	clusters.push_back(new_cluster);
-    }
-
-
-  list < list < list<point_t> > > explicit_clusters=build_explicit_clusters(clusters,segments);
-  return explicit_clusters;
+    list < list <int> > clusters=assemble_clusters(margins,dist,distance_matrix,avail);
+    list < list < list<point_t> > > explicit_clusters=build_explicit_clusters(clusters,segments);
+    return explicit_clusters;
 }
 
 
