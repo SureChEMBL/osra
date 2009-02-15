@@ -3951,9 +3951,11 @@ list < list < list<point_t> > > find_segments(Image image,double threshold,
       if (stats[pos]==loc_min)
 	{
 	  int l=0;
-	  lows.push_back(pos);
+	  int a=pos;
 	  while(stats[pos++]==loc_min) l++;
+	  lows.push_back(a+l/2);
 	  valleys.push_back(l);
+	  
 	}
       else pos++;
     }
@@ -3969,10 +3971,12 @@ list < list < list<point_t> > > find_segments(Image image,double threshold,
       }
 
   int dist=loc;
-  /*   for (unsigned int j=2;j<max_dist;j++)
-   cout<<j<<" "<<stats[j]<<endl;
-   exit(0);
-  */
+  /*cout<<start_b<<endl;
+  cout<<dist<<endl;
+     for (unsigned int j=2;j<max_dist;j++)
+     cout<<j<<" "<<stats[j]<<endl;*/
+     // exit(0);
+  
   
   vector<int> avail(margins.size(),1);
   list < list <int> > clusters;
