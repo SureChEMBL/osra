@@ -3971,7 +3971,7 @@ list < list < list<point_t> > > find_segments(Image image,double threshold,
   find_connected_components(image,threshold,bgColor,segments,margins);
   remove_separators(segments,margins,100.,300);
 
-  unsigned int max_dist=60;
+  unsigned int max_dist=50;
   vector < vector<int> > distance_matrix(segments.size(), vector<int>(segments.size(),INT_MAX));
   build_distance_matrix(margins,max_dist,distance_matrix);
   unsigned int max_area_ratio=250;
@@ -3984,11 +3984,22 @@ list < list < list<point_t> > > find_segments(Image image,double threshold,
 	text_stats[distance_matrix[i][j]]++;
 
 
-  int dist_text=1;
-  for (unsigned int j=2;j<max_dist;j++)
-    if (text_stats[j]>text_stats[dist_text])
-      dist_text=j;
-  dist_text++;
+  int text_peak=1;
+  for (unsigned int j=3;j<max_dist;j++)
+    if (text_stats[j]>text_stats[j-1] && text_stats[j]>text_stats[j+1])
+      {
+	text_peak=j;
+	break;
+      }
+  int dist_text=text_peak;
+  for (unsigned int j=text_peak;j<max_dist;j++)
+    if (text_stats[j]<text_stats[j-1] && text_stats[j]<text_stats[j+1])
+      {
+	dist_text=j;
+	break;
+      }
+
+  //  cout<<text_peak<<" "<<dist_text<<endl;
   vector<int> avail(margins.size(),1);
   list < list <int> > text_blocks=assemble_clusters(margins,dist_text,distance_matrix,avail);
   remove_text_blocks(text_blocks,segments,avail);
@@ -3998,22 +4009,33 @@ list < list < list<point_t> > > find_segments(Image image,double threshold,
   for (unsigned int i=0;i<margins.size();i++)
     for (unsigned int j=0;j<margins.size();j++)
       if (area_ratio(segments[i].size(),segments[j].size())<max_area_ratio && distance_matrix[i][j]<max_dist 
-	  && avail[i]!=-1 && avail[j]!=-1)
+	   && avail[i]!=-1 && avail[j]!=-1)
 	features[area_ratio(segments[i].size(),segments[j].size())][distance_matrix[i][j]]++;
+
 
   vector<double> entropy(max_area_ratio,0);
   for (unsigned int i=1;i<max_area_ratio;i++)
     {
-      int count=0;
-      for (unsigned int j=2;j<max_dist;j++)
-	if (features[i][j]!=0)
-	  count++;
-      if (count>0)
+      int longest=0;
+      unsigned int j=2;
+      while (j<max_dist)
 	{
-	  double probability=1.*count/(max_dist-2);
-	  entropy[i]=-probability*log(probability);
+	  int valley=0;
+	  while(features[i][j]!=0 && j<max_dist) j++;
+	  while(features[i][j]==0 && j<max_dist) 
+	    {
+	      j++;
+	      valley++;
+	    }
+	  valley--;
+	  if (valley>longest)
+	    longest=valley;
 	}
-	    
+      if (longest!=0)
+	{
+	  double probability=1.*longest/max_dist;
+	  entropy[i]-=probability*log(probability);
+	}
     }
   int start_b=1;
   for (unsigned int i=2;i<max_area_ratio;i++)
@@ -4035,7 +4057,7 @@ list < list < list<point_t> > > find_segments(Image image,double threshold,
 
     while (loc<stats.size())
       {
-	while(stats[loc]==0 && loc<stats.size()) loc++;
+	//while(stats[loc]==0 && loc<stats.size()) loc++;
 	while(stats[loc]!=0 && loc<stats.size()) loc++;
 	a=loc;
 	while(stats[loc]==0 && loc<stats.size()) loc++;
@@ -4047,7 +4069,7 @@ list < list < list<point_t> > > find_segments(Image image,double threshold,
 	  }
       }
 
-    /* cout<<start_b<<endl;
+    /*     cout<<start_b<<endl;
     cout<<dist<<endl;
      for (unsigned int j=2;j<max_dist;j++)
      cout<<j<<" "<<stats[j]<<endl;*/
