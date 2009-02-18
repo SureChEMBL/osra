@@ -3932,6 +3932,7 @@ for (list < list <int> >::iterator c=clusters.begin();c!=clusters.end();c++)
       unsigned int area=0,square_area=0;
       double ratio=0,aspect=0;
       int top=INT_MAX,left=INT_MAX,bottom=0,right=0;
+      bool fill_below_max=false;
       for (list <int>::iterator i=c->begin();i!=c->end();i++)
 	if (!segments[*i].empty())
 	  {
@@ -3944,8 +3945,12 @@ for (list < list <int> >::iterator c=clusters.begin();c!=clusters.end();c++)
 		if (p->y>sbottom) sbottom=p->y;
 	      }
 
-	    area+=segments[*i].size();
-	    square_area+=(sbottom-stop)*(sright-sleft);
+	    area=segments[*i].size();
+	    square_area=(sbottom-stop)*(sright-sleft);
+
+	    if (square_area!=0) ratio=1.*area/square_area;
+
+	    if (ratio<MAX_RATIO && ratio>0) fill_below_max=true;
 
 	    if(sleft<left) left=sleft;
 	    if(sright>right) right=sright;
@@ -3955,11 +3960,10 @@ for (list < list <int> >::iterator c=clusters.begin();c!=clusters.end();c++)
 
       if (c->size()>8)
 	{
-	  if (square_area!=0) ratio=1.*area/square_area;
 	  if (right!=left)  aspect=1.*(bottom-top)/(right-left);
-	  if (aspect<MIN_ASPECT || aspect>MAX_ASPECT || ratio>=MAX_RATIO || ratio==0) 
-	    for (list <int>::iterator i=c->begin();i!=c->end();i++)
-	      avail[*i]=-1;
+	   if (aspect<MIN_ASPECT || aspect>MAX_ASPECT || !fill_below_max) 
+	     for (list <int>::iterator i=c->begin();i!=c->end();i++)
+	       avail[*i]=-1;
 	}
     }
 }
@@ -3974,66 +3978,26 @@ list < list < list<point_t> > > find_segments(Image image,double threshold,
   unsigned int max_dist=50;
   vector < vector<int> > distance_matrix(segments.size(), vector<int>(segments.size(),INT_MAX));
   build_distance_matrix(margins,max_dist,distance_matrix);
-  unsigned int max_area_ratio=250;
-
-  vector<int> text_stats(max_dist,0);
-
-  for (unsigned int i=0;i<margins.size();i++)
-    for (unsigned int j=0;j<margins.size();j++)
-      if (area_ratio(segments[i].size(),segments[j].size())<2 && distance_matrix[i][j]<max_dist)
-	text_stats[distance_matrix[i][j]]++;
-
-
-  int text_peak=1;
-  for (unsigned int j=3;j<max_dist;j++)
-    if (text_stats[j]>text_stats[j-1] && text_stats[j]>text_stats[j+1])
-      {
-	text_peak=j;
-	break;
-      }
-  int dist_text=text_peak;
-  for (unsigned int j=text_peak;j<max_dist;j++)
-    if (text_stats[j]<text_stats[j-1] && text_stats[j]<text_stats[j+1])
-      {
-	dist_text=j;
-	break;
-      }
-
-  //  cout<<text_peak<<" "<<dist_text<<endl;
+  unsigned int max_area_ratio=50;
   vector<int> avail(margins.size(),1);
-  list < list <int> > text_blocks=assemble_clusters(margins,dist_text,distance_matrix,avail);
-  remove_text_blocks(text_blocks,segments,avail);
 
-
+  
   vector < vector<int> > features(max_area_ratio, vector<int>(max_dist,0));
   for (unsigned int i=0;i<margins.size();i++)
     for (unsigned int j=0;j<margins.size();j++)
-      if (area_ratio(segments[i].size(),segments[j].size())<max_area_ratio && distance_matrix[i][j]<max_dist 
-	   && avail[i]!=-1 && avail[j]!=-1)
+      if (area_ratio(segments[i].size(),segments[j].size())<max_area_ratio && distance_matrix[i][j]<max_dist  && avail[i]!=-1 && avail[j]!=-1)
 	features[area_ratio(segments[i].size(),segments[j].size())][distance_matrix[i][j]]++;
 
 
   vector<double> entropy(max_area_ratio,0);
   for (unsigned int i=1;i<max_area_ratio;i++)
     {
-      int longest=0;
-      unsigned int j=2;
-      while (j<max_dist)
+      int count=0;
+      for (unsigned int j=2;j<max_dist;j++)
+	if (features[i][j]==0) count++;
+      if (count>0)
 	{
-	  int valley=0;
-	  while(features[i][j]!=0 && j<max_dist) j++;
-	  while(features[i][j]==0 && j<max_dist) 
-	    {
-	      j++;
-	      valley++;
-	    }
-	  valley--;
-	  if (valley>longest)
-	    longest=valley;
-	}
-      if (longest!=0)
-	{
-	  double probability=1.*longest/max_dist;
+	  double probability=1.*count/(max_dist-2);
 	  entropy[i]-=probability*log(probability);
 	}
     }
@@ -4043,38 +4007,35 @@ list < list < list<point_t> > > find_segments(Image image,double threshold,
       if(entropy[i]>entropy[start_b])
 	start_b=i;
     }
-  
-  vector<int> stats(max_dist,0);
-  //for (unsigned int i=start_b;i<max_area_ratio;i++)
-    for (unsigned int j=2;j<max_dist;j++)
-      stats[j]+=features[start_b][j];
 
+  int dist=100;
+  if (start_b>=4) 
+    {
+      dist=30;
+      vector<int> text_stats(max_dist,0);
+      for (unsigned int j=2;j<max_dist;j++)
+	text_stats[j]=features[1][j];
 
-    unsigned int loc=2;
-    int a=2,b=2; 
-    int v=0;
-    int dist=dist_text;  
-
-    while (loc<stats.size())
-      {
-	//while(stats[loc]==0 && loc<stats.size()) loc++;
-	while(stats[loc]!=0 && loc<stats.size()) loc++;
-	a=loc;
-	while(stats[loc]==0 && loc<stats.size()) loc++;
-	b=loc-1;
-	if ((b-a)>=v)
+      int text_peak=1;
+      for (unsigned int j=3;j<max_dist;j++)
+	if (text_stats[j]>text_stats[j-1] && text_stats[j]>text_stats[j+1])
 	  {
-	    v=b-a;
-	    dist=(a+b)/2;
+	    text_peak=j;
+	    break;
 	  }
-      }
+      int dist_text=text_peak;
+      for (unsigned int j=text_peak;j<max_dist;j++)
+	if (text_stats[j]<text_stats[j-1] && text_stats[j]<text_stats[j+1])
+	  {
+	    dist_text=j;
+	    break;
+	  }
+      
+      list < list <int> > text_blocks=assemble_clusters(margins,dist_text,distance_matrix,avail);
+      remove_text_blocks(text_blocks,segments,avail);
 
-    /*     cout<<start_b<<endl;
-    cout<<dist<<endl;
-     for (unsigned int j=2;j<max_dist;j++)
-     cout<<j<<" "<<stats[j]<<endl;*/
-     // exit(0);
-     
+    }
+
      for(unsigned int i=0;i<margins.size();i++)
        if (avail[i]!=-1)
 	 avail[i]=1;
@@ -4280,8 +4241,8 @@ int main(int argc,char **argv)
 	list < list < list<point_t> > > clusters=find_segments(image,0.1,bgColor);
 	box_t boxes[NUM_BOXES];
 	int n_boxes=prune_clusters(clusters,boxes);
-	//	draw_box(image,boxes,n_boxes,"tmp.gif");
-	//	exit(0);
+	//draw_box(image,boxes,n_boxes,"tmp.gif");
+	//exit(0);
 	qsort(boxes,n_boxes,sizeof(box_t),comp_boxes);
 
 #pragma omp parallel for default(shared) shared(threshold,output,format,resize,type,page,l,num_resolutions,select_resolution,array_of_smiles,array_of_confidence,array_of_images,image,image_count,conf,guess) private(res_iter,JOB)
