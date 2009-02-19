@@ -4012,7 +4012,7 @@ list < list < list<point_t> > > find_segments(Image image,double threshold,
   int dist=100;
   if (start_b>=4) 
     {
-      dist=30;
+      dist=20;
       vector<int> text_stats(max_dist,0);
       for (unsigned int j=2;j<max_dist;j++)
 	text_stats[j]=features[1][j];
