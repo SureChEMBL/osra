@@ -3730,7 +3730,7 @@ int reconnect_fragments(bond_t *bond,int n_bond,atom_t *atom,double avg)
   return(n_bond);
 }
 
-void remove_small_fragments(bond_t *bond, int n_bond, atom_t *atom,unsigned int fsize)
+/*void remove_small_fragments(bond_t *bond, int n_bond, atom_t *atom,unsigned int fsize)
 {
   vector < vector<int> > frags=find_fragments(bond,n_bond,atom);
   if (frags.size()<=3)
@@ -3739,6 +3739,7 @@ void remove_small_fragments(bond_t *bond, int n_bond, atom_t *atom,unsigned int 
 	for (unsigned int j=0;j<frags[i].size();j++)
 	  atom[frags[i][j]].exists=false;
 }	
+*/
 
 unsigned int distance_between_points(point_t p1,point_t p2)
 {
@@ -4525,24 +4526,42 @@ int main(int argc,char **argv)
 		    n_bond=reconnect_fragments(bond,n_bond,atom,avg_bond);
 		    collapse_atoms(atom,bond,n_atom,n_bond,1);
 
-		    remove_small_fragments(bond,n_bond,atom,MIN_A_COUNT);
+		    //remove_small_fragments(bond,n_bond,atom,MIN_A_COUNT);
+		    vector < vector<int> > frags=find_fragments(bond,n_bond,atom);
+		    for (unsigned int i=0;i<frags.size();i++)
+		      if (frags[i].size()>MIN_A_COUNT)
+			{
+			  atom_t frag_atom[MAX_ATOMS];
+			  bond_t frag_bond[MAX_ATOMS];
+			  
+			  for (int a=0;a<n_atom;a++)
+			    {
+			      frag_atom[a]=atom[a];
+			      frag_atom[a].exists=false;
+			    }
+			  for (unsigned int j=0;j<frags[i].size();j++)
+			    frag_atom[frags[i][j]].exists=atom[frags[i][j]].exists;
 
-		    remove_zero_bonds(bond,n_bond,atom);
+			  for (int b=0;b<n_bond;b++)
+			    frag_bond[b]=bond[b];
 
-		    int rotors,rings;
-		    double confidence=0;
-		    string smiles=get_smiles(atom,bond,n_bond,rotors,
-					     confidence,f,rings,avg_bond,
-					     format.getValue(),resolution,
-					     conf.getValue(),guess.getValue());
+			  remove_zero_bonds(frag_bond,n_bond,frag_atom);
 
-		    if (f<10 && f>0 && smiles!="")
-		      {
-			array_of_smiles[res_iter].push_back(smiles);
-			total_boxes++;
-			total_confidence+=confidence;
-			array_of_images[res_iter].push_back(orig_box);
-		      }
+			  int rotors,rings;
+			  double confidence=0;
+			  string smiles=get_smiles(frag_atom,frag_bond,n_bond,rotors,
+						   confidence,f,rings,avg_bond,
+						   format.getValue(),resolution,
+						   conf.getValue(),guess.getValue());
+
+			  if (f<10 && f>0 && smiles!="")
+			    {
+			      array_of_smiles[res_iter].push_back(smiles);
+			      total_boxes++;
+			      total_confidence+=confidence;
+			      array_of_images[res_iter].push_back(orig_box);
+			    }
+			}
 		  }
 
 		potrace_state_free(st);
