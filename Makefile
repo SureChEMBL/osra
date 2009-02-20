@@ -17,8 +17,11 @@ endif
 
 TCLAPINC=-I/usr/local/include/tclap/
 
-CPP = g++
-LD=g++ -g -O2 -fPIC
+#PGO=-fprofile-generate
+#PGO=-fprofile-use
+
+CPP = g++ $(PGO)
+LD=g++ -g -O2 -fPIC $(PGO)
 CP=cp
 SED=sed
 RM=rm

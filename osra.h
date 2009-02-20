@@ -97,7 +97,11 @@ struct dash_s {
 };
 typedef struct dash_s dash_t;
 
-
+struct fragment_s {
+  int x1,y1,x2,y2;
+  vector<int> atom;
+};
+typedef struct fragment_s fragment_t;
 
 
 string fix_atom_name(string s,int n);

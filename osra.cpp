@@ -3730,17 +3730,6 @@ int reconnect_fragments(bond_t *bond,int n_bond,atom_t *atom,double avg)
   return(n_bond);
 }
 
-/*void remove_small_fragments(bond_t *bond, int n_bond, atom_t *atom,unsigned int fsize)
-{
-  vector < vector<int> > frags=find_fragments(bond,n_bond,atom);
-  if (frags.size()<=3)
-    for (unsigned int i=0;i<frags.size();i++)
-      if (frags[i].size()<=fsize)
-	for (unsigned int j=0;j<frags[i].size();j++)
-	  atom[frags[i][j]].exists=false;
-}	
-*/
-
 unsigned int distance_between_points(point_t p1,point_t p2)
 {
    return max(abs(p1.x-p2.x),abs(p1.y-p2.y));
@@ -4012,7 +4001,6 @@ list < list < list<point_t> > > find_segments(Image image,double threshold,
   int dist=100;
   if (start_b>=4) 
     {
-      dist=20;
       vector<int> text_stats(max_dist,0);
       for (unsigned int j=2;j<max_dist;j++)
 	text_stats[j]=features[1][j];
@@ -4034,7 +4022,8 @@ list < list < list<point_t> > > find_segments(Image image,double threshold,
       
       list < list <int> > text_blocks=assemble_clusters(margins,dist_text,distance_matrix,avail);
       remove_text_blocks(text_blocks,segments,avail);
-
+      
+      dist=2*dist_text;
     }
 
      for(unsigned int i=0;i<margins.size();i++)
@@ -4103,6 +4092,39 @@ int prune_clusters(list < list < list<point_t> > > clusters,box_t *boxes)
   return(n_boxes);
 }
 
+vector<fragment_t> populate_fragments(vector < vector<int> > frags,atom_t *atom)
+{
+  vector<fragment_t> r;
+  for(unsigned int i=0;i<frags.size();i++)
+    {
+      fragment_t f;
+      f.x1=INT_MAX;
+      f.x2=0;
+      f.y1=INT_MAX;
+      f.y2=0;
+
+      for (unsigned j=0;j<frags[i].size();j++)
+	{
+	  f.atom.push_back(frags[i][j]);
+	  if (atom[frags[i][j]].x<f.x1) f.x1=atom[frags[i][j]].x;
+	  if (atom[frags[i][j]].x>f.x2) f.x2=atom[frags[i][j]].x;
+	  if (atom[frags[i][j]].y<f.y1) f.y1=atom[frags[i][j]].y;
+	  if (atom[frags[i][j]].y>f.y2) f.y2=atom[frags[i][j]].y;
+	}
+      r.push_back(f);
+    }
+  return(r);
+}
+
+bool comp_fragments(const fragment_t &aa, const fragment_t &bb)
+{
+  if (aa.y2<bb.y1) return(true);
+  if (aa.y1>bb.y2) return(false);
+  if (aa.x1>bb.x1) return(false);
+  if (aa.x1<bb.x1) return(true);
+  
+ return(true);
+ }
 
 double confidence_function(int C_Count,int N_Count,int O_Count,int F_Count,
 			   int S_Count,int Cl_Count,int num_rings,int num_aromatic,
@@ -4526,10 +4548,11 @@ int main(int argc,char **argv)
 		    n_bond=reconnect_fragments(bond,n_bond,atom,avg_bond);
 		    collapse_atoms(atom,bond,n_atom,n_bond,1);
 
-		    //remove_small_fragments(bond,n_bond,atom,MIN_A_COUNT);
 		    vector < vector<int> > frags=find_fragments(bond,n_bond,atom);
-		    for (unsigned int i=0;i<frags.size();i++)
-		      if (frags[i].size()>MIN_A_COUNT)
+		    vector<fragment_t> fragments=populate_fragments(frags,atom);
+		    std::sort(fragments.begin(),fragments.end(),comp_fragments);
+		    for (unsigned int i=0;i<fragments.size();i++)
+		      if (fragments[i].atom.size()>MIN_A_COUNT)
 			{
 			  atom_t frag_atom[MAX_ATOMS];
 			  bond_t frag_bond[MAX_ATOMS];
@@ -4539,8 +4562,8 @@ int main(int argc,char **argv)
 			      frag_atom[a]=atom[a];
 			      frag_atom[a].exists=false;
 			    }
-			  for (unsigned int j=0;j<frags[i].size();j++)
-			    frag_atom[frags[i][j]].exists=atom[frags[i][j]].exists;
+			  for (unsigned int j=0;j<fragments[i].atom.size();j++)
+			    frag_atom[fragments[i].atom[j]].exists=atom[fragments[i].atom[j]].exists;
 
 			  for (int b=0;b<n_bond;b++)
 			    frag_bond[b]=bond[b];
