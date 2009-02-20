@@ -3958,33 +3958,36 @@ for (list < list <int> >::iterator c=clusters.begin();c!=clusters.end();c++)
     }
 }
 
-list < list < list<point_t> > > find_segments(Image image,double threshold,
-					      ColorGray bgColor)
+int locate_first_min(vector<int> stats)
 {
-  vector < list<point_t> > segments,margins;
-  find_connected_components(image,threshold,bgColor,segments,margins);
-  remove_separators(segments,margins,100.,300);
+  int peak=1;
+  for (unsigned int j=3;j<stats.size();j++)
+    if (stats[j]>stats[j-1] && stats[j]>stats[j+1])
+      {
+	peak=j;
+	break;
+      }
+  int dist=peak;
+  for (unsigned int j=peak;j<stats.size();j++)
+    if (stats[j]<stats[j-1] && stats[j]<stats[j+1])
+      {
+	dist=j;
+	break;
+      }
+  return(dist);
+}
 
-  unsigned int max_dist=50;
-  vector < vector<int> > distance_matrix(segments.size(), vector<int>(segments.size(),INT_MAX));
-  build_distance_matrix(margins,max_dist,distance_matrix);
-  unsigned int max_area_ratio=50;
-  vector<int> avail(margins.size(),1);
-
-  
-  vector < vector<int> > features(max_area_ratio, vector<int>(max_dist,0));
-  for (unsigned int i=0;i<margins.size();i++)
-    for (unsigned int j=0;j<margins.size();j++)
-      if (area_ratio(segments[i].size(),segments[j].size())<max_area_ratio && distance_matrix[i][j]<max_dist  && avail[i]!=-1 && avail[j]!=-1)
-	features[area_ratio(segments[i].size(),segments[j].size())][distance_matrix[i][j]]++;
-
-
+int locate_max_entropy(vector < vector<int> > features,unsigned int max_area_ratio,
+		       unsigned int max_dist,vector<int> &stats)
+{
   vector<double> entropy(max_area_ratio,0);
   for (unsigned int i=1;i<max_area_ratio;i++)
     {
       int count=0;
       for (unsigned int j=2;j<max_dist;j++)
 	if (features[i][j]==0) count++;
+	else stats[j]++;
+
       if (count>0)
 	{
 	  double probability=1.*count/(max_dist-2);
@@ -3997,29 +4000,44 @@ list < list < list<point_t> > > find_segments(Image image,double threshold,
       if(entropy[i]>entropy[start_b])
 	start_b=i;
     }
+  return(start_b);
+}
+
+list < list < list<point_t> > > find_segments(Image image,double threshold,
+					      ColorGray bgColor)
+{
+  vector < list<point_t> > segments,margins;
+  find_connected_components(image,threshold,bgColor,segments,margins);
+  remove_separators(segments,margins,100.,300);
+
+  unsigned int max_dist=50;
+  unsigned int max_area_ratio=50;
+  vector < vector<int> > distance_matrix(segments.size(), vector<int>(segments.size(),INT_MAX));
+  build_distance_matrix(margins,max_dist,distance_matrix);
+
+  vector<int> avail(margins.size(),1);
+
+  
+  vector < vector<int> > features(max_area_ratio, vector<int>(max_dist,0));
+  for (unsigned int i=0;i<margins.size();i++)
+    for (unsigned int j=0;j<margins.size();j++)
+      if (area_ratio(segments[i].size(),segments[j].size())<max_area_ratio 
+	  && distance_matrix[i][j]<max_dist)
+	features[area_ratio(segments[i].size(),segments[j].size())][distance_matrix[i][j]]++;
+
+  vector<int> stats(max_dist,0);
+  int entropy_max=locate_max_entropy(features,max_area_ratio,max_dist,stats);
 
   int dist=100;
-  if (start_b>=4) 
+  if (entropy_max>=4) 
     {
       vector<int> text_stats(max_dist,0);
       for (unsigned int j=2;j<max_dist;j++)
 	text_stats[j]=features[1][j];
 
-      int text_peak=1;
-      for (unsigned int j=3;j<max_dist;j++)
-	if (text_stats[j]>text_stats[j-1] && text_stats[j]>text_stats[j+1])
-	  {
-	    text_peak=j;
-	    break;
-	  }
-      int dist_text=text_peak;
-      for (unsigned int j=text_peak;j<max_dist;j++)
-	if (text_stats[j]<text_stats[j-1] && text_stats[j]<text_stats[j+1])
-	  {
-	    dist_text=j;
-	    break;
-	  }
       
+      int dist_text=locate_first_min(text_stats);
+
       list < list <int> > text_blocks=assemble_clusters(margins,dist_text,distance_matrix,avail);
       remove_text_blocks(text_blocks,segments,avail);
       
