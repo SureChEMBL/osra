@@ -4211,48 +4211,54 @@ int main(int argc,char **argv)
 	stringstream pname;
 	pname<<input.getValue()<<"["<<l<<"]";
 	image.read(pname.str());
-	if (image.matte())
-	  {
-	    bool transparent=false;
-	    Color c;
-	    for (int i=0;i<BG_PICK_POINTS;i++)
-	      {
-		int x=(image.columns()*rand())/RAND_MAX;
-		int y=(image.rows()*rand())/RAND_MAX;
-		c=image.pixelColor(x,y);
-		if (c.alpha()==1) transparent=true;
-	      }
-	    if (transparent)
-	      image.channel(MatteChannel);
-	  }
 
 	image.modifyImage();
-	image.type( TrueColorType );
+	//image.type( TrueColorType );
 	if (!invert)
 	  {
 	    double a=0;
 	    ColorRGB c;
+	    Color t;
+	    ColorGray g;
+	    bool transparent=false;
 	    for (int i=0;i<BG_PICK_POINTS;i++)
 	      {
 		int x=(image.columns()*rand())/RAND_MAX;
 		int y=(image.rows()*rand())/RAND_MAX;
-		c=image.pixelColor(x,y);
+		t=image.pixelColor(x,y);
+		c=t;
+		g=t;
+		if (image.matte() && t.alpha()==1 && g.shade()<0.5)
+		  transparent=true;
 		a+=(c.red()+c.green()+c.blue())/3;
 	      }
 	    a/=BG_PICK_POINTS;
-	    if (a<0.5) invert=true;
+	    if (a<0.5 && !transparent) invert=true;
 	  }
         ColorRGB c,b;
+	Color t;
+	ColorGray g;
 	for (unsigned int i=0;i<image.columns();i++)
 	  for (unsigned int j=0;j<image.rows();j++)
 	    {
-	      b=image.pixelColor(i,j);
-	      double a=min(b.red(),min(b.green(),b.blue()));
-	      if (invert)
-		a=max(b.red(),max(b.green(),b.blue()));
-	      c.red(a);c.green(a);c.blue(a);
-	      image.pixelColor(i,j,c);
+	      t=image.pixelColor(i,j);
+	      b=t;
+	      g=t;
+	      if (image.matte() && t.alpha()==1 && g.shade()<0.5)
+		{
+		  g.shade(1);
+		  image.pixelColor(i,j,g);
+		}
+	      else
+		{
+		  double a=min(b.red(),min(b.green(),b.blue()));
+		  if (invert)
+		    a=max(b.red(),max(b.green(),b.blue()));
+		  c.red(a);c.green(a);c.blue(a);
+		  image.pixelColor(i,j,c);
+		}
 	    }
+
 	image.contrast(2);
 	image.type( GrayscaleType );
 	
