@@ -4344,16 +4344,16 @@ int main(int argc,char **argv)
 		potrace_path_t *p;
 		potrace_state_t *st;
 
-
-		Image orig_box( Geometry(boxes[k].x2-boxes[k].x1+10,
-					 boxes[k].y2-boxes[k].y1+10), bgColor);
+#define FRAME 5
+		Image orig_box( Geometry(boxes[k].x2-boxes[k].x1+2*FRAME,
+					 boxes[k].y2-boxes[k].y1+2*FRAME), bgColor);
 
 		for(unsigned int p=0;p<boxes[k].c.size();p++)
 		  {
 		    int x=boxes[k].c[p].x;
 		    int y=boxes[k].c[p].y;
 		    ColorGray color=image.pixelColor(x,y);
-		    orig_box.pixelColor(x-boxes[k].x1+5,y-boxes[k].y1+5,color);
+		    orig_box.pixelColor(x-boxes[k].x1+FRAME,y-boxes[k].y1+FRAME,color);
 		  }
 
 		int width=orig_box.columns();
@@ -4606,7 +4606,33 @@ int main(int argc,char **argv)
 			      array_of_smiles[res_iter].push_back(smiles);
 			      total_boxes++;
 			      total_confidence+=confidence;
-			      array_of_images[res_iter].push_back(orig_box);
+			      Image tmp=image;
+			      if (fragments.size()>1)
+				{
+				  try {
+				    tmp.crop(Geometry(fragments[i].x2-fragments[i].x1+4*real_font_width,
+						      fragments[i].y2-fragments[i].y1+4*real_font_height,
+						      boxes[k].x1+fragments[i].x1-FRAME-2*real_font_width,
+						      boxes[k].y1+fragments[i].y1-FRAME-2*real_font_height));
+				  } catch(...) 
+				    {
+				      tmp=orig_box;
+				    }
+				}
+			      else
+				{
+				   try {
+				    tmp.crop(Geometry(boxes[k].x2-boxes[k].x1,
+						      boxes[k].y2-boxes[k].y1,
+						      boxes[k].x1,boxes[k].y1));
+				  } catch(...) 
+				    {
+				      tmp=orig_box;
+				    }
+				}
+				
+
+			      array_of_images[res_iter].push_back(tmp);
 			    }
 			}
 		  }
