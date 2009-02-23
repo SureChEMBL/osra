@@ -17,6 +17,7 @@ endif
 
 TCLAPINC=-I/usr/local/include/tclap/
 
+# need to set: export CCACHE_DISABLE=1
 #PGO=-fprofile-generate
 #PGO=-fprofile-use
 

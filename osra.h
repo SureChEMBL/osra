@@ -116,7 +116,7 @@ double confidence_function(int C_Count,int N_Count,int O_Count,int F_Count,
 
 
 #define OSRA_VERSION "1.2.0"
-#define MAX_ATOMS 10000
+#define MAX_ATOMS 1000
 #define NUM_BOXES 100
 #define MAX_FONT_HEIGHT 22
 #define MAX_FONT_WIDTH 21
@@ -135,15 +135,17 @@ double confidence_function(int C_Count,int N_Count,int O_Count,int F_Count,
 #define MIN_CHAR_POINTS 2
 #define WHITE_SPACE_FRACTION 0.3 
 #define MAX_BOND_THICKNESS 10
-//#define WEDGE_BOND_RATIO 0.1
 #define SMALL_PICTURE_AREA 6000
-#define MAX_HEIGHT 1100
-#define MAX_WIDTH 1700
-#define MIN_HEIGHT 50
-#define MIN_WIDTH 50
 #define NUM_RESOLUTIONS 3
 #define MAX_DASH 14
 #define CC_BOND_LENGTH 1.5120
-#define MAX_ASSEMBLY_SIZE 120
+#define FRAME 5
+#define SEPARATOR_ASPECT 100
+#define SEPARATOR_AREA 300
+#define MAX_DIST 50
+#define MAX_AREA_RATIO 50
+#define SINGLE_IMAGE_DIST 100
+#define THRESHOLD_LEVEL 4
+#define TEXT_LINE_SIZE 8
 
 

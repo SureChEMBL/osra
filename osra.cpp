@@ -3831,25 +3831,10 @@ list < list < list<point_t> > > build_explicit_clusters(list < list <int> > clus
   return explicit_clusters;
 }
 
-/*
-vector<double> smooth_distribution(vector<int> in,int w)
-{
-  vector<double> out(in.size(),0);
-  for(unsigned int i=w;i<in.size()-w;i++)
-    {
-      for(int j=i-w;j<=i+w;j++)
-	out[i]+=in[j];
-      out[i]/=2*w+1;
-      //       cout<<i<<" "<<out[i]<<endl;
-    }
-  //  exit(0);
-  return(out);
-}
-*/
+
 unsigned int area_ratio(unsigned int a, unsigned int b)
 {
   double r=max(a,b)/min(a,b);
-  //cout<<r<<endl;
   return r;
 }
 
@@ -3948,7 +3933,7 @@ for (list < list <int> >::iterator c=clusters.begin();c!=clusters.end();c++)
 	    if(sbottom>bottom) bottom=sbottom;
 	  }
 
-      if (c->size()>8)
+      if (c->size()>TEXT_LINE_SIZE)
 	{
 	  if (right!=left)  aspect=1.*(bottom-top)/(right-left);
 	   if (aspect<MIN_ASPECT || aspect>MAX_ASPECT || !fill_below_max) 
@@ -4008,10 +3993,10 @@ list < list < list<point_t> > > find_segments(Image image,double threshold,
 {
   vector < list<point_t> > segments,margins;
   find_connected_components(image,threshold,bgColor,segments,margins);
-  remove_separators(segments,margins,100.,300);
+  remove_separators(segments,margins,SEPARATOR_ASPECT,SEPARATOR_AREA);
 
-  unsigned int max_dist=50;
-  unsigned int max_area_ratio=50;
+  unsigned int max_dist=MAX_DIST;
+  unsigned int max_area_ratio=MAX_AREA_RATIO;
   vector < vector<int> > distance_matrix(segments.size(), vector<int>(segments.size(),INT_MAX));
   build_distance_matrix(margins,max_dist,distance_matrix);
 
@@ -4028,8 +4013,8 @@ list < list < list<point_t> > > find_segments(Image image,double threshold,
   vector<int> stats(max_dist,0);
   int entropy_max=locate_max_entropy(features,max_area_ratio,max_dist,stats);
 
-  int dist=100;
-  if (entropy_max>=4) 
+  int dist=SINGLE_IMAGE_DIST;
+  if (entropy_max>=THRESHOLD_LEVEL) 
     {
       vector<int> text_stats(max_dist,0);
       for (unsigned int j=2;j<max_dist;j++)
@@ -4338,13 +4323,15 @@ int main(int argc,char **argv)
 		int n_atom=0,n_bond=0,n_letters=0,n_label=0;
 		atom_t atom[MAX_ATOMS];
 		bond_t bond[MAX_ATOMS];
+		atom_t frag_atom[MAX_ATOMS];
+		bond_t frag_bond[MAX_ATOMS];
 		letters_t letters[MAX_ATOMS];
 		label_t label[MAX_ATOMS];
 		potrace_bitmap_t *bm;
 		potrace_path_t *p;
 		potrace_state_t *st;
 
-#define FRAME 5
+
 		Image orig_box( Geometry(boxes[k].x2-boxes[k].x1+2*FRAME,
 					 boxes[k].y2-boxes[k].y1+2*FRAME), bgColor);
 
@@ -4578,8 +4565,7 @@ int main(int argc,char **argv)
 		    for (unsigned int i=0;i<fragments.size();i++)
 		      if (fragments[i].atom.size()>MIN_A_COUNT)
 			{
-			  atom_t frag_atom[MAX_ATOMS];
-			  bond_t frag_bond[MAX_ATOMS];
+			 
 			  
 			  for (int a=0;a<n_atom;a++)
 			    {
