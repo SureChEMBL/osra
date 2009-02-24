@@ -894,6 +894,7 @@ int assemble_labels(vector<letters_t> &letters,int n_letters,vector<label_t> &la
   vector<lbond_t> lbond;
   int n_lbond=0;
   int n_label=0;
+  label.clear();
   std::sort(letters.begin(),letters.end(),comp_letters);
   for (int i=0;i<n_letters;i++)
     {
@@ -1036,6 +1037,8 @@ void extend_terminal_bond_to_label(vector<atom_t> &atom,vector<letters_t> letter
 				   vector<label_t> label,int n_label,
 				   double avg, double maxh, double max_dist_double_bond)
 {
+
+ 
  for (int j=0;j<n_bond;j++)
     if (bond[j].exists)
       {
@@ -1528,6 +1531,7 @@ int find_chars(potrace_path_t *p,Image orig,vector<letters_t> &letters,
 	       int &real_font_width, int &real_font_height)
 {
   int n, *tag,n_letters=0;
+  letters.clear();
   potrace_dpoint_t (*c)[3];
   real_font_width=0;
   real_font_height=0;
@@ -1735,6 +1739,7 @@ int find_chars(potrace_path_t *p,Image orig,vector<letters_t> &letters,
 int find_atoms(potrace_path_t *p, vector<atom_t> &atom,vector<bond_t> &bond,int *n_bond)
 {
   int *tag,n_atom=0;
+  atom.clear();
   potrace_dpoint_t (*c)[3];
   long n;
 
@@ -2139,7 +2144,7 @@ int find_dashed_bonds(potrace_path_t *p, vector<atom_t> &atom,vector<bond_t> &bo
 	    d.x/=tot;
 	    d.y/=tot;
 	    if (thick)
-	      d.area=count_area(&box,dot[n_dot].x,dot[n_dot].y);
+	      d.area=count_area(&box,d.x,d.y);
 	    else
 	      d.area=p->area;
 	    if (distance(l,t,r,b)<avg/3) 
@@ -3717,16 +3722,18 @@ int reconnect_fragments(vector<bond_t> &bond,int n_bond,vector<atom_t> &atom,dou
 		}
 	    if (l<avg && l>avg/3)
 	      {
-		bond[n_bond].a=atom1;
-		bond[n_bond].exists=true;
-		bond[n_bond].type=1;
-		bond[n_bond].b=atom2;
-		bond[n_bond].curve=atom[atom1].curve;
-		bond[n_bond].hash=false;
-		bond[n_bond].wedge=false;
-		bond[n_bond].up=false;
-		bond[n_bond].down=false;
-		bond[n_bond].Small=false;
+		bond_t b;
+		b.a=atom1;
+		b.exists=true;
+		b.type=1;
+		b.b=atom2;
+		b.curve=atom[atom1].curve;
+		b.hash=false;
+		b.wedge=false;
+		b.up=false;
+		b.down=false;
+		b.Small=false;
+		bond.push_back(b);
 		n_bond++;
 	      }
 	    if (l<avg/3)
@@ -4052,6 +4059,7 @@ list < list < list<point_t> > > find_segments(Image image,double threshold,
 int prune_clusters(list < list < list<point_t> > > clusters,vector<box_t> &boxes)
 {
   int n_boxes=0;
+  boxes.clear();
   list < list < list<point_t> > >::iterator c=clusters.begin();
   while(c!=clusters.end())
    {
@@ -4521,7 +4529,7 @@ int main(int argc,char **argv)
 
 		collapse_double_bonds(bond,n_bond,atom,max_dist_double_bond);
 
-	
+
 		extend_terminal_bond_to_label(atom,letters,n_letters,bond,n_bond,
 					      label,n_label,avg_bond/2,
 					      thickness,max_dist_double_bond);
@@ -4577,6 +4585,8 @@ int main(int argc,char **argv)
 		      if (fragments[i].atom.size()>MIN_A_COUNT)
 			{
 			  
+			  frag_atom.clear();
+			  frag_bond.clear();
 			  for (int a=0;a<n_atom;a++)
 			    {
 			      frag_atom.push_back(atom[a]);
