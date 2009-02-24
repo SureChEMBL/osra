@@ -377,7 +377,7 @@ bool superatom(string s,RWMol *mol,unsigned int n)
   return(false);
 }
 
-string get_smiles(atom_t *atom, bond_t *bond, int n_bond, int &rotors, 
+string get_smiles(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, int &rotors, 
 		  double &confidence, int &num_fragments, int &r56, double avg,
 		  string format,int resolution,bool conf, bool guess)
 {
@@ -391,7 +391,7 @@ string get_smiles(atom_t *atom, bond_t *bond, int n_bond, int &rotors,
   confidence=-1000;
   num_fragments=0;
   r56=0;
-  vector<int> bondid_to_i(MAX_ATOMS,-1);
+  vector<int> bondid_to_i(bond.size(),-1);
   vector<int> aid_vec;
   vector<double> x_coord,y_coord;
 

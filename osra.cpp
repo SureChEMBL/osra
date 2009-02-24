@@ -95,7 +95,7 @@ double distance(double x1, double y1, double x2, double y2)
   return(sqrt((x1-x2)*(x1-x2)+(y1-y2)*(y1-y2)));
 }
 
-double atom_distance(atom_t *atom,int a, int b)
+double atom_distance(vector<atom_t> atom,int a, int b)
 {
   return(distance(atom[a].x,atom[a].y,atom[b].x,atom[b].y));
 }
@@ -113,7 +113,8 @@ double angle4(double x1,double y1, double x2, double y2,
 }
 
 
-void remove_disconnected_atoms(atom_t *atom, bond_t *bond, int n_atom, int n_bond)
+void remove_disconnected_atoms(vector<atom_t> &atom, vector<bond_t> bond, 
+			       int n_atom, int n_bond)
 {
   for (int i=0;i<n_atom;i++)
       {
@@ -131,7 +132,7 @@ void remove_disconnected_atoms(atom_t *atom, bond_t *bond, int n_atom, int n_bon
       }
 }
 
-void remove_zero_bonds(bond_t *bond, int n_bond,atom_t *atom)
+void remove_zero_bonds(vector<bond_t> &bond, int n_bond,vector<atom_t> atom)
 {
   for (int i=0;i<n_bond;i++)
     if (bond[i].exists)
@@ -160,7 +161,8 @@ int getPixel(Image image, ColorGray bg,unsigned int x, unsigned int y, double TH
 
 
 
-void delete_curve(atom_t *atom,bond_t *bond,int n_atom,int n_bond, potrace_path_t *curve)
+void delete_curve(vector<atom_t> &atom,vector<bond_t> &bond,
+		  int n_atom,int n_bond, potrace_path_t *curve)
 {
   for(int i=0;i<n_atom;i++)
     {
@@ -172,8 +174,8 @@ void delete_curve(atom_t *atom,bond_t *bond,int n_atom,int n_bond, potrace_path_
     }
 }
 
-void delete_curve_with_children(atom_t *atom,bond_t *bond,int n_atom,int n_bond, 
-				potrace_path_t *p)
+void delete_curve_with_children(vector<atom_t> &atom,vector<bond_t> &bond,
+				int n_atom,int n_bond,potrace_path_t *p)
 {
   delete_curve(atom,bond,n_atom,n_bond,p);
   potrace_path_t *child=p->childlist;
@@ -185,7 +187,7 @@ void delete_curve_with_children(atom_t *atom,bond_t *bond,int n_atom,int n_bond,
 }
 
 
-void  delete_bonds_in_char(bond_t *bond,int n_bond,atom_t *atom,
+void  delete_bonds_in_char(vector<bond_t> &bond,int n_bond,vector<atom_t> atom,
 			   double left,double top,double right,double bottom)
 {
   for (int j=0;j<n_bond;j++)
@@ -197,14 +199,14 @@ void  delete_bonds_in_char(bond_t *bond,int n_bond,atom_t *atom,
       bond[j].exists=false;
 }
 
-double angle_between_bonds(bond_t *bond,int i,int j,atom_t *atom)
+double angle_between_bonds(vector<bond_t> bond,int i,int j,vector<atom_t> atom)
 {
   return(angle4(atom[bond[i].a].x,atom[bond[i].a].y,atom[bond[i].b].x,atom[bond[i].b].y,
 	       atom[bond[j].a].x,atom[bond[j].a].y,atom[bond[j].b].x,atom[bond[j].b].y));
 }
 
 
-double bond_length(bond_t *bond, int i,atom_t *atom)
+double bond_length(vector<bond_t> bond, int i,vector<atom_t> atom)
 {
   return(distance(atom[bond[i].a].x,atom[bond[i].a].y,atom[bond[i].b].x,atom[bond[i].b].y));
 }
@@ -219,13 +221,13 @@ double distance_from_bond_y(double x0,double y0,double x1,double y1,double x,dou
   return(h);
 }
 
-double distance_between_bonds(bond_t *bond,int i,int j,atom_t *atom)
+double distance_between_bonds(vector<bond_t> bond,int i,int j,vector<atom_t> atom)
 {
 /*  double y1=distance_from_bond_y(atom[bond[j].a].x,atom[bond[j].a].y,atom[bond[j].b].x,
 				 atom[bond[j].b].y,atom[bond[i].a].x,atom[bond[i].a].y);
   double y2=distance_from_bond_y(atom[bond[j].a].x,atom[bond[j].a].y,atom[bond[j].b].x,
 				 atom[bond[j].b].y,atom[bond[i].b].x,atom[bond[i].b].y);
-  if (fabs(y1-y2)>=4) return(FLT_MAX);
+  if (fabs(y1-y2)>=4) return(FLT_MAX;
   double r1=max(fabs(y1),fabs(y2));
 */
   double y3=distance_from_bond_y(atom[bond[i].a].x,atom[bond[i].a].y,atom[bond[i].b].x,
@@ -255,14 +257,14 @@ double distance_from_bond_x_b(double x0,double y0,double x1,double y1,double x,d
   return(l-d1);
 }
 
-void bond_end_swap(bond_t *bond, int i)
+void bond_end_swap(vector<bond_t> &bond, int i)
 {
   int t=bond[i].a;
   bond[i].a=bond[i].b;
   bond[i].b=t;
 }
 
-bool bonds_within_each_other(bond_t *bond,int ii,int jj,atom_t *atom)
+bool bonds_within_each_other(vector<bond_t> bond,int ii,int jj,vector<atom_t> atom)
 {
   int i,j;
   bool res=false;
@@ -287,41 +289,23 @@ bool bonds_within_each_other(bond_t *bond,int ii,int jj,atom_t *atom)
   return(res);
 }
 
-int num_comp(const void *a,const void *b)
-{
-  double aa=double(*(double*)a);
-  double bb=double(*(double*)b);
-  if (aa<bb) return(-1);
-  if (aa==bb) return(0);
-  if (aa>bb) return(1);
-  return(0);
-}
 
-int num_comp_int(const void *a,const void *b)
+double percentile75(vector<bond_t> bond, int n_bond,vector<atom_t> atom)
 {
-  int aa=int(*(int*)a);
-  int bb=int(*(int*)b);
-  if (aa<bb) return(-1);
-  if (aa==bb) return(0);
-  if (aa>bb) return(1);
-  return(0);
-}
-
-double percentile75(bond_t *bond, int n_bond,atom_t *atom)
-{
-  double a[MAX_ATOMS];
+  vector<double> a;
   int n=0;
   for(int i=0;i<n_bond;i++)
     if (bond[i].exists)
       {
-	a[n++]=bond_length(bond,i,atom);
+	a.push_back(bond_length(bond,i,atom));
+	n++;
       }
-  qsort(a,n,sizeof(double),num_comp);
+  std::sort(a.begin(),a.end());
   int pos=3*(n-1)/4;
   return(a[pos]);
 }
 
-bool alone(bond_t* bond,int i,double avg)
+bool alone(vector<bond_t> bond,int i,double avg)
 {
   bool alone=false;
   potrace_path_t *p=bond[i].curve;
@@ -330,10 +314,10 @@ bool alone(bond_t* bond,int i,double avg)
 }
 
 
-bool no_white_space(int ai,int bi,int aj, int bj, atom_t *atom,Image image,
+bool no_white_space(int ai,int bi,int aj, int bj, vector<atom_t> atom,Image image,
 		    double threshold,ColorGray bgColor)
 {
-  double xx[4];
+  vector<double> xx(4);
   double dx1=atom[bi].x-atom[ai].x;
   double dy1=atom[bi].y-atom[ai].y;
   double dx2=atom[bj].x-atom[aj].x;
@@ -347,7 +331,7 @@ bool no_white_space(int ai,int bi,int aj, int bj, atom_t *atom,Image image,
       xx[1]=atom[bi].x;
       xx[2]=atom[aj].x;
       xx[3]=atom[bj].x;
-      qsort(xx,4,sizeof(double),num_comp);
+      std::sort(xx.begin(),xx.end());
       k1=dy1/dx1;
       k2=dy2/dx2;
       int d=(dx1>0?1:-1);
@@ -373,7 +357,7 @@ bool no_white_space(int ai,int bi,int aj, int bj, atom_t *atom,Image image,
       xx[1]=atom[bi].y;
       xx[2]=atom[aj].y;
       xx[3]=atom[bj].y;
-      qsort(xx,4,sizeof(double),num_comp);
+      std::sort(xx.begin(),xx.end());
       k1=dx1/dy1;
       k2=dx2/dy2;
       int d=(dy1>0?1:-1);
@@ -398,11 +382,11 @@ bool no_white_space(int ai,int bi,int aj, int bj, atom_t *atom,Image image,
 }
 
 
-double skeletize(atom_t *atom,bond_t *bond,int n_bond,Image image,
+double skeletize(vector<atom_t> &atom,vector<bond_t> &bond,int n_bond,Image image,
 		 double threshold,ColorGray bgColor,double dist,double avg)
 {
   double thickness=0;
-  double a[MAX_ATOMS];
+  vector<double> a;
   int n=0;
   for (int i=0;i<n_bond;i++)
     if (bond[i].exists && !bond[i].Small)
@@ -420,7 +404,8 @@ double skeletize(atom_t *atom,bond_t *bond,int n_bond,Image image,
 		  || tt<dist)
 		{
 		  double l2=bond_length(bond,j,atom);
-		  a[n++]=tt;
+		  a.push_back(tt);
+		  n++;
 		  if (l1<l2)
 		    {
 		      bond[i].exists=false;
@@ -587,15 +572,15 @@ double skeletize(atom_t *atom,bond_t *bond,int n_bond,Image image,
 		}
 	    }
       }
-  qsort(a,n,sizeof(double),num_comp);
+  std::sort(a.begin(),a.end());
   if (n>0) thickness=a[(n-1)/2];
   else thickness=dist;
   return(thickness);
 }
 
-double dist_double_bonds(atom_t *atom,bond_t *bond,int n_bond,double avg)
+double dist_double_bonds(vector<atom_t> atom,vector<bond_t> bond,int n_bond,double avg)
 {
-  double a[MAX_ATOMS];
+  vector<double> a;
   int n=0;
   double max_dist_double_bond=0;
 
@@ -612,10 +597,11 @@ double dist_double_bonds(atom_t *atom,bond_t *bond,int n_bond,double avg)
 	      double dbb=distance_between_bonds(bond,i,j,atom);
 	      if (dbb<avg/2 && l1>avg/3 && l2>avg/3 && 
 		  bonds_within_each_other(bond,i,j,atom))
-		a[n++]=dbb;
+		a.push_back(dbb);
+	      n++;
 	    }
       }
-  qsort(a,n,sizeof(double),num_comp);
+  std::sort(a.begin(),a.end());
   //for (int i=0;i<n;i++) cout<<a[i]<<endl;
     //    cout<<"-----------------"<<endl;
   if (n>0) max_dist_double_bond=a[3*(n-1)/4];
@@ -631,8 +617,8 @@ double dist_double_bonds(atom_t *atom,bond_t *bond,int n_bond,double avg)
   return(max_dist_double_bond);
 }
 
-int double_triple_bonds(atom_t *atom,bond_t *bond,int n_bond,double avg,int &n_atom,
-			double max_dist_double_bond)
+int double_triple_bonds(vector<atom_t> &atom,vector<bond_t> &bond,int n_bond,
+			double avg,int &n_atom,double max_dist_double_bond)
 {
   for (int i=0;i<n_bond;i++)
     if (bond[i].exists)
@@ -732,29 +718,31 @@ int double_triple_bonds(atom_t *atom,bond_t *bond,int n_bond,double avg,int &n_a
 			    (atom[bond[ii].b].x-atom[bond[ii].a].x)*da/l11;
 			  double y=atom[bond[ii].a].y+
 			    (atom[bond[ii].b].y-atom[bond[ii].a].y)*da/l11;
-			  bond[n_bond].a=bond[ii].a;
-			  bond[n_bond].exists=true;
-			  bond[n_bond].type=1;
-			  bond[n_bond].curve=bond[ii].curve;
-			  bond[n_bond].hash=false;
-			  bond[n_bond].wedge=false;
-			  bond[n_bond].up=false;
-			  bond[n_bond].down=false;
-			  bond[n_bond].Small=false;
-			  bond[n_bond].arom=false;
-			  atom[n_atom].x=x;
-			  atom[n_atom].y=y;
-			  atom[n_atom].label=" ";
-			  atom[n_atom].exists=true;
-			  atom[n_atom].curve=bond[ii].curve;
-			  atom[n_atom].n=0;
-			  atom[n_atom].corner=false;
+			  bond_t b;
+			  atom_t a;
+			  b.a=bond[ii].a;
+			  b.exists=true;
+			  b.type=1;
+			  b.curve=bond[ii].curve;
+			  b.hash=false;
+			  b.wedge=false;
+			  b.up=false;
+			  b.down=false;
+			  b.Small=false;
+			  b.arom=false;
+			  bond.push_back(b);
+			  a.x=x;
+			  a.y=y;
+			  a.label=" ";
+			  a.exists=true;
+			  a.curve=bond[ii].curve;
+			  a.n=0;
+			  a.corner=false;
+			  atom.push_back(a);
 			  bond[ii].a=n_atom;
 			  n_atom++;
-			  if (n_atom>=MAX_ATOMS) n_atom--;
 			  bond[n_bond].b=bond[ii].a;
 			  n_bond++;
-			  if (n_bond>=MAX_ATOMS) n_bond--;
 			}
 		      if (db>0.5*l22)
 			{
@@ -762,29 +750,31 @@ int double_triple_bonds(atom_t *atom,bond_t *bond,int n_bond,double avg,int &n_a
 			    (atom[bond[ii].a].x-atom[bond[ii].b].x)*db/l11;
 			  double y=atom[bond[ii].b].y+
 			    (atom[bond[ii].a].y-atom[bond[ii].b].y)*db/l11;
-			  bond[n_bond].a=bond[ii].b;
-			  bond[n_bond].exists=true;
-			  bond[n_bond].type=1;
-			  bond[n_bond].curve=bond[ii].curve;
-			  bond[n_bond].hash=false;
-			  bond[n_bond].wedge=false;
-			  bond[n_bond].up=false;
-			  bond[n_bond].down=false;
-			  bond[n_bond].Small=false;
-			  bond[n_bond].arom=false;
-			  atom[n_atom].x=x;
-			  atom[n_atom].y=y;
-			  atom[n_atom].label=" ";
-			  atom[n_atom].exists=true;
-			  atom[n_atom].curve=bond[ii].curve;
-			  atom[n_atom].n=0;
-			  atom[n_atom].corner=false;
+			  bond_t b;
+			  atom_t a;
+			  b.a=bond[ii].b;
+			  b.exists=true;
+			  b.type=1;
+			  b.curve=bond[ii].curve;
+			  b.hash=false;
+			  b.wedge=false;
+			  b.up=false;
+			  b.down=false;
+			  b.Small=false;
+			  b.arom=false;
+			  bond.push_back(b);
+			  a.x=x;
+			  a.y=y;
+			  a.label=" ";
+			  a.exists=true;
+			  a.curve=bond[ii].curve;
+			  a.n=0;
+			  a.corner=false;
+			  atom.push_back(a);
 			  bond[ii].b=n_atom;
 			  n_atom++;
-			  if (n_atom>=MAX_ATOMS) n_atom--;
 			  bond[n_bond].b=bond[ii].b;
 			  n_bond++;
-			  if (n_bond>=MAX_ATOMS) n_bond--;
 			}
 		      bond[jj].exists=false;
 		      bond[ii].type+=bond[jj].type;
@@ -822,8 +812,8 @@ int double_triple_bonds(atom_t *atom,bond_t *bond,int n_bond,double avg,int &n_a
   return(n_bond);
 }
 
-bool chlorine(bond_t *bond, atom_t *atom,int i, letters_t *letters,int n_letters, 
-	     int max_font_height,int min_font_height)
+bool chlorine(vector<bond_t> bond, vector<atom_t> atom,int i, vector<letters_t> letters,
+	      int n_letters,int max_font_height,int min_font_height)
 {
   bool res=false;
   double x=(atom[bond[i].a].x+atom[bond[i].b].x)/2;
@@ -846,8 +836,8 @@ bool chlorine(bond_t *bond, atom_t *atom,int i, letters_t *letters,int n_letters
   return(res);
 }
 
-int remove_small_bonds(bond_t *bond, int n_bond,atom_t *atom, 
-			letters_t *letters, int n_letters, int max_font_height,
+int remove_small_bonds(vector<bond_t> &bond, int n_bond,vector<atom_t> atom, 
+		       vector<letters_t> &letters, int n_letters, int max_font_height,
 		       int min_font_height,double avg)
 {
   for (int i=0;i<n_bond;i++)
@@ -860,13 +850,14 @@ int remove_small_bonds(bond_t *bond, int n_bond,atom_t *atom,
 	  }
 	else if ((al) && (chlorine(bond,atom,i,letters,n_letters,max_font_height,min_font_height)))
 	  {
-	    letters[n_letters].a='l';
-	    letters[n_letters].x=(atom[bond[i].a].x+atom[bond[i].b].x)/2;
-	    letters[n_letters].y=(atom[bond[i].a].y+atom[bond[i].b].y)/2;
-	    letters[n_letters].r=bond_length(bond,i,atom)/2;
-	    letters[n_letters].free=true;
+	    letters_t l;
+	    l.a='l';
+	    l.x=(atom[bond[i].a].x+atom[bond[i].b].x)/2;
+	    l.y=(atom[bond[i].a].y+atom[bond[i].b].y)/2;
+	    l.r=bond_length(bond,i,atom)/2;
+	    l.free=true;
+	    letters.push_back(l);
 	    n_letters++;
-	    if (n_letters>=MAX_ATOMS) n_letters--;
 	    bond[i].exists=false;
 	  }
       }
@@ -874,27 +865,21 @@ int remove_small_bonds(bond_t *bond, int n_bond,atom_t *atom,
 } 
 
 
-int comp_lbonds(const void *a,const void *b)
+bool comp_lbonds(const lbond_t &left,const lbond_t &right)
 {
-  lbond_t *aa=(lbond_t *) a;
-  lbond_t *bb=(lbond_t *) b;
-  if (aa->x<bb->x) return(-1);
-  if (aa->x==bb->x) return(0);
-  if (aa->x>bb->x) return(1);
-  return(0);
+  if (left.x<right.x) return(true);
+  if (left.x>right.x) return(false);
+  return(true);
 }
 
-int comp_letters(const void *a,const void *b)
+bool comp_letters(const letters_t &left,const letters_t &right)
 {
-  letters_t *aa=(letters_t *) a;
-  letters_t *bb=(letters_t *) b;
-  if (aa->x<bb->x) return(-1);
-  if (aa->x==bb->x) return(0);
-  if (aa->x>bb->x) return(1);
-  return(0);
+  if (left.x<right.x) return(true);
+  if (left.x>right.x) return(false);
+  return(true);
 }
 
-bool terminal_bond(int a,int b,bond_t *bond,int n_bond)
+bool terminal_bond(int a,int b,vector<bond_t> bond,int n_bond)
 {
   bool terminal=true;
   for (int l=0;l<n_bond;l++)
@@ -904,12 +889,12 @@ bool terminal_bond(int a,int b,bond_t *bond,int n_bond)
   return(terminal);
 }
 
-int assemble_labels(letters_t *letters,int n_letters,label_t *label)
+int assemble_labels(vector<letters_t> &letters,int n_letters,vector<label_t> &label)
 {
-  lbond_t lbond[MAX_ATOMS];
+  vector<lbond_t> lbond;
   int n_lbond=0;
   int n_label=0;
-  qsort(letters,n_letters,sizeof(letters_t),comp_letters);
+  std::sort(letters.begin(),letters.end(),comp_letters);
   for (int i=0;i<n_letters;i++)
     {
      for (int j=i+1;j<n_letters;j++)
@@ -922,98 +907,98 @@ int assemble_labels(letters_t *letters,int n_letters,label_t *label)
 	   (distance(letters[i].x,letters[i].y,letters[j].x,letters[j].y)<1.5*(letters[i].r+letters[j].r) && 
 	    (letters[i].a=='-' || letters[i].a=='+' || letters[j].a=='-' || letters[j].a=='+')))
 	{
-
-	  lbond[n_lbond].a=i;
-	  lbond[n_lbond].b=j;
-	  lbond[n_lbond].x=letters[i].x;
-
+	  lbond_t l;
+	  l.a=i;
+	  l.b=j;
+	  l.x=letters[i].x;
 	  letters[i].free=false;
 	  letters[j].free=false;
-	  lbond[n_lbond].exists=true;
+	  l.exists=true;
+	  lbond.push_back(l);
 	  n_lbond++;
-	  if (n_lbond>=MAX_ATOMS) n_lbond--;
 	  break;
 	}
     }
-  qsort(lbond,n_lbond,sizeof(lbond_t),comp_lbonds);
+  std::sort(lbond.begin(),lbond.end(),comp_lbonds);
   
   for (int i=0;i<n_lbond;i++)
     if (lbond[i].exists)
       {
 	bool found_left=false;
-	label[n_label].x1=FLT_MAX;
-	label[n_label].y1=FLT_MAX;
-	label[n_label].r1=0;
-	label[n_label].x2=FLT_MAX;
-	label[n_label].y2=FLT_MAX;
-	label[n_label].r2=0;
-	label[n_label].a=letters[lbond[i].a].a;
-	label[n_label].a+=letters[lbond[i].b].a;
+	label_t l;
+	l.x1=FLT_MAX;
+	l.y1=FLT_MAX;
+	l.r1=0;
+	l.x2=FLT_MAX;
+	l.y2=FLT_MAX;
+	l.r2=0;
+	l.a=letters[lbond[i].a].a;
+	l.a+=letters[lbond[i].b].a;
 	if (!isdigit(letters[lbond[i].a].a) && letters[lbond[i].a].a!='-'
 	    && letters[lbond[i].a].a!='+' && !found_left)
 	  {
-	    label[n_label].x1=letters[lbond[i].a].x;
-	    label[n_label].y1=letters[lbond[i].a].y;
-	    label[n_label].r1=letters[lbond[i].a].r;
+	    l.x1=letters[lbond[i].a].x;
+	    l.y1=letters[lbond[i].a].y;
+	    l.r1=letters[lbond[i].a].r;
 	    found_left=true;
 	  }
 	if (!isdigit(letters[lbond[i].b].a) && letters[lbond[i].b].a!='-'
 	    && letters[lbond[i].b].a!='+' && !found_left)
 	  {
-	    label[n_label].x1=letters[lbond[i].b].x;
-	    label[n_label].y1=letters[lbond[i].b].y;
-	    label[n_label].r1=letters[lbond[i].b].r;
+	    l.x1=letters[lbond[i].b].x;
+	    l.y1=letters[lbond[i].b].y;
+	    l.r1=letters[lbond[i].b].r;
 	    found_left=true;
 	  }
 	if (!isdigit(letters[lbond[i].a].a) && letters[lbond[i].a].a!='-'
 	    && letters[lbond[i].a].a!='+')
 	  {
-	    label[n_label].x2=letters[lbond[i].a].x;
-	    label[n_label].y2=letters[lbond[i].a].y;
-	    label[n_label].r2=letters[lbond[i].a].r;
+	    l.x2=letters[lbond[i].a].x;
+	    l.y2=letters[lbond[i].a].y;
+	    l.r2=letters[lbond[i].a].r;
 	  }
 	if (!isdigit(letters[lbond[i].b].a) && letters[lbond[i].b].a!='-'
 	    && letters[lbond[i].b].a!='+')
 	  {
-	    label[n_label].x2=letters[lbond[i].b].x;
-	    label[n_label].y2=letters[lbond[i].b].y;
-	    label[n_label].r2=letters[lbond[i].b].r;
+	    l.x2=letters[lbond[i].b].x;
+	    l.y2=letters[lbond[i].b].y;
+	    l.r2=letters[lbond[i].b].r;
 	  }
 	lbond[i].exists=false;
 	int last=lbond[i].b;
 	 for (int j=i+1;j<n_lbond;j++)
 	   if ((lbond[j].exists) && (lbond[j].a==last))
 	     {
-		label[n_label].a+=letters[lbond[j].b].a;
+		l.a+=letters[lbond[j].b].a;
 		if (!isdigit(letters[lbond[j].a].a) && letters[lbond[j].a].a!='-'
 		    && letters[lbond[j].a].a!='+' && !found_left)
 		  {
-		    label[n_label].x1=letters[lbond[j].a].x;
-		    label[n_label].y1=letters[lbond[j].a].y;
-		    label[n_label].r1=letters[lbond[j].a].r;
+		    l.x1=letters[lbond[j].a].x;
+		    l.y1=letters[lbond[j].a].y;
+		    l.r1=letters[lbond[j].a].r;
 		    found_left=true;
 		  }
 		if (!isdigit(letters[lbond[j].b].a) && letters[lbond[j].b].a!='-'
 		    && letters[lbond[j].b].a!='+' && !found_left)
 		  {
-		    label[n_label].x1=letters[lbond[j].b].x;
-		    label[n_label].y1=letters[lbond[j].b].y;
-		    label[n_label].r1=letters[lbond[j].b].r;
+		    l.x1=letters[lbond[j].b].x;
+		    l.y1=letters[lbond[j].b].y;
+		    l.r1=letters[lbond[j].b].r;
 		    found_left=true;
 		  }
 		if (!isdigit(letters[lbond[j].a].a) && letters[lbond[j].a].a!='-'
 		    && letters[lbond[j].a].a!='+')
 		  {
-		    label[n_label].x2=letters[lbond[j].a].x;
-		    label[n_label].y2=letters[lbond[j].a].y;
-		    label[n_label].r2=letters[lbond[j].a].r;
+		    l.x2=letters[lbond[j].a].x;
+		    l.y2=letters[lbond[j].a].y;
+		    l.r2=letters[lbond[j].a].r;
 		  }
 		if (!isdigit(letters[lbond[j].b].a) && letters[lbond[j].b].a!='-'
 		    && letters[lbond[j].b].a!='+')
 		  {
-		    label[n_label].x2=letters[lbond[j].b].x;
-		    label[n_label].y2=letters[lbond[j].b].y;
-		    label[n_label].r2=letters[lbond[j].b].r;
+		    l.x2=letters[lbond[j].b].x;
+		    l.y2=letters[lbond[j].b].y;
+		    l.r2=letters[lbond[j].b].r;
 		  }
 		last=lbond[j].b;
 		lbond[j].exists=false;
@@ -1024,31 +1009,31 @@ int assemble_labels(letters_t *letters,int n_letters,label_t *label)
 	 while (cont)
 	  {
 	    cont=false;
-	    string::size_type pos=label[n_label].a.find_first_of('-');
+	    string::size_type pos=l.a.find_first_of('-');
 	    if (pos!=string::npos)
 	      {
-		label[n_label].a.erase(pos,1);
+		l.a.erase(pos,1);
 		charges+="-";
 		cont=true;
 	      }
-	    pos=label[n_label].a.find_first_of('+');
+	    pos=l.a.find_first_of('+');
 	    if (pos!=string::npos)
 	      {
-		label[n_label].a.erase(pos,1);
+		l.a.erase(pos,1);
 		charges+="+";
 		cont=true;
 	      }
 	  }
-	 label[n_label].a+=charges;
-	 //cout<<label[n_label].a<<endl;
+	 l.a+=charges;
+	 label.push_back(l);
 	 n_label++;
-	 if (n_label>=MAX_ATOMS) n_label--;
       }
   return(n_label);
 }
 
-void extend_terminal_bond_to_label(atom_t *atom,letters_t *letters,int n_letters,
-			  bond_t *bond, int n_bond,label_t *label,int n_label,
+void extend_terminal_bond_to_label(vector<atom_t> &atom,vector<letters_t> letters,
+				   int n_letters,vector<bond_t> bond,int n_bond,
+				   vector<label_t> label,int n_label,
 				   double avg, double maxh, double max_dist_double_bond)
 {
  for (int j=0;j<n_bond;j++)
@@ -1195,7 +1180,7 @@ void extend_terminal_bond_to_label(atom_t *atom,letters_t *letters,int n_letters
       }
 }
 
-void extend_terminal_bond_to_bonds(atom_t *atom,bond_t *bond, int n_bond,
+void extend_terminal_bond_to_bonds(vector<atom_t> &atom,vector<bond_t> &bond, int n_bond,
 				   double avg, double maxh,double max_dist_double_bond)
 {
   bool found_intersection=true;
@@ -1321,7 +1306,7 @@ void extend_terminal_bond_to_bonds(atom_t *atom,bond_t *bond, int n_bond,
 
 
 
-void assign_charge(atom_t *atom, bond_t *bond, int n_atom,int n_bond)
+void assign_charge(vector<atom_t> &atom, vector<bond_t> &bond, int n_atom,int n_bond)
 {
   for (int j=0;j<n_bond;j++)
     if (bond[j].exists && (!atom[bond[j].a].exists || !atom[bond[j].b].exists))
@@ -1384,7 +1369,8 @@ Color getBgColor(Image image,bool inv)
   return(r);
 }
 
-void debug(Image image,atom_t *atom, int n_atom,bond_t *bond,int n_bond, string fname)
+void debug(Image image,vector<atom_t> atom, int n_atom,vector<bond_t> bond,
+	   int n_bond, string fname)
 {
   image.modifyImage();
   image.type(TrueColorType);
@@ -1445,7 +1431,7 @@ void draw_square(Image *image,int x1, int y1, int x2, int y2,string color)
   image->draw( DrawableLine(x2,y1,x2,y2));
 }
 
-void draw_box(Image image,box_t *boxes,int n_boxes, string fname)
+void draw_box(Image image,vector<box_t> boxes,int n_boxes, string fname)
 {
   image.modifyImage();
   image.type(TrueColorType);
@@ -1463,7 +1449,7 @@ int next_atom(int cur, int begin, int total)
   return(n);
 }
 
-bool dir_change(int n, int last,int begin, int total, atom_t *atom)
+bool dir_change(int n, int last,int begin, int total, vector<atom_t> atom)
 { 
   int m=next_atom(n,begin,total);
   while (distance(atom[m].x,atom[m].y,atom[n].x,atom[n].y)<V_DISPLACEMENT && m!=n)
@@ -1475,7 +1461,7 @@ bool dir_change(int n, int last,int begin, int total, atom_t *atom)
   return(false);
 }
 
-bool smaller_distance(int n, int last,int begin, int total, atom_t *atom)
+bool smaller_distance(int n, int last,int begin, int total, vector<atom_t> atom)
 { 
   int m=next_atom(n,begin,total);
   double d1=distance(atom[n].x,atom[n].y,atom[last].x,atom[last].y);
@@ -1485,7 +1471,8 @@ bool smaller_distance(int n, int last,int begin, int total, atom_t *atom)
 }
 
 
-int find_bonds(atom_t *atom, bond_t *bond, int b_atom, int n_atom, int n_bond,potrace_path_t * p)
+int find_bonds(vector<atom_t> &atom, vector<bond_t> &bond, 
+	       int b_atom, int n_atom, int n_bond,potrace_path_t * p)
 {
   int i=b_atom+1;
   int last=b_atom;
@@ -1514,26 +1501,28 @@ int find_bonds(atom_t *atom, bond_t *bond, int b_atom, int n_atom, int n_bond,po
   for(i=b_atom;i<n_atom;i++)
     if (atom[i].exists)
       {
-	bond[n_bond].a=i;
-	bond[n_bond].exists=true;
-	bond[n_bond].type=1;
+	bond_t b;
+	b.a=i;
+	b.exists=true;
+	b.type=1;
 	int j=next_atom(i,b_atom,n_atom);
 	while (!atom[j].exists) {j=next_atom(j,b_atom,n_atom);}
-	bond[n_bond].b=j;
-	bond[n_bond].curve=p;
-	bond[n_bond].hash=false;
-	bond[n_bond].wedge=false;
-	bond[n_bond].up=false;
-	bond[n_bond].down=false;
-	bond[n_bond].Small=false;
+	b.b=j;
+	b.curve=p;
+	b.hash=false;
+	b.wedge=false;
+	b.up=false;
+	b.down=false;
+	b.Small=false;
+	bond.push_back(b);
       	n_bond++;
-	if (n_bond>=MAX_ATOMS) n_bond--;
       }
     return(n_bond);
 }
 
-int find_chars(potrace_path_t *p,Image orig,letters_t *letters,
-	       atom_t *atom,bond_t *bond,int n_atom,int n_bond,int height,int width,
+int find_chars(potrace_path_t *p,Image orig,vector<letters_t> &letters,
+	       vector<atom_t> &atom,vector<bond_t> &bond,int n_atom,int n_bond,
+	       int height,int width,
 	       ColorGray bgColor, double THRESHOLD, 
 	       int max_font_width, int max_font_height,
 	       int &real_font_width, int &real_font_height)
@@ -1629,21 +1618,21 @@ int find_chars(potrace_path_t *p,Image orig,letters_t *letters,
 	      label=get_atom_label(orig,bgColor,left,top,right,bottom,THRESHOLD,(right+left)/2,top);
 	      if (label !=0)
 		{
-		    //cout<<label<<endl;
-		    letters[n_letters].a=label;
-		    letters[n_letters].x=(left+right)/2;
-		    letters[n_letters].y=(top+bottom)/2;
-		    letters[n_letters].r=distance(left,top,right,bottom)/2;
-		    if (right-left>real_font_width)
-		      real_font_width=right-left;
-		    if (bottom-top>real_font_height)
-		      real_font_height=bottom-top;
-		    letters[n_letters].free=true;
-		    n_letters++;
-		    if (n_letters>=MAX_ATOMS) n_letters--;
-		    delete_bonds_in_char(bond,n_bond,atom,left,top,right,bottom);
-		    delete_curve_with_children(atom,bond,n_atom,n_bond,p);
-		    found=true;
+		  letters_t l;
+		  l.a=label;
+		  l.x=(left+right)/2;
+		  l.y=(top+bottom)/2;
+		  l.r=distance(left,top,right,bottom)/2;
+		  if (right-left>real_font_width)
+		    real_font_width=right-left;
+		  if (bottom-top>real_font_height)
+		    real_font_height=bottom-top;
+		  l.free=true;
+		  letters.push_back(l);
+		  n_letters++;
+		  delete_bonds_in_char(bond,n_bond,atom,left,top,right,bottom);
+		  delete_curve_with_children(atom,bond,n_atom,n_bond,p);
+		  found=true;
 		  }
 	    }
 	    if (((bottom-top)<=2*max_font_height) && 
@@ -1662,26 +1651,28 @@ int find_chars(potrace_path_t *p,Image orig,letters_t *letters,
 	      if ((label1 !=0) && (label2 != 0))
 		  {
 		    //cout<<label1<<label2<<endl;
-		    letters[n_letters].a=label1;
-		    letters[n_letters].x=(left+right)/2;
-		    letters[n_letters].y=(newtop+bottom)/2;
-		    letters[n_letters].r=distance(left,newtop,right,bottom)/2;
+		    letters_t l;
+		    l.a=label1;
+		    l.x=(left+right)/2;
+		    l.y=(newtop+bottom)/2;
+		    l.r=distance(left,newtop,right,bottom)/2;
 		    if (right-left>real_font_width)
 		      real_font_width=right-left;
 		    if (bottom-newtop>real_font_height)
 		      real_font_height=bottom-newtop;
-		    letters[n_letters].free=true;
+		    l.free=true;
+		    letters.push_back(l);
 		    n_letters++;
-		    if (n_letters>=MAX_ATOMS) n_letters--;
-		    letters[n_letters].a=label2;
-		    letters[n_letters].x=(left+right)/2;
-		    letters[n_letters].y=(top+newbottom)/2;
-		    letters[n_letters].r=distance(left,top,right,newbottom)/2;
+		    
+		    l.a=label2;
+		    l.x=(left+right)/2;
+		    l.y=(top+newbottom)/2;
+		    l.r=distance(left,top,right,newbottom)/2;
 		    if (newbottom-top>real_font_height)
 		      real_font_height=newbottom-top;
-		    letters[n_letters].free=true;
+		    l.free=true;
+		    letters.push_back(l);
 		    n_letters++;
-		    if (n_letters>=MAX_ATOMS) n_letters--;
 		    delete_bonds_in_char(bond,n_bond,atom,left,top,right,bottom);
 		    delete_curve_with_children(atom,bond,n_atom,n_bond,p);
 		    found=true;
@@ -1702,27 +1693,29 @@ int find_chars(potrace_path_t *p,Image orig,letters_t *letters,
 				    (newleft+right)/2,top);
 	      if ((label1 !=0) && (label2 != 0))
 		  {
-		    //cout<<label1<<label2<<endl;
-		    letters[n_letters].a=label1;
-		    letters[n_letters].x=(left+newright)/2;
-		    letters[n_letters].y=(top+bottom)/2;
-		    letters[n_letters].r=distance(left,top,newright,bottom)/2;
+		    letters_t l;
+		    l.a=label1;
+		    l.x=(left+newright)/2;
+		    l.y=(top+bottom)/2;
+		    l.r=distance(left,top,newright,bottom)/2;
 		    if (newright-left>real_font_width)
 		      real_font_width=newright-left;
 		    if (bottom-top>real_font_height)
 		      real_font_height=bottom-top;
-		    letters[n_letters].free=true;
+		    l.free=true;
+		    letters.push_back(l);
 		    n_letters++;
-		    if (n_letters>=MAX_ATOMS) n_letters--;
-		    letters[n_letters].a=label2;
-		    letters[n_letters].x=(newleft+right)/2;
-		    letters[n_letters].y=(top+bottom)/2;
-		    letters[n_letters].r=distance(newleft,top,right,bottom)/2;
+
+		    l.a=label2;
+		    l.x=(newleft+right)/2;
+		    l.y=(top+bottom)/2;
+		    l.r=distance(newleft,top,right,bottom)/2;
 		    if (right-newleft>real_font_width)
 		      real_font_width=right-newleft;
-		    letters[n_letters].free=true;
+		    l.free=true;
+		    letters.push_back(l);
 		    n_letters++;
-		    if (n_letters>=MAX_ATOMS) n_letters--;
+
 		    delete_bonds_in_char(bond,n_bond,atom,left,top,right,bottom);
 		    delete_curve_with_children(atom,bond,n_atom,n_bond,p);
 		    found=true;
@@ -1739,7 +1732,7 @@ int find_chars(potrace_path_t *p,Image orig,letters_t *letters,
   return(n_letters);
 }
 
-int find_atoms(potrace_path_t *p, atom_t *atom,bond_t *bond,int *n_bond)
+int find_atoms(potrace_path_t *p, vector<atom_t> &atom,vector<bond_t> &bond,int *n_bond)
 {
   int *tag,n_atom=0;
   potrace_dpoint_t (*c)[3];
@@ -1751,62 +1744,64 @@ int find_atoms(potrace_path_t *p, atom_t *atom,bond_t *bond,int *n_bond)
 	    tag = p->curve.tag;
 	    c = p->curve.c;
 	    int b_atom=n_atom;
-	    atom[n_atom].x=c[n-1][2].x;
-	    atom[n_atom].y=c[n-1][2].y;
-	    atom[n_atom].label=" ";
-	    atom[n_atom].exists=false;
-	    atom[n_atom].curve=p;
-	    atom[n_atom].n=0;
-	    atom[n_atom].corner=false;
+	    atom_t a;
+	    a.x=c[n-1][2].x;
+	    a.y=c[n-1][2].y;
+	    a.label=" ";
+	    a.exists=false;
+	    a.curve=p;
+	    a.n=0;
+	    a.corner=false;
+	    atom.push_back(a);
 	    n_atom++;
-	    if (n_atom>=MAX_ATOMS) n_atom--;
 	    for (long i=0; i<n; i++) 
 	      {
 		switch (tag[i]) 
 		  {
 		  case POTRACE_CORNER:
-		    atom[n_atom].x=c[i][1].x;
-		    atom[n_atom].y=c[i][1].y;
-		    atom[n_atom].label=" ";
-		    atom[n_atom].exists=false;
-		    atom[n_atom].curve=p;
-		    atom[n_atom].n=0;
-		    atom[n_atom].corner=true;
+		    a.x=c[i][1].x;
+		    a.y=c[i][1].y;
+		    a.label=" ";
+		    a.exists=false;
+		    a.curve=p;
+		    a.n=0;
+		    a.corner=true;
+		    atom.push_back(a);
 		    n_atom++;
-		    if (n_atom>=MAX_ATOMS) n_atom--;
 		    break;
 		  case POTRACE_CURVETO:
-		    atom[n_atom].x=c[i][0].x;
-		    atom[n_atom].y=c[i][0].y;
-		    atom[n_atom].label=" ";
-		    atom[n_atom].exists=false;
-		    atom[n_atom].curve=p;
-		    atom[n_atom].n=0;
-		    atom[n_atom].corner=false;
+		    a.x=c[i][0].x;
+		    a.y=c[i][0].y;
+		    a.label=" ";
+		    a.exists=false;
+		    a.curve=p;
+		    a.n=0;
+		    a.corner=false;
+		    atom.push_back(a);
 		    n_atom++;
-		    if (n_atom>=MAX_ATOMS) n_atom--;
-		    atom[n_atom].x=c[i][1].x;
-		    atom[n_atom].y=c[i][1].y;
-		    atom[n_atom].label=" ";
-		    atom[n_atom].exists=false;
-		    atom[n_atom].curve=p;
-		    atom[n_atom].n=0;
-		    atom[n_atom].corner=false;
+
+		    a.x=c[i][1].x;
+		    a.y=c[i][1].y;
+		    a.label=" ";
+		    a.exists=false;
+		    a.curve=p;
+		    a.n=0;
+		    a.corner=false;
+		    atom.push_back(a);
 		    n_atom++;
-		    if (n_atom>=MAX_ATOMS) n_atom--;
 		    break;
 		  }
 		if (i!=n-1)
 		  {
-		    atom[n_atom].x=c[i][2].x;
-		    atom[n_atom].y=c[i][2].y;
-		    atom[n_atom].label=" ";
-		    atom[n_atom].exists=false;
-		    atom[n_atom].curve=p;
-		    atom[n_atom].n=0;
-		    atom[n_atom].corner=false;
+		    a.x=c[i][2].x;
+		    a.y=c[i][2].y;
+		    a.label=" ";
+		    a.exists=false;
+		    a.curve=p;
+		    a.n=0;
+		    a.corner=false;
+		    atom.push_back(a);
 		    n_atom++;
-		    if (n_atom>=MAX_ATOMS) n_atom--;
 		  }
 	      }
 	    *n_bond=find_bonds(atom,bond,b_atom,n_atom,*n_bond,p);
@@ -1829,7 +1824,7 @@ string  image_type(string input)
   return(image.magick());
 }
 
-int count_atoms(atom_t *atom,int n_atom)
+int count_atoms(vector<atom_t> atom,int n_atom)
 {
   int r=0;
   for (int i=0;i<n_atom;i++)
@@ -1837,7 +1832,7 @@ int count_atoms(atom_t *atom,int n_atom)
   return(r);
 }
 
-int count_bonds(bond_t *bond,int n_bond)
+int count_bonds(vector<bond_t> bond,int n_bond)
 {
   int r=0;
   for (int i=0;i<n_bond;i++)
@@ -1999,28 +1994,22 @@ Image thin_image(Image box,double THRESHOLD_BOND,ColorGray bgColor)
 }
 
 
-int comp_dashes_x(const void *a,const void *b)
+bool comp_dashes_x(const dash_t &aa,const dash_t &bb)
 {
-  dash_t *aa=(dash_t *) a;
-  dash_t *bb=(dash_t *) b;
-  if (aa->x<bb->x) return(-1);
-  if (aa->x==bb->x) return(0);
-  if (aa->x>bb->x) return(1);
-  return(0);
+  if (aa.x<bb.x) return(true);
+  if (aa.x>bb.x) return(false);
+  return(true);
 }
 
-int comp_dashes_y(const void *a,const void *b)
+bool comp_dashes_y(const dash_t &aa,const dash_t &bb)
 {
-  dash_t *aa=(dash_t *) a;
-  dash_t *bb=(dash_t *) b;
-  if (aa->y<bb->y) return(-1);
-  if (aa->y==bb->y) return(0);
-  if (aa->y>bb->y) return(1);
-  return(0);
+  if (aa.y<bb.y) return(true);
+  if (aa.y>bb.y) return(false);
+  return(true);
 }
 
 
-void extend_dashed_bond(int a,int b,int n,atom_t *atom)
+void extend_dashed_bond(int a,int b,int n,vector<atom_t> &atom)
 {
   double x0=atom[a].x;
   double y0=atom[a].y;
@@ -2076,13 +2065,13 @@ int count_area(vector < vector<int> > *box, double &x0, double &y0)
   return(a);
 }
 
-int find_dashed_bonds(potrace_path_t *p, atom_t *atom,bond_t *bond,int n_atom,
+int find_dashed_bonds(potrace_path_t *p, vector<atom_t> &atom,vector<bond_t> &bond,int n_atom,
 		      int *n_bond,int max,double avg,Image img,ColorGray bg,  
 		      double THRESHOLD, bool thick, double dist)
 {
   int n,n_dot=0;
   potrace_dpoint_t (*c)[3];
-  dash_t dot[100];
+  vector<dash_t> dot;
   vector < vector<int> > box(img.columns());
   
 
@@ -2097,22 +2086,23 @@ int find_dashed_bonds(potrace_path_t *p, atom_t *atom,bond_t *bond,int n_atom,
 	    n = p->curve.n;
 	    c = p->curve.c;
 	    int *tag = p->curve.tag;
-	    dot[n_dot].x=c[n-1][2].x;
-	    dot[n_dot].y=c[n-1][2].y;
+	    dash_t d;
+	    d.x=c[n-1][2].x;
+	    d.y=c[n-1][2].y;
 	    double l=c[n-1][2].x;
 	    double r=c[n-1][2].x;
 	    double t=c[n-1][2].y;
 	    double b=c[n-1][2].y;
-	    dot[n_dot].curve=p;
-	    dot[n_dot].free=true;
+	    d.curve=p;
+	    d.free=true;
 	    int tot=1;
 	    for (long i=0; i<n; i++) 
 	      {
 		switch (tag[i]) 
 		  {
 		  case POTRACE_CORNER:
-		    dot[n_dot].x+=c[i][1].x;
-		    dot[n_dot].y+=c[i][1].y;
+		    d.x+=c[i][1].x;
+		    d.y+=c[i][1].y;
 		    if (c[i][1].x<l) l=c[i][1].x;
 		    if (c[i][1].x>r) r=c[i][1].x;
 		    if (c[i][1].y<t) t=c[i][1].y;
@@ -2120,14 +2110,14 @@ int find_dashed_bonds(potrace_path_t *p, atom_t *atom,bond_t *bond,int n_atom,
 		    tot++;
 		    break;
 		  case POTRACE_CURVETO:
-		    dot[n_dot].x+=c[i][0].x;
-		    dot[n_dot].y+=c[i][0].y;
+		    d.x+=c[i][0].x;
+		    d.y+=c[i][0].y;
 		    if (c[i][0].x<l) l=c[i][0].x;
 		    if (c[i][0].x>r) r=c[i][0].x;
 		    if (c[i][0].y<t) t=c[i][0].y;
 		    if (c[i][0].x>b) b=c[i][0].y;
-		    dot[n_dot].x+=c[i][1].x;
-		    dot[n_dot].y+=c[i][1].y;
+		    d.x+=c[i][1].x;
+		    d.y+=c[i][1].y;
 		    if (c[i][1].x<l) l=c[i][1].x;
 		    if (c[i][1].x>r) r=c[i][1].x;
 		    if (c[i][1].y<t) t=c[i][1].y;
@@ -2137,8 +2127,8 @@ int find_dashed_bonds(potrace_path_t *p, atom_t *atom,bond_t *bond,int n_atom,
 		  }
 		if (i!=n-1)
 		  {
-		    dot[n_dot].x+=c[i][2].x;
-		    dot[n_dot].y+=c[i][2].y;
+		    d.x+=c[i][2].x;
+		    d.y+=c[i][2].y;
 		    if (c[i][2].x<l) l=c[i][2].x;
 		    if (c[i][2].x>r) r=c[i][2].x;
 		    if (c[i][2].y<t) t=c[i][2].y;
@@ -2146,23 +2136,25 @@ int find_dashed_bonds(potrace_path_t *p, atom_t *atom,bond_t *bond,int n_atom,
 		    tot++;
 		  }
 	      }
-	    dot[n_dot].x/=tot;
-	    dot[n_dot].y/=tot;
+	    d.x/=tot;
+	    d.y/=tot;
 	    if (thick)
-	      dot[n_dot].area=count_area(&box,dot[n_dot].x,dot[n_dot].y);
+	      d.area=count_area(&box,dot[n_dot].x,dot[n_dot].y);
 	    else
-	      dot[n_dot].area=p->area;
+	      d.area=p->area;
 	    if (distance(l,t,r,b)<avg/3) 
-	      n_dot++;
-	    if (n_dot>=100) n_dot--;
+	      {
+		dot.push_back(d);
+		n_dot++;
+	      }
 	  }
 	p = p->next;
       }
   for(int i=0;i<n_dot;i++)
     if (dot[i].free)
       {
-	dash_t dash[100];
-	dash[0]=dot[i];
+	vector<dash_t> dash;
+	dash.push_back(dot[i]);
 	dot[i].free=false;
 	double l=dot[i].x;
 	double r=dot[i].x;
@@ -2177,7 +2169,7 @@ int find_dashed_bonds(potrace_path_t *p, atom_t *atom,bond_t *bond,int n_atom,
 	      && distance(dash[0].x,dash[0].y,dot[j].x,dot[j].y)<=dist
 	      && distance(dash[0].x,dash[0].y,dot[j].x,dot[j].y)<dist_next)
 	    {
-	      dash[1]=dot[j];
+	      dash.push_back(dot[j]);
 	      dist_next=distance(dash[0].x,dash[0].y,dot[j].x,dot[j].y);
 	      next_dot=j;
 	    }
@@ -2206,13 +2198,13 @@ int find_dashed_bonds(potrace_path_t *p, atom_t *atom,bond_t *bond,int n_atom,
 		  //&& fabs(angle4(dash[0].x,dash[0].y,dash[n-1].x,dash[n-1].y,dash[0].x,dash[0].y,dot[j].x,dot[j].y))>D_T_TOLERANCE)
 		   && fabs(distance_from_bond_y(dash[0].x,dash[0].y,dash[n-1].x,dash[n-1].y,dot[j].x,dot[j].y))<V_DISPLACEMENT)
 		{
-		  dash[n]=dot[j];
 		  dist_next=distance(mx,my,dot[j].x,dot[j].y);
 		  found=true;
 		  minj=j;
 		}
 	    if (found) 
 	      {
+		dash.push_back(dot[minj]);
 		dot[minj].free=false;
 		if (dash[n].x<l) l=dash[n].x;
 		if (dash[n].x>r) r=dash[n].x;
@@ -2228,11 +2220,11 @@ int find_dashed_bonds(potrace_path_t *p, atom_t *atom,bond_t *bond,int n_atom,
 	  {
 	    if((r-l)>(b-t))
 	      {
-		qsort(dash,n,sizeof(dash_t),comp_dashes_x);
+		std::sort(dash.begin(),dash.end(),comp_dashes_x);
 	      }
 	    else
 	      {
-		qsort(dash,n,sizeof(dash_t),comp_dashes_y);
+		std::sort(dash.begin(),dash.end(),comp_dashes_y);
 	      }
 	    bool one_line=true;
 	    double dx=dash[n-1].x-dash[0].x;
@@ -2255,39 +2247,44 @@ int find_dashed_bonds(potrace_path_t *p, atom_t *atom,bond_t *bond,int n_atom,
 	      {
 		for(int j=0;j<n;j++)   
 		  delete_curve(atom,bond,n_atom,*n_bond,dash[j].curve);
-		atom[n_atom].x=dash[0].x;
-		atom[n_atom].y=dash[0].y;
-		atom[n_atom].label=" ";
-		atom[n_atom].exists=true;
-		atom[n_atom].curve=dash[0].curve;
-		atom[n_atom].n=0;
-		atom[n_atom].corner=false;
+		atom_t a;
+		a.x=dash[0].x;
+		a.y=dash[0].y;
+		a.label=" ";
+		a.exists=true;
+		a.curve=dash[0].curve;
+		a.n=0;
+		a.corner=false;
+		atom.push_back(a);
 		n_atom++;
-		if (n_atom>=MAX_ATOMS) n_atom--;
-		atom[n_atom].x=dash[n-1].x;
-		atom[n_atom].y=dash[n-1].y;
-		atom[n_atom].label=" ";
-		atom[n_atom].exists=true;
-		atom[n_atom].curve=dash[n-1].curve;
-		atom[n_atom].n=0;
-		atom[n_atom].corner=false;
+
+		a.x=dash[n-1].x;
+		a.y=dash[n-1].y;
+		a.label=" ";
+		a.exists=true;
+		a.curve=dash[n-1].curve;
+		a.n=0;
+		a.corner=false;
+		atom.push_back(a);
 		n_atom++;
-		if (n_atom>=MAX_ATOMS) n_atom--;
-		bond[*n_bond].a=n_atom-2;
-		bond[*n_bond].exists=true;
-		bond[*n_bond].type=1;
-		bond[*n_bond].b=n_atom-1;
-		bond[*n_bond].curve=dash[0].curve;
+
+		bond_t b;
+		b.a=n_atom-2;
+		b.exists=true;
+		b.type=1;
+		b.b=n_atom-1;
+		b.curve=dash[0].curve;
+	
+		b.hash=true;
+		b.wedge=false;
+		b.up=false;
+		b.down=false;
+		b.Small=false;
+		bond.push_back(b);
 		if (dash[0].area>dash[n-1].area)
 		  bond_end_swap(bond,*n_bond);
-		bond[*n_bond].hash=true;
-		bond[*n_bond].wedge=false;
-		bond[*n_bond].up=false;
-		bond[*n_bond].down=false;
-		bond[*n_bond].Small=false;
 		extend_dashed_bond(bond[*n_bond].a,bond[*n_bond].b,n,atom);
 		(*n_bond)++;
-		if ((*n_bond)>=MAX_ATOMS) (*n_bond)--;
 	      }
 	  }
       }
@@ -2295,7 +2292,7 @@ int find_dashed_bonds(potrace_path_t *p, atom_t *atom,bond_t *bond,int n_atom,
   return(n_atom);
 }
 
-int find_small_bonds(potrace_path_t *p, atom_t *atom,bond_t *bond,int n_atom,
+int find_small_bonds(potrace_path_t *p, vector<atom_t> &atom,vector<bond_t> &bond,int n_atom,
 		     int *n_bond,double max_area,double Small,double thickness)
 {
 
@@ -2304,14 +2301,16 @@ int find_small_bonds(potrace_path_t *p, atom_t *atom,bond_t *bond,int n_atom,
 	if ((p->sign == int('+')) && (p->area<=max_area))
 	  {
 	    int n_dot=0;
-	    dash_t dot[20];
+	    vector<dash_t> dot;
 	    for (int i=0;i<n_atom;i++)
 	      if ((atom[i].exists) && (atom[i].curve==p) && (n_dot<20))
 		{
-		  dot[n_dot].x=atom[i].x;
-		  dot[n_dot].y=atom[i].y;
-		  dot[n_dot].curve=p;
-		  dot[n_dot].free=true;
+		  dash_t d;
+		  d.x=atom[i].x;
+		  d.y=atom[i].y;
+		  d.curve=p;
+		  d.free=true;
+		  dot.push_back(d);
 		  n_dot++;
 		  if (n_dot>=20) n_dot--;
 		}
@@ -2331,11 +2330,11 @@ int find_small_bonds(potrace_path_t *p, atom_t *atom,bond_t *bond,int n_atom,
 		  }
 		if((r-l)>(b-t))
 		  {
-		    qsort(dot,n_dot,sizeof(dash_t),comp_dashes_x);
+		    std::sort(dot.begin(),dot.end(),comp_dashes_x);
 		  }
 		else
 		  {
-		    qsort(dot,n_dot,sizeof(dash_t),comp_dashes_y);
+		    std::sort(dot.begin(),dot.end(),comp_dashes_y);
 		  }
 		double d=0;
 		for (int i=1;i<n_dot-1;i++)
@@ -2344,36 +2343,40 @@ int find_small_bonds(potrace_path_t *p, atom_t *atom,bond_t *bond,int n_atom,
 		if (d<thickness || p->area<Small)
 		  {
 		    delete_curve(atom,bond,n_atom,*n_bond,p);
-		    atom[n_atom].x=dot[0].x;
-		    atom[n_atom].y=dot[0].y;
-		    atom[n_atom].label=" ";
-		    atom[n_atom].exists=true;
-		    atom[n_atom].curve=p;
-		    atom[n_atom].n=0;
-		    atom[n_atom].corner=false;
+		    atom_t a;
+		    a.x=dot[0].x;
+		    a.y=dot[0].y;
+		    a.label=" ";
+		    a.exists=true;
+		    a.curve=p;
+		    a.n=0;
+		    a.corner=false;
+		    atom.push_back(a);
 		    n_atom++;
-		    if (n_atom>=MAX_ATOMS) n_atom--;
-		    atom[n_atom].x=dot[n_dot-1].x;
-		    atom[n_atom].y=dot[n_dot-1].y;
-		    atom[n_atom].label=" ";
-		    atom[n_atom].exists=true;
-		    atom[n_atom].curve=p;
-		    atom[n_atom].n=0;
-		    atom[n_atom].corner=false;
+
+		    a.x=dot[n_dot-1].x;
+		    a.y=dot[n_dot-1].y;
+		    a.label=" ";
+		    a.exists=true;
+		    a.curve=p;
+		    a.n=0;
+		    a.corner=false;
+		    atom.push_back(a);
 		    n_atom++;
-		    if (n_atom>=MAX_ATOMS) n_atom--;
-		    bond[*n_bond].a=n_atom-2;
-		    bond[*n_bond].exists=true;
-		    bond[*n_bond].type=1;
-		    bond[*n_bond].b=n_atom-1;
-		    bond[*n_bond].curve=p;
-		    bond[*n_bond].hash=false;
-		    bond[*n_bond].wedge=false;
-		    bond[*n_bond].up=false;
-		    bond[*n_bond].down=false;
-		    bond[*n_bond].Small=true;
+
+		    bond_t b;
+		    b.a=n_atom-2;
+		    b.exists=true;
+		    b.type=1;
+		    b.b=n_atom-1;
+		    b.curve=p;
+		    b.hash=false;
+		    b.wedge=false;
+		    b.up=false;
+		    b.down=false;
+		    b.Small=true;
+		    bond.push_back(b);
 		    (*n_bond)++;
-		    if ((*n_bond)>=MAX_ATOMS) (*n_bond)--;
 		  }
 	      }
 	  }
@@ -2382,7 +2385,7 @@ int find_small_bonds(potrace_path_t *p, atom_t *atom,bond_t *bond,int n_atom,
   return(n_atom);
 }
 
-int resolve_bridge_bonds(atom_t* atom,int n_atom,bond_t* bond,int n_bond,
+int resolve_bridge_bonds(vector<atom_t> &atom,int n_atom,vector<bond_t> &bond,int n_bond,
 			 double thickness,double avg)
 {
   int rotors1,rotors2,f1,f2,rings1,rings2;
@@ -2477,7 +2480,7 @@ int resolve_bridge_bonds(atom_t* atom,int n_atom,bond_t* bond,int n_bond,
   return(f1);
 }
 
-void collapse_atoms(atom_t *atom, bond_t *bond, int n_atom,int n_bond,
+void collapse_atoms(vector<atom_t> &atom, vector<bond_t> &bond, int n_atom,int n_bond,
 		    double dist)
 {
   bool found=true;
@@ -2506,7 +2509,7 @@ void collapse_atoms(atom_t *atom, bond_t *bond, int n_atom,int n_bond,
     }
 }
 
-void collapse_bonds(atom_t *atom, bond_t *bond,int n_bond,
+void collapse_bonds(vector<atom_t> &atom, vector<bond_t> bond,int n_bond,
 		    double dist)
 {
   for (int i=0;i<n_bond;i++)
@@ -2520,7 +2523,7 @@ void collapse_bonds(atom_t *atom, bond_t *bond,int n_bond,
 }
 
 
-int fix_one_sided_bonds(bond_t *bond,int n_bond,atom_t *atom, double thickness,
+int fix_one_sided_bonds(vector<bond_t> &bond,int n_bond,vector<atom_t> atom, double thickness,
 			double avg)
 {
   double l;
@@ -2550,22 +2553,23 @@ int fix_one_sided_bonds(bond_t *bond,int n_bond,atom_t *atom, double thickness,
 		      }
 		    else
 		      {
-			bond[n_bond].b=bond[i].b;
-			bond[n_bond].exists=true;
-			bond[n_bond].type=bond[i].type;
-			bond[n_bond].a=bond[j].a;
-			bond[n_bond].curve=bond[i].curve;
-			if (bond[i].hash) bond[n_bond].hash=true;
-			else bond[n_bond].hash=false;
-			if (bond[i].wedge) bond[n_bond].wedge=true;
-			else bond[n_bond].wedge=false;
-			bond[n_bond].Small=false;
-			bond[n_bond].up=false;
-			bond[n_bond].down=false;
-			if (bond[i].arom) bond[n_bond].arom=true;
-			else bond[n_bond].arom=false;
+			bond_t b;
+			b.b=bond[i].b;
+			b.exists=true;
+			b.type=bond[i].type;
+			b.a=bond[j].a;
+			b.curve=bond[i].curve;
+			if (bond[i].hash) b.hash=true;
+			else b.hash=false;
+			if (bond[i].wedge) b.wedge=true;
+			else b.wedge=false;
+			b.Small=false;
+			b.up=false;
+			b.down=false;
+			if (bond[i].arom) b.arom=true;
+			else b.arom=false;
+			bond.push_back(b);
 			n_bond++;
-			if (n_bond>=MAX_ATOMS) n_bond--;
 			bond[i].b=bond[j].a;
 			bond[i].wedge=false;
 		      }
@@ -2584,22 +2588,23 @@ int fix_one_sided_bonds(bond_t *bond,int n_bond,atom_t *atom, double thickness,
 		      }
 		    else
 		      {
-			bond[n_bond].b=bond[i].b;
-			bond[n_bond].exists=true;
-			bond[n_bond].type=bond[i].type;
-			bond[n_bond].a=bond[j].b;
-			bond[n_bond].curve=bond[i].curve;
-			if (bond[i].hash) bond[n_bond].hash=true;
-			else bond[n_bond].hash=false;
-			if (bond[i].wedge) bond[n_bond].wedge=true;
-			else bond[n_bond].wedge=false;
-			bond[n_bond].Small=false;
-			bond[n_bond].up=false;
-			bond[n_bond].down=false;
-			if (bond[i].arom) bond[n_bond].arom=true;
-			else bond[n_bond].arom=false;
+			bond_t b;
+			b.b=bond[i].b;
+			b.exists=true;
+			b.type=bond[i].type;
+			b.a=bond[j].b;
+			b.curve=bond[i].curve;
+			if (bond[i].hash) b.hash=true;
+			else b.hash=false;
+			if (bond[i].wedge) b.wedge=true;
+			else b.wedge=false;
+			b.Small=false;
+			b.up=false;
+			b.down=false;
+			if (bond[i].arom) b.arom=true;
+			else b.arom=false;
+			bond.push_back(b);
 			n_bond++;
-			if (n_bond>=MAX_ATOMS) n_bond--;
 			bond[i].b=bond[j].b;
 			bond[i].wedge=false;
 		      }
@@ -2609,8 +2614,8 @@ int fix_one_sided_bonds(bond_t *bond,int n_bond,atom_t *atom, double thickness,
   return(n_bond);
 }
 
-int find_fused_chars(bond_t *bond,int n_bond,atom_t *atom,
-		     letters_t *letters,int n_letters,
+int find_fused_chars(vector<bond_t> &bond,int n_bond,vector<atom_t> &atom,
+		     vector<letters_t> &letters,int n_letters,
 		     int max_font_height,int max_font_width,
 		     char dummy, Image orig,  ColorGray bgColor, 
 		     double THRESHOLD, unsigned int size)
@@ -2723,13 +2728,14 @@ int find_fused_chars(bond_t *bond,int n_bond,atom_t *atom,
 		      }
 		    if (!overlap)
 		      {
-			letters[n_letters].a=label;
-			letters[n_letters].x=(left+right)/2;
-			letters[n_letters].y=(top+bottom)/2;
-			letters[n_letters].r=distance(left,top,right,bottom)/2;
-			letters[n_letters].free=true;
+			letters_t l;
+			l.a=label;
+			l.x=(left+right)/2;
+			l.y=(top+bottom)/2;
+			l.r=distance(left,top,right,bottom)/2;
+			l.free=true;
+			letters.push_back(l);
 			n_letters++;
-			if (n_letters>=MAX_ATOMS) n_letters--;
 		      }
 		    delete_bonds_in_char(bond,n_bond,atom,left,top,right,bottom);
 		  }
@@ -2740,15 +2746,13 @@ int find_fused_chars(bond_t *bond,int n_bond,atom_t *atom,
   return(n_letters);
 }
 
-int comp_boxes(const void *a,const void *b)
+bool  comp_boxes(const box_t &aa,const box_t &bb)
 {
-  box_t *aa=(box_t *) a;
-  box_t *bb=(box_t *) b;
-  if (aa->y2<bb->y1) return(-1);
-  if (aa->y1>bb->y2) return(1);
-  if (aa->x1>bb->x1) return(1);
-  if (aa->x1<bb->x1) return(-1);
-  return(0);
+  if (aa.y2<bb.y1) return(true);
+  if (aa.y1>bb.y2) return(false);
+  if (aa.x1>bb.x1) return(false);
+  if (aa.x1<bb.x1) return(true);
+  return(true);
 }
 
 
@@ -2856,14 +2860,14 @@ int thickness_ver(Image image,int x1,int y1, ColorGray bgColor,
 
 
 
-double find_wedge_bonds(Image image,atom_t* atom, int n_atom,bond_t* bond,int n_bond, 
+double find_wedge_bonds(Image image,vector<atom_t> &atom, int n_atom,vector<bond_t> &bond,int n_bond, 
 			ColorGray bgColor,double THRESHOLD_BOND, 
 			double max_dist_double_bond, double avg,int limit)
 {
   double l;
-  double a[MAX_ATOMS];
+  vector<double> a;
   int n=0;
-  a[0]=1.5;
+  a.push_back(1.5);
   vector<int> x_reg,y_reg;
   for (int i=0;i<n_bond;i++)
     if (bond[i].exists && !bond[i].hash && bond[i].type==1 
@@ -3000,9 +3004,13 @@ double find_wedge_bonds(Image image,atom_t* atom, int n_atom,bond_t* bond,int n_
 		      }
 		}
 	  }
-	if (!bond[i].wedge) a[n++]=int(avg_y);
+	if (!bond[i].wedge) 
+	  {
+	    a.push_back(avg_y);
+	    n++;
+	  }
       }
-  qsort(a,n,sizeof(double),num_comp);
+  std::sort(a.begin(),a.end());
   double t;
   if (n>0) t=a[(n-1)/2];
   else t=1.5;
@@ -3010,7 +3018,7 @@ double find_wedge_bonds(Image image,atom_t* atom, int n_atom,bond_t* bond,int n_
   return(t);
 }
 
-void collapse_double_bonds(bond_t *bond,int n_bond,atom_t *atom,double dist)
+void collapse_double_bonds(vector<bond_t> &bond,int n_bond,vector<atom_t> &atom,double dist)
 {
   for (int i=0;i<n_bond;i++)
     if (bond[i].exists && bond[i].type==2 && bond[i].conjoined)
@@ -3069,7 +3077,7 @@ void collapse_double_bonds(bond_t *bond,int n_bond,atom_t *atom,double dist)
 
 }
 
-void find_up_down_bonds(bond_t* bond,int n_bond,atom_t* atom, double thickness)
+void find_up_down_bonds(vector<bond_t> &bond,int n_bond,vector<atom_t> atom, double thickness)
 {
   for(int i=0;i<n_bond;i++)
     if(bond[i].exists && bond[i].type==2)
@@ -3122,7 +3130,7 @@ void find_up_down_bonds(bond_t* bond,int n_bond,atom_t* atom, double thickness)
       }
 }
 
-bool detect_curve(bond_t *bond,int n_bond, potrace_path_t *curve)
+bool detect_curve(vector<bond_t> bond,int n_bond, potrace_path_t *curve)
 {
   bool res=false;
   for(int i=0;i<n_bond;i++)
@@ -3132,8 +3140,8 @@ bool detect_curve(bond_t *bond,int n_bond, potrace_path_t *curve)
   return(res);
 }
 
-int find_plus_minus(potrace_path_t *p,letters_t *letters,
-		    atom_t *atom,bond_t *bond,int n_atom,int n_bond,int height,
+int find_plus_minus(potrace_path_t *p,vector<letters_t> &letters,
+		    vector<atom_t> atom,vector<bond_t> bond,int n_atom,int n_bond,int height,
 		    int width, int max_font_height, int max_font_width,
 		    int n_letters)
 {
@@ -3225,13 +3233,14 @@ int find_plus_minus(potrace_path_t *p,letters_t *letters,
 		c='+';
 	      if (c!=' ')
 		{
-		  letters[n_letters].a=c;
-		  letters[n_letters].x=(left+right)/2;
-		  letters[n_letters].y=(top+bottom)/2;
-		  letters[n_letters].r=distance(left,top,right,bottom)/2;
-		  letters[n_letters].free=true;
+		  letters_t l;
+		  l.a=c;
+		  l.x=(left+right)/2;
+		  l.y=(top+bottom)/2;
+		  l.r=distance(left,top,right,bottom)/2;
+		  l.free=true;
+		  letters.push_back(l);
 		  n_letters++;
-		  if (n_letters>=MAX_ATOMS) n_letters--;
 		  delete_curve_with_children(atom,bond,n_atom,n_bond,p);
 		}
 	    }
@@ -3241,8 +3250,8 @@ int find_plus_minus(potrace_path_t *p,letters_t *letters,
   return(n_letters);	 
 }
 
-void  find_old_aromatic_bonds(potrace_path_t *p,bond_t *bond,int n_bond,
-			      atom_t *atom,int n_atom, double avg)
+void  find_old_aromatic_bonds(potrace_path_t *p,vector<bond_t> &bond,int n_bond,
+			      vector<atom_t> &atom,int n_atom, double avg)
 {
   potrace_path_t *p1=p;
   for(int i=0;i<n_bond;i++)
@@ -3342,7 +3351,7 @@ void  find_old_aromatic_bonds(potrace_path_t *p,bond_t *bond,int n_bond,
   
 }
 
-void flatten_bonds(bond_t *bond,int n_bond,atom_t *atom,double maxh)
+void flatten_bonds(vector<bond_t> &bond,int n_bond,vector<atom_t> &atom,double maxh)
 {
   bool found=true;
 
@@ -3513,9 +3522,9 @@ void flatten_bonds(bond_t *bond,int n_bond,atom_t *atom,double maxh)
   
 }
 
-int clean_unrecognized_characters(bond_t *bond,int n_bond,atom_t *atom,
+int clean_unrecognized_characters(vector<bond_t> &bond,int n_bond,vector<atom_t> &atom,
 				   int real_font_height, int real_font_width,
-				  unsigned int size,letters_t *letters,int n_letters)
+				  unsigned int size,vector<letters_t> &letters,int n_letters)
 {
   vector<int> all_bonds(n_bond,0);
   for (int i=0;i<n_bond;i++)
@@ -3568,19 +3577,20 @@ int clean_unrecognized_characters(bond_t *bond,int n_bond,atom_t *atom,
 	    trash.pop_front();
 	    bond[k].exists=false;
 	  }
-	letters[n_letters].a='X';
-	letters[n_letters].x=(l+r)/2;
-	letters[n_letters].y=(t+b)/2;
-	letters[n_letters].r=distance(l,t,r,b)/2;
-	letters[n_letters].free=true;
+	letters_t lt;
+	lt.a='X';
+	lt.x=(l+r)/2;
+	lt.y=(t+b)/2;
+	lt.r=distance(l,t,r,b)/2;
+	lt.free=true;
+	letters.push_back(lt);
 	n_letters++;
-	if (n_letters>=MAX_ATOMS) n_letters--;
 	}
       }
   return(n_letters);
 }
 
-void remove_small_terminal_bonds(bond_t *bond,int n_bond,atom_t *atom, double avg)
+void remove_small_terminal_bonds(vector<bond_t> &bond,int n_bond,vector<atom_t> &atom, double avg)
 {
   bool found=true;
   while (found)
@@ -3623,7 +3633,7 @@ void remove_small_terminal_bonds(bond_t *bond,int n_bond,atom_t *atom, double av
     }
 }
 
-vector < vector<int> > find_fragments(bond_t *bond,int n_bond,atom_t *atom)
+vector < vector<int> > find_fragments(vector<bond_t> bond,int n_bond,vector<atom_t> atom)
 {
   vector < vector<int> > frags;
   vector<int> pool;
@@ -3681,7 +3691,7 @@ vector < vector<int> > find_fragments(bond_t *bond,int n_bond,atom_t *atom)
   return(frags);
 }
 
-int reconnect_fragments(bond_t *bond,int n_bond,atom_t *atom,double avg)
+int reconnect_fragments(vector<bond_t> &bond,int n_bond,vector<atom_t> &atom,double avg)
 {
   vector < vector<int> > frags;
   frags=find_fragments(bond,n_bond,atom);
@@ -4039,7 +4049,7 @@ list < list < list<point_t> > > find_segments(Image image,double threshold,
 }
 
 
-int prune_clusters(list < list < list<point_t> > > clusters,box_t *boxes)
+int prune_clusters(list < list < list<point_t> > > clusters,vector<box_t> &boxes)
 {
   int n_boxes=0;
   list < list < list<point_t> > >::iterator c=clusters.begin();
@@ -4075,17 +4085,17 @@ int prune_clusters(list < list < list<point_t> > > clusters,box_t *boxes)
      if (right!=left)  aspect=1.*(bottom-top)/(right-left);
      if (fill_below_max  && aspect>MIN_ASPECT && aspect<MAX_ASPECT)
        {
-	 boxes[n_boxes].x1=left;
-	 boxes[n_boxes].y1=top;
-	 boxes[n_boxes].x2=right;
-	 boxes[n_boxes].y2=bottom;
+	 box_t b;
+	 b.x1=left;
+	 b.y1=top;
+	 b.x2=right;
+	 b.y2=bottom;
 	 for(list < list<point_t> >::iterator s=c->begin();s!=c->end();s++)
 	   for (list<point_t>::iterator p=s->begin();p!=s->end();p++)
-	     boxes[n_boxes].c.push_back(*p);
+	     b.c.push_back(*p);
 	 c++;
+	 boxes.push_back(b);
 	 n_boxes++;
-	 if (n_boxes>=NUM_BOXES) n_boxes--;
-	 
        }
      else
        {
@@ -4095,7 +4105,7 @@ int prune_clusters(list < list < list<point_t> > > clusters,box_t *boxes)
   return(n_boxes);
 }
 
-vector<fragment_t> populate_fragments(vector < vector<int> > frags,atom_t *atom)
+vector<fragment_t> populate_fragments(vector < vector<int> > frags,vector<atom_t> atom)
 {
   vector<fragment_t> r;
   for(unsigned int i=0;i<frags.size();i++)
@@ -4271,11 +4281,11 @@ int main(int argc,char **argv)
 
 	ColorGray bgColor=getBgColor(image,invert);
 	list < list < list<point_t> > > clusters=find_segments(image,0.1,bgColor);
-	box_t boxes[NUM_BOXES];
+	vector<box_t> boxes;
 	int n_boxes=prune_clusters(clusters,boxes);
 	//draw_box(image,boxes,n_boxes,"tmp.gif");
 	//exit(0);
-	qsort(boxes,n_boxes,sizeof(box_t),comp_boxes);
+	std::sort(boxes.begin(),boxes.end(),comp_boxes);
 
 #pragma omp parallel for default(shared) shared(threshold,output,format,resize,type,page,l,num_resolutions,select_resolution,array_of_smiles,array_of_confidence,array_of_images,image,image_count,conf,guess) private(res_iter,JOB)
     for (res_iter=0;res_iter<num_resolutions;res_iter++)
@@ -4321,12 +4331,12 @@ int main(int argc,char **argv)
 		      (boxes[k].y2-boxes[k].y1)>2*max_font_height))
 	      {
 		int n_atom=0,n_bond=0,n_letters=0,n_label=0;
-		atom_t atom[MAX_ATOMS];
-		bond_t bond[MAX_ATOMS];
-		atom_t frag_atom[MAX_ATOMS];
-		bond_t frag_bond[MAX_ATOMS];
-		letters_t letters[MAX_ATOMS];
-		label_t label[MAX_ATOMS];
+		vector<atom_t> atom;
+		vector<bond_t> bond;
+		vector<atom_t> frag_atom;
+		vector<bond_t> frag_bond;
+		vector<letters_t> letters;
+		vector<label_t> label;
 		potrace_bitmap_t *bm;
 		potrace_path_t *p;
 		potrace_state_t *st;
@@ -4561,27 +4571,28 @@ int main(int argc,char **argv)
 
 		    vector < vector<int> > frags=find_fragments(bond,n_bond,atom);
 		    vector<fragment_t> fragments=populate_fragments(frags,atom);
+
 		    std::sort(fragments.begin(),fragments.end(),comp_fragments);
 		    for (unsigned int i=0;i<fragments.size();i++)
 		      if (fragments[i].atom.size()>MIN_A_COUNT)
 			{
-			 
 			  
 			  for (int a=0;a<n_atom;a++)
 			    {
-			      frag_atom[a]=atom[a];
+			      frag_atom.push_back(atom[a]);
 			      frag_atom[a].exists=false;
 			    }
+			 
 			  for (unsigned int j=0;j<fragments[i].atom.size();j++)
 			    frag_atom[fragments[i].atom[j]].exists=atom[fragments[i].atom[j]].exists;
 
-			  for (int b=0;b<n_bond;b++)
-			    frag_bond[b]=bond[b];
+			  frag_bond=bond;
 
 			  remove_zero_bonds(frag_bond,n_bond,frag_atom);
 
 			  int rotors,rings;
 			  double confidence=0;
+
 			  string smiles=get_smiles(frag_atom,frag_bond,n_bond,rotors,
 						   confidence,f,rings,avg_bond,
 						   format.getValue(),resolution,
