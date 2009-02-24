@@ -578,7 +578,7 @@ double skeletize(vector<atom_t> &atom,vector<bond_t> &bond,int n_bond,Image imag
   return(thickness);
 }
 
-double dist_double_bonds(vector<atom_t> atom,vector<bond_t> bond,int n_bond,double avg)
+double dist_double_bonds(vector<atom_t> atom,vector<bond_t> &bond,int n_bond,double avg)
 {
   vector<double> a;
   int n=0;
@@ -4398,8 +4398,8 @@ int main(int argc,char **argv)
 		else 
 		  thick_box=orig_box;
 		
-		
-		    
+
+
 		param->turnpolicy=POTRACE_TURNPOLICY_MINORITY;
 		double c_width=1.*width*72/working_resolution;
 		double c_height=1.*height*72/working_resolution;
@@ -4478,7 +4478,7 @@ int main(int argc,char **argv)
 		remove_zero_bonds(bond,n_bond,atom);
 		avg_bond=percentile75(bond,n_bond,atom);
 	
-		
+		//cout<<ttt++<<endl;		    		
 
 		double max_dist_double_bond=dist_double_bonds(atom,bond,n_bond,avg_bond);
 		n_bond=double_triple_bonds(atom,bond,n_bond,avg_bond,n_atom,
@@ -4489,14 +4489,15 @@ int main(int argc,char **argv)
 					 max(MAX_DASH,int(avg_bond/3)),
 					 avg_bond,orig_box,bgColor,
 					 THRESHOLD_BOND,thick,avg_bond);
-		
+
+		// cout<<"Ku"<<endl;									
 		n_letters=remove_small_bonds(bond,n_bond,atom,letters,n_letters,
 					     real_font_height,MIN_FONT_HEIGHT,avg_bond);
 
 
 		n_bond=fix_one_sided_bonds(bond,n_bond,atom,dist,avg_bond);
-		
-		
+
+
 
 		n_letters=clean_unrecognized_characters(bond,n_bond,
 							atom,real_font_height,
@@ -4507,7 +4508,7 @@ int main(int argc,char **argv)
 					   THRESHOLD_BOND,max_dist_double_bond,
 					   avg_bond,3);
 
-	
+
 
 		n_label=assemble_labels(letters,n_letters,label);
 
@@ -4601,12 +4602,12 @@ int main(int argc,char **argv)
 
 			  int rotors,rings;
 			  double confidence=0;
-
+			  
 			  string smiles=get_smiles(frag_atom,frag_bond,n_bond,rotors,
 						   confidence,f,rings,avg_bond,
 						   format.getValue(),resolution,
 						   conf.getValue(),guess.getValue());
-
+			 
 			  if (f<10 && f>0 && smiles!="")
 			    {
 			      array_of_smiles[res_iter].push_back(smiles);
