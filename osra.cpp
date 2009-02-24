@@ -2174,11 +2174,10 @@ int find_dashed_bonds(potrace_path_t *p, vector<atom_t> &atom,vector<bond_t> &bo
 	      && distance(dash[0].x,dash[0].y,dot[j].x,dot[j].y)<=dist
 	      && distance(dash[0].x,dash[0].y,dot[j].x,dot[j].y)<dist_next)
 	    {
-	      dash.push_back(dot[j]);
 	      dist_next=distance(dash[0].x,dash[0].y,dot[j].x,dot[j].y);
 	      next_dot=j;
 	    }
-
+	dash.push_back(dot[next_dot]);
 	int n=1;
 	if (next_dot!=i)
 	  {
