@@ -741,8 +741,10 @@ int double_triple_bonds(vector<atom_t> &atom,vector<bond_t> &bond,int n_bond,dou
 			  atom[n_atom].corner=false;
 			  bond[ii].a=n_atom;
 			  n_atom++;
+			  if (n_atom>=MAX_ATOMS) n_atom--;
 			  bond[n_bond].b=bond[ii].a;
 			  n_bond++;
+			  if (n_bond>=MAX_ATOMS) n_bond--;
 			}
 		      if (db>0.5*l22)
 			{
@@ -773,8 +775,10 @@ int double_triple_bonds(vector<atom_t> &atom,vector<bond_t> &bond,int n_bond,dou
 			  atom[n_atom].corner=false;
 			  bond[ii].b=n_atom;
 			  n_atom++;
+			  if (n_atom>=MAX_ATOMS) n_atom--;
 			  bond[n_bond].b=bond[ii].b;
 			  n_bond++;
+			  if (n_bond>=MAX_ATOMS) n_bond--;
 			}
 		      bond[jj].exists=false;
 		      bond[ii].type+=bond[jj].type;
@@ -858,6 +862,7 @@ int remove_small_bonds(vector<bond_t> &bond, int n_bond,vector<atom_t> &atom,
 	    letters[n_letters].r=bond_length(bond,i,atom)/2;
 	    letters[n_letters].free=true;
 	    n_letters++;
+	    if (n_letters>=MAX_ATOMS) n_letters--;
 	    bond[i].exists=false;
 	  }
       }
@@ -868,14 +873,14 @@ bool comp_lbonds(const lbond_t &left,const lbond_t &right)
 {
   if (left.x<right.x) return(true);
   if (left.x>right.x) return(false);
-  return(true);
+  return(false);
 }
 
 bool comp_letters(const letters_t &left,const letters_t &right)
 {
   if (left.x<right.x) return(true);
   if (left.x>right.x) return(false);
-  return(true);
+  return(false);
 }
 
 
@@ -917,6 +922,7 @@ int assemble_labels(vector<letters_t> &letters,int n_letters,vector<label_t> &la
 	  letters[j].free=false;
 	  lbond[n_lbond].exists=true;
 	  n_lbond++;
+	  if (n_lbond>=MAX_ATOMS) n_lbond--;
 	  break;
 	}
     }
@@ -1028,14 +1034,14 @@ int assemble_labels(vector<letters_t> &letters,int n_letters,vector<label_t> &la
 	  }
 	 label[n_label].a+=charges;
 	 n_label++;
+	 if (n_label>=MAX_ATOMS) n_label--;
       }
   return(n_label);
 }
 
-void extend_terminal_bond_to_label(vector<atom_t> &atom,vector<letters_t> &letters,int n_letters,
-			  vector<bond_t> &bond, int n_bond,vector<label_t> &label,int n_label,
-				   double avg, double maxh, double max_dist_double_bond)
+void extend_terminal_bond_to_label(vector<atom_t> &atom,vector<letters_t> &letters,int n_letters, vector<bond_t> &bond, int n_bond,vector<label_t> &label,int n_label, double avg, double maxh, double max_dist_double_bond)
 {
+
  for (int j=0;j<n_bond;j++)
     if (bond[j].exists)
       {
@@ -1168,7 +1174,6 @@ void extend_terminal_bond_to_label(vector<atom_t> &atom,vector<letters_t> &lette
 		atom[bond[j].b].label=toupper(letters[l2].a);;
 		atom[bond[j].b].x=letters[l2].x;
 		atom[bond[j].b].y=letters[l2].y;
-
 	      }
 	    else if (found1)
 	      {
@@ -1514,6 +1519,7 @@ int find_bonds(vector<atom_t> &atom, vector<bond_t> &bond, int b_atom, int n_ato
 	bond[n_bond].down=false;
 	bond[n_bond].Small=false;
       	n_bond++;
+	if (n_bond>=MAX_ATOMS) n_bond--;
       }
     return(n_bond);
 }
@@ -1627,6 +1633,7 @@ int find_chars(potrace_path_t *p,Image orig,vector<letters_t> &letters,
 		      real_font_height=bottom-top;
 		    letters[n_letters].free=true;
 		    n_letters++;
+		    if (n_letters>=MAX_ATOMS) n_letters--;
 		    delete_bonds_in_char(bond,n_bond,atom,left,top,right,bottom);
 		    delete_curve_with_children(atom,bond,n_atom,n_bond,p);
 		    found=true;
@@ -1660,7 +1667,7 @@ int find_chars(potrace_path_t *p,Image orig,vector<letters_t> &letters,
 		      real_font_height=bottom-newtop;
 		    letters[n_letters].free=true;
 		    n_letters++;
-
+		    if (n_letters>=MAX_ATOMS) n_letters--;
 		    letters_t lt2;
 		    letters.push_back(lt2);
 		    letters[n_letters].a=label2;
@@ -1671,7 +1678,7 @@ int find_chars(potrace_path_t *p,Image orig,vector<letters_t> &letters,
 		      real_font_height=newbottom-top;
 		    letters[n_letters].free=true;
 		    n_letters++;
-
+		    if (n_letters>=MAX_ATOMS) n_letters--;
 		    delete_bonds_in_char(bond,n_bond,atom,left,top,right,bottom);
 		    delete_curve_with_children(atom,bond,n_atom,n_bond,p);
 		    found=true;
@@ -1705,7 +1712,7 @@ int find_chars(potrace_path_t *p,Image orig,vector<letters_t> &letters,
 		      real_font_height=bottom-top;
 		    letters[n_letters].free=true;
 		    n_letters++;
-
+		    if (n_letters>=MAX_ATOMS) n_letters--;
 		    letters_t lt2;
 		    letters.push_back(lt2);
 		    letters[n_letters].a=label2;
@@ -1716,7 +1723,7 @@ int find_chars(potrace_path_t *p,Image orig,vector<letters_t> &letters,
 		      real_font_width=right-newleft;
 		    letters[n_letters].free=true;
 		    n_letters++;
-
+		    if (n_letters>=MAX_ATOMS) n_letters--;
 		    delete_bonds_in_char(bond,n_bond,atom,left,top,right,bottom);
 		    delete_curve_with_children(atom,bond,n_atom,n_bond,p);
 		    found=true;
@@ -2268,6 +2275,7 @@ int find_dashed_bonds(potrace_path_t *p, vector<atom_t> &atom,vector<bond_t> &bo
 		atom[n_atom].n=0;
 		atom[n_atom].corner=false;
 		n_atom++;
+		if (n_atom>=MAX_ATOMS) n_atom--;
 		atom_t a2;
 		atom.push_back(a2);
 		atom[n_atom].x=dash[n-1].x;
@@ -2278,6 +2286,7 @@ int find_dashed_bonds(potrace_path_t *p, vector<atom_t> &atom,vector<bond_t> &bo
 		atom[n_atom].n=0;
 		atom[n_atom].corner=false;
 		n_atom++;
+		if (n_atom>=MAX_ATOMS) n_atom--;
 		bond_t b1;
 		bond.push_back(b1);
 		bond[*n_bond].a=n_atom-2;
@@ -2294,6 +2303,7 @@ int find_dashed_bonds(potrace_path_t *p, vector<atom_t> &atom,vector<bond_t> &bo
 		bond[*n_bond].Small=false;
 		extend_dashed_bond(bond[*n_bond].a,bond[*n_bond].b,n,atom);
 		(*n_bond)++;
+		if ((*n_bond)>=MAX_ATOMS) (*n_bond)--;
 	      }
 	  }
       }
@@ -2360,6 +2370,7 @@ int find_small_bonds(potrace_path_t *p, vector<atom_t> &atom,vector<bond_t> &bon
 		    atom[n_atom].n=0;
 		    atom[n_atom].corner=false;
 		    n_atom++;
+		    if (n_atom>=MAX_ATOMS) n_atom--;
 		    atom_t a2;
 		    atom.push_back(a2);
 		    atom[n_atom].x=dot[n_dot-1].x;
@@ -2370,6 +2381,7 @@ int find_small_bonds(potrace_path_t *p, vector<atom_t> &atom,vector<bond_t> &bon
 		    atom[n_atom].n=0;
 		    atom[n_atom].corner=false;
 		    n_atom++;
+		    if (n_atom>=MAX_ATOMS) n_atom--;
 		    bond_t b1;
 		    bond.push_back(b1);
 		    bond[*n_bond].a=n_atom-2;
@@ -2383,6 +2395,7 @@ int find_small_bonds(potrace_path_t *p, vector<atom_t> &atom,vector<bond_t> &bon
 		    bond[*n_bond].down=false;
 		    bond[*n_bond].Small=true;
 		    (*n_bond)++;
+		    if ((*n_bond)>=MAX_ATOMS) (*n_bond)--;
 		  }
 	      }
 	  }
@@ -2745,6 +2758,7 @@ int find_fused_chars(vector<bond_t> &bond,int n_bond,vector<atom_t> &atom,
 			letters[n_letters].r=distance(left,top,right,bottom)/2;
 			letters[n_letters].free=true;
 			n_letters++;
+			if (n_letters>=MAX_ATOMS) n_letters--;
 		      }
 		    delete_bonds_in_char(bond,n_bond,atom,left,top,right,bottom);
 		  }
@@ -3250,6 +3264,7 @@ int find_plus_minus(potrace_path_t *p,vector<letters_t> &letters,
 		  letters[n_letters].r=distance(left,top,right,bottom)/2;
 		  letters[n_letters].free=true;
 		  n_letters++;
+		  if (n_letters>=MAX_ATOMS) n_letters--;
 		  delete_curve_with_children(atom,bond,n_atom,n_bond,p);
 		}
 	    }
@@ -3594,6 +3609,7 @@ int clean_unrecognized_characters(vector<bond_t> &bond,int n_bond,vector<atom_t>
 	letters[n_letters].r=distance(l,t,r,b)/2;
 	letters[n_letters].free=true;
 	n_letters++;
+	if (n_letters>=MAX_ATOMS) n_letters--;
 	}
       }
   return(n_letters);
@@ -4367,11 +4383,7 @@ int main(int argc,char **argv)
 		Image thick_box;
 
 
-		/*if (ttt++==1) 
-		  {
-		    debug(orig_box,atom,n_atom,bond,n_bond,"tmp.png");	
-		  }   
-		*/
+		
 		if (resolution>=300)
 		  {
 		    double nf=noise_factor(orig_box,width,height,bgColor,
@@ -4578,6 +4590,11 @@ int main(int argc,char **argv)
 		    n_bond=reconnect_fragments(bond,n_bond,atom,avg_bond);
 		    collapse_atoms(atom,bond,n_atom,n_bond,1);
 
+		    /*if (ttt++==1) 
+		  {
+		    debug(orig_box,atom,n_atom,bond,n_bond,"tmp.png");	
+		  }   
+		    */
 		    vector < vector<int> > frags=find_fragments(bond,n_bond,atom);
 		    vector<fragment_t> fragments=populate_fragments(frags,atom);
 		    std::sort(fragments.begin(),fragments.end(),comp_fragments);
