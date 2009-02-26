@@ -2776,7 +2776,7 @@ bool  comp_boxes(const box_t &aa,const box_t &bb)
   if (aa.y1>bb.y2) return(false);
   if (aa.x1>bb.x1) return(false);
   if (aa.x1<bb.x1) return(true);
-  return(true);
+  return(false);
 }
 
 double noise_factor(Image image, int width, int height, ColorGray bgColor, 
@@ -4161,7 +4161,7 @@ bool comp_fragments(const fragment_t &aa, const fragment_t &bb)
   if (aa.x1>bb.x1) return(false);
   if (aa.x1<bb.x1) return(true);
   
- return(true);
+ return(false);
  }
 
 double confidence_function(int C_Count,int N_Count,int O_Count,int F_Count,

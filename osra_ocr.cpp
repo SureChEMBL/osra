@@ -197,19 +197,19 @@ char get_atom_label(Magick::Image image, Magick::ColorGray bg, int x1, int y1, i
 string fix_atom_name(string s,int n)
 {
   string r=s;
-  //    cout<<s<<"-->";
+  //      cout<<s<<"-->";
   if (s.length()==1) r=toupper(s.at(0));
   if (s=="Ci" || s=="Cf" || s=="Cll") r="Cl";
   else if (s=="H" && n>1) r="N";
   else if (s=="HN" || s=="NH" || s=="M" || s=="Hm" || s=="MN" || s=="N2"
 	   || s=="NM" || s=="NH2" || s=="H2N" || s=="NHZ" || s=="HZN" || s=="NH3"
-	   || s=="nu" || s=="Hu"  || s=="lU" || s=="HlU" || s=="lUH")   r="N";
+	   || s=="nu" || s=="Hu"  || s=="lU" || s=="HlU" || s=="lUH" || s=="H2Y")   r="N";
   else if (s=="OH" || s=="oH" || s=="Ho" || s=="HO" || s=="ol"
 	   || s=="On" || s=="on" || s=="no" || s=="nO") r="O";
   else if (s=="Meo" || s=="oMe" || s=="oMg" || s=="omg" || s=="Mgo"
 	   || s=="leo" || s=="ohle" || s=="lleo" || s=="olllle" 
 	   || s=="OMe" || s=="OM8" || s=="OMo" || s=="OMB" || s=="OCH3" 
-	   || s=="OCHS")   r="MeO";
+	   || s=="OCHS" || s=="H3CO" || s=="OCH3")   r="MeO";
   else if (s=="NC" || s=="YC")  r="CN";
   else if ((s=="nBU") || (s=="neU") ||(s=="ngU")) r="nBu";
   else if ((s=="Eto") || (s=="oEt") || (s=="Elo") || (s=="oEl")
@@ -222,7 +222,7 @@ string fix_atom_name(string s,int n)
   else if (s=="AC" || s=="pC" || s=="pc") r="Ac";
   else if (s=="ACo" || s=="opC" || s=="pcO" || s=="ACO" || s=="oCO" 
 	   || s=="OoC" || s=="OpC" || s=="pCO" || s=="RCO" || s=="ORC") r="AcO";
-  else if (s=="Bl" || s=="el") r="Br";
+  else if (s=="Bl" || s=="el" || s=="BC") r="Br";
   else if (s=="CH3" || s=="H3C") r="C";
   else if (s=="R" || s=="Rl" || s=="Rlo" || s=="R2" || s=="R3" || s=="Rg"
       || s=="R4" || s=="R5" || s=="R6" || s=="R7" || s=="R8" || s=="Z"  || s=="Y" 
@@ -235,7 +235,7 @@ string fix_atom_name(string s,int n)
   else if (s=="F3C" || s=="CF" || s=="FC" || s=="Co" || s=="F8l" || s=="CFS"
       || s=="FSC") r="CF3";
   else if (s=="F3Co") r="F3CN";
-  else if (s=="S3" || s=="Se" || s=="lS" || s=="8" || s=="SH" || s=="HS") r="S";
+  else if (s=="S3" || s=="Se" || s=="lS" || s=="8" || s=="SH" || s=="HS" || s=="SO2") r="S"; // SO2 should have its own procedure but mdclutil cannot handle non-terminal superatoms
   else if (s=="lH") r="H";
   else if (s=="NHnC") r="NHAc";
   else if (s=="OlHP" || s=="lHPO") r="THPO";
@@ -247,7 +247,7 @@ string fix_atom_name(string s,int n)
   else if (s=="NCOlRlH3") r="N(OH)CH3";
   else if (s=="pZO" || s=="p2O" || s=="OBX" || s=="BZO" || s=="B2O" || s=="OB2") r="BzO";
   else if (s=="Sl") r="Si";
-  // cout<<r<<endl;
+  //   cout<<r<<endl;
   return(r);
 }
 

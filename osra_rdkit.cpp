@@ -391,7 +391,7 @@ string get_smiles(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, int &r
   confidence=-1000;
   num_fragments=0;
   r56=0;
-  vector<int> bondid_to_i(bond.size(),-1);
+  vector<int> bondid_to_i(MAX_ATOMS,-1);
   vector<int> aid_vec;
   vector<double> x_coord,y_coord;
 
