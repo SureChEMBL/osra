@@ -197,7 +197,7 @@ char get_atom_label(Magick::Image image, Magick::ColorGray bg, int x1, int y1, i
 string fix_atom_name(string s,int n)
 {
   string r=s;
-  //    cout<<s<<"-->";
+  //     cout<<s<<"-->";
   if (s.length()==1) r=toupper(s.at(0));
   if (s=="Ci" || s=="Cf" || s=="Cll") r="Cl";
   else if (s=="H" && n>1) r="N";
@@ -205,7 +205,7 @@ string fix_atom_name(string s,int n)
 	   || s=="NM" || s=="NH2" || s=="H2N" || s=="NHZ" || s=="HZN" || s=="NH3"
 	   || s=="nu" || s=="Hu"  || s=="lU" || s=="HlU" || s=="lUH" || s=="H2Y")   r="N";
   else if (s=="OH" || s=="oH" || s=="Ho" || s=="HO" || s=="ol"
-	   || s=="On" || s=="on" || s=="no" || s=="nO") r="O";
+	   || s=="On" || s=="on" || s=="no" || s=="nO" || s=="ON") r="O";
   else if (s=="Meo" || s=="oMe" || s=="oMg" || s=="omg" || s=="Mgo"
 	   || s=="leo" || s=="ohle" || s=="lleo" || s=="olllle" 
 	   || s=="OMe" || s=="OM8" || s=="OMo" || s=="OMB" || s=="OCH3" 
