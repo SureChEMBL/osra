@@ -494,6 +494,29 @@ void addAcO(OBMol *mol,int *n,int *bondn)
   (*bondn)++;
 }
 
+void addNHAc(OBMol *mol,int *n,int *bondn)
+{
+  OBAtom *a;
+  a=mol->CreateAtom();
+  a->SetAtomicNum(6);
+  mol->AddAtom(*a);
+  (*n)++;
+  a=mol->CreateAtom();
+  a->SetAtomicNum(8);
+  mol->AddAtom(*a);
+  (*n)++;
+  mol->AddBond((*n)-1,(*n),2);
+  (*bondn)++;
+  mol->AddBond((*n)-2,(*n),1);
+  (*bondn)++;
+  a=mol->CreateAtom();
+  a->SetAtomicNum(6);
+  mol->AddAtom(*a);
+  (*n)++;
+  mol->AddBond((*n)-1,(*n),1);
+  (*bondn)++;
+}
+
 int getAnum(string s, OBMol *mol,int *n, int *bondn)
 {
   if (s=="C") return(6);
@@ -573,6 +596,11 @@ int getAnum(string s, OBMol *mol,int *n, int *bondn)
     {
       addAcO(mol,n,bondn);
       return(8);
+    }
+  if (s=="NHAc")
+    {
+      addNHAc(mol,n,bondn);
+      return(7);
     }
   if (s=="NO2")
     {

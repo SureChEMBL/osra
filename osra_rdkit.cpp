@@ -308,6 +308,19 @@ void addAcO(RWMol *mol,unsigned int aid)
   mol->addBond(aid3,aid,Bond::SINGLE);
 }
 
+void addNHAc(RWMol *mol,unsigned int aid)
+{
+  Atom *a1=new Atom(6);
+  unsigned int aid1=mol->addAtom(a1);
+  Atom *a2=new Atom(8);
+  unsigned int aid2=mol->addAtom(a2);
+  Atom *a3=new Atom(6);
+  unsigned int aid3=mol->addAtom(a3);
+  mol->addBond(aid2,aid3,Bond::DOUBLE);
+  mol->addBond(aid1,aid3,Bond::SINGLE);
+  mol->addBond(aid3,aid,Bond::SINGLE);
+}
+
 int getAnum(string s)
 {
   if (s=="C") return(6);
@@ -336,6 +349,7 @@ int getAnum(string s)
   if (s=="COOH") return(6);
   if (s=="Ac") return(6);
   if (s=="AcO") return(8);
+  if (s=="NHAc") return(7);
   if (s=="NO2") return(7);
   if (s=="NO") return(7);
   if (s=="Ph") return(6);
@@ -364,6 +378,7 @@ bool superatom(string s,RWMol *mol,unsigned int n)
   if (s=="COOH") {addCOOH(mol,n);return(true);}
   if (s=="Ac")   {addAc(mol,n);return(true);}
   if (s=="AcO")  {addAcO(mol,n);return(true);}
+  if (s=="NHAc")  {addNHAc(mol,n);return(true);}
   if (s=="NO2")  {addNO2(mol,n);return(true);}
   if (s=="NO")  {addNO(mol,n);return(true);}
   if (s=="Ph")   {addPh(mol,n);return(true);}

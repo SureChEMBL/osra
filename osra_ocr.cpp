@@ -197,7 +197,7 @@ char get_atom_label(Magick::Image image, Magick::ColorGray bg, int x1, int y1, i
 string fix_atom_name(string s,int n)
 {
   string r=s;
-  //     cout<<s<<"-->";
+  //    cout<<s<<"-->";
   if (s.length()==1) r=toupper(s.at(0));
   if (s=="Ci" || s=="Cf" || s=="Cll") r="Cl";
   else if (s=="H" && n>1) r="N";
@@ -237,7 +237,7 @@ string fix_atom_name(string s,int n)
   else if (s=="F3Co") r="F3CN";
   else if (s=="S3" || s=="Se" || s=="lS" || s=="8" || s=="SH" || s=="HS" || s=="SO2") r="S"; // SO2 should have its own procedure but mdclutil cannot handle non-terminal superatoms
   else if (s=="lH") r="H";
-  else if (s=="NHnC" || s=="pCNH" || s=="NHpC") r="NHAc";
+  else if (s=="AcNH" || s=="ACNH" || s=="NHnC" || s=="pCNH" || s=="NHpC" || s=="lCnuH") r="NHAc";
   else if (s=="OlHP" || s=="lHPO") r="THPO";
   else if (s=="NlOHCH3") r="NOHCH3";
   else if (s=="HO3S") r="SO3H";
