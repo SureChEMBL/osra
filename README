@@ -24,6 +24,12 @@ Source code and pre-compiled binaries (compiled with MinGW suite for
 Windows platform) are available from:
 http://cactus.nci.nih.gov/osra
 http://osra.sf.net 
+
+Plugins:
+Starting with version 1.2.0 plugins for BKChem, MolSketch, Symyx Draw, and
+Scitegic PipelinePilot are now included with Windows zip archive.
+Plugins allow for integration of OSRA functionality with chemical structure
+editors and other chemoinformatics software.
 =============================================================================
 Dependencies:
 
@@ -100,6 +106,23 @@ Set OPENBABEL_OR_RDKIT to either openbabel or rdkit depending on what toolkit yo
 have installed.
 Running make should then generate the executable - osra.
 
+Mac OS X (courtesy of Emilio Esposito):
+Install ImageMagick through MacPorts or Fink as it's just easier.
+Download OSRA, POTRACE, GOCR OCRAD, TCLAP, and OpenBabel. Unzipped and
+untarred the downloaded files into ~/software.
+Compile POTRACE and GOCR as follows: 
+./configure;make
+Compile and install TCLAP and OpenBabel as follows: 
+./configure;make;sudo make install
+Once the previous programs were successfully installed I modified my
+~/.profile file to reflect the installation of the OpenBabel and
+ImageMagick libraries:
+export LD_LIBRARY_PATH=/usr/local/lib:/usr/local/lib/openbabel/2.2.0:/usr/local/lib/ImageMagick-6.4.1
+Then, modify the OSRA Makefile:
+ARCH=unix
+OPENBABEL_OR_RDKIT=openbabel
+OPENBABEL=/usr/local/
+Running make should then generate the executable - osra.
 
 Compiling OSRA on Windows systems:
 It is possible to compile OSRA using either Cygwin or MinGW environment,

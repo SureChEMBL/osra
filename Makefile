@@ -6,13 +6,13 @@ OPENBABEL_OR_RDKIT=openbabel
 
 POTRACE=../potrace-1.8/
 GOCR=../gocr-0.45/
-OCRAD=../ocrad-0.18-pre4/
+OCRAD=../ocrad-0.17/
 
 ifeq ($(OPENBABEL_OR_RDKIT),rdkit)
 RDKIT=../rdkit-svn/
 BOOST=../boost_1_37_0/
 else
-OPENBABEL=/usr/
+OPENBABEL=/usr/local/
 endif
 
 TCLAPINC=-I/usr/local/include/tclap/
