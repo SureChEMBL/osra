@@ -625,6 +625,7 @@ string get_smiles(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, int &r
  int F_Count=0;
  int S_Count=0;
  int Cl_Count=0;
+ int Br_Count=0;
  int R_Count=0;
  for (unsigned int i=0;i<mol->getNumAtoms();i++)
    {
@@ -635,6 +636,7 @@ string get_smiles(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, int &r
      if (symbol=="F") F_Count++;
      if (symbol=="S") S_Count++;
      if (symbol=="Cl") Cl_Count++;
+     if (symbol=="Br") Br_Count++;
      if (symbol=="?") R_Count++;
    }
 

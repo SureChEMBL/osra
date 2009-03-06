@@ -772,6 +772,7 @@ string get_smiles(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, int &r
  int F_Count=0;
  int S_Count=0;
  int Cl_Count=0;
+ int Br_Count=0;
  int R_Count=0;
  for (unsigned int i=1;i<=mol.NumAtoms();i++)
    {
@@ -782,6 +783,7 @@ string get_smiles(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, int &r
      else if (a->IsSulfur()) S_Count++;
      else if (a->GetAtomicNum()==9) F_Count++;
      else if (a->GetAtomicNum()==17) Cl_Count++;
+     else if (a->GetAtomicNum()==35) Br_Count++;
      else if (a->GetAtomicNum()==0) R_Count++;
    }
 
@@ -803,7 +805,7 @@ string get_smiles(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, int &r
  mol.ContigFragList(cfl);
  num_fragments=cfl.size();
 
- confidence=confidence_function(C_Count,N_Count,O_Count,F_Count,S_Count,Cl_Count,
+ confidence=confidence_function(C_Count,N_Count,O_Count,F_Count,S_Count,Cl_Count,Br_Count,
 				num_rings,num_aromatic,num_fragments,&Num_Rings);
 
  r56=Num_Rings[5]+Num_Rings[6];
