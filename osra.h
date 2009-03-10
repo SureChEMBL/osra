@@ -116,7 +116,7 @@ double confidence_function(int C_Count,int N_Count,int O_Count,int F_Count,
 			   int num_fragments,vector<int> *Num_Rings);
 
 
-#define OSRA_VERSION "1.2.0"
+#define OSRA_VERSION "1.2.1"
 #define MAX_ATOMS 10000
 #define MAX_FONT_HEIGHT 22
 #define MAX_FONT_WIDTH 21
