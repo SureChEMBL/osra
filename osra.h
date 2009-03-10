@@ -147,5 +147,5 @@ double confidence_function(int C_Count,int N_Count,int O_Count,int F_Count,
 #define SINGLE_IMAGE_DIST 100
 #define THRESHOLD_LEVEL 4
 #define TEXT_LINE_SIZE 8
-
+#define PARTS_IN_MARGIN 3
 

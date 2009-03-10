@@ -3826,7 +3826,7 @@ void find_connected_components(Image image,double threshold,ColorGray bgColor,ve
 		    else if (k>=0 && l>=0 && k<image.columns() && l<image.rows() && k!=p.x && l!=p.y && tmp[k][l]==0)
 		      on_the_margin=true;
 		  }
-	      if (on_the_margin && (new_margin.size()<3 || rand()<RAND_MAX/3))
+	      if (on_the_margin && (new_margin.size()<PARTS_IN_MARGIN || rand()<RAND_MAX/PARTS_IN_MARGIN))
 		new_margin.push_back(p);
 	    }
 	  segments.push_back(new_segment);
@@ -3840,7 +3840,7 @@ void build_distance_matrix(vector < list<point_t> > margins, int max_dist, vecto
 {
   for (unsigned int s1=0;s1<margins.size();s1++)
     for (unsigned int s2=s1+1;s2<margins.size();s2++)
-      if (distance_between_points(margins[s1].front(),margins[s2].front())<margins[s1].size()+margins[s2].size()+max_dist)
+      if (distance_between_points(margins[s1].front(),margins[s2].front())<PARTS_IN_MARGIN*margins[s1].size()+PARTS_IN_MARGIN*margins[s2].size()+max_dist)
 	{
 	  int d=distance_between_segments(margins[s1],margins[s2]);
 	  if (d<max_dist)
