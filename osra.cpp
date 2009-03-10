@@ -3826,7 +3826,7 @@ void find_connected_components(Image image,double threshold,ColorGray bgColor,ve
 		    else if (k>=0 && l>=0 && k<image.columns() && l<image.rows() && k!=p.x && l!=p.y && tmp[k][l]==0)
 		      on_the_margin=true;
 		  }
-	      if (on_the_margin && rand()<RAND_MAX/3)
+	      if (on_the_margin && (new_margin.size()<3 || rand()<RAND_MAX/3))
 		new_margin.push_back(p);
 	    }
 	  segments.push_back(new_segment);
