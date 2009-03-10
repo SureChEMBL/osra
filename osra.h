@@ -113,7 +113,7 @@ int getPixel(Magick::Image image, Magick::ColorGray bg,unsigned int x, unsigned 
 double confidence_function(int C_Count,int N_Count,int O_Count,int F_Count,
 			   int S_Count,int Cl_Count,int Br_Count,
 			   int num_rings,int num_aromatic,
-			   int num_fragments,vector<int> *Num_Rings);
+			   int num_fragments,vector<int> *Num_Rings, int num_double, int num_triple);
 
 
 #define OSRA_VERSION "1.2.1"

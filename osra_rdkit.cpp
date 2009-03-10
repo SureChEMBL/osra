@@ -508,21 +508,27 @@ string get_smiles(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, int &r
       }
      }
 
+  int num_double=0;
+  int num_triple=0;
    MolOps::findSSSR(*mol);
    for(ROMol::BondIterator bondIt=mol->beginBonds();bondIt!=mol->endBonds();++bondIt)
-    if( ((*bondIt)->getIsAromatic() || (*bondIt)->getBondType()==Bond::AROMATIC)
-        && !mol->getRingInfo()->numBondRings((*bondIt)->getIdx()) )
-      {
-	(*bondIt)->setIsAromatic(false);
-	(*bondIt)->setBondType(Bond::SINGLE);
-	int i=bondid_to_i[(*bondIt)->getIdx()];
-	if (i>=0)
-	  {
-	    if (bond[i].type==2)
-	      (*bondIt)->setBondType(Bond::DOUBLE);
-	    else if (bond[i].type==3)
-	      (*bondIt)->setBondType(Bond::TRIPLE);
-	  }
+     {
+       if( ((*bondIt)->getIsAromatic() || (*bondIt)->getBondType()==Bond::AROMATIC)
+	   && !mol->getRingInfo()->numBondRings((*bondIt)->getIdx()) )
+	 {
+	   (*bondIt)->setIsAromatic(false);
+	   (*bondIt)->setBondType(Bond::SINGLE);
+	   int i=bondid_to_i[(*bondIt)->getIdx()];
+	   if (i>=0)
+	     {
+	       if (bond[i].type==2)
+		 (*bondIt)->setBondType(Bond::DOUBLE);
+	       else if (bond[i].type==3)
+		 (*bondIt)->setBondType(Bond::TRIPLE);
+	     }
+	 }
+       if ((*bondIt)->getBondType==Bond::DOUBLE) num_double++;
+       if ((*bondIt)->getBondType==Bond::TRIPLE) num_triple++;
       }
    bool doStereo=true;
 
@@ -689,7 +695,7 @@ string get_smiles(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, int &r
 
 
   confidence=confidence_function(C_Count,N_Count,O_Count,F_Count,S_Count,Cl_Count,
-				 num_rings,num_aromatic,num_fragments,&Num_Rings);
+				 num_rings,num_aromatic,num_fragments,&Num_Rings,num_double,num_triple);
 
   r56=Num_Rings[5]+Num_Rings[6];
   STR_VECT propNames;

@@ -4167,7 +4167,7 @@ bool comp_fragments(const fragment_t &aa, const fragment_t &bb)
 double confidence_function(int C_Count,int N_Count,int O_Count,int F_Count,
 			   int S_Count,int Cl_Count,int Br_Count, 
 			   int num_rings,int num_aromatic,
-			   int num_fragments,vector<int> *Num_Rings)
+			   int num_fragments,vector<int> *Num_Rings,int num_double, int num_triple)
 {
 double confidence=0.316030
   -0.016315*C_Count
@@ -4185,7 +4185,9 @@ double confidence=0.316030
   +0.329922*(*Num_Rings)[5]
   +0.342865*(*Num_Rings)[6]
   //+0.350747*(*Num_Rings)[7]
-  -0.037796*num_fragments;
+  -0.037796*num_fragments
+  +0.001*num_double
+  +0.002*num_triple;
  return(confidence);
 }
 

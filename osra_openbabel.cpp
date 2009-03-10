@@ -752,6 +752,8 @@ string get_smiles(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, int &r
      }
  mol.EndModify();
  mol.FindRingAtomsAndBonds();
+ int num_double=0;
+ int num_triple=0;
  for (unsigned int j=1;j<=mol.NumBonds();j++)
      {
        OBBond *b=mol.GetBond(j);
@@ -764,6 +766,8 @@ string get_smiles(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, int &r
 	 }
 	 else
 	   b->UnsetAromatic();
+	if (b->IsDouble()) num_double++;
+	if (b->IsTriple()) num_triple++;
        }
      }
  int C_Count=0;
@@ -806,7 +810,7 @@ string get_smiles(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, int &r
  num_fragments=cfl.size();
 
  confidence=confidence_function(C_Count,N_Count,O_Count,F_Count,S_Count,Cl_Count,Br_Count,
-				num_rings,num_aromatic,num_fragments,&Num_Rings);
+				num_rings,num_aromatic,num_fragments,&Num_Rings,num_double,num_triple);
 
  r56=Num_Rings[5]+Num_Rings[6];
 
