@@ -4073,6 +4073,34 @@ list < list < list<point_t> > > find_segments(Image image,double threshold,
     return explicit_clusters;
 }
 
+void remove_brackets(int left, int right, int top, int bottom,list < list < list<point_t> > >::iterator c)
+{
+  vector < vector <bool> > pic(right-left+1, vector<bool> (bottom-top+1,false));
+  for(list < list<point_t> >::iterator s=c->begin();s!=c->end();s++)
+    for (list<point_t>::iterator p=s->begin();p!=s->end();p++)
+      pic[p->x-left][p->y-top]=true;
+  
+  for (int i=left+FRAME;i<right-FRAME;i++)
+    for(list < list<point_t> >::iterator s=c->begin();s!=c->end();s++)
+      {
+	vector<point_t> set;
+	for (list<point_t>::iterator p=s->begin();p!=s->end();p++)
+	  if (p->x<i && i+(i-p->x)<right && pic[i+(i-p->x)-left][p->y-top])
+	    set.push_back(*p);
+	
+	if (set.size()>100)
+	  {
+	    Image t(Geometry(right-left+1,bottom-top+1),"white");
+	    for(unsigned int p=0;p<set.size();p++)
+	      {
+		t.pixelColor(set[p].x-left,set[p].y-top,"black");
+		t.pixelColor(i+(i-set[p].x)-left,set[p].y-top,"black");
+	      }
+	    t.write("t.png");
+	    exit(0);
+	  }
+      }
+}
 
 int prune_clusters(list < list < list<point_t> > > clusters,vector<box_t> &boxes)
 {
@@ -4116,6 +4144,9 @@ int prune_clusters(list < list < list<point_t> > > clusters,vector<box_t> &boxes
 	 boxes[n_boxes].y1=top;
 	 boxes[n_boxes].x2=right;
 	 boxes[n_boxes].y2=bottom;
+
+	 remove_brackets(left,right,top,bottom,c);
+	 
 	 for(list < list<point_t> >::iterator s=c->begin();s!=c->end();s++)
 	   for (list<point_t>::iterator p=s->begin();p!=s->end();p++)
 	     boxes[n_boxes].c.push_back(*p);
@@ -4163,6 +4194,7 @@ bool comp_fragments(const fragment_t &aa, const fragment_t &bb)
   
  return(false);
  }
+
 
 double confidence_function(int C_Count,int N_Count,int O_Count,int F_Count,
 			   int S_Count,int Cl_Count,int Br_Count, 
@@ -4381,6 +4413,7 @@ int main(int argc,char **argv)
 		    ColorGray color=image.pixelColor(x,y);
 		    orig_box.pixelColor(x-boxes[k].x1+FRAME,y-boxes[k].y1+FRAME,color);
 		  }
+
 
 		int width=orig_box.columns();
 		int height=orig_box.rows();
