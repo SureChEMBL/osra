@@ -192,6 +192,74 @@ char get_atom_label(Magick::Image image, Magick::ColorGray bg, int x1, int y1, i
     }
 }
 
+bool detect_bracket(int x, int y,unsigned char *pic)
+{
+  Control control;
+  char c1=0;
+  job_t job;
+  JOB=&job;
+  job_init(&job);
+  job.cfg.cfilter="([{";
+
+  //job.cfg.cs=160;
+  //job.cfg.certainty=80;
+  //job.cfg.dust_size=1;
+
+  bool res=false;
+
+  job.src.p.x=x;
+  job.src.p.y=y;
+  job.src.p.bpp=1;
+  job.src.p.p = pic;
+
+  Blob *b=new Blob(0,0,job.src.p.x,job.src.p.y);
+
+  int count=0;
+  int zeros=0;
+  for (int i=0;i<=y;i++)
+    for (int j=0;j<=x;j++)
+      {
+	if (pic[i*x+j]==0) 
+	  {
+	    b->set_bit(y,x,true);
+	    count++;
+	  }
+	else 
+	  zeros++;
+      }
+
+  /* for (int i=0;i<job.src.p.y;i++)
+    {
+      for(int j=0;j<job.src.p.x;j++)
+	cout<<job.src.p.p[i*job.src.p.x+j]/255;
+      cout<<endl;
+    }
+  */
+      if (count>MIN_CHAR_POINTS && zeros>MIN_CHAR_POINTS)
+	{
+	  try {
+	    pgm2asc(&job);
+	  }
+	  catch(...){}
+	  char *l;
+	  l=(char *)job.res.linelist.start.next->data;
+	  if (l!=NULL)  c1=l[0];
+	  if (c1=='(' || c1=='[' || c1=='{') res=true;
+	  else
+	    {
+	      char c2=0;
+	      b->find_holes();
+	      Character a(b);
+	      a.recognize1(control.charset,Rectangle::Rectangle( a.left(), a.top(), a.right(), a.bottom()));
+	      c2=a.result();
+	      if (c2=='(' || c2=='[' || c2=='{') res=true;
+	    }
+	}
+
+      job_free(&job);
+      
+      return(res);
+}
 
 
 string fix_atom_name(string s,int n)

@@ -4075,31 +4075,73 @@ list < list < list<point_t> > > find_segments(Image image,double threshold,
 
 void remove_brackets(int left, int right, int top, int bottom,list < list < list<point_t> > >::iterator c)
 {
-  vector < vector <bool> > pic(right-left+1, vector<bool> (bottom-top+1,false));
+  vector < vector <bool> > tmp(right-left+1, vector<bool> (bottom-top+1,false));
+  vector < vector <bool> > global_pic(right-left+1, vector<bool> (bottom-top+1,false));
   for(list < list<point_t> >::iterator s=c->begin();s!=c->end();s++)
     for (list<point_t>::iterator p=s->begin();p!=s->end();p++)
-      pic[p->x-left][p->y-top]=true;
+      global_pic[p->x-left][p->y-top]=true;
   
+  bool found=false;
+
   for (int i=left+FRAME;i<right-FRAME;i++)
     for(list < list<point_t> >::iterator s=c->begin();s!=c->end();s++)
       {
 	vector<point_t> set;
+	int x1=INT_MAX,y1=INT_MAX,x2=0,y2=0;
 	for (list<point_t>::iterator p=s->begin();p!=s->end();p++)
-	  if (p->x<i && i+(i-p->x)<right && pic[i+(i-p->x)-left][p->y-top])
-	    set.push_back(*p);
+	  if (p->x<i && i+(i-p->x)<right && global_pic[i+(i-p->x)-left][p->y-top])
+	    {
+	      set.push_back(*p);
+	      if (p->x<x1) x1=p->x;
+	      if (p->x>x2) x2=p->x;
+	      if (p->y<y1) y1=p->y;
+	      if (p->y>y2) y2=p->y;
+	    }
 	
-	if (set.size()>100)
+	if (set.size()>100 && (i-x2)>3 && (x2-x1)>3 && (y2-y1)>5 && (x2-x1)<(y2-y1))
 	  {
-	    Image t(Geometry(right-left+1,bottom-top+1),"white");
+	    int x=x2-x1+1;
+	    int y=y2-y1+1;
+	    int f=1;
+	    if (y>40) f=y/40;
+	    x/=f;
+	    y/=f;
+
+	    unsigned char *pic=(unsigned char *)malloc(x*y);
+	    for (int i=0;i<x*y;i++) pic[i]=255;
 	    for(unsigned int p=0;p<set.size();p++)
+	      if ((set[p].y-y1)/f<y && (set[p].x-x1)/f<x)
+		pic[((set[p].y-y1)/f)*x+(set[p].x-x1)/f]=0;
+	    bool res=detect_bracket(x,y,pic);
+	    if (res)
 	      {
-		t.pixelColor(set[p].x-left,set[p].y-top,"black");
-		t.pixelColor(i+(i-set[p].x)-left,set[p].y-top,"black");
+		for(unsigned int p=0;p<set.size();p++)
+		  {
+		    tmp[set[p].x-left][set[p].y-top]=true;
+		    tmp[i+(i-set[p].x)-left][set[p].y-top]=true;
+		  }
+		found=true;
 	      }
-	    t.write("t.png");
-	    exit(0);
 	  }
       }
+
+  if (found)
+    {
+      list < list<point_t> >::iterator s1=c->begin();
+      while (s1!=c->end())
+      {
+	list<point_t>::iterator p1=s1->begin();
+	while (p1!=s1->end())
+	  if (tmp[p1->x-left][p1->y-top])
+	    p1=s1->erase(p1);
+	  else
+	    p1++;
+	if (s1->size()>0)
+	  s1++;
+	else
+	  s1=c->erase(s1);
+      }
+    }
 }
 
 int prune_clusters(list < list < list<point_t> > > clusters,vector<box_t> &boxes)
