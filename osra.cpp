@@ -322,6 +322,7 @@ bool no_white_space(int ai,int bi,int aj, int bj, vector<atom_t> &atom,Image ima
   double dy2=atom[bj].y-atom[aj].y;
   double k1,k2;
   int s=0,w=0;
+  int total_length=0,white_length=0;
 
   if (fabs(dx1)>fabs(dy1))
     {
@@ -341,12 +342,18 @@ bool no_white_space(int ai,int bi,int aj, int bj, vector<atom_t> &atom,Image ima
 	   double p2=(x-atom[aj].x)*k2+atom[aj].y;
 	   if (fabs(p2-p1)<1) continue;
 	   int dp=(p2>p1?1:-1);
-
+	   bool white=false;
 	   for(int y=int(p1)+dp;y!=int(p2);y+=dp)
 	     {
 	       s++;
-	       if (getPixel(image,bgColor,x,y,threshold)==0) w++;
+	       if (getPixel(image,bgColor,x,y,threshold)==0) 
+		 {
+		   w++;
+		   white=true;
+		 }
 	     }
+	   total_length++;
+	   if (white) white_length++;
 	  }
     }
   else  
@@ -367,15 +374,24 @@ bool no_white_space(int ai,int bi,int aj, int bj, vector<atom_t> &atom,Image ima
 	   double p2=(y-atom[aj].y)*k2+atom[aj].x;
 	   if (fabs(p2-p1)<1) continue;
 	   int dp=(p2>p1?1:-1);
+	   bool white=false;
 	   for(int x=int(p1)+dp;x!=int(p2);x+=dp)
 	     {
 	       s++;
-	       if (getPixel(image,bgColor,x,y,threshold)==0) w++;
+	       if (getPixel(image,bgColor,x,y,threshold)==0) 
+		 {
+		   w++;
+		   white=true;
+		 }
 	     }
+	   total_length++;
+	   if (white) white_length++;
 	  }
     }
-  if (s==0) return(true);
-  if ((1.*w)/s>WHITE_SPACE_FRACTION) return(false);
+  //  if (s==0) return(true);
+  //if ((1.*w)/s>WHITE_SPACE_FRACTION) return(false);
+  if (total_length==0) return(true);
+  if ((1.*white_length)/total_length>0.5) return(false);
   else return(true);
 }
 
@@ -4082,6 +4098,7 @@ void remove_brackets(int left, int right, int top, int bottom,list < list < list
       global_pic[p->x-left][p->y-top]=true;
   
   bool found=false;
+  //Image t(Geometry(right-left+1,bottom-top+1),"white");
 
   for (int i=left+FRAME;i<right-FRAME;i++)
     for(list < list<point_t> >::iterator s=c->begin();s!=c->end();s++)
@@ -4098,7 +4115,7 @@ void remove_brackets(int left, int right, int top, int bottom,list < list < list
 	      if (p->y>y2) y2=p->y;
 	    }
 	
-	if (set.size()>100 && (i-x2)>3 && (x2-x1)>3 && (y2-y1)>5 && (x2-x1)<(y2-y1))
+	if (set.size()>10 && (i-x2)>5 && (x2-x1)>3 && (y2-y1)>5 && (x2-x1)<(y2-y1))
 	  {
 	    int x=x2-x1+1;
 	    int y=y2-y1+1;
@@ -4108,17 +4125,20 @@ void remove_brackets(int left, int right, int top, int bottom,list < list < list
 	    y/=f;
 
 	    unsigned char *pic=(unsigned char *)malloc(x*y);
-	    for (int i=0;i<x*y;i++) pic[i]=255;
+	    for (int j=0;j<x*y;j++) pic[j]=255;
 	    for(unsigned int p=0;p<set.size();p++)
 	      if ((set[p].y-y1)/f<y && (set[p].x-x1)/f<x)
 		pic[((set[p].y-y1)/f)*x+(set[p].x-x1)/f]=0;
 	    bool res=detect_bracket(x,y,pic);
 	    if (res)
 	      {
+		//cout<<set.size()<<endl;
 		for(unsigned int p=0;p<set.size();p++)
 		  {
 		    tmp[set[p].x-left][set[p].y-top]=true;
 		    tmp[i+(i-set[p].x)-left][set[p].y-top]=true;
+		    //t.pixelColor(set[p].x-left,set[p].y-top,"black");
+		    //t.pixelColor(i+(i-set[p].x)-left,set[p].y-top,"black");
 		  }
 		found=true;
 	      }
@@ -4127,6 +4147,8 @@ void remove_brackets(int left, int right, int top, int bottom,list < list < list
 
   if (found)
     {
+      //t.write("t.png");
+      //exit(0);
       list < list<point_t> >::iterator s1=c->begin();
       while (s1!=c->end())
       {
