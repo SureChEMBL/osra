@@ -146,6 +146,19 @@ void remove_zero_bonds(vector<bond_t> &bond, int n_bond,vector<atom_t> &atom)
       }
 }
 
+void collapse_doubleup_bonds(vector<bond_t> &bond, int n_bond)
+{
+  for (int i=0;i<n_bond;i++)
+    if (bond[i].exists)
+      for (int j=0;j<n_bond;j++)
+	if ((bond[j].exists) && (j!=i) && 
+	    ((bond[i].a==bond[j].a && bond[i].b==bond[j].b) ||
+	     (bond[i].a==bond[j].b && bond[i].b==bond[j].a)))
+	  {
+	    bond[j].exists=false;
+	    bond[i].type++;
+	  }
+}
 
 
 int getPixel(Image image, ColorGray bg,unsigned int x, unsigned int y, double THRESHOLD)
@@ -4115,7 +4128,7 @@ void remove_brackets(int left, int right, int top, int bottom,list < list < list
 	      if (p->y>y2) y2=p->y;
 	    }
 	
-	if (set.size()>10 && (i-x2)>5 && (x2-x1)>3 && (y2-y1)>5 && (x2-x1)<(y2-y1))
+	if (set.size()>100 && (i-x2)>5 && (x2-x1)>3 && (y2-y1)>5 && (x2-x1)<(y2-y1))
 	  {
 	    int x=x2-x1+1;
 	    int y=y2-y1+1;
@@ -4567,10 +4580,12 @@ int main(int argc,char **argv)
 		if (working_resolution<300) dist=3;
 		if (working_resolution<150) dist=2;
 		
-		                                
+
 	
 		double thickness=skeletize(atom,bond,n_bond,box,THRESHOLD_BOND,
 				    bgColor,dist,avg_bond);
+
+
 	
 		remove_disconnected_atoms(atom,bond,n_atom,n_bond);
 		collapse_atoms(atom,bond,n_atom,n_bond,3);
@@ -4593,13 +4608,13 @@ int main(int argc,char **argv)
 		remove_zero_bonds(bond,n_bond,atom);
 		avg_bond=percentile75(bond,n_bond,atom);
 	
-		
+
 
 		double max_dist_double_bond=dist_double_bonds(atom,bond,n_bond,avg_bond);
 		n_bond=double_triple_bonds(atom,bond,n_bond,avg_bond,n_atom,
 					   max_dist_double_bond);
-					
-	
+
+
 		n_atom=find_dashed_bonds(p,atom,bond,n_atom,&n_bond,
 					 max(MAX_DASH,int(avg_bond/3)),
 					 avg_bond,orig_box,bgColor,
@@ -4643,15 +4658,16 @@ int main(int argc,char **argv)
 
 		collapse_double_bonds(bond,n_bond,atom,max_dist_double_bond);
 
-	
+
 		extend_terminal_bond_to_label(atom,letters,n_letters,bond,n_bond,
 					      label,n_label,avg_bond/2,
 					      thickness,max_dist_double_bond);
-		
-		
+
 	
 		remove_disconnected_atoms(atom,bond,n_atom,n_bond);
 		collapse_atoms(atom,bond,n_atom,n_bond,thickness);
+		collapse_doubleup_bonds(bond,n_bond);
+	debug(orig_box,atom,n_atom,bond,n_bond,"tmp.png");			
 		remove_zero_bonds(bond,n_bond,atom);
 		flatten_bonds(bond,n_bond,atom,thickness);
 		remove_zero_bonds(bond,n_bond,atom);
