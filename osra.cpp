@@ -426,10 +426,10 @@ double skeletize(vector<atom_t> &atom,vector<bond_t> &bond,int n_bond,Image imag
 	    {
 	      double tt=distance_between_bonds(bond,i,j,atom); 
 	      double tang=angle_between_bonds(bond,i,j,atom);
-	      if (fabs(tang)>D_T_TOLERANCE 
+	      if ((fabs(tang)>D_T_TOLERANCE 
 		   && no_white_space(bond[i].a,bond[i].b,bond[j].a,bond[j].b,atom,image,threshold,bgColor) 
 		  && tt<MAX_BOND_THICKNESS)
-		  //|| tt<dist)
+		  || tt<dist)
 		{
 		  double l2=bond_length(bond,j,atom);
 		  a.push_back(tt);
@@ -4577,8 +4577,7 @@ int main(int argc,char **argv)
 		find_old_aromatic_bonds(p,bond,n_bond,atom,n_atom,avg_bond);
 
 
-		double dist=4.;
-		if (working_resolution<300) dist=3;
+		double dist=3.;
 		if (working_resolution<150) dist=2;
 		
 
@@ -4624,7 +4623,9 @@ int main(int argc,char **argv)
 		n_letters=remove_small_bonds(bond,n_bond,atom,letters,n_letters,
 					     real_font_height,MIN_FONT_HEIGHT,avg_bond);
 
-
+		dist=4.;
+		if (working_resolution<300) dist=3;
+		if (working_resolution<150) dist=2;
 		n_bond=fix_one_sided_bonds(bond,n_bond,atom,dist,avg_bond);
 		
 		
