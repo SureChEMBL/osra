@@ -406,6 +406,7 @@ bool no_white_space(int ai,int bi,int aj, int bj, vector<atom_t> &atom,Image ima
   if (total_length==0) return(true);
   if ((1.*white_length)/total_length>0.5) return(false);
   else return(true);
+
 }
 
 
@@ -425,10 +426,10 @@ double skeletize(vector<atom_t> &atom,vector<bond_t> &bond,int n_bond,Image imag
 	    {
 	      double tt=distance_between_bonds(bond,i,j,atom); 
 	      double tang=angle_between_bonds(bond,i,j,atom);
-	      if ((fabs(tang)>D_T_TOLERANCE 
-		   && no_white_space(bond[i].a,bond[i].b,bond[j].a,bond[j].b,atom,
-				     image,threshold,bgColor) && tt<MAX_BOND_THICKNESS)
-		  || tt<dist)
+	      if (fabs(tang)>D_T_TOLERANCE 
+		   && no_white_space(bond[i].a,bond[i].b,bond[j].a,bond[j].b,atom,image,threshold,bgColor) 
+		  && tt<MAX_BOND_THICKNESS)
+		  //|| tt<dist)
 		{
 		  double l2=bond_length(bond,j,atom);
 		  a.push_back(tt);
@@ -4222,7 +4223,7 @@ int prune_clusters(list < list < list<point_t> > > clusters,vector<box_t> &boxes
 	 boxes[n_boxes].x2=right;
 	 boxes[n_boxes].y2=bottom;
 
-	 remove_brackets(left,right,top,bottom,c);
+	 //	 remove_brackets(left,right,top,bottom,c);
 	 
 	 for(list < list<point_t> >::iterator s=c->begin();s!=c->end();s++)
 	   for (list<point_t>::iterator p=s->begin();p!=s->end();p++)
@@ -4585,7 +4586,7 @@ int main(int argc,char **argv)
 		double thickness=skeletize(atom,bond,n_bond,box,THRESHOLD_BOND,
 				    bgColor,dist,avg_bond);
 
-
+		//		debug(orig_box,atom,n_atom,bond,n_bond,"tmp.png");			
 	
 		remove_disconnected_atoms(atom,bond,n_atom,n_bond);
 		collapse_atoms(atom,bond,n_atom,n_bond,3);
@@ -4667,7 +4668,7 @@ int main(int argc,char **argv)
 		remove_disconnected_atoms(atom,bond,n_atom,n_bond);
 		collapse_atoms(atom,bond,n_atom,n_bond,thickness);
 		collapse_doubleup_bonds(bond,n_bond);
-	debug(orig_box,atom,n_atom,bond,n_bond,"tmp.png");			
+
 		remove_zero_bonds(bond,n_bond,atom);
 		flatten_bonds(bond,n_bond,atom,thickness);
 		remove_zero_bonds(bond,n_bond,atom);
