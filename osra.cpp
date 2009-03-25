@@ -3000,7 +3000,7 @@ int thickness_ver(Image image,int x1,int y1, ColorGray bgColor,
 
 double find_wedge_bonds(Image image,vector<atom_t> &atom, int n_atom,vector<bond_t> &bond,int n_bond, 
 			ColorGray bgColor,double THRESHOLD_BOND, 
-			double max_dist_double_bond, double avg,int limit)
+			double max_dist_double_bond, double avg,int limit, int dist=0)
 {
   double l;
   vector<double> a;
@@ -3025,8 +3025,8 @@ double find_wedge_bonds(Image image,vector<atom_t> &atom, int n_atom,vector<bond
 	  {
 	    w=w3_ver;
 	    int old=w3_ver;
-	    max_c=int(max(atom[bond[i].a].x,atom[bond[i].b].x));
-	    min_c=int(min(atom[bond[i].a].x,atom[bond[i].b].x));
+	    max_c=int(max(atom[bond[i].a].x,atom[bond[i].b].x))-dist;
+	    min_c=int(min(atom[bond[i].a].x,atom[bond[i].b].x))+dist;
 	    if (atom[bond[i].b].x<atom[bond[i].a].x) sign=-1;
 	    for (int j=x1+1;j<=max_c;j++)
 	      {
@@ -3069,8 +3069,8 @@ double find_wedge_bonds(Image image,vector<atom_t> &atom, int n_atom,vector<bond
 	  {
 	    w=w3_hor;
 	    int old=w3_hor;
-	    max_c=int(max(atom[bond[i].a].y,atom[bond[i].b].y));
-	    min_c=int(min(atom[bond[i].a].y,atom[bond[i].b].y));
+	    max_c=int(max(atom[bond[i].a].y,atom[bond[i].b].y))-dist;
+	    min_c=int(min(atom[bond[i].a].y,atom[bond[i].b].y))+dist;
 	    if (atom[bond[i].b].y<atom[bond[i].a].y) sign=-1;
 	    for (int j=y1+1;j<=max_c;j++)
 	      {
@@ -3753,7 +3753,19 @@ void remove_small_terminal_bonds(vector<bond_t> &bond,int n_bond,vector<atom_t> 
 		    if (atom[bond[j].a].label!=" ") 
 		      atom[bond[j].b].label=atom[bond[j].a].label;
 		    else
-		      atom[bond[j].b].label="X";
+		      {
+			bool dashed=false;
+			int n=0;
+			for (int i=0;i<n_bond;i++)
+			  if (bond[i].exists && i!=j && 
+			      (bond[i].a==bond[j].b || bond[i].b==bond[j].b))
+			    {
+			      n++;
+			      if (bond[i].hash) dashed=true;
+			    }
+			if (!dashed)
+			  atom[bond[j].b].label="X";
+		      }
 		  }
 	      }
 	    if (not_corner_b)
@@ -3766,7 +3778,19 @@ void remove_small_terminal_bonds(vector<bond_t> &bond,int n_bond,vector<atom_t> 
 		    if (atom[bond[j].b].label!=" ") 
 		      atom[bond[j].a].label=atom[bond[j].b].label;
 		    else
-		      atom[bond[j].a].label="X";
+		      {
+			bool dashed=false;
+			int n=0;
+			for (int i=0;i<n_bond;i++)
+			  if (bond[i].exists && i!=j && 
+			      (bond[i].a==bond[j].a || bond[i].b==bond[j].a))
+			    {
+			      n++;
+			      if (bond[i].hash) dashed=true;
+			    }
+			if (!dashed)
+			  atom[bond[j].a].label="X";
+		      }
 		  }
 	      }
 	  }
@@ -4380,9 +4404,9 @@ double confidence=0.316030
   +0.329922*(*Num_Rings)[5]
   +0.342865*(*Num_Rings)[6]
   //+0.350747*(*Num_Rings)[7]
-  -0.037796*num_fragments
-  +0.001*num_double
-  +0.002*num_triple;
+  -0.037796*num_fragments;
+  //  +0.001*num_double
+  //+0.002*num_triple;
  return(confidence);
 }
 
@@ -4724,7 +4748,7 @@ int main(int argc,char **argv)
 
 		thickness=find_wedge_bonds(thick_box,atom,n_atom,bond,n_bond,bgColor,
 					   THRESHOLD_BOND,max_dist_double_bond,
-					   avg_bond,3);
+					   avg_bond,3,2);
 
 	
 
