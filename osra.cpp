@@ -972,6 +972,8 @@ int assemble_labels(vector<letters_t> &letters,int n_letters,vector<label_t> &la
 	label[n_label].r2=0;
 	label[n_label].a=letters[lbond[i].a].a;
 	label[n_label].a+=letters[lbond[i].b].a;
+	label[n_label].n.push_back(lbond[i].a);
+	label[n_label].n.push_back(lbond[i].b);
 	if (!isdigit(letters[lbond[i].a].a) && letters[lbond[i].a].a!='-'
 	    && letters[lbond[i].a].a!='+' && !found_left)
 	  {
@@ -1008,6 +1010,7 @@ int assemble_labels(vector<letters_t> &letters,int n_letters,vector<label_t> &la
 	   if ((lbond[j].exists) && (lbond[j].a==last))
 	     {
 		label[n_label].a+=letters[lbond[j].b].a;
+		label[n_label].n.push_back(lbond[j].b);
 		if (!isdigit(letters[lbond[j].a].a) && letters[lbond[j].a].a!='-'
 		    && letters[lbond[j].a].a!='+' && !found_left)
 		  {
@@ -1042,30 +1045,110 @@ int assemble_labels(vector<letters_t> &letters,int n_letters,vector<label_t> &la
 		lbond[j].exists=false;
 	     }
 	
-	 bool cont=true;
-	 string charges="";
-	 while (cont)
-	  {
-	    cont=false;
-	    string::size_type pos=label[n_label].a.find_first_of('-');
-	    if (pos!=string::npos)
-	      {
-		label[n_label].a.erase(pos,1);
-		charges+="-";
-		cont=true;
-	      }
-	    pos=label[n_label].a.find_first_of('+');
-	    if (pos!=string::npos)
-	      {
-		label[n_label].a.erase(pos,1);
-		charges+="+";
-		cont=true;
-	      }
-	  }
-	 label[n_label].a+=charges;
+	 
 	 n_label++;
 	 if (n_label>=MAX_ATOMS) n_label--;
       }
+
+  int old_n_label=n_label;
+  for (int i=0;i<old_n_label;i++)
+    {
+      double cy=0;
+      int n=0;
+
+      for (unsigned int j=0;j<label[i].n.size();j++)
+	if (isalpha(letters[label[i].n[j]].a))
+	  {
+	    cy+=letters[label[i].n[j]].y;
+	    n++;
+	  }
+      cy/=n;
+      n=0;
+      for (unsigned int j=0;j<label[i].n.size();j++)
+	if (isalpha(letters[label[i].n[j]].a) && letters[label[i].n[j]].y-cy>letters[label[i].n[j]].r/2)
+	  n++;
+
+      if (n>1)
+	{
+	  label[i].a="";
+	  label[i].x1=FLT_MAX;
+	  label[i].x2=0;
+	  label_t lb;
+	  label.push_back(lb);
+	  label[n_label].a="";
+	  label[n_label].x1=FLT_MAX;
+	  label[n_label].x2=0;
+
+	  for (unsigned int j=0;j<label[i].n.size();j++)
+	    {
+	      if (letters[label[i].n[j]].y>cy)
+		{
+		  label[i].a+=letters[label[i].n[j]].a;
+		  if (isalpha(letters[label[i].n[j]].a))
+		    {
+		      if (letters[label[i].n[j]].x<label[i].x1)
+			{
+			  label[i].x1=letters[label[i].n[j]].x;
+			  label[i].y1=letters[label[i].n[j]].y;
+			  label[i].r1=letters[label[i].n[j]].r;
+			}
+		      if (letters[label[i].n[j]].x>label[i].x2)
+			{
+			  label[i].x2=letters[label[i].n[j]].x;
+			  label[i].y2=letters[label[i].n[j]].y;
+			  label[i].r2=letters[label[i].n[j]].r;
+			}
+		    }
+		}
+	      else
+		{
+		  label[n_label].a+=letters[label[i].n[j]].a;
+		  if (isalpha(letters[label[i].n[j]].a))
+		    {
+		      if (letters[label[i].n[j]].x<label[n_label].x1)
+			{
+			  label[n_label].x1=letters[label[i].n[j]].x;
+			  label[n_label].y1=letters[label[i].n[j]].y;
+			  label[n_label].r1=letters[label[i].n[j]].r;
+			}
+		      if (letters[label[i].n[j]].x>label[n_label].x2)
+			{
+			  label[n_label].x2=letters[label[i].n[j]].x;
+			  label[n_label].y2=letters[label[i].n[j]].y;
+			  label[n_label].r2=letters[label[i].n[j]].r;
+			}
+		    }
+		}
+	    }
+	  n_label++;
+	}
+    }
+	      
+  for (int i=0;i<n_label;i++)
+    {
+      bool cont=true;
+      string charges="";
+      while (cont)
+	{
+	  cont=false;
+	  string::size_type pos=label[i].a.find_first_of('-');
+	  if (pos!=string::npos)
+	    {
+	      label[i].a.erase(pos,1);
+	      charges+="-";
+	      cont=true;
+	    }
+	  pos=label[i].a.find_first_of('+');
+	  if (pos!=string::npos)
+	    {
+	      label[i].a.erase(pos,1);
+	      charges+="+";
+	      cont=true;
+	    }
+	}
+      label[i].a+=charges;
+    }
+
   return(n_label);
 }
 
@@ -2756,6 +2839,7 @@ int find_fused_chars(vector<bond_t> &bond,int n_bond,vector<atom_t> &atom,
 		char label=0;
 		if (dummy!=0) 
 		  {
+   
 		    label=dummy;
 		    //cout<<bag_size<<" "<<left<<" "<<top<<" "<<right<<" "<<bottom<<endl;
 		  }
@@ -2771,6 +2855,7 @@ int find_fused_chars(vector<bond_t> &bond,int n_bond,vector<atom_t> &atom,
 		     && label!='h') || dummy!=0
 		    )
 		  {
+
 		    bool overlap=false;
 		    for (int j=0;j<n_letters;j++)
 		      {
@@ -4585,7 +4670,8 @@ int main(int argc,char **argv)
 		double thickness=skeletize(atom,bond,n_bond,box,THRESHOLD_BOND,
 				    bgColor,dist,avg_bond);
 
-		//		debug(orig_box,atom,n_atom,bond,n_bond,"tmp.png");			
+	
+		    
 	
 		remove_disconnected_atoms(atom,bond,n_atom,n_bond);
 		collapse_atoms(atom,bond,n_atom,n_bond,3);
@@ -4598,11 +4684,11 @@ int main(int argc,char **argv)
 					   THRESHOLD_CHAR,3);
 		
 
+
 		n_letters=find_fused_chars(bond,n_bond,atom,letters,n_letters,
 					   real_font_height,real_font_width,
 					   'R',orig_box,bgColor,
-					   THRESHOLD_CHAR,4);
-		
+					   THRESHOLD_CHAR,5);
 
 		flatten_bonds(bond,n_bond,atom,3);
 		remove_zero_bonds(bond,n_bond,atom);
@@ -4632,8 +4718,9 @@ int main(int argc,char **argv)
 
 		n_letters=clean_unrecognized_characters(bond,n_bond,
 							atom,real_font_height,
-							real_font_width,3,letters,
+							real_font_width,4,letters,
 							n_letters);
+
 
 		thickness=find_wedge_bonds(thick_box,atom,n_atom,bond,n_bond,bgColor,
 					   THRESHOLD_BOND,max_dist_double_bond,
@@ -4664,8 +4751,11 @@ int main(int argc,char **argv)
 		extend_terminal_bond_to_label(atom,letters,n_letters,bond,n_bond,
 					      label,n_label,avg_bond/2,
 					      thickness,max_dist_double_bond);
-
-	
+		/*if (ttt++==2) 
+		  {
+		    debug(orig_box,atom,n_atom,bond,n_bond,"tmp.png");	
+		  }   	
+		*/
 		remove_disconnected_atoms(atom,bond,n_atom,n_bond);
 		collapse_atoms(atom,bond,n_atom,n_bond,thickness);
 		collapse_doubleup_bonds(bond,n_bond);
@@ -4690,6 +4780,7 @@ int main(int argc,char **argv)
 							letters,n_letters);
 
 
+			
 	
 	
 		assign_charge(atom,bond,n_atom,n_bond);
@@ -4709,11 +4800,7 @@ int main(int argc,char **argv)
 		    n_bond=reconnect_fragments(bond,n_bond,atom,avg_bond);
 		    collapse_atoms(atom,bond,n_atom,n_bond,1);
 
-		    /*if (ttt++==1) 
-		  {
-		    debug(orig_box,atom,n_atom,bond,n_bond,"tmp.png");	
-		  }   
-		    */
+	   
 		    vector < vector<int> > frags=find_fragments(bond,n_bond,atom);
 		    vector<fragment_t> fragments=populate_fragments(frags,atom);
 		    std::sort(fragments.begin(),fragments.end(),comp_fragments);

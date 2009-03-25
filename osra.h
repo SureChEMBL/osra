@@ -68,6 +68,7 @@ typedef struct letters_s letters_t;
 struct label_s {
   double x1,y1,r1,x2,y2,r2;
   string a;
+  vector<int> n;
 };
 typedef struct label_s label_t;
 
@@ -134,7 +135,7 @@ bool detect_bracket(int x, int y,unsigned char *pic);
 #define MIN_A_COUNT 5
 #define MAX_A_COUNT 200
 #define MIN_CHAR_POINTS 2
-#define WHITE_SPACE_FRACTION 0.3 
+//#define WHITE_SPACE_FRACTION 0.3 
 #define MAX_BOND_THICKNESS 10
 #define SMALL_PICTURE_AREA 6000
 #define NUM_RESOLUTIONS 3
