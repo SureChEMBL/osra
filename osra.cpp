@@ -4748,7 +4748,7 @@ int main(int argc,char **argv)
 
 		thickness=find_wedge_bonds(thick_box,atom,n_atom,bond,n_bond,bgColor,
 					   THRESHOLD_BOND,max_dist_double_bond,
-					   avg_bond,3,2);
+					   avg_bond,3,1);
 
 	
 
