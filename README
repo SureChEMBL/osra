@@ -160,11 +160,11 @@ To configure ImageMagick I used the following options:
 
 Compile and install ImageMagick, GOCR, Potrace, TCLAP.
 
-Compiling OpenBabel version 2.2.x:
+Compiling OpenBabel version 2.2.0:
 Run configure with the following options:
 ./configure --without-boost --disable-dynamic-modules --with-zlib=/usr/local/ CXX=g++-sjlj
 
-(note that --with-zlib option is not necessary for OB 2.2.1 only for 2.2.0)
+(note that version 2.2.1 doesn't seem to compile in MinGW environment)
 
 Run make and make install. Compilation breaks for babel.exe but the library
 libopenbabel-3.dll is generated. You need to keep this library with osra if
