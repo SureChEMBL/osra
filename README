@@ -35,7 +35,8 @@ Dependencies:
 
 OSRA needs the following Open Source libraries installed:
 
-- ImageMagick, image manipulation library, version 6.2.8 or later; 
+- ImageMagick, image manipulation library, version 6.2.8 or later
+(6.4.1 or later recommended),
 if installing from RPM make sure you have the following packages:
 	ImageMagick
 	ImageMagick-devel
@@ -46,11 +47,13 @@ http://www.imagemagick.com/
 - POTRACE, vector tracing library, version 1.7 or later,
 http://potrace.sourceforge.net/
 
-- GOCR/JOCR, optical character recognition library, version 0.43 or later - NOTE
-version 0.46 is NOT RECOMMENDED! It lacks the necessary libPgm2asc library.
+- GOCR/JOCR, optical character recognition library, version 0.43 or later 
+(version 0.45 recommended, do not use 0.46! See special instructions for 0.47
+compilation below)
 http://jocr.sourceforge.net/
 
 - OCRAD, optical character recognition program, version 0.17,
+(version 0.18-pre4 recommended)
 http://www.gnu.org/software/ocrad/ocrad.html
 
 - TCLAP, Templatized C++ Command Line Parser Library, version 1.1.0,
@@ -63,7 +66,8 @@ if installing from RPM make sure you have the following packages:
 http://openbabel.sourceforge.net/wiki/Main_Page
 
 - OR alternatively you can use RDKit as the molecular builder back-end,
-version Q32008_1  or later (svn snapshot recommended):
+version Q32008_1  or later (the latest version of RDKit - Q12009_1 
+has not been tested yet):
  http://www.rdkit.org/
 
 =============================================================================
@@ -90,9 +94,20 @@ http://cimg.sourceforge.net
 Compilation:
 
 On Linux/Unix systems:
-Unpack downloaded source code for the OCRAD package. Do not compile or install it -
-OSRA will automatically patch it and compile the object files it needs.
+Unpack downloaded source code for the OCRAD package. Do not compile or install 
+it - OSRA will automatically patch it and compile the object files it needs.
+If using g++ version 4 you might have to use the beta version of ocrad-0.18
+(ocrad-0.18-pre4 at the time of this writing) which you can download here:
+http://download.savannah.gnu.org/releases/ocrad/
+
 Compile and/or install all the other necessary dependencies.
+Special note for GOCR - do not use version 0.46; I recommend using 0.45
+for the moment - it seems to give the best results. If using version 0.47
+compile the library libPgm2asc.a the following way:
+cd gocr-0.47
+ ./configure CPPFLAGS=-fPIC LDFLAGS=-fPIC
+make libs
+
 Unpack OSRA package.
 Edit the included Makefile to make sure you have the correct locations
 for potrace, gocr, ocrad, openbabel (or rdkit), and tclap.
@@ -148,6 +163,8 @@ Compile and install ImageMagick, GOCR, Potrace, TCLAP.
 Compiling OpenBabel version 2.2.x:
 Run configure with the following options:
 ./configure --without-boost --disable-dynamic-modules --with-zlib=/usr/local/ CXX=g++-sjlj
+
+(note that --with-zlib option is not necessary for OB 2.2.1 only for 2.2.0)
 
 Run make and make install. Compilation breaks for babel.exe but the library
 libopenbabel-3.dll is generated. You need to keep this library with osra if
