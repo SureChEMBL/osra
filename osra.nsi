@@ -48,7 +48,6 @@ Section "osra (required)"
   
   strcpy $3 "GPL Ghostscript"
   call checkSoftVersion
-  strcmp $2 "" no_gs
   call getGhostscriptInstPath
   strcmp $1 "" no_gs +2
   no_gs:
@@ -74,16 +73,17 @@ Section /o "Symyx Draw plugin" symyx_draw
  call CheckSoftVersion
  strcmp $2 "" no_symyx
  call getSymyxPath
- strcmp $1 "" no_symyx +2
- no_symyx:
-  MessageBox MB_OK "Symyx Draw not found" IDOK done
+ strcmp $1 "" no_symyx
  SetOutPath "$1\AddIns"
- File "plugins\symyx_draw\README.txt"
  File "plugins\symyx_draw\OSRAAction.xml"
  SetOutPath "$1\AddIns\OSRAAction"
+ File "plugins\symyx_draw\README.txt"
  File "plugins\symyx_draw\OSRAAction\OSRAAction.dll"
  File "plugins\symyx_draw\OSRAAction\Interop.GflAx.dll"
  call createXMLConfig
+ Goto done
+ no_symyx:
+  MessageBox MB_OK "Symyx Draw not found" IDOK done
  done:
 SectionEnd
 
@@ -109,8 +109,8 @@ Section "Uninstall"
   strcmp $2 "" no_symyx
   call un.getSymyxPath
   strcmp $1 "" no_symyx 
-  Delete "$1\AddIns\README.txt"
-  Delete "$1\AddIns\OSRAAction.xml"
+   Delete "$1\AddIns\OSRAAction.xml"
+  Delete "$1\AddIns\OSRAAction\README.txt"
   Delete "$1\AddIns\OSRAAction\OSRAAction.dll"
   Delete "$1\AddIns\OSRAAction\Interop.GflAx.dll"
   Delete "$1\AddIns\OSRAAction\OSRAAction.dll.config"
@@ -190,8 +190,25 @@ Function getSoftInstPath
 FunctionEnd
 
 Function getGhostscriptInstPath
- strcpy $1 ""
- ReadRegStr $0 HKLM \
+ strcmp $2 "" download_gs get_path
+ download_gs:
+   DetailPrint "need to download and install Ghostscript"
+   Call ConnectInternet ;Make an internet connection (if no connection available)
+   StrCpy $2 "$TEMP\gs864w32.exe"
+   NSISdl::download http://voxel.dl.sourceforge.net/sourceforge/ghostscript/gs864w32.exe $2
+   Pop $0
+   StrCmp $0 success success
+    SetDetailsView show
+    DetailPrint "download failed: $0"
+    Abort
+   success:
+    ExecWait "$2"
+    Delete $2
+    strcpy $2 "8.64"
+	
+ get_path:
+  strcpy $1 ""
+  ReadRegStr $0 HKLM \
      "Software\GPL Ghostscript\$2" \ 
      "GS_DLL"
   StrCmp $0 "" fin extract
