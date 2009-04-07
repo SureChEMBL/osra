@@ -1,10 +1,10 @@
 !include Sections.nsh
 
 ; The name of the installer
-Name "osra"
+Name "Optical Structure Recognition Application"
 
 ; The file to write
-OutFile "osra-install.exe"
+OutFile "osra-setup.exe"
 
 ; The default installation directory
 InstallDir $PROGRAMFILES\osra
@@ -13,7 +13,7 @@ InstallDir $PROGRAMFILES\osra
 ; overwrite the old one automatically)
 InstallDirRegKey HKLM "Software\osra" "Install_Dir"
 
-;LicenseData "license.txt"
+LicenseData "license.txt"
 
 ; Request application privileges for Windows Vista
 RequestExecutionLevel admin
@@ -22,7 +22,7 @@ RequestExecutionLevel admin
 
 ; Pages
 
-;Page license
+Page license
 Page components
 Page directory
 Page instfiles
