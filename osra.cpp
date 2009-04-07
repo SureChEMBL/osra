@@ -4775,11 +4775,7 @@ int main(int argc,char **argv)
 		extend_terminal_bond_to_label(atom,letters,n_letters,bond,n_bond,
 					      label,n_label,avg_bond/2,
 					      thickness,max_dist_double_bond);
-		/*if (ttt++==2) 
-		  {
-		    debug(orig_box,atom,n_atom,bond,n_bond,"tmp.png");	
-		  }   	
-		*/
+	
 		remove_disconnected_atoms(atom,bond,n_atom,n_bond);
 		collapse_atoms(atom,bond,n_atom,n_bond,thickness);
 		collapse_doubleup_bonds(bond,n_bond);
@@ -4805,7 +4801,11 @@ int main(int argc,char **argv)
 
 
 			
-	
+		/*if (ttt++==1) 
+		  {
+		    debug(orig_box,atom,n_atom,bond,n_bond,"tmp.png");	
+		  }   	
+		*/
 	
 		assign_charge(atom,bond,n_atom,n_bond);
 		find_up_down_bonds(bond,n_bond,atom,thickness);
