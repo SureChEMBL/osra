@@ -4187,15 +4187,22 @@ list < list < list<point_t> > > find_segments(Image image,double threshold,
   vector<int> stats(max_dist,0);
   int entropy_max=locate_max_entropy(features,max_area_ratio,max_dist,stats);
 
+
+
   int dist=SINGLE_IMAGE_DIST;
   if (entropy_max>=THRESHOLD_LEVEL) 
     {
       vector<int> text_stats(max_dist,0);
       for (unsigned int j=2;j<max_dist;j++)
-	text_stats[j]=features[1][j];
+	{
+	  text_stats[j]=features[1][j];
+	  //	  cout<<j<<" "<<text_stats[j]<<endl;
+	}
 
       
       int dist_text=locate_first_min(text_stats);
+      
+
 
       list < list <int> > text_blocks=assemble_clusters(margins,dist_text,distance_matrix,avail);
       remove_text_blocks(text_blocks,segments,avail);
@@ -4572,6 +4579,9 @@ int main(int argc,char **argv)
 	    bool thick=true;
 	    if (resolution<=150) thick=false;
 
+	    //	    Image dbg=image;
+	    //	    dbg.modifyImage();
+	    //	    dbg.type(TrueColorType);
 	    for (int k=0;k<n_boxes;k++)
 	      if ((boxes[k].x2-boxes[k].x1)>max_font_width &&
 		  (boxes[k].y2-boxes[k].y1)>max_font_height && !boxes[k].c.empty()
@@ -4591,6 +4601,7 @@ int main(int argc,char **argv)
 
 
 		Image orig_box( Geometry(boxes[k].x2-boxes[k].x1+2*FRAME,
+
 					 boxes[k].y2-boxes[k].y1+2*FRAME), bgColor);
 
 		for(unsigned int p=0;p<boxes[k].c.size();p++)
@@ -4598,8 +4609,10 @@ int main(int argc,char **argv)
 		    int x=boxes[k].c[p].x;
 		    int y=boxes[k].c[p].y;
 		    ColorGray color=image.pixelColor(x,y);
+		    //		    dbg.pixelColor(x,y,"green");
 		    orig_box.pixelColor(x-boxes[k].x1+FRAME,y-boxes[k].y1+FRAME,color);
 		  }
+		
 
 
 		int width=orig_box.columns();
@@ -4899,6 +4912,7 @@ int main(int argc,char **argv)
 	    if (total_boxes>0) 
 	      array_of_confidence[res_iter]=total_confidence/total_boxes;
 	    potrace_param_free(param); 
+	    //	    dbg.write("debug.png");
       }
     double max_conf=-FLT_MAX;
     int max_res=0;
