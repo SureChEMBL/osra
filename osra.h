@@ -38,6 +38,7 @@ struct atom_s {
   double x,y;
   string label;
   int n;
+  int anum;
   potrace_path_t *curve;
   bool exists,corner;
   int charge;

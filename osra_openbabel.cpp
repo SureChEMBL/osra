@@ -666,14 +666,15 @@ string get_smiles(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, int &r
  string str;
  OBConversion conv;
  int n=1;
- int anum;
  double scale=CC_BOND_LENGTH/avg;
  vector<int> atomB,atomN,bondB,bondN;
  int bondn=0;
+ int anum;
 
  conv.SetOutFormat(format.c_str());
  conv.Read(&mol);
  mol.SetDimension(2);
+
  mol.BeginModify();
  for (int i=0;i<n_bond;i++)
    if (bond[i].exists) 
@@ -697,6 +698,7 @@ string get_smiles(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, int &r
 	   a->SetVector(atom[bond[i].a].x*scale,-atom[bond[i].a].y*scale,0);
 	   mol.AddAtom(*a);
 	   atom[bond[i].a].n=n++;
+	   atom[bond[i].a].anum=anum;
 	 }
        if (atom[bond[i].b].n==0)
 	 {
@@ -717,6 +719,7 @@ string get_smiles(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, int &r
 	   b->SetVector(atom[bond[i].b].x*scale,-atom[bond[i].b].y*scale,0);
 	   mol.AddAtom(*b);
 	   atom[bond[i].b].n=n++;
+	   atom[bond[i].b].anum=anum;
 	 }
 
        if (bond[i].arom)
@@ -726,7 +729,14 @@ string get_smiles(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, int &r
 	 }
        else if (bond[i].hash)
 	 {
-	   mol.AddBond(atom[bond[i].a].n,atom[bond[i].b].n,bond[i].type,OB_HASH_BOND);
+	   if (atom[bond[i].a].anum==8 || atom[bond[i].a].anum==1 || atom[bond[i].a].anum==9 
+	       || atom[bond[i].a].anum==53 || atom[bond[i].a].anum==17 || atom[bond[i].a].anum==35
+	       || atom[bond[i].a].anum==18)
+	     mol.AddBond(atom[bond[i].b].n,atom[bond[i].a].n,bond[i].type,
+			 OB_HASH_BOND);
+	   else
+	     mol.AddBond(atom[bond[i].a].n,atom[bond[i].b].n,bond[i].type,
+			 OB_HASH_BOND);
 	   bondn++;
 	 }
        else if (bond[i].wedge)
@@ -751,6 +761,7 @@ string get_smiles(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, int &r
 	 }
      }
  mol.EndModify();
+
  mol.FindRingAtomsAndBonds();
  int num_double=0;
  int num_triple=0;
