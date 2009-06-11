@@ -731,7 +731,7 @@ string get_smiles(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, int &r
 	 {
 	   if (atom[bond[i].a].anum==8 || atom[bond[i].a].anum==1 || atom[bond[i].a].anum==9 
 	       || atom[bond[i].a].anum==53 || atom[bond[i].a].anum==17 || atom[bond[i].a].anum==35
-	       || atom[bond[i].a].anum==18)
+	       || atom[bond[i].a].anum==18 || atom[bond[i].a].terminal)
 	     mol.AddBond(atom[bond[i].b].n,atom[bond[i].a].n,bond[i].type,
 			 OB_HASH_BOND);
 	   else

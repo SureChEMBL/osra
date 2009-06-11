@@ -40,7 +40,7 @@ struct atom_s {
   int n;
   int anum;
   potrace_path_t *curve;
-  bool exists,corner;
+  bool exists,corner,terminal;
   int charge;
 };
 typedef struct atom_s atom_t;

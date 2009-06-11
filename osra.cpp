@@ -3797,6 +3797,21 @@ void remove_small_terminal_bonds(vector<bond_t> &bond,int n_bond,vector<atom_t> 
     }
 }
 
+void mark_terminal_atoms(vector<bond_t> &bond,int n_bond,vector<atom_t> &atom, int n_atom)
+{
+  for (int i=0;i<n_atom;i++)
+    atom[i].terminal=false;
+
+  for (int j=0;j<n_bond;j++)
+    if (bond[j].exists && bond[j].type==1 && !bond[j].arom)
+	  {
+	    if (terminal_bond(bond[j].a,j,bond,n_bond))
+	      atom[bond[j].a].terminal=true;
+	    if (terminal_bond(bond[j].b,j,bond,n_bond))
+	      atom[bond[j].b].terminal=true;
+	  }
+}
+
 vector < vector<int> > find_fragments(vector<bond_t> &bond,int n_bond,vector<atom_t> &atom)
 {
   vector < vector<int> > frags;
@@ -4837,7 +4852,8 @@ int main(int argc,char **argv)
 		    n_bond=reconnect_fragments(bond,n_bond,atom,avg_bond);
 		    collapse_atoms(atom,bond,n_atom,n_bond,1);
 
-	   
+		    mark_terminal_atoms(bond,n_bond,atom,n_atom);
+
 		    vector < vector<int> > frags=find_fragments(bond,n_bond,atom);
 		    vector<fragment_t> fragments=populate_fragments(frags,atom);
 		    std::sort(fragments.begin(),fragments.end(),comp_fragments);
