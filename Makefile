@@ -1,25 +1,13 @@
 ARCH=unix
 #unix,win32
 
-OPENBABEL_OR_RDKIT=openbabel
-#openbabel,rdkit
-
 POTRACE=../potrace-1.8/
 GOCR=../gocr-0.45/
 OCRAD=../ocrad-0.18/
-
-ifeq ($(OPENBABEL_OR_RDKIT),rdkit)
-RDKIT=../rdkit-svn/
-BOOST=../boost_1_37_0/
-else
 OPENBABEL=/usr/
-endif
 
 TCLAPINC=-I/usr/local/include/tclap/
 
-# need to set: export CCACHE_DISABLE=1
-#PGO=-fprofile-generate
-#PGO=-fprofile-use
 
 CPP = g++ $(PGO)
 LD=g++ -g -O2 -fPIC $(PGO)
@@ -33,8 +21,6 @@ SRCDIR=./
 
 ################ Hopefully you won't have to change anything below this line #########
 
-RDKITINC=-I$(RDKIT)/Code/ -I$(RDKIT)/External/vflib-2.0/include/ -I$(BOOST)
-RDKITLIB=-L$(RDKIT)/bin/ -lRDGeneral -lSmilesParse -lGraphMol -lFileParsers -lDepictor -lRDGeometry -lSubstruct -lDistGeomHelpers -lDistGeom -lForceFieldHelpers -lForceField -lEigenSolvers -lAlignment -lOptimizer -L$(RDKIT)/External/vflib-2.0/lib -lvf
 
 ifneq ($(ARCH),win32)
 NETPBM=-lnetpbm
@@ -61,19 +47,11 @@ OPENBABELLIB=-L/usr/local/lib -lopenbabel
 OPENBABELINC=-I$(OPENBABEL)/include/
 endif
 
-ifeq ($(OPENBABEL_OR_RDKIT),rdkit)
-MOL_BACKEND_INC=$(RDKITINC)
-MOL_BACKEND_LIB=$(RDKITLIB)
-MOL_BACKEND_CPP=osra_rdkit.cpp
-MOL_BACKEND_OBJ=osra_rdkit.o
-LD_LIBRARY_PATH=$(RDKIT)/bin
-else
 MOL_BACKEND_INC=$(OPENBABELINC)
 MOL_BACKEND_LIB=$(OPENBABELLIB)
 MOL_BACKEND_CPP=osra_openbabel.cpp
 MOL_BACKEND_OBJ=osra_openbabel.o
 MCDLUTIL=mcdlutil.o
-endif
 
 
 OCRADSRC=$(wildcard $(OCRAD)*.cc)
@@ -96,10 +74,8 @@ osra.o:	osra.cpp osra.h pgm2asc.h output.h list.h unicode.h gocr.h
 $(MOL_BACKEND_OBJ): $(MOL_BACKEND_CPP) osra.h
 	$(CPP) $(CPPFLAGS) -c $(MOL_BACKEND_CPP)
 
-ifeq ($(OPENBABEL_OR_RDKIT),openbabel)
 $(MCDLUTIL):	mcdlutil.cpp mcdlutil.h
 	$(CPP) $(CPPFLAGS) -c mcdlutil.cpp
-endif
 
 osra_anisotropic.o:	osra_anisotropic.cpp osra.h CImg.h greycstoration.h
 	$(CPP) $(CPPFLAGS) -c osra_anisotropic.cpp
