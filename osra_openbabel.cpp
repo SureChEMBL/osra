@@ -43,6 +43,56 @@ void addMeX(OBMol *mol,int *n,int *bondn)
   (*bondn)++;
 }
 
+int addMeO(OBMol *mol,int *n,int *bondn)
+{
+  OBMol mol1;
+  OBConversion conv;
+  //  vector<OBAtom*>::iterator i;
+  //  vector<OBBond*>::iterator j;
+  OBAtom *atom,*a,*a1;
+  OBBond *bond;
+
+  conv.SetInFormat("SMI");
+  conv.ReadString(&mol1,"OC");
+  a1=mol1.GetFirstAtom();
+  unsigned int anum=a1->GetAtomicNum();
+
+  int firstatom=a1->GetIdx();
+  int prevatms = mol->NumAtoms();
+  int numatms=mol1.NumAtoms();
+
+  for (unsigned int i=mol1.NumAtoms();i>=1;i--)
+    {
+      atom=mol1.GetAtom(i);
+      if (atom!=NULL)
+	{
+	  a=mol->CreateAtom();
+	  a->SetAtomicNum(atom->GetAtomicNum());
+	  a->SetFormalCharge(atom->GetFormalCharge());
+	  a->SetIdx(mol->NumAtoms()+1);
+	  mol->AddAtom(*a);
+	  (*n)++;
+	}
+
+    }
+
+
+  for (unsigned int j=0;j<=mol1.NumBonds();j++)
+    {
+      bond=mol1.GetBond(j);
+      if (bond!=NULL)
+	{
+	  int b1=(numatms-bond->GetBeginAtomIdx()+1)-firstatom+1+prevatms;
+	  int b2=(numatms-bond->GetEndAtomIdx()+1)-firstatom+1+prevatms;
+	  mol->AddBond(b1,b2,bond->GetBO(), bond->GetFlags());
+	  (*bondn)++;
+	}
+    }
+  
+
+  return(anum);
+}
+
 void addOR(OBMol *mol,int *n,int *bondn)
 {
   OBAtom *a;
@@ -534,8 +584,7 @@ int getAnum(string s, OBMol *mol,int *n, int *bondn)
   if (s=="Si") return(14);
   if (s=="MeO") 
     {
-      addMeX(mol,n,bondn);
-      return(8);
+      return(addMeO(mol,n,bondn));
     }
   if (s=="CF")
     {
@@ -688,16 +737,23 @@ string get_smiles(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, int &r
 	   if (oldn!=n) 
 	     {
 	       atomB.push_back(oldn);
-	       atomN.push_back(n);
+	       atomN.push_back(n-1);
 	       bondB.push_back(oldbond);
 	       bondN.push_back(bondn);
+	       atom[bond[i].a].n=n-1;
+	       a=mol.GetAtom(n-1);
+	       a->SetVector(atom[bond[i].a].x*scale,-atom[bond[i].a].y*scale,0);
 	     }
-	   a->SetAtomicNum(anum);
-	   if (atom[bond[i].a].charge!=0)
-	     a->SetFormalCharge(atom[bond[i].a].charge);
-	   a->SetVector(atom[bond[i].a].x*scale,-atom[bond[i].a].y*scale,0);
-	   mol.AddAtom(*a);
-	   atom[bond[i].a].n=n++;
+	   else
+	     {
+	       a->SetAtomicNum(anum);
+	       if (atom[bond[i].a].charge!=0)
+		 a->SetFormalCharge(atom[bond[i].a].charge);
+	       a->SetVector(atom[bond[i].a].x*scale,-atom[bond[i].a].y*scale,0);
+	       mol.AddAtom(*a);
+	       atom[bond[i].a].n=n;
+	       n++;
+	     }
 	   atom[bond[i].a].anum=anum;
 	 }
        if (atom[bond[i].b].n==0)
@@ -709,16 +765,23 @@ string get_smiles(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, int &r
 	   if (oldn!=n) 
 	     {
 	       atomB.push_back(oldn);
-	       atomN.push_back(n);
+	       atomN.push_back(n-1);
 	       bondB.push_back(oldbond);
 	       bondN.push_back(bondn);
+	       atom[bond[i].b].n=n-1;
+	       b=mol.GetAtom(n-1);
+	       b->SetVector(atom[bond[i].b].x*scale,-atom[bond[i].b].y*scale,0);
 	     }
-	   b->SetAtomicNum(anum);
-	   if (atom[bond[i].b].charge!=0)
-	     b->SetFormalCharge(atom[bond[i].b].charge);
-	   b->SetVector(atom[bond[i].b].x*scale,-atom[bond[i].b].y*scale,0);
-	   mol.AddAtom(*b);
-	   atom[bond[i].b].n=n++;
+	   else
+	     {
+	       b->SetAtomicNum(anum);
+	       if (atom[bond[i].b].charge!=0)
+		 b->SetFormalCharge(atom[bond[i].b].charge);
+	       b->SetVector(atom[bond[i].b].x*scale,-atom[bond[i].b].y*scale,0);
+	       mol.AddAtom(*b);
+	       atom[bond[i].b].n=n;
+	       n++;
+	     }
 	   atom[bond[i].b].anum=anum;
 	 }
 
