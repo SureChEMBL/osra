@@ -1,7 +1,8 @@
 /*********************************************************************
   OSRA: Optical Structure Recognition
   
-  This is a U.S. Government work (year) and is therefore not subject to copyright.  
+  This is a U.S. Government work (2007-2009) and is therefore not subject to 
+  copyright.  
   However, portions of this work were obtained from a GPL or GPL-compatiple source.   
   Created by Igor Filippov, 2007-2008 (igorf@helix.nih.gov)
 
@@ -21,6 +22,7 @@
   USA
 
 *********************************************************************/
+#include <map>
 
 #include "osra.h"
 
@@ -31,6 +33,10 @@
 #include "mcdlutil.h"
 using namespace OpenBabel;
 //#include <openbabel/generic.h>
+
+
+
+
 
 void addMeX(OBMol *mol,int *n,int *bondn)
 {
@@ -43,7 +49,7 @@ void addMeX(OBMol *mol,int *n,int *bondn)
   (*bondn)++;
 }
 
-int addMeO(OBMol *mol,int *n,int *bondn)
+int addMeO(OBMol *mol,int *n,int *bondn,string smiles_superatom)
 {
   OBMol mol1;
   OBConversion conv;
@@ -53,7 +59,7 @@ int addMeO(OBMol *mol,int *n,int *bondn)
   OBBond *bond;
 
   conv.SetInFormat("SMI");
-  conv.ReadString(&mol1,"OC");
+  conv.ReadString(&mol1,smiles_superatom);
   a1=mol1.GetFirstAtom();
   unsigned int anum=a1->GetAtomicNum();
 
@@ -569,6 +575,10 @@ void addNHAc(OBMol *mol,int *n,int *bondn)
 
 int getAnum(string s, OBMol *mol,int *n, int *bondn)
 {
+  map<string,string> superatom;
+  superatom["MeO"]="OC";
+  map<string,string>::iterator it=superatom.find(s);
+
   if (s=="C") return(6);
   if (s=="N") return(7);
   if (s=="H") return(1);
@@ -582,9 +592,9 @@ int getAnum(string s, OBMol *mol,int *n, int *bondn)
   if (s=="X") return(0);
   if (s=="Ar") return(18);
   if (s=="Si") return(14);
-  if (s=="MeO") 
+  if (it!=superatom.end()) 
     {
-      return(addMeO(mol,n,bondn));
+      return(addMeO(mol,n,bondn,it->second));
     }
   if (s=="CF")
     {

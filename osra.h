@@ -119,7 +119,7 @@ double confidence_function(int C_Count,int N_Count,int O_Count,int F_Count,
 
 bool detect_bracket(int x, int y,unsigned char *pic);
 
-#define OSRA_VERSION "1.2.1"
+#define OSRA_VERSION "1.2.2"
 #define MAX_ATOMS 10000
 #define MAX_FONT_HEIGHT 22
 #define MAX_FONT_WIDTH 21
@@ -136,7 +136,6 @@ bool detect_bracket(int x, int y,unsigned char *pic);
 #define MIN_A_COUNT 5
 #define MAX_A_COUNT 200
 #define MIN_CHAR_POINTS 2
-//#define WHITE_SPACE_FRACTION 0.3 
 #define MAX_BOND_THICKNESS 10
 #define SMALL_PICTURE_AREA 6000
 #define NUM_RESOLUTIONS 3
