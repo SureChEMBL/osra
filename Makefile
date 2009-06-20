@@ -2,15 +2,15 @@ ARCH=unix
 #unix,win32
 
 POTRACE=../potrace-1.8/
-GOCR=../gocr-0.45/
+GOCR=../gocr-0.47/
 OCRAD=../ocrad-0.18/
 OPENBABEL=/usr/
 
 TCLAPINC=-I/usr/local/include/tclap/
 
 
-CPP = g++ $(PGO)
-LD=g++ -g -O2 -fPIC $(PGO)
+CPP = g++
+LD=g++ -g -O2 -fPIC 
 CP=cp
 SED=sed
 RM=rm

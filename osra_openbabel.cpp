@@ -578,25 +578,18 @@ int getAnum(string s, OBMol *mol,int *n, int *bondn)
   map<string,string> superatom;
   superatom["MeO"]="OC";
   map<string,string>::iterator it=superatom.find(s);
+  int isotope;
+  int anum=etab.GetAtomicNum(s.c_str(),isotope);
 
-  if (s=="C") return(6);
-  if (s=="N") return(7);
-  if (s=="H") return(1);
-  if (s=="O") return(8);
-  if (s=="F") return(9);
-  if (s=="P") return(15);
-  if (s=="S") return(16);
-  if (s=="I") return(53);
-  if (s=="Cl") return(17);
-  if (s=="Br") return(35);
+  if (anum!=0) return(anum);
   if (s=="X") return(0);
-  if (s=="Ar") return(18);
-  if (s=="Si") return(14);
   if (it!=superatom.end()) 
     {
       return(addMeO(mol,n,bondn,it->second));
     }
-  if (s=="CF")
+  return(6);
+
+  /*  if (s=="CF")
     {
       addCF(mol,n,bondn);
       return(6);
@@ -710,8 +703,7 @@ int getAnum(string s, OBMol *mol,int *n, int *bondn)
     {
       addTHPO(mol,n,bondn);
       return(8);
-    }
-  return(6);
+      }*/
 }
 
 
