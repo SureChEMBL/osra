@@ -32,29 +32,12 @@
 #include <openbabel/builder.h> 
 #include "mcdlutil.h"
 using namespace OpenBabel;
-//#include <openbabel/generic.h>
 
 
-
-
-
-void addMeX(OBMol *mol,int *n,int *bondn)
-{
-  OBAtom *a;
-  a=mol->CreateAtom();
-  a->SetAtomicNum(6);
-  mol->AddAtom(*a);
-  (*n)++;
-  mol->AddBond((*n)-1,(*n),1);
-  (*bondn)++;
-}
-
-int addMeO(OBMol *mol,int *n,int *bondn,string smiles_superatom)
+int abbreviation_to_mol(OBMol *mol,int *n,int *bondn,string smiles_superatom)
 {
   OBMol mol1;
   OBConversion conv;
-  //  vector<OBAtom*>::iterator i;
-  //  vector<OBBond*>::iterator j;
   OBAtom *atom,*a,*a1;
   OBBond *bond;
 
@@ -110,105 +93,9 @@ void addOR(OBMol *mol,int *n,int *bondn)
   (*bondn)++;
 }
 
-void addCF(OBMol *mol,int *n,int *bondn)
-{
-  OBAtom *a;
-  a=mol->CreateAtom();
-  a->SetAtomicNum(9);
-  mol->AddAtom(*a);
-  (*n)++;
-  mol->AddBond((*n)-1,(*n),1);
-  (*bondn)++;
-}
 
-void addCF3(OBMol *mol,int *n,int *bondn)
-{
-  OBAtom *a;
-  a=mol->CreateAtom();
-  a->SetAtomicNum(9);
-  mol->AddAtom(*a);
-  (*n)++;
-  a=mol->CreateAtom();
-  a->SetAtomicNum(9);
-  mol->AddAtom(*a);
-  (*n)++;
-  a=mol->CreateAtom();
-  a->SetAtomicNum(9);
-  mol->AddAtom(*a);
-  (*n)++;
-  mol->AddBond((*n)-3,(*n),1);
-  (*bondn)++;
-  mol->AddBond((*n)-2,(*n),1);
-  (*bondn)++;
-  mol->AddBond((*n)-1,(*n),1);
-  (*bondn)++;
-}
 
-void addF3CN(OBMol *mol,int *n,int *bondn)
-{
-  OBAtom *a;
-  a=mol->CreateAtom();
-  a->SetAtomicNum(9);
-  mol->AddAtom(*a);
-  (*n)++;
-  a=mol->CreateAtom();
-  a->SetAtomicNum(9);
-  mol->AddAtom(*a);
-  (*n)++;
-  a=mol->CreateAtom();
-  a->SetAtomicNum(9);
-  mol->AddAtom(*a);
-  (*n)++;
-  mol->AddBond((*n)-3,(*n),1);
-  (*bondn)++;
-  mol->AddBond((*n)-2,(*n),1);
-  (*bondn)++;
-  mol->AddBond((*n)-1,(*n),1);
-  (*bondn)++;
-  a=mol->CreateAtom();
-  a->SetAtomicNum(6);
-  mol->AddAtom(*a);
-  (*n)++;
-  mol->AddBond((*n)-1,(*n),1);
-  (*bondn)++;
-}
 
-void addPh(OBMol *mol,int *n,int *bondn)
-{
-  OBAtom *a;
-  a=mol->CreateAtom();
-  a->SetAtomicNum(6);
-  mol->AddAtom(*a);
-  (*n)++;
-  a=mol->CreateAtom();
-  a->SetAtomicNum(6);
-  mol->AddAtom(*a);
-  (*n)++;
-  a=mol->CreateAtom();
-  a->SetAtomicNum(6);
-  mol->AddAtom(*a);
-  (*n)++;
-  a=mol->CreateAtom();
-  a->SetAtomicNum(6);
-  mol->AddAtom(*a);
-  (*n)++;
-  a=mol->CreateAtom();
-  a->SetAtomicNum(6);
-  mol->AddAtom(*a);
-  (*n)++;
-  mol->AddBond((*n)-5,(*n)-4,5);
-  (*bondn)++;
-  mol->AddBond((*n)-4,(*n)-3,5);
-  (*bondn)++;
-  mol->AddBond((*n)-3,(*n)-2,5);
-  (*bondn)++;
-  mol->AddBond((*n)-2,(*n)-1,5);
-  (*bondn)++;
-  mol->AddBond((*n)-1,(*n),5);
-  (*bondn)++;
-  mol->AddBond((*n)-5,(*n),5);
-  (*bondn)++;
-}
 
 void addBzO(OBMol *mol,int *n,int *bondn)
 {
@@ -302,86 +189,9 @@ void addTHPO(OBMol *mol,int *n,int *bondn)
   (*bondn)++;
 }
 
-void addNO2(OBMol *mol,int *n,int *bondn)
-{
-  OBAtom *a;
-  a=mol->CreateAtom();
-  a->SetAtomicNum(8);
-  mol->AddAtom(*a);
-  (*n)++;
-  a=mol->CreateAtom();
-  a->SetAtomicNum(8);
-  mol->AddAtom(*a);
-  (*n)++;
-  mol->AddBond((*n)-2,(*n),2);
-  (*bondn)++;
-  mol->AddBond((*n)-1,(*n),2);
-  (*bondn)++;
-}
-
-void addNO(OBMol *mol,int *n,int *bondn)
-{
-  OBAtom *a;
-  a=mol->CreateAtom();
-  a->SetAtomicNum(8);
-  mol->AddAtom(*a);
-  (*n)++;
-  mol->AddBond((*n)-1,(*n),2);
-  (*bondn)++;
-}
 
 
-void addNOHCH3(OBMol *mol,int *n,int *bondn)
-{
-  OBAtom *a;
-  a=mol->CreateAtom();
-  a->SetAtomicNum(8);
-  mol->AddAtom(*a);
-  (*n)++;
-  a=mol->CreateAtom();
-  a->SetAtomicNum(6);
-  mol->AddAtom(*a);
-  (*n)++;
-  mol->AddBond((*n)-2,(*n),1);
-  (*bondn)++;
-  mol->AddBond((*n)-1,(*n),1);
-  (*bondn)++;
-}
 
-void addSO3H(OBMol *mol,int *n,int *bondn)
-{
-  OBAtom *a;
-  a=mol->CreateAtom();
-  a->SetAtomicNum(8);
-  mol->AddAtom(*a);
-  (*n)++;
-  a=mol->CreateAtom();
-  a->SetAtomicNum(8);
-  mol->AddAtom(*a);
-  (*n)++;
-  a=mol->CreateAtom();
-  a->SetAtomicNum(8);
-  mol->AddAtom(*a);
-  (*n)++;
-  mol->AddBond((*n)-3,(*n),1);
-  (*bondn)++;
-  mol->AddBond((*n)-2,(*n),2);
-  (*bondn)++;
-  mol->AddBond((*n)-1,(*n),2);
-  (*bondn)++;
-}
-
-
-void addNC(OBMol *mol,int *n,int *bondn)
-{
-  OBAtom *a;
-  a=mol->CreateAtom();
-  a->SetAtomicNum(7);
-  mol->AddAtom(*a);
-  (*n)++;
-  mol->AddBond((*n)-1,(*n),3);
-  (*bondn)++;
-}
 
 void addnBu(OBMol *mol,int *n,int *bondn)
 {
@@ -577,6 +387,18 @@ int getAnum(string s, OBMol *mol,int *n, int *bondn)
 {
   map<string,string> superatom;
   superatom["MeO"]="OC";
+  superatom["MeS"]="SC";
+  superatom["MeN"]="NC";
+  superatom["CF"]="CF";
+  superatom["CF3"]="C(F)(F)F";
+  superatom["CN"]="C#N";
+  superatom["F3CN"]="NC(F)(F)F";
+  superatom["Ph"]="c1ccccc1";
+  superatom["NO"]="N=O";
+  superatom["NO2"]="N(=O)=O";
+  superatom["N(OH)CH3"]="N(O)C";
+  superatom["SO3H"]="S(=O)(=O)O";
+
   map<string,string>::iterator it=superatom.find(s);
   int isotope;
   int anum=etab.GetAtomicNum(s.c_str(),isotope);
@@ -585,30 +407,12 @@ int getAnum(string s, OBMol *mol,int *n, int *bondn)
   if (s=="X") return(0);
   if (it!=superatom.end()) 
     {
-      return(addMeO(mol,n,bondn,it->second));
+      return(abbreviation_to_mol(mol,n,bondn,it->second));
     }
   return(6);
 
-  /*  if (s=="CF")
-    {
-      addCF(mol,n,bondn);
-      return(6);
-    }
-  if (s=="CF3")
-    {
-      addCF3(mol,n,bondn);
-      return(6);
-    }
-  if (s=="F3CN")
-    {
-      addF3CN(mol,n,bondn);
-      return(7);
-    }
-  if (s=="CN")
-    {
-      addNC(mol,n,bondn);
-      return(6);
-    }
+  /*
+
   if (s=="nBu")
     {
       addnBu(mol,n,bondn);
@@ -654,36 +458,7 @@ int getAnum(string s, OBMol *mol,int *n, int *bondn)
       addNHAc(mol,n,bondn);
       return(7);
     }
-  if (s=="NO2")
-    {
-      addNO2(mol,n,bondn);
-      return(7);
-    }
-  if (s=="NO")
-    {
-      addNO(mol,n,bondn);
-      return(7);
-    }
-  if (s=="Ph")
-    {
-      addPh(mol,n,bondn);
-      return(6);
-    }
-  if (s=="MeS") 
-    {
-      addMeX(mol,n,bondn);
-      return(16);
-    }
-  if (s=="MeN") 
-    {
-      addMeX(mol,n,bondn);
-      return(7);
-    }
-  if (s=="SO3H") 
-    {
-      addSO3H(mol,n,bondn);
-      return(16);
-    }
+
   if (s=="OR") 
     {
       addOR(mol,n,bondn);
@@ -693,11 +468,6 @@ int getAnum(string s, OBMol *mol,int *n, int *bondn)
     {
       addBzO(mol,n,bondn);
       return(8);
-    }
-  if (s=="N(OH)CH3")
-    {
-      addNOHCH3(mol,n,bondn);
-      return(7);
     }
   if (s=="THPO")
     {

@@ -264,6 +264,42 @@ bool detect_bracket(int x, int y,unsigned char *pic)
 
 string fix_atom_name(string s,int n)
 {
+  map<string,string> fix;
+  fix["Ci"]="Cl";
+  fix["Cf"]="Cl";
+  fix["Cll"]="Cl";
+  
+  fix["HN"]="N";
+  fix["NH"]="N";
+  fix["M"]="N";
+  fix["Hm"]="N";
+  fix["MN"]="N";
+  fix["N2"]="N";
+  fix["NM"]="N";
+  fix["NH2"]="N";
+  fix["H2N"]="N";
+  fix["NHZ"]="N";
+  fix["HZN"]="N";
+  fix["NH3"]="N";
+  fix["nu"]="N"; 
+  fix["Hu"]="N";  
+  fix["lU"]="N"; 
+  fix["HlU"]="N"; 
+  fix["lUH"]="N"; 
+  fix["H2Y"]="N";
+
+  fix["OH"]="O";  
+  fix["oH"]="O";  
+  fix["Ho"]="O";  
+  fix["HO"]="O";  
+  fix["ol"]="O";
+  fix["On"]="O";  
+  fix["on"]="O";  
+  fix["no"]="O";  
+  fix["nO"]="O";  
+  fix["ON"]="O";
+
+
   string r=s;
   //    cout<<s<<"-->";
   if (s.length()==1) r=toupper(s.at(0));
