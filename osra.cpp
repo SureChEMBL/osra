@@ -4397,6 +4397,24 @@ vector<fragment_t> populate_fragments(vector < vector<int> > frags,vector<atom_t
   return(r);
 }
 
+// Igor Filippov - 2009.
+// The following two functions are adapted from ConfigFile
+///
+// Class for reading named values from configuration files
+// Richard J. Wagner  v2.1  24 May 2004  wagnerr@umich.edu
+
+// Copyright (c) 2004 Richard J. Wagner
+// 
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to
+// deal in the Software without restriction, including without limitation the
+// rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+// sell copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+// 
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+
 void trim( string& s )
 {
 	// Remove leading and trailing whitespace
@@ -4532,7 +4550,7 @@ int main(int argc,char **argv)
 {
     fclose(stderr);
     srand(1);
-    TCLAP::CmdLine cmd("OSRA: Optical Structure Recognition, created by Igor Filippov, 2007-2008",' ',OSRA_VERSION);
+    TCLAP::CmdLine cmd("OSRA: Optical Structure Recognition Application, created by Igor Filippov, 2007-2009",' ',OSRA_VERSION);
     TCLAP::UnlabeledValueArg<string>  input( "in", "input file",true,"", "filename"  );
     cmd.add(input);
     TCLAP::ValueArg<double> threshold("t","threshold","Gray level threshold",
