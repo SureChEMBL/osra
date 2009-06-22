@@ -2521,12 +2521,12 @@ int find_small_bonds(potrace_path_t *p, vector<atom_t> &atom,vector<bond_t> &bon
 }
 
 int resolve_bridge_bonds(vector<atom_t> &atom,int n_atom,vector<bond_t> &bond,int n_bond,
-			 double thickness,double avg)
+			 double thickness,double avg,map<string,string> superatom)
 {
   int rotors1,rotors2,f1,f2,rings1,rings2;
   double confidence;
   string smiles1=get_smiles(atom,bond,n_bond,rotors1,confidence,f1,
-			    rings1,avg,"smi",0,false,false);
+			    rings1,avg,"smi",0,false,false,superatom);
   for (int i=0;i<n_atom;i++)
     if ((atom[i].exists) && (atom[i].label==" "))
       {
@@ -2593,7 +2593,7 @@ int resolve_bridge_bonds(vector<atom_t> &atom,int n_atom,vector<bond_t> &bond,in
 		    else if (bond[c].b==bond[d].b) bond[c].b=bond[d].a;
 		    string smiles2=get_smiles(atom,bond,n_bond,rotors2,
 					      confidence,f2,rings2,avg,
-					      "smi",0,false,false);
+					      "smi",0,false,false,superatom);
 		    if (f1!=f2 || rotors1!=rotors2 || rings1-rings2==2)
 		      {
 			bond[b].exists=true;
@@ -4405,7 +4405,7 @@ void trim( string& s )
 	s.erase( s.find_last_not_of(whitespace) + 1U );
 }
 
-void load_fix_atom_name_map(string file, map<string,string> &out)
+void load_config_map(string file, map<string,string> &out)
 {
   struct file_not_found 
   {
@@ -4555,6 +4555,10 @@ int main(int argc,char **argv)
 
     TCLAP::ValueArg<string> spelling("l","spelling","Spelling correction dictionary",false,"correct_atom_label_spelling.txt","configfile");
     cmd.add(spelling);
+
+    TCLAP::ValueArg<string> abbr("a","superatom","Superatom label map to SMILES",false,"superatom.txt","configfile");
+    cmd.add(abbr);
+
     TCLAP::SwitchArg debug("d","debug","Print out debug information on spelling corrections",false);
     cmd.add(debug);
 
@@ -4564,8 +4568,10 @@ int main(int argc,char **argv)
     string type=image_type(input.getValue());
     bool invert=inv.getValue();
 
-    map<string,string> fix;
-    load_fix_atom_name_map(spelling.getValue(),fix);
+    map<string,string> fix,superatom;
+    load_config_map(spelling.getValue(),fix);
+    load_config_map(abbr.getValue(),superatom);
+
 
     if ((type=="PDF") || (type=="PS")) input_resolution=150;
     int page=count_pages(input.getValue());
@@ -4945,7 +4951,7 @@ int main(int argc,char **argv)
 		if ((real_atoms>MIN_A_COUNT) && (real_atoms<MAX_A_COUNT))
 		  {
 
-		    int f=resolve_bridge_bonds(atom,n_atom,bond,n_bond,2*thickness,avg_bond);
+		    int f=resolve_bridge_bonds(atom,n_atom,bond,n_bond,2*thickness,avg_bond,superatom);
                     collapse_bonds(atom,bond,n_bond,avg_bond/4);
                     collapse_atoms(atom,bond,n_atom,n_bond,3);
                     remove_zero_bonds(bond,n_bond,atom);
@@ -4985,10 +4991,7 @@ int main(int argc,char **argv)
 
 			  int rotors,rings;
 			  double confidence=0;
-			  string smiles=get_smiles(frag_atom,frag_bond,n_bond,rotors,
-						   confidence,f,rings,avg_bond,
-						   format.getValue(),resolution,
-						   conf.getValue(),guess.getValue());
+			  string smiles=get_smiles(frag_atom,frag_bond,n_bond,rotors, confidence,f,rings,avg_bond, format.getValue(),resolution, conf.getValue(),guess.getValue(),superatom);
 
 			  if (f<10 && f>0 && smiles!="")
 			    {

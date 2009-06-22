@@ -82,322 +82,64 @@ int abbreviation_to_mol(OBMol *mol,int *n,int *bondn,string smiles_superatom)
   return(anum);
 }
 
-void addOR(OBMol *mol,int *n,int *bondn)
+/*
+void mol_to_abbr()
 {
-  OBAtom *a;
-  a=mol->CreateAtom();
-  a->SetAtomicNum(0);
-  mol->AddAtom(*a);
-  (*n)++;
-  mol->AddBond((*n)-1,(*n),1);
-  (*bondn)++;
-}
+  OBMol mol1,mol;
+  OBConversion conv;
+  OBAtom *atom,*a,*a1;
+  OBBond *bond;
+  int n=1,bondn=0;
 
+  conv.SetOutFormat("SMI");
 
-
-
-
-void addBzO(OBMol *mol,int *n,int *bondn)
-{
-  OBAtom *a;
-  a=mol->CreateAtom();
-  a->SetAtomicNum(6);
-  mol->AddAtom(*a);
-  (*n)++;
-  a=mol->CreateAtom();
-  a->SetAtomicNum(6);
-  mol->AddAtom(*a);
-  (*n)++;
-  a=mol->CreateAtom();
-  a->SetAtomicNum(6);
-  mol->AddAtom(*a);
-  (*n)++;
-  a=mol->CreateAtom();
-  a->SetAtomicNum(6);
-  mol->AddAtom(*a);
-  (*n)++;
-  a=mol->CreateAtom();
-  a->SetAtomicNum(6);
-  mol->AddAtom(*a);
-  (*n)++;
-  a=mol->CreateAtom();
-  a->SetAtomicNum(6);
-  mol->AddAtom(*a);
-  mol->AddBond((*n)-5,(*n)-4,5);
-  (*bondn)++;
-  mol->AddBond((*n)-4,(*n)-3,5);
-  (*bondn)++;
-  mol->AddBond((*n)-3,(*n)-2,5);
-  (*bondn)++;
-  mol->AddBond((*n)-2,(*n)-1,5);
-  (*bondn)++;
-  mol->AddBond((*n)-1,(*n),5);
-  (*bondn)++;
-  mol->AddBond((*n)-5,(*n),5);
-  (*bondn)++;
-  (*n)++;
-  a=mol->CreateAtom();
-  a->SetAtomicNum(6);
-  mol->AddAtom(*a);
-  mol->AddBond((*n)-1,(*n),1);
-  (*bondn)++;
-  (*n)++;
-  mol->AddBond((*n)-1,(*n),1);
-  (*bondn)++;
-}
-
-void addTHPO(OBMol *mol,int *n,int *bondn)
-{
-  OBAtom *a;
-  a=mol->CreateAtom();
-  a->SetAtomicNum(6);
-  mol->AddAtom(*a);
-  (*n)++;
-  a=mol->CreateAtom();
-  a->SetAtomicNum(6);
-  mol->AddAtom(*a);
-  (*n)++;
-  a=mol->CreateAtom();
-  a->SetAtomicNum(6);
-  mol->AddAtom(*a);
-  (*n)++;
-  a=mol->CreateAtom();
-  a->SetAtomicNum(6);
-  mol->AddAtom(*a);
-  (*n)++;
-  a=mol->CreateAtom();
+  addTHPO(&mol1,&n,&bondn);
+  a=mol1.CreateAtom();
   a->SetAtomicNum(8);
-  mol->AddAtom(*a);
-  (*n)++;
-  a=mol->CreateAtom();
-  a->SetAtomicNum(6);
-  mol->AddAtom(*a);
-  mol->AddBond((*n)-5,(*n)-4,1);
-  (*bondn)++;
-  mol->AddBond((*n)-4,(*n)-3,1);
-  (*bondn)++;
-  mol->AddBond((*n)-3,(*n)-2,1);
-  (*bondn)++;
-  mol->AddBond((*n)-2,(*n)-1,1);
-  (*bondn)++;
-  mol->AddBond((*n)-1,(*n),1);
-  (*bondn)++;
-  mol->AddBond((*n)-5,(*n),1);
-  (*bondn)++;
-  (*n)++;
-  mol->AddBond((*n)-1,(*n),1);
-  (*bondn)++;
+
+  mol1.AddAtom(*a);
+  a1=mol1.GetFirstAtom();
+
+  int firstatom=a1->GetIdx();
+  int prevatms = mol.NumAtoms();
+  int numatms=mol1.NumAtoms();
+
+  for (unsigned int i=mol1.NumAtoms();i>=1;i--)
+    {
+      atom=mol1.GetAtom(i);
+      if (atom!=NULL)
+	{
+	  a=mol.CreateAtom();
+	  a->SetAtomicNum(atom->GetAtomicNum());
+	  a->SetFormalCharge(atom->GetFormalCharge());
+	  a->SetIdx(mol.NumAtoms()+1);
+	  mol.AddAtom(*a);
+	  n++;
+	}
+
+    }
+
+
+  for (unsigned int j=0;j<=mol1.NumBonds();j++)
+    {
+      bond=mol1.GetBond(j);
+      if (bond!=NULL)
+	{
+	  int b1=(numatms-bond->GetBeginAtomIdx()+1)-firstatom+1+prevatms;
+	  int b2=(numatms-bond->GetEndAtomIdx()+1)-firstatom+1+prevatms;
+	  mol.AddBond(b1,b2,bond->GetBO(), bond->GetFlags());
+	  bondn++;
+	}
+    }
+  cout<<conv.WriteString(&mol,true)<<endl;
+  exit(0);
 }
+*/
 
-
-
-
-
-void addnBu(OBMol *mol,int *n,int *bondn)
+int getAnum(string s, OBMol *mol,int *n, int *bondn,
+	    map<string,string> superatom)
 {
-  OBAtom *a;
-  a=mol->CreateAtom();
-  a->SetAtomicNum(6);
-  mol->AddAtom(*a);
-  (*n)++;
-  mol->AddBond((*n)-1,(*n),1);
-  (*bondn)++;
-  a=mol->CreateAtom();
-  a->SetAtomicNum(6);
-  mol->AddAtom(*a);
-  (*n)++;
-  mol->AddBond((*n)-1,(*n),1);
-  (*bondn)++;
-  a=mol->CreateAtom();
-  a->SetAtomicNum(6);
-  mol->AddAtom(*a);
-  (*n)++;
-  mol->AddBond((*n)-1,(*n),1);
-  (*bondn)++;
-}
-
-void addiPr(OBMol *mol,int *n,int *bondn)
-{
-  OBAtom *a;
-  a=mol->CreateAtom();
-  a->SetAtomicNum(6);
-  mol->AddAtom(*a);
-  (*n)++;
-  mol->AddBond((*n)-1,(*n),1);
-  (*bondn)++;
-  a=mol->CreateAtom();
-  a->SetAtomicNum(6);
-  mol->AddAtom(*a);
-  (*n)++;
-  mol->AddBond((*n)-1,(*n),1);
-  (*bondn)++;
-}
-
-void addEtO(OBMol *mol,int *n,int *bondn)
-{
-  OBAtom *a;
-  a=mol->CreateAtom();
-  a->SetAtomicNum(6);
-  mol->AddAtom(*a);
-  (*n)++;
-  mol->AddBond((*n)-1,(*n),1);
-  (*bondn)++;
-  a=mol->CreateAtom();
-  a->SetAtomicNum(6);
-  mol->AddAtom(*a);
-  (*n)++;
-  mol->AddBond((*n)-1,(*n),1);
-  (*bondn)++;
-}
-
-void addOiBu(OBMol *mol,int *n,int *bondn)
-{
-  OBAtom *a;
-  a=mol->CreateAtom();
-  a->SetAtomicNum(6);
-  mol->AddAtom(*a);
-  (*n)++;
-  mol->AddBond((*n)-1,(*n),1);
-  (*bondn)++;
-  a=mol->CreateAtom();
-  a->SetAtomicNum(6);
-  mol->AddAtom(*a);
-  (*n)++;
-  mol->AddBond((*n)-1,(*n),1);
-  (*bondn)++;
-  a=mol->CreateAtom();
-  a->SetAtomicNum(6);
-  mol->AddAtom(*a);
-  (*n)++;
-  mol->AddBond((*n)-2,(*n),1);
-  (*bondn)++;
-  a=mol->CreateAtom();
-  a->SetAtomicNum(6);
-  mol->AddAtom(*a);
-  (*n)++;
-  mol->AddBond((*n)-1,(*n),1);
-  (*bondn)++;
-}
-
-void addtBu(OBMol *mol,int *n,int *bondn)
-{
-  OBAtom *a;
-  a=mol->CreateAtom();
-  a->SetAtomicNum(6);
-  mol->AddAtom(*a);
-  (*n)++;
-  a=mol->CreateAtom();
-  a->SetAtomicNum(6);
-  mol->AddAtom(*a);
-  (*n)++;
-  a=mol->CreateAtom();
-  a->SetAtomicNum(6);
-  mol->AddAtom(*a);
-  (*n)++;
-  mol->AddBond((*n)-3,(*n),1);
-  (*bondn)++;
-  mol->AddBond((*n)-2,(*n),1);
-  (*bondn)++;
-  mol->AddBond((*n)-1,(*n),1);
-  (*bondn)++;
-}
-
-
-void addCOOH(OBMol *mol,int *n,int *bondn)
-{
-  OBAtom *a;
-  a=mol->CreateAtom();
-  a->SetAtomicNum(8);
-  mol->AddAtom(*a);
-  (*n)++;
-  a=mol->CreateAtom();
-  a->SetAtomicNum(8);
-  mol->AddAtom(*a);
-  (*n)++;
-  mol->AddBond((*n)-2,(*n),2);
-  (*bondn)++;
-  mol->AddBond((*n)-1,(*n),1);
-  (*bondn)++;
-}
-
-void addAc(OBMol *mol,int *n,int *bondn)
-{
-  OBAtom *a;
-  a=mol->CreateAtom();
-  a->SetAtomicNum(8);
-  mol->AddAtom(*a);
-  (*n)++;
-  a=mol->CreateAtom();
-  a->SetAtomicNum(6);
-  mol->AddAtom(*a);
-  (*n)++;
-  mol->AddBond((*n)-2,(*n),2);
-  (*bondn)++;
-  mol->AddBond((*n)-1,(*n),1);
-  (*bondn)++;
-}
-
-void addAcO(OBMol *mol,int *n,int *bondn)
-{
-  OBAtom *a;
-  a=mol->CreateAtom();
-  a->SetAtomicNum(6);
-  mol->AddAtom(*a);
-  (*n)++;
-  a=mol->CreateAtom();
-  a->SetAtomicNum(8);
-  mol->AddAtom(*a);
-  (*n)++;
-  mol->AddBond((*n)-1,(*n),2);
-  (*bondn)++;
-  mol->AddBond((*n)-2,(*n),1);
-  (*bondn)++;
-  a=mol->CreateAtom();
-  a->SetAtomicNum(6);
-  mol->AddAtom(*a);
-  (*n)++;
-  mol->AddBond((*n)-1,(*n),1);
-  (*bondn)++;
-}
-
-void addNHAc(OBMol *mol,int *n,int *bondn)
-{
-  OBAtom *a;
-  a=mol->CreateAtom();
-  a->SetAtomicNum(6);
-  mol->AddAtom(*a);
-  (*n)++;
-  a=mol->CreateAtom();
-  a->SetAtomicNum(8);
-  mol->AddAtom(*a);
-  (*n)++;
-  mol->AddBond((*n)-1,(*n),2);
-  (*bondn)++;
-  mol->AddBond((*n)-2,(*n),1);
-  (*bondn)++;
-  a=mol->CreateAtom();
-  a->SetAtomicNum(6);
-  mol->AddAtom(*a);
-  (*n)++;
-  mol->AddBond((*n)-1,(*n),1);
-  (*bondn)++;
-}
-
-int getAnum(string s, OBMol *mol,int *n, int *bondn)
-{
-  map<string,string> superatom;
-  superatom["MeO"]="OC";
-  superatom["MeS"]="SC";
-  superatom["MeN"]="NC";
-  superatom["CF"]="CF";
-  superatom["CF3"]="C(F)(F)F";
-  superatom["CN"]="C#N";
-  superatom["F3CN"]="NC(F)(F)F";
-  superatom["Ph"]="c1ccccc1";
-  superatom["NO"]="N=O";
-  superatom["NO2"]="N(=O)=O";
-  superatom["N(OH)CH3"]="N(O)C";
-  superatom["SO3H"]="S(=O)(=O)O";
+  //    mol_to_abbr();
 
   map<string,string>::iterator it=superatom.find(s);
   int isotope;
@@ -411,76 +153,14 @@ int getAnum(string s, OBMol *mol,int *n, int *bondn)
     }
   return(6);
 
-  /*
-
-  if (s=="nBu")
-    {
-      addnBu(mol,n,bondn);
-      return(6);
-    }
-  if (s=="EtO")
-    {
-      addEtO(mol,n,bondn);
-      return(8);
-    }
-  if (s=="OiBu")
-    {
-      addOiBu(mol,n,bondn);
-      return(8);
-    }
-  if (s=="iPr")
-    {
-      addiPr(mol,n,bondn);
-      return(6);
-    }
-  if (s=="tBu")
-    {
-      addtBu(mol,n,bondn);
-      return(6);
-    }
-  if (s=="COOH")
-    {
-      addCOOH(mol,n,bondn);
-      return(6);
-    }
-  if (s=="Ac")
-    {
-      addAc(mol,n,bondn);
-      return(6);
-    }
-  if (s=="AcO")
-    {
-      addAcO(mol,n,bondn);
-      return(8);
-    }
-  if (s=="NHAc")
-    {
-      addNHAc(mol,n,bondn);
-      return(7);
-    }
-
-  if (s=="OR") 
-    {
-      addOR(mol,n,bondn);
-      return(8);
-    }
-  if (s=="BzO")
-    {
-      addBzO(mol,n,bondn);
-      return(8);
-    }
-  if (s=="THPO")
-    {
-      addTHPO(mol,n,bondn);
-      return(8);
-      }*/
 }
 
 
 
 string get_smiles(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, int &rotors, 
 		  double &confidence, int &num_fragments, int &r56, double avg,
-		  string format,int resolution,bool conf, bool guess)
+		  string format,int resolution,bool conf, bool guess,
+		  map<string,string> superatom)
 {
  OBMol mol;
  OBAtom *a,*b;
@@ -505,7 +185,7 @@ string get_smiles(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, int &r
 	   a=mol.CreateAtom();
 	   int oldn=n;
 	   int oldbond=bondn;
-	   anum=getAnum(atom[bond[i].a].label,&mol,&n,&bondn);
+	   anum=getAnum(atom[bond[i].a].label,&mol,&n,&bondn,superatom);
 	   if (oldn!=n) 
 	     {
 	       atomB.push_back(oldn);
@@ -533,7 +213,7 @@ string get_smiles(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, int &r
 	   b=mol.CreateAtom();
 	   int oldn=n;
 	   int oldbond=bondn;
-	   anum=getAnum(atom[bond[i].b].label,&mol,&n,&bondn);
+	   anum=getAnum(atom[bond[i].b].label,&mol,&n,&bondn,superatom);
 	   if (oldn!=n) 
 	     {
 	       atomB.push_back(oldn);
