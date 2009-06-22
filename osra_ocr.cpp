@@ -262,9 +262,9 @@ bool detect_bracket(int x, int y,unsigned char *pic)
 }
 
 
-string fix_atom_name(string s,int n)
+string fix_atom_name(string s,int n,map<string,string> fix, bool debug)
 {
-  map<string,string> fix;
+  /*
   fix["Ci"]="Cl";
   fix["Cf"]="Cl";
   fix["Cll"]="Cl";
@@ -299,59 +299,179 @@ string fix_atom_name(string s,int n)
   fix["nO"]="O";  
   fix["ON"]="O";
 
+  fix["Meo"]="MeO"; 
+  fix["oMe"]="MeO";  
+  fix["oMg"]="MeO";  
+  fix["omg"]="MeO";  
+  fix["Mgo"]="MeO"; 
+  fix["leo"]="MeO";  
+  fix["ohle"]="MeO";  
+  fix["lleo"]="MeO";  
+  fix["olllle"]="MeO";  
+  fix["OMe"]="MeO";  
+  fix["OM8"]="MeO";  
+  fix["OMo"]="MeO";  
+  fix["OMB"]="MeO";  
+  fix["OCH3"]="MeO";  
+  fix["OCHS"]="MeO";  
+  fix["H3CO"]="MeO";  
+
+  fix["NC"]="CN"; 
+  fix["YC"]="CN";
+
+  fix["nBU"]="nBu";
+  fix["neU"]="nBu"; 
+  fix["ngU"]="nBu";
+
+  fix["Eto"]="EtO";
+  fix["oEt"]="EtO";
+  fix["Elo"]="EtO";
+  fix["oEl"]="EtO";
+  fix["ElO"]="EtO";
+  
+  fix["olgU"]="OiBu";
+  fix["oleU"]="OiBu";
+  fix["OlBU"]="OiBu";
+
+  fix["npr"]="iPr";
+  fix["llpll"]="iPr";
+  fix["lpl"]="iPr";
+  fix["npl"]="iPr";
+  fix["lPl"]="iPr";
+
+  fix["tBU"]="tBu";
+  fix["BU"]="tBu";
+  fix["llBU"]="tBu";
+  fix["lBU"]="tBu";
+
+  fix["CooH"]="COOH";
+  fix["HooC"]="COOH";
+  fix["Co2H"]="COOH";
+  fix["CO2H"]="COOH";
+  fix["HOOC"]="COOH";
+  fix["CO2n"]="COOH";
+
+  fix["AC"]="Ac";
+  fix["pC"]="Ac";
+  fix["pc"]="Ac";
+
+  fix["ACo"]="AcO";
+  fix["opC"]="AcO";
+  fix["pcO"]="AcO";
+  fix["ACO"]="AcO";
+  fix["oCO"]="AcO";
+  fix["OoC"]="AcO";
+  fix["OpC"]="AcO";
+  fix["pCO"]="AcO";
+  fix["RCO"]="AcO";
+  fix["ORC"]="AcO";
+
+  fix["Bl"]="Br";
+  fix["el"]="Br";
+  fix["BC"]="Br";
+
+  fix["CH3"]="C";
+  fix["H3C"]="C";
+
+  fix["R"]="X";
+  fix["Rl"]="X";
+  fix["Rlo"]="X";
+  fix["R2"]="X";
+  fix["R3"]="X";
+  fix["Rg"]="X";
+  fix["R4"]="X";
+  fix["R5"]="X";
+  fix["R6"]="X";
+  fix["R7"]="X";
+  fix["R8"]="X";
+  fix["Z"]="X";
+  fix["Y"]="X";
+  fix["2"]="X";
+  fix["RlO"]="X";
+  
+  fix["pl"]="Ar";
+  fix["nl"]="Ar";
+
+  fix["oX"]="Ox";
+
+  fix["NoZ"]="NO2";
+  fix["o2N"]="NO2";
+  fix["No2"]="NO2";
+  fix["No"]="NO2";
+  fix["O2N"]="NO2";
+  fix["NOZ"]="NO2";
+  fix["MO2"]="NO2";
+
+  fix["F3C"]="CF3";
+  fix["CF"]="CF3";
+  fix["FC"]="CF3";
+  fix["Co"]="CF3";
+  fix["F8l"]="CF3";
+  fix["CFS"]="CF3";
+  fix["FSC"]="CF3";
+
+  fix["F3Co"]="F3CN";
+
+  fix["S3"]="S"; 
+  fix["Se"]="S"; 
+  fix["lS"]="S"; 
+  fix["8"]="S"; 
+  fix["SH"]="S"; 
+  fix["HS"]="S"; 
+  fix["SO2"]="S"; 
+
+  fix["lH"]="H";
+
+  fix["AcNH"]="NHAc";
+  fix["ACNH"]="NHAc";
+  fix["NHnC"]="NHAc";
+  fix["pCNH"]="NHAc";
+  fix["NHpC"]="NHAc";
+  fix["lCnuH"]="NHAc";
+
+  fix["OlHP"]="THPO";
+  fix["lHPO"]="THPO";
+
+  fix["NlOHCH3"]="NOHCH3";
+  
+  fix["HO3S"]="SO3H";
+  
+  fix["NMe"]="MeN";
+  fix["NHMe"]="MeN";
+
+  fix["RO"]="OR";
+  
+  fix["lHPO"]="THPO";
+  fix["OlHP"]="THPO";
+
+  fix["NCOlRlH3"]="N(OH)CH3";
+
+  fix["pZO"]="BzO";
+  fix["p2O"]="BzO";
+  fix["OBX"]="BzO";
+  fix["BZO"]="BzO";
+  fix["B2O"]="BzO";
+  fix["OB2"]="BzO";
+
+  fix["Sl"]="Si";
+  */
 
   string r=s;
-  //    cout<<s<<"-->";
   if (s.length()==1) r=toupper(s.at(0));
-  if (s=="Ci" || s=="Cf" || s=="Cll") r="Cl";
-  else if (s=="H" && n>1) r="N";
-  else if (s=="HN" || s=="NH" || s=="M" || s=="Hm" || s=="MN" || s=="N2"
-	   || s=="NM" || s=="NH2" || s=="H2N" || s=="NHZ" || s=="HZN" || s=="NH3"
-	   || s=="nu" || s=="Hu"  || s=="lU" || s=="HlU" || s=="lUH" || s=="H2Y")   r="N";
-  else if (s=="OH" || s=="oH" || s=="Ho" || s=="HO" || s=="ol"
-	   || s=="On" || s=="on" || s=="no" || s=="nO" || s=="ON") r="O";
-  else if (s=="Meo" || s=="oMe" || s=="oMg" || s=="omg" || s=="Mgo"
-	   || s=="leo" || s=="ohle" || s=="lleo" || s=="olllle" 
-	   || s=="OMe" || s=="OM8" || s=="OMo" || s=="OMB" || s=="OCH3" 
-	   || s=="OCHS" || s=="H3CO" || s=="OCH3")   r="MeO";
-  else if (s=="NC" || s=="YC")  r="CN";
-  else if ((s=="nBU") || (s=="neU") ||(s=="ngU")) r="nBu";
-  else if ((s=="Eto") || (s=="oEt") || (s=="Elo") || (s=="oEl")
-      || s=="ElO") r="EtO";
-  else if ((s=="olgU") || (s=="oleU") || s=="OlBU") r="OiBu";
-  else if ((s=="npr") || (s=="llpll") || (s=="lpl") || (s=="npl")
-      || s=="lPl") r="iPr";
-  else if ((s=="tBU") || (s=="BU") || (s=="llBU") || (s=="lBU")) r="tBu";
-  else if (s=="CooH" || s=="HooC" || s=="Co2H" || s=="CO2H" || s=="HOOC" || s=="CO2n") r="COOH";
-  else if (s=="AC" || s=="pC" || s=="pc") r="Ac";
-  else if (s=="ACo" || s=="opC" || s=="pcO" || s=="ACO" || s=="oCO" 
-	   || s=="OoC" || s=="OpC" || s=="pCO" || s=="RCO" || s=="ORC") r="AcO";
-  else if (s=="Bl" || s=="el" || s=="BC") r="Br";
-  else if (s=="CH3" || s=="H3C") r="C";
-  else if (s=="R" || s=="Rl" || s=="Rlo" || s=="R2" || s=="R3" || s=="Rg"
-      || s=="R4" || s=="R5" || s=="R6" || s=="R7" || s=="R8" || s=="Z"  || s=="Y" 
-      || s=="2" || s=="RlO") r="X";
-  else if (s=="pl" || s=="nl") r="Ar";
-  else if (s=="oX") r="Ox";
-  else if (s=="NoZ" || s=="o2N" || s=="No2" || s=="No" || s=="O2N"
-      || s=="NOZ" || s=="MO2") r="NO2";
-//  else if (s=="ph" || s=="Pl" || s=="pl") r="Ph";
-  else if (s=="F3C" || s=="CF" || s=="FC" || s=="Co" || s=="F8l" || s=="CFS"
-      || s=="FSC") r="CF3";
-  else if (s=="F3Co") r="F3CN";
-  else if (s=="S3" || s=="Se" || s=="lS" || s=="8" || s=="SH" || s=="HS" || s=="SO2") r="S"; // SO2 should have its own procedure but mdclutil cannot handle non-terminal superatoms
-  else if (s=="lH") r="H";
-  else if (s=="AcNH" || s=="ACNH" || s=="NHnC" || s=="pCNH" || s=="NHpC" || s=="lCnuH") r="NHAc";
-  else if (s=="OlHP" || s=="lHPO") r="THPO";
-  else if (s=="NlOHCH3") r="NOHCH3";
-  else if (s=="HO3S") r="SO3H";
-  else if (s=="NMe" || s=="NHMe") r="MeN";
-  else if (s=="RO") r="OR";
-  else if (s=="lHPO" || s=="OlHP") r="THPO";
-  else if (s=="NCOlRlH3") r="N(OH)CH3";
-  else if (s=="pZO" || s=="p2O" || s=="OBX" || s=="BZO" || s=="B2O" || s=="OB2") r="BzO";
-  else if (s=="Sl") r="Si";
-  // cout<<r<<endl;
+  if (s=="H" && n>1) r="N";
+
+  map<string,string>::iterator it=fix.find(s);
+  string mapped=" ";
+  if (it!=fix.end())   
+    {
+      r=it->second;
+      mapped=r;
+    }
+
+
+  if (debug && s!=" " && s!="") 
+    cout<<s<<" --> "<<mapped<<" --> "<<r<<endl;
+
   return(r);
 }
 

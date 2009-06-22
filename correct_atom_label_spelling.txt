@@ -1,0 +1,189 @@
+Ci = Cl
+Cf = Cl
+Cll = Cl
+
+HN = N
+NH = N
+M = N
+Hm = N
+MN = N
+N2 = N
+NM = N
+NH2 = N
+H2N = N
+NHZ = N
+HZN = N
+NH3 = N
+nu = N 
+Hu = N  
+lU = N 
+HlU = N 
+lUH = N 
+H2Y = N
+
+OH = O  
+oH = O  
+Ho = O  
+HO = O  
+ol = O
+On = O  
+on = O  
+no = O  
+nO = O  
+ON = O
+
+Meo = MeO 
+oMe = MeO  
+oMg = MeO  
+omg = MeO  
+Mgo = MeO 
+leo = MeO  
+ohle = MeO  
+lleo = MeO  
+olllle = MeO  
+OMe = MeO  
+OM8 = MeO  
+OMo = MeO  
+OMB = MeO  
+OCH3 = MeO  
+OCHS = MeO  
+H3CO = MeO  
+
+NC = CN 
+YC = CN
+
+nBU = nBu
+neU = nBu 
+ngU = nBu
+
+Eto = EtO
+oEt = EtO
+Elo = EtO
+oEl = EtO
+ElO = EtO
+
+olgU = OiBu
+oleU = OiBu
+OlBU = OiBu
+
+npr = iPr
+llpll = iPr
+lpl = iPr
+npl = iPr
+lPl = iPr
+
+tBU = tBu
+BU = tBu
+llBU = tBu
+lBU = tBu
+
+CooH = COOH
+HooC = COOH
+Co2H = COOH
+CO2H = COOH
+HOOC = COOH
+CO2n = COOH
+
+AC = Ac
+pC = Ac
+pc = Ac
+
+ACo = AcO
+opC = AcO
+pcO = AcO
+ACO = AcO
+oCO = AcO
+OoC = AcO
+OpC = AcO
+pCO = AcO
+RCO = AcO
+ORC = AcO
+
+Bl = Br
+el = Br
+BC = Br
+
+CH3 = C
+H3C = C
+
+R = X
+Rl = X
+Rlo = X
+R2 = X
+R3 = X
+Rg = X
+R4 = X
+R5 = X
+R6 = X
+R7 = X
+R8 = X
+Z = X
+Y = X
+2 = X
+RlO = X
+
+pl = Ar
+nl = Ar
+
+oX = Ox
+
+NoZ = NO2
+o2N = NO2
+No2 = NO2
+No = NO2
+O2N = NO2
+NOZ = NO2
+MO2 = NO2
+
+F3C = CF3
+CF = CF3
+FC = CF3
+Co = CF3
+F8l = CF3
+CFS = CF3
+FSC = CF3
+
+F3Co = F3CN
+
+S3 = S 
+Se = S 
+lS = S 
+8 = S 
+SH = S 
+HS = S 
+SO2 = S 
+
+lH = H
+
+AcNH = NHAc
+ACNH = NHAc
+NHnC = NHAc
+pCNH = NHAc
+NHpC = NHAc
+lCnuH = NHAc
+
+OlHP = THPO
+lHPO = THPO
+
+NlOHCH3 = NOHCH3
+
+HO3S = SO3H
+
+NMe = MeN
+NHMe = MeN
+
+RO = OR
+
+lHPO = THPO
+OlHP = THPO
+
+NCOlRlH3 = N(OH)CH3
+
+pZO = BzO
+p2O = BzO
+OBX = BzO
+BZO = BzO
+B2O = BzO
+OB2 = BzO
+
+Sl = Si

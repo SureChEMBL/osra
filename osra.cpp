@@ -47,6 +47,9 @@ extern "C" {
 #include <cstdio>
 #include <vector>
 
+#include <iostream>
+#include <fstream>
+
 #include "osra.h"
 
 
@@ -1424,7 +1427,7 @@ void extend_terminal_bond_to_bonds(vector<atom_t> &atom,vector<bond_t> &bond, in
 
 
 
-void assign_charge(vector<atom_t> &atom, vector<bond_t> &bond, int n_atom,int n_bond)
+void assign_charge(vector<atom_t> &atom, vector<bond_t> &bond, int n_atom,int n_bond, map<string,string> fix, bool debug)
 {
   for (int j=0;j<n_bond;j++)
     if (bond[j].exists && (!atom[bond[j].a].exists || !atom[bond[j].b].exists))
@@ -1467,8 +1470,8 @@ void assign_charge(vector<atom_t> &atom, vector<bond_t> &bond, int n_atom,int n_
         for (int j=0;j<n_bond;j++)
           if (bond[j].exists && bond[j].hash && bond[j].b==i)
             atom[i].charge=0;
-                                                                                  
-	atom[i].label=fix_atom_name(atom[i].label,n);
+                                                                                
+	atom[i].label=fix_atom_name(atom[i].label,n,fix,debug);
       }
 }
 
@@ -4394,6 +4397,97 @@ vector<fragment_t> populate_fragments(vector < vector<int> > frags,vector<atom_t
   return(r);
 }
 
+void trim( string& s )
+{
+	// Remove leading and trailing whitespace
+	static const char whitespace[] = " \n\t\v\r\f";
+	s.erase( 0, s.find_first_not_of(whitespace) );
+	s.erase( s.find_last_not_of(whitespace) + 1U );
+}
+
+void load_fix_atom_name_map(string file, map<string,string> &out)
+{
+  struct file_not_found 
+  {
+    string filename;
+    file_not_found( const string& filename_ = string() )
+      : filename(filename_) {} 
+  };
+
+	typedef string::size_type pos;
+	const string& delim  = "=";  // separator
+	const string& comm   = "#";    // comment
+	const string& sentry = "";     // end of file sentry
+	const pos skip = delim.length();        // length of separator
+	
+	string nextline = "";  // might need to read ahead to see where value ends
+      	std::ifstream is( file.c_str());
+	if( !is ) throw file_not_found( file); 
+	//	std::istream& is;
+
+	while( is || nextline.length() > 0 )
+	{
+		// Read an entire line at a time
+		string line;
+		if( nextline.length() > 0 )
+		{
+			line = nextline;  // we read ahead; use it now
+			nextline = "";
+		}
+		else
+		{
+			std::getline( is, line );
+		}
+		
+		// Ignore comments
+		line = line.substr( 0, line.find(comm) );
+		
+		// Check for end of file sentry
+		if( sentry != "" && line.find(sentry) != string::npos ) return;
+		
+		// Parse the line if it contains a delimiter
+		pos delimPos = line.find( delim );
+		if( delimPos < string::npos )
+		{
+			// Extract the key
+			string key = line.substr( 0, delimPos );
+			line.replace( 0, delimPos+skip, "" );
+			
+			// See if value continues on the next line
+			// Stop at blank line, next line with a key, end of stream,
+			// or end of file sentry
+			bool terminate = false;
+			while( !terminate && is )
+			{
+				std::getline( is, nextline );
+				terminate = true;
+				
+				string nlcopy = nextline;
+				trim(nlcopy);
+				if( nlcopy == "" ) continue;
+				
+				nextline = nextline.substr( 0, nextline.find(comm) );
+				if( nextline.find(delim) != string::npos )
+					continue;
+				if( sentry != "" && nextline.find(sentry) != string::npos )
+					continue;
+				
+				nlcopy = nextline;
+				trim(nlcopy);
+				if( nlcopy != "" ) line += "\n";
+				line += nextline;
+				terminate = false;
+			}
+			
+			// Store key and value
+			trim(key);
+			trim(line);
+			out[key] = line;  // overwrites if key is repeated
+		}
+	}
+	
+}
+
 bool comp_fragments(const fragment_t &aa, const fragment_t &bb)
 {
   if (aa.y2<bb.y1) return(true);
@@ -4458,11 +4552,21 @@ int main(int argc,char **argv)
     cmd.add(guess);
     TCLAP::ValueArg<string> format("f","format","Output format",false,"can","can/smi/sdf");
     cmd.add(format);
+
+    TCLAP::ValueArg<string> spelling("l","spelling","Spelling correction dictionary",false,"correct_atom_label_spelling.txt","configfile");
+    cmd.add(spelling);
+    TCLAP::SwitchArg debug("d","debug","Print out debug information on spelling corrections",false);
+    cmd.add(debug);
+
     cmd.parse( argc, argv );
 
     int input_resolution=resolution_param.getValue();
     string type=image_type(input.getValue());
     bool invert=inv.getValue();
+
+    map<string,string> fix;
+    load_fix_atom_name_map(spelling.getValue(),fix);
+
     if ((type=="PDF") || (type=="PS")) input_resolution=150;
     int page=count_pages(input.getValue());
 
@@ -4835,7 +4939,7 @@ int main(int argc,char **argv)
 		  }   	
 		*/
 	
-		assign_charge(atom,bond,n_atom,n_bond);
+		assign_charge(atom,bond,n_atom,n_bond,fix,debug.getValue());
 		find_up_down_bonds(bond,n_bond,atom,thickness);
 		int real_atoms=count_atoms(atom,n_atom);
 		if ((real_atoms>MIN_A_COUNT) && (real_atoms<MAX_A_COUNT))

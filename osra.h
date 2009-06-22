@@ -106,7 +106,7 @@ struct fragment_s {
 typedef struct fragment_s fragment_t;
 
 
-string fix_atom_name(string s,int n);
+string fix_atom_name(string s,int n,map<string,string> fix, bool debug);
 string get_smiles(vector<atom_t> &atom,vector<bond_t> &bond, int n_bond, int &rotors, double &confidence, int &num_fragments, int &r56,double avg,string format,int resolution,bool conf, bool guess);
 Magick::Image anisotropic_smoothing(Magick::Image image,int width,int height, const float amplitude,const float alpha, const float sigma);
 Magick::Image anisotropic_scaling(Magick::Image image,int width,int height, int nw, int nh);
