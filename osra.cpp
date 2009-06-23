@@ -4462,7 +4462,6 @@ void load_config_map(string file, map<string,string> &out)
 			trim(key);
 			trim(line);
 			out[key] = line;  // overwrites if key is repeated
-			cout<<key<<" "<<line<<endl;
 		}
 	}
 	
