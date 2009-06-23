@@ -2,7 +2,7 @@ ARCH=unix
 #unix,win32
 
 POTRACE=../potrace-1.8/
-GOCR=../gocr-0.47/
+GOCR=../gocr-0.45/
 OCRAD=../ocrad-0.18/
 OPENBABEL=/usr/
 

@@ -4433,35 +4433,22 @@ void load_config_map(string file, map<string,string> &out)
   };
 
 	typedef string::size_type pos;
-	const string& delim  = "=";  // separator
+	const string& delim  = " ";  // separator
 	const string& comm   = "#";    // comment
-	const string& sentry = "";     // end of file sentry
 	const pos skip = delim.length();        // length of separator
 	
-	string nextline = "";  // might need to read ahead to see where value ends
       	std::ifstream is( file.c_str());
 	if( !is ) throw file_not_found( file); 
-	//	std::istream& is;
 
-	while( is || nextline.length() > 0 )
+	while( is )
 	{
 		// Read an entire line at a time
 		string line;
-		if( nextline.length() > 0 )
-		{
-			line = nextline;  // we read ahead; use it now
-			nextline = "";
-		}
-		else
-		{
-			std::getline( is, line );
-		}
+		std::getline( is, line );
 		
 		// Ignore comments
-		line = line.substr( 0, line.find(comm) );
-		
-		// Check for end of file sentry
-		if( sentry != "" && line.find(sentry) != string::npos ) return;
+		//line = line.substr( 0, line.find(comm) );
+		if (line.length()==0 || line.at(0)=='#') continue;
 		
 		// Parse the line if it contains a delimiter
 		pos delimPos = line.find( delim );
@@ -4471,36 +4458,11 @@ void load_config_map(string file, map<string,string> &out)
 			string key = line.substr( 0, delimPos );
 			line.replace( 0, delimPos+skip, "" );
 			
-			// See if value continues on the next line
-			// Stop at blank line, next line with a key, end of stream,
-			// or end of file sentry
-			bool terminate = false;
-			while( !terminate && is )
-			{
-				std::getline( is, nextline );
-				terminate = true;
-				
-				string nlcopy = nextline;
-				trim(nlcopy);
-				if( nlcopy == "" ) continue;
-				
-				nextline = nextline.substr( 0, nextline.find(comm) );
-				if( nextline.find(delim) != string::npos )
-					continue;
-				if( sentry != "" && nextline.find(sentry) != string::npos )
-					continue;
-				
-				nlcopy = nextline;
-				trim(nlcopy);
-				if( nlcopy != "" ) line += "\n";
-				line += nextline;
-				terminate = false;
-			}
-			
 			// Store key and value
 			trim(key);
 			trim(line);
 			out[key] = line;  // overwrites if key is repeated
+			cout<<key<<" "<<line<<endl;
 		}
 	}
 	
