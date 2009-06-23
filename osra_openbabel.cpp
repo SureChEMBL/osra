@@ -140,17 +140,18 @@ int getAnum(string s, OBMol *mol,int *n, int *bondn,
 	    map<string,string> superatom)
 {
   //    mol_to_abbr();
+  if (s=="X") return(0);
 
   map<string,string>::iterator it=superatom.find(s);
-  int isotope;
-  int anum=etab.GetAtomicNum(s.c_str(),isotope);
-
-  if (anum!=0) return(anum);
-  if (s=="X") return(0);
   if (it!=superatom.end()) 
     {
       return(abbreviation_to_mol(mol,n,bondn,it->second));
     }
+
+  int isotope;
+  int anum=etab.GetAtomicNum(s.c_str(),isotope);
+  if (anum!=0) return(anum);
+
   return(6);
 
 }
