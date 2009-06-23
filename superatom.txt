@@ -22,3 +22,8 @@ NHAc     NC(=O)C
 OR       O*
 BzO      OCc1ccccc1
 THPO     O[C@@H]1OCCCC1
+
+CHO    C=O
+NOH    NO 
+COOMe   C(O)OC
+COOEt   C(O)OCC
