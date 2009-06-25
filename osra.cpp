@@ -4547,17 +4547,18 @@ int main(int argc,char **argv)
 
     char progname[1024];
     strncpy(progname,cmd.getProgramName().c_str(),1023);
+    progname[1023]='\0';
     string osra_dir=dirname(progname);
 
     string spelling_file=spelling.getValue();
     string superatom_file=abbr.getValue();
     if (spelling_file.length()==0)
       {
-	spelling_file=osra_dir+"/correct_atom_label_spelling.txt";
+	spelling_file=osra_dir+"/"+SPELLING_TXT;
       }
     if (superatom_file.length()==0)
       {
-	superatom_file=osra_dir+"/superatom.txt";
+	superatom_file=osra_dir+"/"+SUPERATOM_TXT;
       }
 
 
