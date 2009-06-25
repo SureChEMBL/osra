@@ -50,6 +50,8 @@ extern "C" {
 #include <iostream>
 #include <fstream>
 
+#include <libgen.h>
+
 #include "osra.h"
 
 
@@ -4532,10 +4534,10 @@ int main(int argc,char **argv)
     TCLAP::ValueArg<string> format("f","format","Output format",false,"can","can/smi/sdf");
     cmd.add(format);
 
-    TCLAP::ValueArg<string> spelling("l","spelling","Spelling correction dictionary",false,"correct_atom_label_spelling.txt","configfile");
+    TCLAP::ValueArg<string> spelling("l","spelling","Spelling correction dictionary",false,"","configfile");
     cmd.add(spelling);
 
-    TCLAP::ValueArg<string> abbr("a","superatom","Superatom label map to SMILES",false,"superatom.txt","configfile");
+    TCLAP::ValueArg<string> abbr("a","superatom","Superatom label map to SMILES",false,"","configfile");
     cmd.add(abbr);
 
     TCLAP::SwitchArg debug("d","debug","Print out debug information on spelling corrections",false);
@@ -4543,13 +4545,29 @@ int main(int argc,char **argv)
 
     cmd.parse( argc, argv );
 
+    char progname[1024];
+    strncpy(progname,cmd.getProgramName().c_str(),1023);
+    string osra_dir=dirname(progname);
+
+    string spelling_file=spelling.getValue();
+    string superatom_file=abbr.getValue();
+    if (spelling_file.length()==0)
+      {
+	spelling_file=osra_dir+"/correct_atom_label_spelling.txt";
+      }
+    if (superatom_file.length()==0)
+      {
+	superatom_file=osra_dir+"/superatom.txt";
+      }
+
+
     int input_resolution=resolution_param.getValue();
     string type=image_type(input.getValue());
     bool invert=inv.getValue();
 
     map<string,string> fix,superatom;
-    load_config_map(spelling.getValue(),fix);
-    load_config_map(abbr.getValue(),superatom);
+    load_config_map(spelling_file,fix);
+    load_config_map(superatom_file,superatom);
 
 
     if ((type=="PDF") || (type=="PS")) input_resolution=150;
