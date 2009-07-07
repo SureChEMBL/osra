@@ -150,5 +150,5 @@ bool detect_bracket(int x, int y,unsigned char *pic);
 #define THRESHOLD_LEVEL 4
 #define TEXT_LINE_SIZE 8
 #define PARTS_IN_MARGIN 3
-#define SPELLING_TXT "correct_atom_label_spelling.txt"
+#define SPELLING_TXT "spelling.txt"
 #define SUPERATOM_TXT "superatom.txt"

@@ -1,3 +1,10 @@
+# Translations of superatom labels to SMILES.
+# First atom of SMILES string should be the one connected to the rest of
+# the molecule.
+# Empty lines and lines starting with # are ignored.
+# Also check spelling.txt to see that the superatom label
+# is correctly spelled.
+
 MeO      OC
 MeS      SC
 MeN      NC
