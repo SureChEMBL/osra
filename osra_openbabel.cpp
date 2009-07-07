@@ -281,7 +281,7 @@ string get_smiles(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, int &r
  mol.FindRingAtomsAndBonds();
  int num_double=0;
  int num_triple=0;
- for (unsigned int j=1;j<=mol.NumBonds();j++)
+ for (unsigned int j=0;j<=mol.NumBonds();j++)
      {
        OBBond *b=mol.GetBond(j);
        if (b!=NULL)
@@ -374,7 +374,7 @@ if (format=="sdf")
  mol.AddHydrogens(true,false); // polarOnly, correctForPh
 
  mol.FindChiralCenters();
- for (unsigned int j=1;j<=mol.NumBonds();j++)
+ for (unsigned int j=0;j<=mol.NumBonds();j++)
      {
        OBBond *b=mol.GetBond(j);
        if (b!=NULL)
@@ -391,7 +391,12 @@ if (format=="sdf")
  // mol.Separate();
   mol.StripSalts(MIN_A_COUNT);
 
- str=conv.WriteString(&mol,true);
+  try {
+    str=conv.WriteString(&mol,true);
+  } catch (...)
+    {
+      str="";
+    }
 
  for (int i=0;i<n_bond;i++)
    if (bond[i].exists) 
