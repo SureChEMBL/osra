@@ -391,12 +391,10 @@ if (format=="sdf")
  // mol.Separate();
   mol.StripSalts(MIN_A_COUNT);
 
-  try {
+  if (format != "empty")
     str=conv.WriteString(&mol,true);
-  } catch (...)
-    {
-      str="";
-    }
+  else
+    str="";
 
  for (int i=0;i<n_bond;i++)
    if (bond[i].exists) 
