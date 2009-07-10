@@ -45,6 +45,8 @@ Section "osra (required)"
   File "delegates.xml"
   File "README.txt"
   File "libopenbabel-3.dll"
+  File "spelling.txt"
+  File "superatom.txt"
   
   strcpy $3 "GPL Ghostscript"
   call checkSoftVersion
@@ -68,7 +70,6 @@ Section "osra (required)"
 SectionEnd
 
 Section /o "Symyx Draw plugin" symyx_draw
- call MakeSureIGotGFL
  strcpy $3 "Symyx Technologies, Inc.\Symyx Draw\Client"
  call CheckSoftVersion
  strcmp $2 "" no_symyx
@@ -79,8 +80,7 @@ Section /o "Symyx Draw plugin" symyx_draw
  SetOutPath "$1\AddIns\OSRAAction"
  File "plugins\symyx_draw\README.txt"
  File "plugins\symyx_draw\OSRAAction\OSRAAction.dll"
- File "plugins\symyx_draw\OSRAAction\Interop.GflAx.dll"
- call createXMLConfig
+ File "plugins\symyx_draw\OSRAAction\OSRAAction.dll.config"
  Goto done
  no_symyx:
   MessageBox MB_OK "Symyx Draw not found" IDOK done
@@ -102,6 +102,8 @@ Section "Uninstall"
   Delete $INSTDIR\README.txt
   Delete $INSTDIR\osra.bat
   Delete $INSTDIR\libopenbabel-3.dll
+  Delete $INSTDIR\superatom.txt
+  Delete $INSTDIR\spelling.txt
   Delete $INSTDIR\uninstall.exe
   RMDir "$INSTDIR"
   strcpy $3 "Symyx Technologies, Inc.\Symyx Draw\Client"
@@ -109,10 +111,9 @@ Section "Uninstall"
   strcmp $2 "" no_symyx
   call un.getSymyxPath
   strcmp $1 "" no_symyx 
-   Delete "$1\AddIns\OSRAAction.xml"
+  Delete "$1\AddIns\OSRAAction.xml"
   Delete "$1\AddIns\OSRAAction\README.txt"
   Delete "$1\AddIns\OSRAAction\OSRAAction.dll"
-  Delete "$1\AddIns\OSRAAction\Interop.GflAx.dll"
   Delete "$1\AddIns\OSRAAction\OSRAAction.dll.config"
   RMDir "$1\AddIns\OSRAAction"
   no_symyx:
@@ -144,50 +145,6 @@ done:
 ; $2 contains the version of Soft now or empty
 FunctionEnd
 
-Function getSoftInstPath
-
-  Push $0
-  Push $1
-  Push $2
-  ReadRegStr $0 HKLM \
-     "Software\Microsoft\Windows\CurrentVersion\Uninstall\$3" \ 
-     "UninstallString"
-  StrCmp $0 "" fin
-  
-    StrCpy $1 $0 1 0 ; get firstchar
-    StrCmp $1 '"' "" getparent 
-      ; if first char is ", let's remove "'s first.
-      StrCpy $0 $0 "" 1
-      StrCpy $1 0
-      rqloop:
-        StrCpy $2 $0 1 $1
-        StrCmp $2 '"' rqdone
-        StrCmp $2 "" rqdone
-        IntOp $1 $1 + 1
-        Goto rqloop
-      rqdone:
-      StrCpy $0 $0 $1
-    getparent:
-    ; the uninstall string goes to an EXE, let's get the directory.
-    StrCpy $1 -1
-    gploop:
-      StrCpy $2 $0 1 $1
-      StrCmp $2 "" gpexit
-      StrCmp $2 "\" gpexit
-      IntOp $1 $1 - 1
-      Goto gploop
-    gpexit:
-    StrCpy $0 $0 $1
-
-    StrCmp $0 "" fin
-    IfFileExists $0\$4 fin
-      StrCpy $0 ""
-  fin:
-  Pop $2
-  Pop $1
-  Exch $0
-  
-FunctionEnd
 
 Function getGhostscriptInstPath
  strcmp $2 "" download_gs get_path
@@ -265,29 +222,6 @@ endlocal$\r$\n\
 fileClose $0
 FunctionEnd
 
-Function MakeSureIGotGFL
-  strcpy $3 "GflAx_is1"
-  strcpy $4 "GflAx\lib\GflAx.dll"
-  Call getSoftInstPath
-  Pop $0
-  StrCmp $0 "" getgfl
-  Return
-    
-  getgfl:
-   DetailPrint "need to download and install GflAxSetup.exe"
-   Call ConnectInternet ;Make an internet connection (if no connection available)
-   StrCpy $2 "$TEMP\GflAxSetup.exe"
-   NSISdl::download http://download.xnview.com/GflAxSetup.exe $2
-   Pop $0
-   StrCmp $0 success success
-    SetDetailsView show
-    DetailPrint "download failed: $0"
-    Abort
-  success:
-    ExecWait "$2"
-    Delete $2
-    
-FunctionEnd
 
 Function ConnectInternet
 
@@ -313,37 +247,6 @@ Function ConnectInternet
   
 FunctionEnd
 
-Function createXMLConfig
-fileOpen $0 "$1\AddIns\OSRAAction\OSRAAction.dll.config" w
- fileWrite $0 '<?xml version="1.0"?>$\r$\n'
- fileWrite $0 '<configuration>$\r$\n'
- fileWrite $0 '<configSections>$\r$\n'
- fileWrite $0 '<sectionGroup name="userSettings" type="System.Configuration.UserSettingsGroup, System, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" >$\r$\n'
- fileWrite $0 '<section name="Symyx.Draw.Addins.OSRAAddinAction.OSRA" type="System.Configuration.ClientSettingsSection, System, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" allowExeDefinition="MachineToLocalUser" requirePermission="false" />$\r$\n'
- fileWrite $0 '<section name="Symyx.Draw.Addins.OSRAAddinAction.Settings1" type="System.Configuration.ClientSettingsSection, System, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" allowExeDefinition="MachineToLocalUser" requirePermission="false" />$\r$\n'
- fileWrite $0 '</sectionGroup>$\r$\n'
- fileWrite $0 '</configSections>$\r$\n'
- fileWrite $0 '<startup><supportedRuntime version="v2.0.50727"/></startup><userSettings>$\r$\n'
- fileWrite $0 '<Symyx.Draw.Addins.OSRAAddinAction.OSRA>$\r$\n'
- fileWrite $0 '<setting name="OSRAPath" serializeAs="String">$\r$\n'
- fileWrite $0 '<value>$INSTDIR\osra.bat</value>$\r$\n'
- fileWrite $0 '</setting>$\r$\n'
- fileWrite $0 '<setting name="OSRACommandLine" serializeAs="String">$\r$\n'
- fileWrite $0 '<value> -f sdf </value>$\r$\n'
- fileWrite $0 '</setting>$\r$\n'
- fileWrite $0 '</Symyx.Draw.Addins.OSRAAddinAction.OSRA>$\r$\n'
- fileWrite $0 '<Symyx.Draw.Addins.OSRAAddinAction.Settings1>$\r$\n'
- fileWrite $0 '<setting name="OSRAPath" serializeAs="String">$\r$\n'
- fileWrite $0 '<value />$\r$\n'
- fileWrite $0 '</setting>$\r$\n'
- fileWrite $0 '<setting name="Resolution" serializeAs="String">$\r$\n'
- fileWrite $0 '<value />$\r$\n'
- fileWrite $0 '</setting>$\r$\n'
- fileWrite $0 '</Symyx.Draw.Addins.OSRAAddinAction.Settings1>$\r$\n'
- fileWrite $0 '</userSettings>$\r$\n'
- fileWrite $0 '</configuration>$\r$\n'
-fileClose $0
-FunctionEnd
 
 Function .onInit
  strcpy $3 "Symyx Technologies, Inc.\Symyx Draw\Client"
