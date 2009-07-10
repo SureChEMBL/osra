@@ -148,7 +148,13 @@ To configure ImageMagick I used the following options:
 Compile and install ImageMagick, GOCR, Potrace, TCLAP.
 
 Compiling OpenBabel version 2.2.2:
-http://openbabel.org/wiki/Install_(MinGW)
+Run configure with the following options:
+./configure --disable-dynamic-modules CXX=g++-sjlj
+make
+make install
+
+Compilation breaks, but libopenbabel-3.dll gets compiled and installed,
+which is what we need.
 
 Compiling osra:
 Edit the Makefile to set ARCH variable to win32.
