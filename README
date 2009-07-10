@@ -1,6 +1,6 @@
                         OSRA: Optical Structure Recognition
 
-							Igor Filippov, 2007-2008
+							Igor Filippov, 2007-2009
 							igorf@helix.nih.gov
 
 
@@ -52,8 +52,7 @@ http://potrace.sourceforge.net/
 compilation below)
 http://jocr.sourceforge.net/
 
-- OCRAD, optical character recognition program, version 0.17,
-(version 0.18-pre4 recommended)
+- OCRAD, optical character recognition program, version 0.18,
 http://www.gnu.org/software/ocrad/ocrad.html
 
 - TCLAP, Templatized C++ Command Line Parser Library, version 1.1.0,
@@ -64,11 +63,6 @@ if installing from RPM make sure you have the following packages:
 	 openbabel 
 	 openbabel-devel
 http://openbabel.sourceforge.net/wiki/Main_Page
-
-- OR alternatively you can use RDKit as the molecular builder back-end,
-version Q32008_1  or later (the latest version of RDKit - Q12009_1 
-has not been tested yet):
- http://www.rdkit.org/
 
 =============================================================================
 Other acknowledgements:
@@ -96,9 +90,6 @@ Compilation:
 On Linux/Unix systems:
 Unpack downloaded source code for the OCRAD package. Do not compile or install 
 it - OSRA will automatically patch it and compile the object files it needs.
-If using g++ version 4 you might have to use the beta version of ocrad-0.18
-(ocrad-0.18-pre4 at the time of this writing) which you can download here:
-http://download.savannah.gnu.org/releases/ocrad/
 
 Compile and/or install all the other necessary dependencies.
 Special note for GOCR - do not use version 0.46; I recommend using 0.45
@@ -113,12 +104,9 @@ Edit the included Makefile to make sure you have the correct locations
 for potrace, gocr, ocrad, openbabel (or rdkit), and tclap.
 Check that Magick++-config  location (it's a script that
 comes from ImageMagick installation) is in your PATH. You might have to set 
-LD_LIBRARY_PATH=$(RDKIT)/bin when using RDKit, or /usr/local/bin when using
-OpenBabel.
+LD_LIBRARY_PATH to /usr/local/bin.
 Set ARCH variable to one of the following: unix - for linux,unix,osx;
 win32 - for building on Windows MinGW environment.
-Set OPENBABEL_OR_RDKIT to either openbabel or rdkit depending on what toolkit you
-have installed.
 Running make should then generate the executable - osra.
 
 Mac OS X (courtesy of Emilio Esposito):
@@ -135,7 +123,6 @@ ImageMagick libraries:
 export LD_LIBRARY_PATH=/usr/local/lib:/usr/local/lib/openbabel/2.2.0:/usr/local/lib/ImageMagick-6.4.1
 Then, modify the OSRA Makefile:
 ARCH=unix
-OPENBABEL_OR_RDKIT=openbabel
 OPENBABEL=/usr/local/
 Running make should then generate the executable - osra.
 
@@ -160,19 +147,11 @@ To configure ImageMagick I used the following options:
 
 Compile and install ImageMagick, GOCR, Potrace, TCLAP.
 
-Compiling OpenBabel version 2.2.0:
-Run configure with the following options:
-./configure --without-boost --disable-dynamic-modules --with-zlib=/usr/local/ CXX=g++-sjlj
-
-(note that version 2.2.1 doesn't seem to compile in MinGW environment)
-
-Run make and make install. Compilation breaks for babel.exe but the library
-libopenbabel-3.dll is generated. You need to keep this library with osra if
-you plan on running osra on a different machine.
-
+Compiling OpenBabel version 2.2.2:
+http://openbabel.org/wiki/Install_(MinGW)
 
 Compiling osra:
-Edit the Makefile to set ARCH variable to win32 and OPENBABEL_OR_RDKIT to openbabel.
+Edit the Makefile to set ARCH variable to win32.
 Running make should (hopefully) generate osra.exe. You're done!
 Make sure you take a look at osra.bat to see that the environment is set
 correctly. You will still need delegates.xml from ImageMagick installation
@@ -236,10 +215,16 @@ Other options:
 
 -f,  --format:  Output format (either smi for SMILES or sdf for SD file format)
 
+-d,  --debug:    Print out debug information on spelling corrections
+
+-a <configfile>,  --superatom <configfile>:  Superatom label map to SMILES (superatom.txt by default)
+
+-l <configfile>,  --spelling <configfile>:   Spelling correction dictionary (spelling.txt by default)
 
 =============================================================================
 Windows users:
-You can download and use the zip archive with the pre-compiled binary.
+You can download and use either the self-installing exe file or
+the zip archive with the pre-compiled binary.
 The archive includes:
 	osra.bat - Windows batch file, sets the environment and calls
 	           osra.exe, 
