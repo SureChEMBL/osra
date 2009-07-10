@@ -39,8 +39,13 @@ GOCRSRC=$(GOCR)/src/
 GOCRINC= -I$(GOCRSRC) -I$(GOCR)/include/
 GOCRLIB= -L$(GOCRSRC) -lPgm2asc $(NETPBM)
 
-OPENBABELLIB=-L$(OPENBABEL)/lib -lopenbabel   
+ifneq ($(ARCH),win32)
+OPENBABELLIB=-L$(OPENBABEL)/lib -lopenbabel
 OPENBABELINC=-I$(OPENBABEL)/include/openbabel-2.0/
+else
+OPENBABELLIB=-L/usr/local/lib -lopenbabel
+OPENBABELINC=-I$(OPENBABEL)/include/
+endif
 
 MOL_BACKEND_INC=$(OPENBABELINC)
 MOL_BACKEND_LIB=$(OPENBABELLIB)
