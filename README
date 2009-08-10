@@ -110,7 +110,9 @@ win32 - for building on Windows MinGW environment.
 Running make should then generate the executable - osra.
 
 Mac OS X (courtesy of Emilio Esposito):
-Install ImageMagick through MacPorts or Fink as it's just easier.
+Install ImageMagick through MacPorts as it's just easier.
+Note - the older version of imagemagick, available from fink seems 
+to compile fine but does not work. The version from macports works fine.
 Download OSRA, POTRACE, GOCR OCRAD, TCLAP, and OpenBabel. Unzipped and
 untarred the downloaded files into ~/software.
 Compile POTRACE and GOCR as follows: 
@@ -124,6 +126,9 @@ export LD_LIBRARY_PATH=/usr/local/lib:/usr/local/lib/openbabel/2.2.0:/usr/local/
 Then, modify the OSRA Makefile:
 ARCH=unix
 OPENBABEL=/usr/local/
+# comment out the line about netpbm:
+#NETPBM=-lnetpbm
+
 Running make should then generate the executable - osra.
 
 Compiling OSRA on Windows systems:
