@@ -2900,9 +2900,11 @@ bool  comp_boxes(const box_t &aa,const box_t &bb)
 }
 
 double noise_factor(Image image, int width, int height, ColorGray bgColor, 
-		     double THRESHOLD_BOND, int resolution)
+		    double THRESHOLD_BOND, int resolution, int &max)
 {
-  int n1=0,n2=0,n3=0;
+  //  int n1=0,n2=0,n3=0;
+  int max_thick=20;
+  vector<double> n(max_thick,0);
   double nf;
   for(int i=0;i<width;i++)
     {
@@ -2916,9 +2918,10 @@ double noise_factor(Image image, int width, int height, ColorGray bgColor,
 	      l++;
 	      j++;
 	    }
-	  if (l==1) n1++;
-	  else if (l==2) n2++;
-	  else if (l==3) n3++;
+	  if (l<max_thick) n[l]++;
+	  //	  if (l==1) n1++;
+	  //	  else if (l==2) n2++;
+	  //	  else if (l==3) n3++;
 	}
     }
   for(int i=0;i<height;i++)
@@ -2933,13 +2936,22 @@ double noise_factor(Image image, int width, int height, ColorGray bgColor,
 	      l++;
 	      j++;
 	    }
-	  if (l==1) n1++;
-	  else if (l==2) n2++;
-	  else if (l==3) n3++;
+	  //	  if (l==1) n1++;
+	  //	  else if (l==2) n2++;
+	  //	  else if (l==3) n3++;
+	  if (l<max_thick) n[l]++;
 	}
     }
-  if (resolution>=300) nf=1.*n2/n3;
-  else nf=1.*n1/n2;
+  double max_v=0;
+  max=1;
+  for(int l=1;l<max_thick;l++)
+    if (n[l]>max_v) 
+      {
+	max_v=n[l];
+	max=l;
+      }
+  if (resolution>=300) nf=n[2]/n[3];
+  else nf=n[1]/n[2];
   return(nf);
 }
 
@@ -4436,7 +4448,6 @@ void load_config_map(string file, map<string,string> &out)
 
 	typedef string::size_type pos;
 	const string& delim  = " ";  // separator
-	const string& comm   = "#";    // comment
 	const pos skip = delim.length();        // length of separator
 	
       	std::ifstream is( file.c_str());
@@ -4746,8 +4757,22 @@ int main(int argc,char **argv)
 		
 		if (resolution>=300)
 		  {
+		    int max_hist;
 		    double nf=noise_factor(orig_box,width,height,bgColor,
-					   THRESHOLD_BOND,resolution);
+					   THRESHOLD_BOND,resolution,max_hist);
+		    if (max_hist>4)
+		      {
+			int new_resolution=max_hist*300/4;
+			int percent=(100*300)/new_resolution;
+			resolution=max_hist*select_resolution[res_iter]/4;
+			stringstream scale;
+			scale<<percent<<"%";
+			orig_box.scale(scale.str());
+			working_resolution=300;
+			thick_box=orig_box;
+			width=thick_box.columns();
+			height=thick_box.rows();
+			}
 		    if (nf>0.5 && nf<1.)
 		      thick_box=anisotropic_smoothing(orig_box,width,height,20,0.6,2);
 		    else thick_box=orig_box;
