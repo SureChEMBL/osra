@@ -4677,7 +4677,7 @@ int main(int argc,char **argv)
 	//exit(0);
 	std::sort(boxes.begin(),boxes.end(),comp_boxes);
 
-#pragma omp parallel for default(shared) shared(threshold,output,format,resize,type,page,l,num_resolutions,select_resolution,array_of_smiles,array_of_confidence,array_of_images,image,image_count,conf,guess) private(res_iter,JOB)
+	//#pragma omp parallel for default(shared) shared(threshold,output,format,resize,type,page,l,num_resolutions,select_resolution,array_of_smiles,array_of_confidence,array_of_images,image,image_count,conf,guess) private(res_iter,JOB)
     for (res_iter=0;res_iter<num_resolutions;res_iter++)
       {
 	int total_boxes=0;
@@ -4778,10 +4778,10 @@ int main(int argc,char **argv)
 			    height=thick_box.rows();
 			  }
 			else
-			  continue;
+			   continue;
 			  
 		      }
-		    if (nf>0.5 && nf<1.)
+		    if (nf>0.5 && nf<1. && res_iter!=num_resolutions-1)
 		      thick_box=anisotropic_smoothing(orig_box,width,height,20,0.6,2);
 		    else thick_box=orig_box;
 		  }
@@ -4804,7 +4804,7 @@ int main(int argc,char **argv)
 		    else thick_box=orig_box;*/
 		else 
 		  thick_box=orig_box;
-		
+
 		
 		    
 		param->turnpolicy=POTRACE_TURNPOLICY_MINORITY;
@@ -5068,6 +5068,7 @@ int main(int argc,char **argv)
 	    potrace_param_free(param); 
 	    //	    dbg.write("debug.png");
       }
+
     double max_conf=-FLT_MAX;
     int max_res=0;
     for (int i=0;i<num_resolutions;i++)
