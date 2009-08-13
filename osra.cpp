@@ -2902,7 +2902,6 @@ bool  comp_boxes(const box_t &aa,const box_t &bb)
 double noise_factor(Image image, int width, int height, ColorGray bgColor, 
 		    double THRESHOLD_BOND, int resolution, int &max)
 {
-  //  int n1=0,n2=0,n3=0;
   int max_thick=20;
   vector<double> n(max_thick,0);
   double nf;
@@ -2919,9 +2918,6 @@ double noise_factor(Image image, int width, int height, ColorGray bgColor,
 	      j++;
 	    }
 	  if (l<max_thick) n[l]++;
-	  //	  if (l==1) n1++;
-	  //	  else if (l==2) n2++;
-	  //	  else if (l==3) n3++;
 	}
     }
   for(int i=0;i<height;i++)
@@ -2936,9 +2932,6 @@ double noise_factor(Image image, int width, int height, ColorGray bgColor,
 	      l++;
 	      j++;
 	    }
-	  //	  if (l==1) n1++;
-	  //	  else if (l==2) n2++;
-	  //	  else if (l==3) n3++;
 	  if (l<max_thick) n[l]++;
 	}
     }
@@ -2950,7 +2943,7 @@ double noise_factor(Image image, int width, int height, ColorGray bgColor,
 	max_v=n[l];
 	max=l;
       }
-  if (resolution>=300) nf=n[2]/n[3];
+  if (max>1) nf=n[max-1]/n[max];
   else nf=n[1]/n[2];
   return(nf);
 }
@@ -4761,11 +4754,12 @@ int main(int argc,char **argv)
 		    int max_hist;
 		    double nf=noise_factor(orig_box,width,height,bgColor,
 					   THRESHOLD_BOND,resolution,max_hist);
-		    //cout<<max_hist<<endl;
 		    if (res_iter==3)
 		      {
 			if (max_hist>6)
 			  {
+			   
+
 			    int new_resolution=max_hist*300/4;
 			    int percent=(100*300)/new_resolution;
 			    resolution=max_hist*select_resolution[res_iter]/4;
@@ -4778,7 +4772,10 @@ int main(int argc,char **argv)
 			    height=thick_box.rows();
 			  }
 			else
-			   continue;
+			  {
+			    thick_box=orig_box;
+			    continue;
+			  }
 			  
 		      }
 		    if (nf>0.5 && nf<1. && res_iter!=3)
