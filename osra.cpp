@@ -4762,19 +4762,25 @@ int main(int argc,char **argv)
 		    double nf=noise_factor(orig_box,width,height,bgColor,
 					   THRESHOLD_BOND,resolution,max_hist);
 		    //cout<<max_hist<<endl;
-		    if (max_hist>4 && res_iter==num_resolutions-1)
+		    if (res_iter==num_resolutions-1)
 		      {
-			int new_resolution=max_hist*300/4;
-			int percent=(100*300)/new_resolution;
-			resolution=max_hist*select_resolution[res_iter]/4;
-			stringstream scale;
-			scale<<percent<<"%";
-			orig_box.scale(scale.str());
-			working_resolution=300;
-			thick_box=orig_box;
-			width=thick_box.columns();
-			height=thick_box.rows();
-			}
+			if (max_hist>4)
+			  {
+			    int new_resolution=max_hist*300/4;
+			    int percent=(100*300)/new_resolution;
+			    resolution=max_hist*select_resolution[res_iter]/4;
+			    stringstream scale;
+			    scale<<percent<<"%";
+			    orig_box.scale(scale.str());
+			    working_resolution=300;
+			    thick_box=orig_box;
+			    width=thick_box.columns();
+			    height=thick_box.rows();
+			  }
+			else
+			  continue;
+			  
+		      }
 		    if (nf>0.5 && nf<1.)
 		      thick_box=anisotropic_smoothing(orig_box,width,height,20,0.6,2);
 		    else thick_box=orig_box;
