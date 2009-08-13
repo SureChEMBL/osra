@@ -198,3 +198,6 @@ B2O BzO
 OB2 BzO
 
 Sl Si
+
+# Added from CLiDE Pro validation set
+CO2El CO2Et

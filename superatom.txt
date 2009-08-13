@@ -32,5 +32,8 @@ THPO     O[C@@H]1OCCCC1
 
 CHO    C=O
 NOH    NO 
-COOMe   C(O)OC
-COOEt   C(O)OCC
+#COOMe   C(O)OC - does not look right?
+#COOEt   C(O)OCC - does not look right?
+
+#Added from CLiDE Pro validation set
+CO2Et C(=O)OCC

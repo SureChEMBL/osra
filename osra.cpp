@@ -4760,7 +4760,8 @@ int main(int argc,char **argv)
 		    int max_hist;
 		    double nf=noise_factor(orig_box,width,height,bgColor,
 					   THRESHOLD_BOND,resolution,max_hist);
-		    if (max_hist>4)
+		    //cout<<max_hist<<endl;
+		    if (max_hist>5)
 		      {
 			int new_resolution=max_hist*300/4;
 			int percent=(100*300)/new_resolution;
