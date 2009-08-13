@@ -4658,6 +4658,7 @@ int main(int argc,char **argv)
 	    select_resolution[0]=72;
 	    select_resolution[1]=150;
 	    select_resolution[2]=300;
+	    select_resolution[3]=300;
 	  }
 	int res_iter;
 	if (input_resolution>300)
@@ -4761,7 +4762,7 @@ int main(int argc,char **argv)
 		    double nf=noise_factor(orig_box,width,height,bgColor,
 					   THRESHOLD_BOND,resolution,max_hist);
 		    //cout<<max_hist<<endl;
-		    if (max_hist>5)
+		    if (max_hist>4 && res_iter==num_resolutions-1)
 		      {
 			int new_resolution=max_hist*300/4;
 			int percent=(100*300)/new_resolution;
