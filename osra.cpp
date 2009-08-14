@@ -2943,7 +2943,7 @@ double noise_factor(Image image, int width, int height, ColorGray bgColor,
 	max_v=n[l];
 	max=l;
       }
-  if (max>2) nf=n[2]/n[max];
+  if (max>2) nf=n[2]/n[3];
   else if (max==2) nf=n[1]/n[2];
   else nf=n[2]/n[1];
   return(nf);
@@ -4748,8 +4748,6 @@ int main(int argc,char **argv)
 		int height=orig_box.rows();
 		Image thick_box;
 
-
-		
 		if (resolution>=300)
 		  {
 		    int max_hist;
@@ -4759,8 +4757,6 @@ int main(int argc,char **argv)
 		      {
 			if (max_hist>6)
 			  {
-			   
-
 			    int new_resolution=max_hist*300/4;
 			    int percent=(100*300)/new_resolution;
 			    resolution=max_hist*select_resolution[res_iter]/4;
@@ -4779,8 +4775,14 @@ int main(int argc,char **argv)
 			  }
 			  
 		      }
-		    if (nf>0.5 && nf<1. && res_iter!=3)
-		      thick_box=anisotropic_smoothing(orig_box,width,height,20,0.6,2);
+		    if (nf>0.5 && nf<1. && res_iter!=3 && max_hist<=6)
+		      try {
+		        thick_box=anisotropic_smoothing(orig_box,width,height,20,0.6,2);
+                      }
+                      catch(...) 
+                      {
+                       thick_box=orig_box;
+                      }
 		    else thick_box=orig_box;
 		  }
 		else if (resolution<300 && resolution>150)
