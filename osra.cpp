@@ -2943,8 +2943,9 @@ double noise_factor(Image image, int width, int height, ColorGray bgColor,
 	max_v=n[l];
 	max=l;
       }
-  if (max>1) nf=n[max-1]/n[max];
-  else nf=n[1]/n[2];
+  if (max>2) nf=n[2]/n[max];
+  else if (max==2) nf=n[1]/n[2];
+  else nf=n[2]/n[1];
   return(nf);
 }
 
