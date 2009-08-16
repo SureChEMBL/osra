@@ -2938,11 +2938,14 @@ double noise_factor(Image image, int width, int height, ColorGray bgColor,
   double max_v=0;
   max=1;
   for(int l=1;l<max_thick;l++)
-    if (n[l]>max_v) 
-      {
-	max_v=n[l];
-	max=l;
-      }
+    {
+      //      cout<<l<<" "<<n[l]<<endl;
+      if (n[l]>max_v) 
+	{
+	  max_v=n[l];
+	  max=l;
+	}
+    }
   if (max>2) nf=n[2]/n[3];
   else if (max==2) nf=n[1]/n[2];
   else nf=n[2]/n[1];
@@ -4767,6 +4770,19 @@ int main(int argc,char **argv)
 			    thick_box=orig_box;
 			    width=thick_box.columns();
 			    height=thick_box.rows();
+			  }
+			else if (max_hist>4)
+			  {
+			    resolution=500;
+			    int percent=(100*300)/resolution;
+			    stringstream scale;
+			    scale<<percent<<"%";
+			    orig_box.scale(scale.str());
+			    working_resolution=300;
+			    thick_box=orig_box;
+			    width=thick_box.columns();
+			    height=thick_box.rows();
+			    thick=false;
 			  }
 			else
 			  {
