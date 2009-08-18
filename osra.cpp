@@ -4655,7 +4655,7 @@ int main(int argc,char **argv)
 	    select_resolution[0]=72;
 	    select_resolution[1]=150;
 	    select_resolution[2]=300;
-	    select_resolution[3]=300;
+	    select_resolution[3]=500;
 	  }
 	int res_iter;
 	if (input_resolution>300)
@@ -4706,8 +4706,8 @@ int main(int argc,char **argv)
 	THRESHOLD_CHAR=THRESHOLD_BOND;
 
 	   
-	    int max_font_height=MAX_FONT_HEIGHT*resolution/150;
-	    int max_font_width=MAX_FONT_WIDTH*resolution/150;
+	    int max_font_height=MAX_FONT_HEIGHT*working_resolution/150;
+	    int max_font_width=MAX_FONT_WIDTH*working_resolution/150;
 	    bool thick=true;
 	    if (resolution<=150) thick=false;
 
@@ -4773,7 +4773,7 @@ int main(int argc,char **argv)
 			    nf=noise_factor(orig_box,width,height,bgColor,
                                             THRESHOLD_BOND,resolution,max_hist);
 			  }
-			else if (max_hist>4)
+			else //if (max_hist>4)
 			  {
 			    resolution=500;
 			    int percent=(100*300)/resolution;
@@ -4788,12 +4788,12 @@ int main(int argc,char **argv)
 			    nf=noise_factor(orig_box,width,height,bgColor,
 			                    THRESHOLD_BOND,resolution,max_hist);	
 			  }
-			else
+			/*else
 			  {
 			    thick_box=orig_box;
 			    continue;
 			  }
-			  
+			  */
 		      }
 		    if (nf>0.5 && nf<1. && max_hist<=6)// && res_iter!=3 && max_hist<=6)
 		      try {
