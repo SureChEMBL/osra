@@ -2939,7 +2939,7 @@ double noise_factor(Image image, int width, int height, ColorGray bgColor,
   max=1;
   for(int l=1;l<max_thick;l++)
     {
-      //      cout<<l<<" "<<n[l]<<endl;
+//            cout<<l<<" "<<n[l]<<endl;
       if (n[l]>max_v) 
 	{
 	  max_v=n[l];
@@ -4770,6 +4770,8 @@ int main(int argc,char **argv)
 			    thick_box=orig_box;
 			    width=thick_box.columns();
 			    height=thick_box.rows();
+			    nf=noise_factor(orig_box,width,height,bgColor,
+                                            THRESHOLD_BOND,resolution,max_hist);
 			  }
 			else if (max_hist>4)
 			  {
@@ -4783,6 +4785,8 @@ int main(int argc,char **argv)
 			    width=thick_box.columns();
 			    height=thick_box.rows();
 			    thick=false;
+			    nf=noise_factor(orig_box,width,height,bgColor,
+			                    THRESHOLD_BOND,resolution,max_hist);	
 			  }
 			else
 			  {
@@ -4791,7 +4795,7 @@ int main(int argc,char **argv)
 			  }
 			  
 		      }
-		    if (nf>0.5 && nf<1. && res_iter!=3 && max_hist<=6)
+		    if (nf>0.5 && nf<1. && max_hist<=6)// && res_iter!=3 && max_hist<=6)
 		      try {
 		        thick_box=anisotropic_smoothing(orig_box,width,height,20,0.6,2);
                       }
