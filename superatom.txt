@@ -27,13 +27,29 @@ Ac       C(=O)C
 AcO      OC(=O)C
 NHAc     NC(=O)C
 OR       O*
-BzO      OCc1ccccc1
+#BzO      OCc1ccccc1
+BzO OC(=O)C1=CC=CC=C1
 THPO     O[C@@H]1OCCCC1
 
 CHO    C=O
 NOH    NO 
-#COOMe   C(O)OC - does not look right?
-#COOEt   C(O)OCC - does not look right?
 
 #Added from CLiDE Pro validation set
 CO2Et C(=O)OCC
+CO2Me C(=O)OC
+COCl  C(=O)Cl
+MeO2S S(=O)(=O)C
+NMe2  N(C)C
+CO2R  C(=O)O*
+ZNH  NC(=O)OCC1=CC=CC=C1
+HOCH2 CO
+H2NCH2 CN
+Et CC
+BnO OCC1=CC=CC=C1
+
+# General additions
+AmNH	NCCCCC
+AmO	OCCCCC
+AmO2C	C(=O)OCCCCC
+AmS	SCCCCC
+

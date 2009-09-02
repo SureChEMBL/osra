@@ -162,7 +162,9 @@ lS S
 8 S 
 SH S 
 HS S 
+# this is due to the fact that MDCL cannot generate coordinates for non-terminal groups
 SO2 S 
+O2S S
 
 lH H
 
@@ -201,3 +203,28 @@ Sl Si
 
 # Added from CLiDE Pro validation set
 CO2El CO2Et
+COOEt CO2Et
+COOMe CO2Me
+HUn2C COOH
+CO2E  CO2Et
+EO   EtO
+HO2C COOH
+Y2 X
+CUn2H COOH
+CnU2H COOH
+MeHN MeN
+n2N N
+El Et
+OBn BnO
+HNZ ZNH
+ZHN ZNH
+
+# General additions
+HNAm AmNH
+OAm AmO
+AmOOC AmO2C
+CO2Am AmO2C
+COOAm AmO2C
+SAm AmS
+
+
