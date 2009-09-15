@@ -34,10 +34,9 @@ THPO     O[C@@H]1OCCCC1
 CHO    C=O
 NOH    NO 
 
-#Added from CLiDE Pro validation set
+# Added  release 1.3.0
 CO2Et C(=O)OCC
 CO2Me C(=O)OC
-COCl  C(=O)Cl
 MeO2S S(=O)(=O)C
 NMe2  N(C)C
 CO2R  C(=O)O*
@@ -46,8 +45,6 @@ HOCH2 CO
 H2NCH2 CN
 Et CC
 BnO OCC1=CC=CC=C1
-
-# General additions
 AmNH	NCCCCC
 AmO	OCCCCC
 AmO2C	C(=O)OCCCCC
@@ -63,7 +60,38 @@ CBr3	C(Br)(Br)Br
 CbzNH	NC(=O)OCC1=CC=CC=C1
 CCl3	C(Cl)(Cl)Cl
 ClSO2	S(Cl)(=O)=O
-COBr	C(=O)Br
+COBr    C(=O)Br
 COBu    C(=O)CCCC
 COCF3   C(=O)C(F)(F)F
-
+COCl    C(=O)Cl
+COCO    C(=O)C=O
+COEt    C(=O)CC
+COF     C(=O)F
+COMe    C(=O)C
+CONEt2  C(=O)(CC)NCC
+CONH2   C(=O)N
+CONHEt  C(=O)NCC
+CONHMe  C(=O)NC
+CONMe2  C(=O)(C)NC
+COSH    C(=O)S
+Et2N    N(CC)CC
+Et3N    N(CC)(CC)CC
+EtNH    NCC
+H2NSO2  S(=O)(N)=O
+HONH    ON
+Me2N    N(C)C
+MsO     CS(O)(=O)=O
+NCO     N=C=O
+NCS     N=C=S
+NHAm    NCCCCC
+NHBn    NCC1=CC=CC=C1
+NHBu    NCCCC
+NHEt    NCC
+NHOH    NO
+NHPr    NCCC
+NO      N=O
+POEt2   P(OCC)OCC
+POEt3   P(OCC)(OCC)OCC
+POOEt2  P(=O)(OCC)OCC
+PrNH    CCCN
+SEt     SCC

@@ -39,6 +39,9 @@ extern "C" {
 #include "blob.h"
 #include "character.h"
 
+
+#include <tesseract/baseapi.h>
+
 #include "osra.h"
 
 
@@ -174,6 +177,16 @@ char get_atom_label(Magick::Image image, Magick::ColorGray bg, int x1, int y1, i
 	      string patern=job.cfg.cfilter;
 	      if (patern.find(c2,0)==string::npos) c2='_';
 	      if (isalnum(c2)) c=c2;
+	     /* else
+	      {
+	        char c3=0;
+	        TessBaseAPI::InitWithLanguage(NULL, NULL,"eng", NULL, false, 0, NULL);
+                char* text = TessBaseAPI::TesseractRect(tmp, 1, x2-x1+1, 0, 0, x2-x1+1, y2-y1+1);
+                TessBaseAPI::End();
+                if (text!=NULL)  c3=text[0];  
+                if (patern.find(c3,0)==string::npos) c3='_';
+                if (isalnum(c3)) c=c3;
+              }*/
 	    }
 
 

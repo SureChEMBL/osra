@@ -8,6 +8,8 @@ OPENBABEL=/usr/local/
 
 TCLAPINC=-I/usr/local/include/tclap/
 
+#TESSERACTINC=-I/usr/local/include
+#TESSERACTLIB=-L/usr/local/lib -ltesseract_full
 
 CPP = g++
 LD=g++ -g -O2 -fPIC 
@@ -58,9 +60,10 @@ OCRADSRC=$(wildcard $(OCRAD)*.cc)
 OCRADINC=$(wildcard $(OCRAD)*.h)
 OCRADOBJ=$(OCRADSRC:.cc=.o)
 
-CPPFLAGS= -g -O2 -fPIC -I$(OCRAD) $(MINGWINC) -D_LIB -D_MT -Wall $(POTRACEINC) $(GOCRINC) $(MOL_BACKEND_INC) $(TCLAPINC) $(MAGIKINC)
 
-LIBS=$(POTRACELIB) -lm  $(MAGIKLIB) $(GOCRLIB) $(MOL_BACKEND_LIB) -lz
+CPPFLAGS= -g -O2 -fPIC -I$(OCRAD) $(MINGWINC) -D_LIB -D_MT -Wall $(POTRACEINC) $(GOCRINC) $(MOL_BACKEND_INC) $(TCLAPINC) $(MAGIKINC) $(TESSERACTINC)
+
+LIBS=$(POTRACELIB) -lm  $(MAGIKLIB) $(GOCRLIB) $(MOL_BACKEND_LIB) -lz $(TESSERACTLIB)
 OBJ = osra.o osra_anisotropic.o osra_ocr.o $(MOL_BACKEND_OBJ) $(OCRADOBJ) $(MCDLUTIL)
 
 
