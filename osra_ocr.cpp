@@ -40,7 +40,7 @@ extern "C" {
 #include "character.h"
 
 
-#include <tesseract/baseapi.h>
+//#include <tesseract/baseapi.h>
 
 #include "osra.h"
 
