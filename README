@@ -52,7 +52,9 @@ http://potrace.sourceforge.net/
 compilation below)
 http://jocr.sourceforge.net/
 
-- OCRAD, optical character recognition program, version 0.18,
+- OCRAD, optical character recognition program, version 0.18. Unpack the
+downloaded source code only. Do not compile or install OCRAD - OSRA will 
+automatically patch it and compile the object files it needs.
 http://www.gnu.org/software/ocrad/ocrad.html
 
 - TCLAP, Templatized C++ Command Line Parser Library, version 1.1.0,
