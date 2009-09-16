@@ -31,6 +31,7 @@ HlU N
 lUH N 
 H2Y N
 RN  N
+MH  N
 
 OH  O  
 oH  O  
@@ -72,6 +73,7 @@ oEt EtO
 Elo EtO
 oEl EtO
 ElO EtO
+OEl EtO
 
 olgU OiBu
 oleU OiBu
@@ -109,6 +111,9 @@ OpC AcO
 pCO AcO
 RCO AcO
 ORC AcO
+OnC AcO
+OAc AcO
+nCO AcO
 
 Bl Br
 el Br
@@ -200,13 +205,17 @@ BZO BzO
 B2O BzO
 OB2 BzO
 OBz BzO
+OBZ BzO
 
 Sl Si
 
 # Added release 1.3.0
 CO2El CO2Et
+COOEl CO2Et
 COOEt CO2Et
 COOMe CO2Me
+COOCH3 CO2Me
+CO2CH3 CO2Me
 HUn2C COOH
 CO2E  CO2Et
 EO   EtO
@@ -241,9 +250,9 @@ Br3C CBr3
 HNCbz CbzNH
 Cl3C CCl3
 OCH CHO
+OHC CHO
 O2SCl ClSO2
 SO2Cl ClSO2
-HO2C COOH
 MeO2C CO2Me
 BrOC COBr
 BuOC COBu
@@ -260,6 +269,8 @@ MeHNOC CONHMe
 Me2NOC CONMe2
 HSOC  COSH
 NEt2  Et2N
+NE2   Et2N
+E2N   Et2N
 NEt3  Et3N
 HNEt  EtNH
 SO2NH2  H2NSO2
@@ -285,3 +296,8 @@ Et2OOP  POOEt2
 HNPr PrNH
 EtS SEt
 SMe MeS
+Pll Ph
+Pl  Ph
+ElO2C CO2Et
+EtOOC CO2Et
+ElOOC CO2Et
