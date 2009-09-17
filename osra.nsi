@@ -4,14 +4,14 @@
 Name "Optical Structure Recognition Application"
 
 ; The file to write
-OutFile "osra-setup.exe"
+OutFile "osra-setup-1-3-0.exe"
 
 ; The default installation directory
-InstallDir $PROGRAMFILES\osra
+InstallDir $PROGRAMFILES\osra\1.3.0
 
 ; Registry key to check for directory (so if you install again, it will 
 ; overwrite the old one automatically)
-InstallDirRegKey HKLM "Software\osra" "Install_Dir"
+InstallDirRegKey HKLM "Software\osra\1.3.0" "Install_Dir"
 
 LicenseData "license.txt"
 
@@ -58,13 +58,13 @@ Section "osra (required)"
   
   
   ; Write the installation path into the registry
-  WriteRegStr HKLM SOFTWARE\osra "Install_Dir" "$INSTDIR"
+  WriteRegStr HKLM SOFTWARE\osra\1.3.0 "Install_Dir" "$INSTDIR"
   
   ; Write the uninstall keys for Windows
-  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\osra" "DisplayName" "osra"
-  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\osra" "UninstallString" '"$INSTDIR\uninstall.exe"'
-  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\osra" "NoModify" 1
-  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\osra" "NoRepair" 1
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\osra\1.3.0" "DisplayName" "OSRA 1.3.0"
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\osra\1.3.0" "UninstallString" '"$INSTDIR\uninstall.exe"'
+  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\osra\1.3.0" "NoModify" 1
+  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\osra\1.3.0" "NoRepair" 1
   WriteUninstaller "uninstall.exe"
   
 SectionEnd
@@ -93,8 +93,8 @@ Section "Uninstall"
   ReadRegStr $0 HKLM SOFTWARE\osra "Install_Dir"
   strcpy $INSTDIR $0
   ; Remove registry keys
-  DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\osra"
-  DeleteRegKey HKLM SOFTWARE\osra
+  DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\osra\1.3.0"
+  DeleteRegKey HKLM SOFTWARE\osra\1.3.0
 
   ; Remove files and uninstaller
   Delete $INSTDIR\osra.exe
@@ -151,8 +151,8 @@ Function getGhostscriptInstPath
  download_gs:
    DetailPrint "need to download and install Ghostscript"
    Call ConnectInternet ;Make an internet connection (if no connection available)
-   StrCpy $2 "$TEMP\gs864w32.exe"
-   NSISdl::download http://voxel.dl.sourceforge.net/sourceforge/ghostscript/gs864w32.exe $2
+   StrCpy $2 "$TEMP\gs870w32.exe"
+   NSISdl::download http://voxel.dl.sourceforge.net/sourceforge/ghostscript/gs870w32.exe $2
    Pop $0
    StrCmp $0 success success
     SetDetailsView show
@@ -161,7 +161,7 @@ Function getGhostscriptInstPath
    success:
     ExecWait "$2"
     Delete $2
-    strcpy $2 "8.64"
+    strcpy $2 "8.70"
 	
  get_path:
   strcpy $1 ""
