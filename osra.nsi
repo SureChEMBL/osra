@@ -61,10 +61,10 @@ Section "osra (required)"
   WriteRegStr HKLM SOFTWARE\osra\1.3.0 "Install_Dir" "$INSTDIR"
   
   ; Write the uninstall keys for Windows
-  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\osra\1.3.0" "DisplayName" "OSRA 1.3.0"
-  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\osra\1.3.0" "UninstallString" '"$INSTDIR\uninstall.exe"'
-  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\osra\1.3.0" "NoModify" 1
-  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\osra\1.3.0" "NoRepair" 1
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\osra" "DisplayName" "OSRA 1.3.0"
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\osra" "UninstallString" '"$INSTDIR\uninstall.exe"'
+  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\osra" "NoModify" 1
+  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\osra" "NoRepair" 1
   WriteUninstaller "uninstall.exe"
   
 SectionEnd
@@ -90,10 +90,10 @@ SectionEnd
 ; Uninstaller
 
 Section "Uninstall"
-  ReadRegStr $0 HKLM SOFTWARE\osra "Install_Dir"
+  ReadRegStr $0 HKLM SOFTWARE\osra\1.3.0 "Install_Dir"
   strcpy $INSTDIR $0
   ; Remove registry keys
-  DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\osra\1.3.0"
+  DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\osra"
   DeleteRegKey HKLM SOFTWARE\osra\1.3.0
 
   ; Remove files and uninstaller
