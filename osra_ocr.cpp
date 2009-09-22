@@ -40,7 +40,7 @@ extern "C" {
 #include "character.h"
 
 
-//#include <tesseract/baseapi.h>
+#include <tesseract/baseapi.h>
 
 #include "osra.h"
 
@@ -51,7 +51,7 @@ char get_atom_label(Magick::Image image, Magick::ColorGray bg, int x1, int y1, i
 
 
   char c=0,c1=0;
-  unsigned char* tmp;
+  unsigned char* tmp, *tmp1;
   job_t job;
   double f=1.;
   JOB=&job;
@@ -72,6 +72,7 @@ char get_atom_label(Magick::Image image, Magick::ColorGray bg, int x1, int y1, i
   Blob *b=new Blob(0,0,job.src.p.x,job.src.p.y);
 
   tmp=(unsigned char *)malloc(int((x2-x1+1)*(y2-y1+1)));
+  tmp1=(unsigned char *)malloc(int((x2-x1+1)*(y2-y1+1)));
 
   for(int i=0;i<job.src.p.x*job.src.p.y;i++) job.src.p.p[i]=255;
 
@@ -121,8 +122,13 @@ char get_atom_label(Magick::Image image, Magick::ColorGray bg, int x1, int y1, i
 	  if (tmp[i*(x2-x1+1)+j]==1) 
 	    {
 	      tmp[i*(x2-x1+1)+j]=0;
+	      tmp1[i*(x2-x1+1)+j]=255;
 	    }
-	  else tmp[i*(x2-x1+1)+j]=255;
+	  else 
+	    {
+	      tmp[i*(x2-x1+1)+j]=255;
+	      tmp1[i*(x2-x1+1)+j]=0;
+	    }
 
       int count=0;
       int zeros=0;
@@ -147,14 +153,16 @@ char get_atom_label(Magick::Image image, Magick::ColorGray bg, int x1, int y1, i
 
 	    }
 	}
-/*      cout<<x1<<" "<<y1<<" "<<x2<<" "<<y2<<endl;           
+
+      /*      cout<<x1<<" "<<y1<<" "<<x2<<" "<<y2<<endl;           
       for (int i=0;i<job.src.p.y;i++)
 	{
 	  for(int j=0;j<job.src.p.x;j++)
 	    cout<<job.src.p.p[i*job.src.p.x+j]/255;
 	  cout<<endl;
-	  }
-  */    
+	  }*/
+
+
       if (count>MIN_CHAR_POINTS && zeros>MIN_CHAR_POINTS)
 	{
 	  try {
@@ -177,16 +185,17 @@ char get_atom_label(Magick::Image image, Magick::ColorGray bg, int x1, int y1, i
 	      string patern=job.cfg.cfilter;
 	      if (patern.find(c2,0)==string::npos) c2='_';
 	      if (isalnum(c2)) c=c2;
-	     /* else
+	      else
 	      {
 	        char c3=0;
 	        TessBaseAPI::InitWithLanguage(NULL, NULL,"eng", NULL, false, 0, NULL);
-                char* text = TessBaseAPI::TesseractRect(tmp, 1, x2-x1+1, 0, 0, x2-x1+1, y2-y1+1);
+                char* text = TessBaseAPI::TesseractRect(tmp1, 1, x2-x1+1, 0, 0, x2-x1+1, y2-y1+1);
                 TessBaseAPI::End();
                 if (text!=NULL)  c3=text[0];  
+		patern="OCN";
                 if (patern.find(c3,0)==string::npos) c3='_';
                 if (isalnum(c3)) c=c3;
-              }*/
+              }
 	    }
 
 
