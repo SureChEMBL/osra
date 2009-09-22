@@ -40,7 +40,7 @@ extern "C" {
 #include "character.h"
 
 
-#include <tesseract/baseapi.h>
+//#include <tesseract/baseapi.h>
 
 #include "osra.h"
 
@@ -185,7 +185,7 @@ char get_atom_label(Magick::Image image, Magick::ColorGray bg, int x1, int y1, i
 	      string patern=job.cfg.cfilter;
 	      if (patern.find(c2,0)==string::npos) c2='_';
 	      if (isalnum(c2)) c=c2;
-	      else
+	     /* else
 	      {
 	        char c3=0;
 	        TessBaseAPI::InitWithLanguage(NULL, NULL,"eng", NULL, false, 0, NULL);
@@ -195,7 +195,7 @@ char get_atom_label(Magick::Image image, Magick::ColorGray bg, int x1, int y1, i
 		patern="OCN";
                 if (patern.find(c3,0)==string::npos) c3='_';
                 if (isalnum(c3)) c=c3;
-              }
+              }*/
 	    }
 
 

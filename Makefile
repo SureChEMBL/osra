@@ -13,8 +13,8 @@ endif
 
 TCLAPINC=-I/usr/local/include/tclap/
 
-TESSERACTINC=-I/usr/local/include
-TESSERACTLIB=-L/usr/local/lib -ltesseract_full
+#TESSERACTINC=-I/usr/local/include
+#TESSERACTLIB=-L/usr/local/lib -ltesseract_full
 
 CPP = g++
 LD=g++ -g -O2 -fPIC
