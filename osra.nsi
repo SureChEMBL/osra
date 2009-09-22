@@ -87,6 +87,24 @@ Section /o "Symyx Draw plugin" symyx_draw
  done:
 SectionEnd
 
+Section /o "ChemBioOffice 12 plugin" chemoffice
+ strcpy $3 "CambridgeSoft\ChemScript"
+ call CheckSoftVersion
+ strcmp $2 "12.0" +1 no_chemoffice
+ call getChemScriptPath
+ strcmp $1 "" no_chemoffice
+ ReadRegStr $2 HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\PIL-py2.5" "DisplayName"
+ strcmp $2 "" +1 pil_exists
+ call downloadPIL
+ pil_exists:
+ SetOutPath "$1\Scripts"
+ File "Import Structures with OSRA.py"
+ Goto done
+ no_chemoffice:
+  MessageBox MB_OK "ChemScript 12.0 not found" IDOK done
+ done:
+SectionEnd
+
 ; Uninstaller
 
 Section "Uninstall"
@@ -117,6 +135,13 @@ Section "Uninstall"
   Delete "$1\AddIns\OSRAAction\OSRAAction.dll.config"
   RMDir "$1\AddIns\OSRAAction"
   no_symyx:
+  strcpy $3 "CambridgeSoft\ChemScript"
+  call un.CheckSoftVersion
+  strcmp $2 "12.0" +1 no_chemoffice
+  call un.getChemScriptPath
+  strcmp $1 "" no_chemoffice
+  Delete "$1\Scripts\Import Structures with OSRA.py"
+  no_chemoffice:
 SectionEnd
 
 Function CheckSoftVersion
@@ -145,6 +170,20 @@ done:
 ; $2 contains the version of Soft now or empty
 FunctionEnd
 
+Function downloadPIL
+   DetailPrint "need to download and install Python Imaging Library"
+   Call ConnectInternet ;Make an internet connection (if no connection available)
+   StrCpy $2 "$TEMP\PIL-1.1.6.win32-py2.5.exe"
+   NSISdl::download http://effbot.org/media/downloads/PIL-1.1.6.win32-py2.5.exe $2
+   Pop $0
+   StrCmp $0 success success
+    SetDetailsView show
+    DetailPrint "download failed: $0"
+    Abort
+   success:
+    ExecWait "$2"
+    Delete $2
+FunctionEnd
 
 Function getGhostscriptInstPath
  strcmp $2 "" download_gs get_path
@@ -193,6 +232,20 @@ Function getSymyxPath
   ;$1 contains the folder of Symyx Draw or empty
 FunctionEnd
 
+Function getChemScriptPath
+ strcpy $1 ""
+ ReadRegStr $0 HKLM \
+     "Software\CambridgeSoft\ChemDraw\12.0\General" \ 
+     "ChemDraw Items Default Path"
+  StrCmp $0 "" fin extract
+  
+ extract:
+  StrCpy $1 $0 -15
+  IfFileExists "$1\Scripts\Get 3D Structure.py" fin
+  StrCpy $1 ""
+  fin:
+FunctionEnd
+
 Function un.getSymyxPath
  strcpy $1 ""
  ReadRegStr $0 HKLM \
@@ -208,17 +261,34 @@ Function un.getSymyxPath
   ;$1 contains the folder of Symyx Draw or empty
 FunctionEnd
 
+Function un.getChemScriptPath
+ strcpy $1 ""
+ ReadRegStr $0 HKLM \
+     "Software\CambridgeSoft\ChemDraw\12.0\General" \ 
+     "ChemDraw Items Default Path"
+  StrCmp $0 "" fin extract
+  
+ extract:
+  StrCpy $1 $0 -15
+  IfFileExists "$1\Scripts\Get 3D Structure.py" fin
+  StrCpy $1 ""
+  fin:
+FunctionEnd
+
 Function createOSRAbat
 fileOpen $0 "$INSTDIR\osra.bat" w
-  fileWrite $0 "\
+  fileWrite $0 '\
 @echo off$\r$\n\
 setlocal$\r$\n\
+set current=%CD%$\r$\n\
+cd %~dp0%$\r$\n\
 set OMP_NUM_THREADS=1$\r$\n\
 set PATH=%~dp0;$1\bin;$1\lib;%PATH%$\r$\n\
 set MAGICK_CONFIGURE_PATH=%~dp0%$\r$\n\
-osra.exe %*$\r$\n\
+osra.exe "%current%\\%*"$\r$\n\
+cd %current%$\r$\n\
 endlocal$\r$\n\
-"
+'
 fileClose $0
 FunctionEnd
 
@@ -254,8 +324,17 @@ Function .onInit
  strcmp $2 "" no_symyx
  call getSymyxPath
  strcmp $1 "" no_symyx
-  SectionGetFlags "${symyx_draw}" $0
-  IntOp $0 $0 | ${SF_SELECTED}
-  SectionSetFlags "${symyx_draw}" $0
+ SectionGetFlags "${symyx_draw}" $0
+ IntOp $0 $0 | ${SF_SELECTED}
+ SectionSetFlags "${symyx_draw}" $0
+ strcpy $3 "CambridgeSoft\ChemScript"
+ call CheckSoftVersion
+ strcmp $2 "12.0" +1 no_chemoffice
+ call getChemScriptPath
+ strcmp $1 "" no_chemoffice
+ SectionGetFlags "${chemoffice}" $0
+ IntOp $0 $0 | ${SF_SELECTED}
+ SectionSetFlags "${chemoffice}" $0
  no_symyx:
+ no_chemoffice:
 FunctionEnd
