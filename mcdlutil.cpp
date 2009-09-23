@@ -1828,7 +1828,11 @@ void TSimpleMolecule::allAboutCycles() {
   bk=(neigbourlist *)malloc((1+CONNMAX)*NBONDSMAX*4);
 
 
-  if (nBonds() == 0) return;
+  if (nBonds() == 0) 
+    {
+      free(bk);
+      return;
+    }
   defineBondConn(*bk);
   //initial values for MainList-number of bonds, connected to each atom and their numbers in array BOND
   for (i=0; i<nBonds(); i++) {

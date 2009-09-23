@@ -51,7 +51,7 @@ char get_atom_label(Magick::Image image, Magick::ColorGray bg, int x1, int y1, i
 
 
   char c=0,c1=0;
-  unsigned char* tmp, *tmp1;
+  unsigned char* tmp;
   job_t job;
   double f=1.;
   JOB=&job;
@@ -72,7 +72,7 @@ char get_atom_label(Magick::Image image, Magick::ColorGray bg, int x1, int y1, i
   Blob *b=new Blob(0,0,job.src.p.x,job.src.p.y);
 
   tmp=(unsigned char *)malloc(int((x2-x1+1)*(y2-y1+1)));
-  tmp1=(unsigned char *)malloc(int((x2-x1+1)*(y2-y1+1)));
+  //  tmp1=(unsigned char *)malloc(int((x2-x1+1)*(y2-y1+1)));
 
   for(int i=0;i<job.src.p.x*job.src.p.y;i++) job.src.p.p[i]=255;
 
@@ -122,12 +122,12 @@ char get_atom_label(Magick::Image image, Magick::ColorGray bg, int x1, int y1, i
 	  if (tmp[i*(x2-x1+1)+j]==1) 
 	    {
 	      tmp[i*(x2-x1+1)+j]=0;
-	      tmp1[i*(x2-x1+1)+j]=255;
+	      //	      tmp1[i*(x2-x1+1)+j]=255;
 	    }
 	  else 
 	    {
 	      tmp[i*(x2-x1+1)+j]=255;
-	      tmp1[i*(x2-x1+1)+j]=0;
+	      //	      tmp1[i*(x2-x1+1)+j]=0;
 	    }
 
       int count=0;
@@ -202,8 +202,8 @@ char get_atom_label(Magick::Image image, Magick::ColorGray bg, int x1, int y1, i
 	}
       //cout<<c<<endl;//<<"=========================="<<endl;
     }
-      job_free(&job);
-    
+  job_free(&job);
+  free(tmp);  
   if (isalnum(c))
     {
       return (c);
