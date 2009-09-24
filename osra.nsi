@@ -280,13 +280,11 @@ fileOpen $0 "$INSTDIR\osra.bat" w
   fileWrite $0 '\
 @echo off$\r$\n\
 setlocal$\r$\n\
-set current=%CD%$\r$\n\
-cd %~dp0%$\r$\n\
+set exec_dir=%~dp0%$\r$\n\
 set OMP_NUM_THREADS=1$\r$\n\
-set PATH=%~dp0;$1\bin;$1\lib;%PATH%$\r$\n\
-set MAGICK_CONFIGURE_PATH=%~dp0%$\r$\n\
-osra.exe "%current%\\%*"$\r$\n\
-cd %current%$\r$\n\
+set PATH=%exec_dir%;$1\bin;$1\lib;%PATH%$\r$\n\
+set MAGICK_CONFIGURE_PATH=%exec_dir%$\r$\n\
+"%exec_dir%osra.exe" %*$\r$\n\
 endlocal$\r$\n\
 '
 fileClose $0
