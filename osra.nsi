@@ -11,7 +11,7 @@ InstallDir $PROGRAMFILES\osra\1.3.0
 
 ; Registry key to check for directory (so if you install again, it will 
 ; overwrite the old one automatically)
-InstallDirRegKey HKLM "Software\osra" "Install_Dir"
+InstallDirRegKey HKLM "Software\osra\1.3.0" "Install_Dir"
 
 LicenseData "license.txt"
 
@@ -58,6 +58,7 @@ Section "osra (required)"
   
   
   ; Write the installation path into the registry
+  WriteRegStr HKLM SOFTWARE\osra\1.3.0 "Install_Dir" "$INSTDIR"
   WriteRegStr HKLM SOFTWARE\osra "Install_Dir" "$INSTDIR"
   
   ; Write the uninstall keys for Windows
@@ -108,11 +109,11 @@ SectionEnd
 ; Uninstaller
 
 Section "Uninstall"
-  ReadRegStr $0 HKLM SOFTWARE\osra "Install_Dir"
+  ReadRegStr $0 HKLM SOFTWARE\osra\1.3.0 "Install_Dir"
   strcpy $INSTDIR $0
   ; Remove registry keys
   DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\osra"
-  DeleteRegKey HKLM SOFTWARE\osra
+  DeleteRegKey HKLM SOFTWARE\osra\1.3.0
 
   ; Remove files and uninstaller
   Delete $INSTDIR\osra.exe
