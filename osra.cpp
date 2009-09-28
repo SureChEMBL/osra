@@ -3938,23 +3938,48 @@ unsigned int distance_between_points(point_t p1,point_t p2)
    return max(abs(p1.x-p2.x),abs(p1.y-p2.y));
 }
 
-unsigned int distance_between_segments(list<point_t> s1,list<point_t> s2)
+unsigned int distance_between_segments(vector<point_t> s1,vector<point_t> s2)
 {
-  int r=INT_MAX,d;
-  list<point_t>::iterator i=s1.begin(),j=s2.begin();
-
-#pragma omp parallel for default(none) shared(s1,s2,r) private(d) private(i,j)
-  for (i=s1.begin();i!=s1.end();i++)
-    for (j=s2.begin();j!=s2.end();j++)
+  int r=INT_MAX;
+  unsigned int ii,jj;
+  /*
+  for (vector<point_t>::iterator i=s1.begin();i!=s1.end();i++)
+    for (vector<point_t>::iterator j=s2.begin();j!=s2.end();j++)
       {
-	d=distance_between_points(*i,*j);
+	int d=distance_between_points(*i,*j);
 	if (d<r) r=d;
       }
+    */
+ #pragma omp parallel 
+  {
+    int priv_min=INT_MAX;
+    #pragma omp for
+    for ( ii = 0 ; ii < s1.size(); ii++ ) 
+      {
+	for (jj = 0; jj < s2.size(); jj++)
+	  {
+	    int d=distance_between_points(s1[ii],s2[jj]);
+	    if (d<priv_min) priv_min=d;
+	  }
+      }
+    
+   #pragma omp flush (r)
+    if (priv_min<r)
+      {
+	#pragma omp critical
+	{
+	  if (priv_min<r) r=priv_min;
+	}
+      }
+    
+  }
+  
   return r;
 }
 
-void find_connected_components(Image image,double threshold,ColorGray bgColor,vector < list<point_t> > &segments,
-			       vector < list<point_t> > &margins)
+void find_connected_components(Image image,double threshold,ColorGray bgColor,
+			       vector < list<point_t> > &segments,
+			       vector < vector<point_t> > &margins)
 {
   point_t p;
   list<point_t> points;
@@ -3975,7 +4000,8 @@ void find_connected_components(Image image,double threshold,ColorGray bgColor,ve
 	  p.x=i;
 	  p.y=j;
 	  points.push_back(p);
-	  list<point_t> new_segment,new_margin;
+	  list<point_t> new_segment;
+	  vector<point_t> new_margin;
 	  point_t p1;
 	  while (!points.empty())
 	    {
@@ -4006,9 +4032,11 @@ void find_connected_components(Image image,double threshold,ColorGray bgColor,ve
 
  }
 
-void build_distance_matrix(vector < list<point_t> > margins, int max_dist, vector < vector<int> > &distance_matrix)
+void build_distance_matrix(vector < vector<point_t> > margins, int max_dist, 
+			   vector < vector<int> > &distance_matrix)
 			   
 {
+  //#pragma omp for
   for (unsigned int s1=0;s1<margins.size();s1++)
     for (unsigned int s2=s1+1;s2<margins.size();s2++)
       if (distance_between_points(margins[s1].front(),margins[s2].front())<PARTS_IN_MARGIN*margins[s1].size()+PARTS_IN_MARGIN*margins[s2].size()+max_dist)
@@ -4022,7 +4050,8 @@ void build_distance_matrix(vector < list<point_t> > margins, int max_dist, vecto
 	}
 }
 
-list < list < list<point_t> > > build_explicit_clusters(list < list <int> > clusters,vector < list<point_t> > segments)
+list < list < list<point_t> > > build_explicit_clusters(list < list <int> > clusters,
+							vector < list<point_t> > segments)
 {
   list < list < list<point_t> > > explicit_clusters;
   for (list < list <int> >::iterator c=clusters.begin();c!=clusters.end();c++)
@@ -4044,9 +4073,12 @@ unsigned int area_ratio(unsigned int a, unsigned int b)
   return r;
 }
 
-void remove_separators(vector < list<point_t> > &segments, vector < list<point_t> > &margins, double max_aspect, unsigned int size)
+void remove_separators(vector < list<point_t> > &segments, 
+		       vector < vector<point_t> > &margins, 
+		       double max_aspect, unsigned int size)
 {
-  vector < list<point_t> >::iterator s,m;
+  vector < list<point_t> >::iterator s;
+  vector < vector<point_t> >::iterator m;
   s=segments.begin();
   m=margins.begin();
   while (s!=segments.end() && m!=margins.end())
@@ -4075,7 +4107,8 @@ void remove_separators(vector < list<point_t> > &segments, vector < list<point_t
 
 }
 
-list < list <int> > assemble_clusters(vector < list<point_t> > margins,int dist,vector < vector<int> > distance_matrix,
+list < list <int> > assemble_clusters(vector < vector<point_t> > margins,int dist,
+				      vector < vector<int> > distance_matrix,
 				      vector<int> &avail)
 {
   list < list <int> > clusters;
@@ -4106,7 +4139,8 @@ list < list <int> > assemble_clusters(vector < list<point_t> > margins,int dist,
   return(clusters);
 }
 
-void remove_text_blocks(list < list <int> > clusters,vector < list<point_t> > segments,vector<int> &avail)
+void remove_text_blocks(list < list <int> > clusters,vector < list<point_t> > segments,
+			vector<int> &avail)
 {
 for (list < list <int> >::iterator c=clusters.begin();c!=clusters.end();c++)
     {
@@ -4197,7 +4231,8 @@ int locate_max_entropy(vector < vector<int> > features,unsigned int max_area_rat
 list < list < list<point_t> > > find_segments(Image image,double threshold,
 					      ColorGray bgColor)
 {
-  vector < list<point_t> > segments,margins;
+  vector < list<point_t> > segments;
+  vector < vector<point_t> >  margins;
   find_connected_components(image,threshold,bgColor,segments,margins);
   remove_separators(segments,margins,SEPARATOR_ASPECT,SEPARATOR_AREA);
 
@@ -4677,7 +4712,7 @@ int main(int argc,char **argv)
 	//exit(0);
 	std::sort(boxes.begin(),boxes.end(),comp_boxes);
 
-	//#pragma omp parallel for default(shared) shared(threshold,output,format,resize,type,page,l,num_resolutions,select_resolution,array_of_smiles,array_of_confidence,array_of_images,image,image_count,conf,guess) private(res_iter,JOB)
+
     for (res_iter=0;res_iter<num_resolutions;res_iter++)
       {
 	int total_boxes=0;
