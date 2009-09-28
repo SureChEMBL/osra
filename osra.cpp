@@ -3940,11 +3940,14 @@ unsigned int distance_between_points(point_t p1,point_t p2)
 
 unsigned int distance_between_segments(list<point_t> s1,list<point_t> s2)
 {
-  int r=INT_MAX;
-  for (list<point_t>::iterator i=s1.begin();i!=s1.end();i++)
-    for (list<point_t>::iterator j=s2.begin();j!=s2.end();j++)
+  int r=INT_MAX,d;
+  list<point_t>::iterator i=s1.begin(),j=s2.begin();
+
+#pragma omp parallel for default(none) shared(s1,s2,r) private(d) private(i,j)
+  for (i=s1.begin();i!=s1.end();i++)
+    for (j=s2.begin();j!=s2.end();j++)
       {
-	int d=distance_between_points(*i,*j);
+	d=distance_between_points(*i,*j);
 	if (d<r) r=d;
       }
   return r;
