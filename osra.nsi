@@ -89,9 +89,9 @@ Section /o "Symyx Draw plugin" symyx_draw
 SectionEnd
 
 Section /o "ChemBioOffice 12 plugin" chemoffice
- strcpy $3 "CambridgeSoft\ChemScript"
- call CheckSoftVersion
- strcmp $2 "12.0" +1 no_chemoffice
+; strcpy $3 "CambridgeSoft\ChemScript"
+; call CheckSoftVersion
+; strcmp $2 "12.0" +1 no_chemoffice
  call getChemScriptPath
  strcmp $1 "" no_chemoffice
  ReadRegStr $2 HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\PIL-py2.5" "DisplayName"
@@ -136,9 +136,9 @@ Section "Uninstall"
   Delete "$1\AddIns\OSRAAction\OSRAAction.dll.config"
   RMDir "$1\AddIns\OSRAAction"
   no_symyx:
-  strcpy $3 "CambridgeSoft\ChemScript"
-  call un.CheckSoftVersion
-  strcmp $2 "12.0" +1 no_chemoffice
+;  strcpy $3 "CambridgeSoft\ChemScript"
+;  call un.CheckSoftVersion
+;  strcmp $2 "12.0" +1 no_chemoffice
   call un.getChemScriptPath
   strcmp $1 "" no_chemoffice
   Delete "$1\Scripts\Import Structures with OSRA.py"
@@ -326,9 +326,9 @@ Function .onInit
  SectionGetFlags "${symyx_draw}" $0
  IntOp $0 $0 | ${SF_SELECTED}
  SectionSetFlags "${symyx_draw}" $0
- strcpy $3 "CambridgeSoft\ChemScript"
- call CheckSoftVersion
- strcmp $2 "12.0" +1 no_chemoffice
+; strcpy $3 "CambridgeSoft\ChemScript"
+; call CheckSoftVersion
+; strcmp $2 "12.0" +1 no_chemoffice
  call getChemScriptPath
  strcmp $1 "" no_chemoffice
  SectionGetFlags "${chemoffice}" $0
