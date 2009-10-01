@@ -316,9 +316,14 @@ double percentile75(vector<bond_t> &bond, int n_bond,vector<atom_t> &atom)
 	a.push_back(bond_length(bond,i,atom));
 	n++;
       }
-  std::sort(a.begin(),a.end());
-  int pos=3*(n-1)/4;
-  return(a[pos]);
+  if (n>1)
+    {
+      std::sort(a.begin(),a.end());
+      int pos=3*(n-1)/4;
+      return(a[pos]);
+    }
+  else
+    return(10.0);
 }
 
 bool alone(vector<bond_t> &bond,int i,double avg)
@@ -4617,7 +4622,7 @@ int main(int argc,char **argv)
     load_config_map(superatom_file,superatom);
 
 
-    if ((type=="PDF") || (type=="PS")) input_resolution=150;
+    // if ((type=="PDF") || (type=="PS")) input_resolution=150;
     int page=count_pages(input.getValue());
 
     int image_count=0;
@@ -4626,7 +4631,8 @@ int main(int argc,char **argv)
     for(int l=0;l<page;l++)
       {
 	Image image;
-	image.density("150x150");
+	//image.density("150x150");
+	image.density("300x300");
 	stringstream pname;
 	pname<<input.getValue()<<"["<<l<<"]";
 	image.read(pname.str());
@@ -4783,7 +4789,16 @@ int main(int argc,char **argv)
 		    orig_box.pixelColor(x-boxes[k].x1+FRAME,y-boxes[k].y1+FRAME,color);
 		  }
 		
-
+		/*	if ((type=="PDF") || (type=="PS"))
+		  {
+		    if (resolution!=150)
+		      {
+			int percent=(100*resolution)/150;
+			stringstream scale;
+			scale<<percent<<"%";
+			orig_box.scale(scale.str());
+		      }
+		      }*/
 
 		int width=orig_box.columns();
 		int height=orig_box.rows();
