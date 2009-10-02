@@ -16,8 +16,8 @@ TCLAPINC=-I/usr/local/include/tclap/
 #TESSERACTINC=-I/usr/local/include
 #TESSERACTLIB=-L/usr/local/lib -ltesseract_full
 
-CPP = g++  -O3
-LD=g++  -g -O3 -fPIC
+CPP = g++ -pg  -O3
+LD=g++ -pg  -g -O3 -fPIC
 CP=cp
 SED=sed
 RM=rm

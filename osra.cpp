@@ -4632,13 +4632,21 @@ int main(int argc,char **argv)
       {
 	Image image;
 	//image.density("150x150");
-	image.density("300x300");
+	if (input_resolution!=0)
+          {
+            stringstream density;
+            density<<input_resolution<<"x"<<input_resolution;
+            image.density(density.str());
+          }
+	else                                              
+	 image.density("300x300");
+	 
 	stringstream pname;
 	pname<<input.getValue()<<"["<<l<<"]";
 	image.read(pname.str());
 
 	image.modifyImage();
-	//image.type( TrueColorType );
+
 	if (!invert)
 	  {
 	    double a=0;
@@ -4789,17 +4797,7 @@ int main(int argc,char **argv)
 		    orig_box.pixelColor(x-boxes[k].x1+FRAME,y-boxes[k].y1+FRAME,color);
 		  }
 		
-		/*	if ((type=="PDF") || (type=="PS"))
-		  {
-		    if (resolution!=150)
-		      {
-			int percent=(100*resolution)/150;
-			stringstream scale;
-			scale<<percent<<"%";
-			orig_box.scale(scale.str());
-		      }
-		      }*/
-
+	
 		int width=orig_box.columns();
 		int height=orig_box.rows();
 		Image thick_box;
@@ -4809,6 +4807,7 @@ int main(int argc,char **argv)
 		    int max_hist;
 		    double nf=noise_factor(orig_box,width,height,bgColor,
 					   THRESHOLD_BOND,resolution,max_hist);
+		    //if (max_hist<5) thick=false;
 		    if (res_iter==3)
 		      {
 			if (max_hist>6)
@@ -4826,7 +4825,7 @@ int main(int argc,char **argv)
 			    nf=noise_factor(orig_box,width,height,bgColor,
                                             THRESHOLD_BOND,resolution,max_hist);
 			  }
-			else //if (max_hist>4)
+			else 
 			  {
 			    resolution=500;
 			    int percent=(100*300)/resolution;
@@ -4841,14 +4840,9 @@ int main(int argc,char **argv)
 			    nf=noise_factor(orig_box,width,height,bgColor,
 			                    THRESHOLD_BOND,resolution,max_hist);	
 			  }
-			/*else
-			  {
-			    thick_box=orig_box;
-			    continue;
-			  }
-			  */
+			
 		      }
-		    if (nf>0.5 && nf<1. && max_hist<=6)// && res_iter!=3 && max_hist<=6)
+		    /*if (nf>0.5 && nf<1. && max_hist<=6)// && res_iter!=3 && max_hist<=6)
 		      try {
 		        thick_box=anisotropic_smoothing(orig_box,width,height,20,0.6,2);
                       }
@@ -4856,7 +4850,7 @@ int main(int argc,char **argv)
                       {
                        thick_box=orig_box;
                       }
-		    else thick_box=orig_box;
+		      else*/ thick_box=orig_box;
 		  }
 		else if (resolution<300 && resolution>150)
 		  {
@@ -4871,10 +4865,6 @@ int main(int argc,char **argv)
 		    orig_box.scale(scale.str());
 		    working_resolution=300;
 		  }
-		/*else if (resolution<150)
-		  if (nf>2)
-		    thick_box=anisotropic_smoothing(orig_box,width,height,5,0.2,1.1);
-		    else thick_box=orig_box;*/
 		else 
 		  thick_box=orig_box;
 
