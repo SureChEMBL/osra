@@ -3947,15 +3947,15 @@ unsigned int distance_between_segments(vector<point_t> s1,vector<point_t> s2)
 {
   int r=INT_MAX;
   unsigned int ii,jj;
-  /*
-  for (vector<point_t>::iterator i=s1.begin();i!=s1.end();i++)
+  
+  /*for (vector<point_t>::iterator i=s1.begin();i!=s1.end();i++)
     for (vector<point_t>::iterator j=s2.begin();j!=s2.end();j++)
       {
 	int d=distance_between_points(*i,*j);
 	if (d<r) r=d;
       }
-    */
- #pragma omp parallel 
+  */
+   #pragma omp parallel 
   {
     int priv_min=INT_MAX;
     #pragma omp for
@@ -3968,7 +3968,7 @@ unsigned int distance_between_segments(vector<point_t> s1,vector<point_t> s2)
 	  }
       }
     
-   #pragma omp flush (r)
+    //   #pragma omp flush (r)
     if (priv_min<r)
       {
 	#pragma omp critical
@@ -4638,8 +4638,11 @@ int main(int argc,char **argv)
             density<<input_resolution<<"x"<<input_resolution;
             image.density(density.str());
           }
-	else                                              
-	 image.density("300x300");
+	else   
+	  {                                           
+	    image.density("300x300");
+	    //	    input_resolution=300;
+	  }
 	 
 	stringstream pname;
 	pname<<input.getValue()<<"["<<l<<"]";
@@ -4726,6 +4729,11 @@ int main(int argc,char **argv)
 	//exit(0);
 	std::sort(boxes.begin(),boxes.end(),comp_boxes);
 
+	potrace_param_t *param;
+	param = potrace_param_default();
+	param->alphamax=0.;
+	//    param->turnpolicy=POTRACE_TURNPOLICY_MINORITY;
+	param->turdsize=0;
 
     for (res_iter=0;res_iter<num_resolutions;res_iter++)
       {
@@ -4736,11 +4744,9 @@ int main(int argc,char **argv)
 	int working_resolution=resolution;
 	if (resolution>300) working_resolution=300;
 
-	potrace_param_t *param;
-	param = potrace_param_default();
-	param->alphamax=0.;
-	//    param->turnpolicy=POTRACE_TURNPOLICY_MINORITY;
-	param->turdsize=0;
+
+
+
 
 	double THRESHOLD_BOND,THRESHOLD_CHAR;
 	THRESHOLD_BOND=threshold.getValue();
@@ -4842,7 +4848,7 @@ int main(int argc,char **argv)
 			  }
 			
 		      }
-		    /*if (nf>0.5 && nf<1. && max_hist<=6)// && res_iter!=3 && max_hist<=6)
+		    if (nf>0.5 && nf<1. && max_hist<=6)// && res_iter!=3 && max_hist<=6)
 		      try {
 		        thick_box=anisotropic_smoothing(orig_box,width,height,20,0.6,2);
                       }
@@ -4850,7 +4856,7 @@ int main(int argc,char **argv)
                       {
                        thick_box=orig_box;
                       }
-		      else*/ thick_box=orig_box;
+		      else thick_box=orig_box;
 		  }
 		else if (resolution<300 && resolution>150)
 		  {
@@ -5123,14 +5129,15 @@ int main(int argc,char **argv)
 			}
 		  }
 
-		potrace_state_free(st);
-		free(bm);
+		if (st != NULL)
+		  potrace_state_free(st);
+		if (bm!=NULL)	free(bm);
 	      }
 	    if (total_boxes>0) 
 	      array_of_confidence[res_iter]=total_confidence/total_boxes;
-	    potrace_param_free(param); 
 	    //	    dbg.write("debug.png");
       }
+    potrace_param_free(param); 
 
     double max_conf=-FLT_MAX;
     int max_res=0;
