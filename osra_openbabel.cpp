@@ -181,6 +181,7 @@ string get_smiles(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, int &r
  for (int i=0;i<n_bond;i++)
    if (bond[i].exists) 
      {
+       //       cout<<i<<endl;
        if (atom[bond[i].a].n==0)
 	 {
 	   a=mol.CreateAtom();

@@ -770,6 +770,7 @@ int double_triple_bonds(vector<atom_t> &atom,vector<bond_t> &bond,int n_bond,dou
 			  bond[n_bond].down=false;
 			  bond[n_bond].Small=false;
 			  bond[n_bond].arom=false;
+			  bond[n_bond].conjoined=false;
 			  atom_t a1;
 			  atom.push_back(a1);
 			  atom[n_atom].x=x;
@@ -779,6 +780,9 @@ int double_triple_bonds(vector<atom_t> &atom,vector<bond_t> &bond,int n_bond,dou
 			  atom[n_atom].curve=bond[ii].curve;
 			  atom[n_atom].n=0;
 			  atom[n_atom].corner=false;
+			  atom[n_atom].terminal=false;
+			  atom[n_atom].charge=0;
+			  atom[n_atom].anum=0;
 			  bond[ii].a=n_atom;
 			  n_atom++;
 			  if (n_atom>=MAX_ATOMS) n_atom--;
@@ -804,6 +808,7 @@ int double_triple_bonds(vector<atom_t> &atom,vector<bond_t> &bond,int n_bond,dou
 			  bond[n_bond].down=false;
 			  bond[n_bond].Small=false;
 			  bond[n_bond].arom=false;
+			  bond[n_bond].conjoined=false;
 			  atom_t a1;
 			  atom.push_back(a1);
 			  atom[n_atom].x=x;
@@ -813,6 +818,9 @@ int double_triple_bonds(vector<atom_t> &atom,vector<bond_t> &bond,int n_bond,dou
 			  atom[n_atom].curve=bond[ii].curve;
 			  atom[n_atom].n=0;
 			  atom[n_atom].corner=false;
+			  atom[n_atom].terminal=false;
+			  atom[n_atom].charge=0;
+			  atom[n_atom].anum=0;
 			  bond[ii].b=n_atom;
 			  n_atom++;
 			  if (n_atom>=MAX_ATOMS) n_atom--;
@@ -1641,6 +1649,8 @@ int find_bonds(vector<atom_t> &atom, vector<bond_t> &bond, int b_atom, int n_ato
 	bond[n_bond].up=false;
 	bond[n_bond].down=false;
 	bond[n_bond].Small=false;
+	bond[n_bond].arom=false;
+	bond[n_bond].conjoined=false;
       	n_bond++;
 	if (n_bond>=MAX_ATOMS) n_bond--;
       }
@@ -1884,6 +1894,9 @@ int find_atoms(potrace_path_t *p, vector<atom_t> &atom,vector<bond_t> &bond,int 
 	    atom[n_atom].curve=p;
 	    atom[n_atom].n=0;
 	    atom[n_atom].corner=false;
+	    atom[n_atom].terminal=false;
+	    atom[n_atom].charge=0;
+	    atom[n_atom].anum=0;
 	    n_atom++;
 	    if (n_atom>=MAX_ATOMS) n_atom--;
 	    for (long i=0; i<n; i++) 
@@ -1901,6 +1914,9 @@ int find_atoms(potrace_path_t *p, vector<atom_t> &atom,vector<bond_t> &bond,int 
 		    atom[n_atom].curve=p;
 		    atom[n_atom].n=0;
 		    atom[n_atom].corner=true;
+		    atom[n_atom].terminal=false;
+		    atom[n_atom].charge=0;
+		    atom[n_atom].anum=0;
 		    n_atom++;
 		    if (n_atom>=MAX_ATOMS) n_atom--;
 		    break;
@@ -1913,6 +1929,9 @@ int find_atoms(potrace_path_t *p, vector<atom_t> &atom,vector<bond_t> &bond,int 
 		    atom[n_atom].curve=p;
 		    atom[n_atom].n=0;
 		    atom[n_atom].corner=false;
+		    atom[n_atom].terminal=false;
+		    atom[n_atom].charge=0;
+		    atom[n_atom].anum=0;
 		    n_atom++;
 		    if (n_atom>=MAX_ATOMS) n_atom--;
 		    atom.push_back(at3);
@@ -1923,6 +1942,9 @@ int find_atoms(potrace_path_t *p, vector<atom_t> &atom,vector<bond_t> &bond,int 
 		    atom[n_atom].curve=p;
 		    atom[n_atom].n=0;
 		    atom[n_atom].corner=false;
+		    atom[n_atom].terminal=false;
+		    atom[n_atom].charge=0;
+		    atom[n_atom].anum=0;
 		    n_atom++;
 		    if (n_atom>=MAX_ATOMS) n_atom--;
 		    break;
@@ -1937,6 +1959,9 @@ int find_atoms(potrace_path_t *p, vector<atom_t> &atom,vector<bond_t> &bond,int 
 		    atom[n_atom].curve=p;
 		    atom[n_atom].n=0;
 		    atom[n_atom].corner=false;
+		    atom[n_atom].terminal=false;
+		    atom[n_atom].charge=0;
+		    atom[n_atom].anum=0;
 		    n_atom++;
 		    if (n_atom>=MAX_ATOMS) n_atom--;
 		  }
@@ -2397,6 +2422,9 @@ int find_dashed_bonds(potrace_path_t *p, vector<atom_t> &atom,vector<bond_t> &bo
 		atom[n_atom].curve=dash[0].curve;
 		atom[n_atom].n=0;
 		atom[n_atom].corner=false;
+		atom[n_atom].terminal=false;
+		atom[n_atom].charge=0;
+		atom[n_atom].anum=0;
 		n_atom++;
 		if (n_atom>=MAX_ATOMS) n_atom--;
 		atom_t a2;
@@ -2408,6 +2436,9 @@ int find_dashed_bonds(potrace_path_t *p, vector<atom_t> &atom,vector<bond_t> &bo
 		atom[n_atom].curve=dash[n-1].curve;
 		atom[n_atom].n=0;
 		atom[n_atom].corner=false;
+		atom[n_atom].terminal=false;
+		atom[n_atom].charge=0;
+		atom[n_atom].anum=0;
 		n_atom++;
 		if (n_atom>=MAX_ATOMS) n_atom--;
 		bond_t b1;
@@ -2492,6 +2523,9 @@ int find_small_bonds(potrace_path_t *p, vector<atom_t> &atom,vector<bond_t> &bon
 		    atom[n_atom].curve=p;
 		    atom[n_atom].n=0;
 		    atom[n_atom].corner=false;
+		    atom[n_atom].terminal=false;
+		    atom[n_atom].charge=0;
+		    atom[n_atom].anum=0;
 		    n_atom++;
 		    if (n_atom>=MAX_ATOMS) n_atom--;
 		    atom_t a2;
@@ -2503,6 +2537,9 @@ int find_small_bonds(potrace_path_t *p, vector<atom_t> &atom,vector<bond_t> &bon
 		    atom[n_atom].curve=p;
 		    atom[n_atom].n=0;
 		    atom[n_atom].corner=false;
+		    atom[n_atom].terminal=false;
+		    atom[n_atom].charge=0;
+		    atom[n_atom].anum=0;
 		    n_atom++;
 		    if (n_atom>=MAX_ATOMS) n_atom--;
 		    bond_t b1;
@@ -2711,6 +2748,7 @@ int fix_one_sided_bonds(vector<bond_t> &bond,int n_bond,vector<atom_t> &atom, do
 			bond[n_bond].down=false;
 			if (bond[i].arom) bond[n_bond].arom=true;
 			else bond[n_bond].arom=false;
+			bond[n_bond].conjoined=bond[i].conjoined;
 			n_bond++;
 			if (n_bond>=MAX_ATOMS) n_bond--;
 			bond[i].b=bond[j].a;
@@ -2747,6 +2785,7 @@ int fix_one_sided_bonds(vector<bond_t> &bond,int n_bond,vector<atom_t> &atom, do
 			bond[n_bond].down=false;
 			if (bond[i].arom) bond[n_bond].arom=true;
 			else bond[n_bond].arom=false;
+			bond[n_bond].conjoined=bond[i].conjoined;
 			n_bond++;
 			if (n_bond>=MAX_ATOMS) n_bond--;
 			bond[i].b=bond[j].b;
@@ -3178,7 +3217,7 @@ double find_wedge_bonds(Image image,vector<atom_t> &atom, int n_atom,vector<bond
 void collapse_double_bonds(vector<bond_t> &bond,int n_bond,vector<atom_t> &atom,double dist)
 {
   for (int i=0;i<n_bond;i++)
-    if (bond[i].exists && bond[i].type==2 && bond[i].conjoined)
+    if (bond[i].exists && bond[i].type==2 && bond[i].conjoined) // uninitialized value here!!!
       for (int j=0;j<n_bond;j++)
 	if (bond[j].exists && j!=i && bond[j].type==1 && bond_length(bond,j,atom)<=dist)
 	  {
@@ -3915,6 +3954,8 @@ int reconnect_fragments(vector<bond_t> &bond,int n_bond,vector<atom_t> &atom,dou
 		}
 	    if (l<avg && l>avg/3)
 	      {
+		bond_t b1;
+		bond.push_back(b1);
 		bond[n_bond].a=atom1;
 		bond[n_bond].exists=true;
 		bond[n_bond].type=1;
@@ -3925,6 +3966,8 @@ int reconnect_fragments(vector<bond_t> &bond,int n_bond,vector<atom_t> &atom,dou
 		bond[n_bond].up=false;
 		bond[n_bond].down=false;
 		bond[n_bond].Small=false;
+		bond[n_bond].arom=false;
+		bond[n_bond].conjoined=false;
 		n_bond++;
 	      }
 	    if (l<avg/3)
@@ -3948,14 +3991,14 @@ unsigned int distance_between_segments(vector<point_t> s1,vector<point_t> s2)
   int r=INT_MAX;
   unsigned int ii,jj;
   
-  /*for (vector<point_t>::iterator i=s1.begin();i!=s1.end();i++)
+  for (vector<point_t>::iterator i=s1.begin();i!=s1.end();i++)
     for (vector<point_t>::iterator j=s2.begin();j!=s2.end();j++)
       {
 	int d=distance_between_points(*i,*j);
 	if (d<r) r=d;
       }
-  */
-   #pragma omp parallel 
+  
+  /*   #pragma omp parallel 
   {
     int priv_min=INT_MAX;
     #pragma omp for
@@ -3978,7 +4021,7 @@ unsigned int distance_between_segments(vector<point_t> s1,vector<point_t> s2)
       }
     
   }
-  
+  */
   return r;
 }
 
@@ -4041,7 +4084,6 @@ void build_distance_matrix(vector < vector<point_t> > margins, int max_dist,
 			   vector < vector<int> > &distance_matrix)
 			   
 {
-  //#pragma omp for
   for (unsigned int s1=0;s1<margins.size();s1++)
     for (unsigned int s2=s1+1;s2<margins.size();s2++)
       if (distance_between_points(margins[s1].front(),margins[s2].front())<PARTS_IN_MARGIN*margins[s1].size()+PARTS_IN_MARGIN*margins[s2].size()+max_dist)
