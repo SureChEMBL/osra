@@ -4,7 +4,7 @@ ARCH=unix
 POTRACE=../potrace-1.8/
 GOCR=../gocr-0.45/
 OCRAD=../ocrad-0.18/
-OPENBABEL=/usr/local
+OPENBABEL=/usr/
 
 ifeq ($(ARCH), osx-static)
 MAGICK_STATIC_INC=-I/Users/igor/build/include/ImageMagick

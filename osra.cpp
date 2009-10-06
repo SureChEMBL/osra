@@ -2455,6 +2455,8 @@ int find_dashed_bonds(potrace_path_t *p, vector<atom_t> &atom,vector<bond_t> &bo
 		bond[*n_bond].up=false;
 		bond[*n_bond].down=false;
 		bond[*n_bond].Small=false;
+		bond[*n_bond].arom=false;
+                bond[*n_bond].conjoined=false;
 		extend_dashed_bond(bond[*n_bond].a,bond[*n_bond].b,n,atom);
 		(*n_bond)++;
 		if ((*n_bond)>=MAX_ATOMS) (*n_bond)--;
@@ -2554,6 +2556,8 @@ int find_small_bonds(potrace_path_t *p, vector<atom_t> &atom,vector<bond_t> &bon
 		    bond[*n_bond].up=false;
 		    bond[*n_bond].down=false;
 		    bond[*n_bond].Small=true;
+		    bond[*n_bond].arom=false;
+                    bond[*n_bond].conjoined=false;
 		    (*n_bond)++;
 		    if ((*n_bond)>=MAX_ATOMS) (*n_bond)--;
 		  }
