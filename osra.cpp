@@ -4001,8 +4001,8 @@ unsigned int distance_between_segments(vector<point_t> s1,vector<point_t> s2)
 	int d=distance_between_points(*i,*j);
 	if (d<r) r=d;
       }
-  
-  /*   #pragma omp parallel 
+  /*
+  #pragma omp parallel 
   {
     int priv_min=INT_MAX;
     #pragma omp for
@@ -4084,19 +4084,31 @@ void find_connected_components(Image image,double threshold,ColorGray bgColor,
 
  }
 
-void build_distance_matrix(vector < vector<point_t> > margins, int max_dist, 
-			   vector < vector<int> > &distance_matrix)
+unsigned int area_ratio(unsigned int a, unsigned int b)
+{
+  double r=max(a,b)/min(a,b);
+  return (unsigned int)r;
+}
+
+void build_distance_matrix(vector < vector<point_t> > margins, unsigned int max_dist, 
+			   vector < vector<int> > &distance_matrix, vector < vector<int> > &features,
+			   vector < list<point_t> > segments, unsigned int max_area_ratio)
 			   
 {
+  int d;
+  unsigned int ar;
   for (unsigned int s1=0;s1<margins.size();s1++)
     for (unsigned int s2=s1+1;s2<margins.size();s2++)
       if (distance_between_points(margins[s1].front(),margins[s2].front())<PARTS_IN_MARGIN*margins[s1].size()+PARTS_IN_MARGIN*margins[s2].size()+max_dist)
 	{
-	  int d=distance_between_segments(margins[s1],margins[s2]);
+	  d=distance_between_segments(margins[s1],margins[s2]);
 	  if (d<max_dist)
 	    {
 	      distance_matrix[s1][s2]=d;
 	      distance_matrix[s2][s1]=d;
+	      ar=area_ratio(segments[s1].size(),segments[s2].size());
+	      if (ar<max_area_ratio  && d<max_dist)
+		features[ar][d]++;
 	    }
 	}
 }
@@ -4118,11 +4130,7 @@ list < list < list<point_t> > > build_explicit_clusters(list < list <int> > clus
 }
 
 
-unsigned int area_ratio(unsigned int a, unsigned int b)
-{
-  double r=max(a,b)/min(a,b);
-  return r;
-}
+
 
 void remove_separators(vector < list<point_t> > &segments, 
 		       vector < vector<point_t> > &margins, 
@@ -4284,23 +4292,36 @@ list < list < list<point_t> > > find_segments(Image image,double threshold,
 {
   vector < list<point_t> > segments;
   vector < vector<point_t> >  margins;
+  list < list < list<point_t> > > explicit_clusters;
+
+  // 1m34s
+
   find_connected_components(image,threshold,bgColor,segments,margins);
   remove_separators(segments,margins,SEPARATOR_ASPECT,SEPARATOR_AREA);
+
+  // 2m22s
 
   unsigned int max_dist=MAX_DIST;
   unsigned int max_area_ratio=MAX_AREA_RATIO;
   vector < vector<int> > distance_matrix(segments.size(), vector<int>(segments.size(),INT_MAX));
-  build_distance_matrix(margins,max_dist,distance_matrix);
+  vector < vector<int> > features(max_area_ratio, vector<int>(max_dist,0));
+
+  build_distance_matrix(margins,max_dist,distance_matrix,features,segments,max_area_ratio);
+
+  // 2m53s
 
   vector<int> avail(margins.size(),1);
-
+  /*  unsigned int ar;
   
-  vector < vector<int> > features(max_area_ratio, vector<int>(max_dist,0));
   for (unsigned int i=0;i<margins.size();i++)
-    for (unsigned int j=0;j<margins.size();j++)
-      if (area_ratio(segments[i].size(),segments[j].size())<max_area_ratio 
-	  && distance_matrix[i][j]<max_dist)
-	features[area_ratio(segments[i].size(),segments[j].size())][distance_matrix[i][j]]++;
+    for (unsigned int j=i+1;j<margins.size();j++)
+      {
+	ar=area_ratio(segments[i].size(),segments[j].size());
+	if (ar<max_area_ratio  && distance_matrix[i][j]<max_dist)
+	  features[ar][distance_matrix[i][j]]++;
+      }
+  */
+  // 5m53s -> new 4m15s
 
   vector<int> stats(max_dist,0);
   int entropy_max=locate_max_entropy(features,max_area_ratio,max_dist,stats);
@@ -4331,9 +4352,11 @@ list < list < list<point_t> > > find_segments(Image image,double threshold,
      for(unsigned int i=0;i<margins.size();i++)
        if (avail[i]!=-1)
 	 avail[i]=1;
-  
+
+
+
     list < list <int> > clusters=assemble_clusters(margins,dist,distance_matrix,avail);
-    list < list < list<point_t> > > explicit_clusters=build_explicit_clusters(clusters,segments);
+    explicit_clusters=build_explicit_clusters(clusters,segments);
     return explicit_clusters;
 }
 
@@ -4717,30 +4740,35 @@ int main(int argc,char **argv)
 	    a/=BG_PICK_POINTS;
 	    if (a<0.5 && !transparent) invert=true;
 	  }
-        ColorRGB c,b;
-	Color t;
-	ColorGray g;
-	for (unsigned int i=0;i<image.columns();i++)
-	  for (unsigned int j=0;j<image.rows();j++)
-	    {
-	      t=image.pixelColor(i,j);
-	      b=t;
-	      g=t;
-	      if (image.matte() && t.alpha()==1 && g.shade()<0.5)
-		{
-		  g.shade(1);
-		  image.pixelColor(i,j,g);
-		}
-	      else
-		{
-		  double a=min(b.red(),min(b.green(),b.blue()));
-		  if (invert)
-		    a=max(b.red(),max(b.green(),b.blue()));
-		  c.red(a);c.green(a);c.blue(a);
-		  image.pixelColor(i,j,c);
-		}
-	    }
 
+	{
+	  ColorRGB c,b;
+	  Color t;
+	  ColorGray g;
+	  double a;
+	  bool matte=image.matte();
+	  //#pragma omp parallel for
+	  for (unsigned int i=0;i<image.columns();i++)
+	    for (unsigned int j=0;j<image.rows();j++)
+	      {
+		t=image.pixelColor(i,j);
+		b=t;
+		g=t;
+		if (matte && t.alpha()==1 && g.shade()<0.5)
+		  {
+		    g.shade(1);
+		    image.pixelColor(i,j,g);
+		  }
+		else
+		  {
+		    a=min(b.red(),min(b.green(),b.blue()));
+		    if (invert)
+		      a=max(b.red(),max(b.green(),b.blue()));
+		    c.red(a);c.green(a);c.blue(a);
+		    image.pixelColor(i,j,c);
+		  }
+	      }
+	}
 	image.contrast(2);
 	image.type( GrayscaleType );
 	
@@ -4769,6 +4797,7 @@ int main(int argc,char **argv)
 
 	ColorGray bgColor=getBgColor(image,invert);
 	list < list < list<point_t> > > clusters=find_segments(image,0.1,bgColor);
+
 	vector<box_t> boxes;
 	int n_boxes=prune_clusters(clusters,boxes);
 	//draw_box(image,boxes,n_boxes,"tmp.gif");
