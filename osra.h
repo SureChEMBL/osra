@@ -134,7 +134,7 @@ bool detect_bracket(int x, int y,unsigned char *pic);
 #define MIN_ASPECT 0.1
 #define MAX_ASPECT 10.
 #define MIN_A_COUNT 5
-#define MAX_A_COUNT 200
+#define MAX_A_COUNT 300
 #define MIN_CHAR_POINTS 2
 #define MAX_BOND_THICKNESS 10
 #define SMALL_PICTURE_AREA 6000

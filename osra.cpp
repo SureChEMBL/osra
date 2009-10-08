@@ -3994,11 +3994,12 @@ unsigned int distance_between_segments(vector<point_t> s1,vector<point_t> s2)
 {
   int r=INT_MAX;
   unsigned int ii,jj;
-  
+  int d;
+
   for (vector<point_t>::iterator i=s1.begin();i!=s1.end();i++)
     for (vector<point_t>::iterator j=s2.begin();j!=s2.end();j++)
       {
-	int d=distance_between_points(*i,*j);
+	d=distance_between_points(*i,*j);
 	if (d<r) r=d;
       }
   /*
@@ -4099,7 +4100,7 @@ void build_distance_matrix(vector < vector<point_t> > margins, unsigned int max_
   unsigned int ar;
   for (unsigned int s1=0;s1<margins.size();s1++)
     for (unsigned int s2=s1+1;s2<margins.size();s2++)
-      if (distance_between_points(margins[s1].front(),margins[s2].front())<PARTS_IN_MARGIN*margins[s1].size()+PARTS_IN_MARGIN*margins[s2].size()+max_dist)
+      if (distance_between_points(margins[s1].front(),margins[s2].front())<(PARTS_IN_MARGIN*margins[s1].size()+PARTS_IN_MARGIN*margins[s2].size())/2+max_dist)
 	{
 	  d=distance_between_segments(margins[s1],margins[s2]);
 	  if (d<max_dist)
@@ -4168,7 +4169,7 @@ void remove_separators(vector < list<point_t> > &segments,
 
 list < list <int> > assemble_clusters(vector < vector<point_t> > margins,int dist,
 				      vector < vector<int> > distance_matrix,
-				      vector<int> &avail)
+				      vector<int> &avail, bool text, vector < list<point_t> > segments)
 {
   list < list <int> > clusters;
   list<int> bag;
@@ -4186,7 +4187,8 @@ list < list <int> > assemble_clusters(vector < vector<point_t> > margins,int dis
 	    new_cluster.push_back(c);
 	    avail[c]=0;
 	    for (unsigned int i=0;i<margins.size();i++)
-	      if (avail[i]==1 && distance_matrix[c][i]<dist)
+	      if (avail[i]==1 && distance_matrix[c][i]<dist &&
+		  (!text || area_ratio(segments[i].size(),segments[c].size())<=2))
 		{
 		  bag.push_back(i);
 		  avail[i]=2;
@@ -4343,7 +4345,7 @@ list < list < list<point_t> > > find_segments(Image image,double threshold,
       
 
 
-      list < list <int> > text_blocks=assemble_clusters(margins,dist_text,distance_matrix,avail);
+      list < list <int> > text_blocks=assemble_clusters(margins,dist_text,distance_matrix,avail,true,segments);
       remove_text_blocks(text_blocks,segments,avail);
       
       dist=2*dist_text;
@@ -4355,9 +4357,9 @@ list < list < list<point_t> > > find_segments(Image image,double threshold,
 
 
 
-    list < list <int> > clusters=assemble_clusters(margins,dist,distance_matrix,avail);
-    explicit_clusters=build_explicit_clusters(clusters,segments);
-    return explicit_clusters;
+     list < list <int> > clusters=assemble_clusters(margins,dist,distance_matrix,avail,false,segments);
+     explicit_clusters=build_explicit_clusters(clusters,segments);
+     return explicit_clusters;
 }
 
 void remove_brackets(int left, int right, int top, int bottom,list < list < list<point_t> > >::iterator c)
@@ -5123,6 +5125,7 @@ int main(int argc,char **argv)
 		assign_charge(atom,bond,n_atom,n_bond,fix,debug.getValue());
 		find_up_down_bonds(bond,n_bond,atom,thickness);
 		int real_atoms=count_atoms(atom,n_atom);
+
 		if ((real_atoms>MIN_A_COUNT) && (real_atoms<MAX_A_COUNT))
 		  {
 
