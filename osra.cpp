@@ -4093,7 +4093,8 @@ unsigned int area_ratio(unsigned int a, unsigned int b)
 
 void build_distance_matrix(vector < vector<point_t> > margins, unsigned int max_dist, 
 			   vector < vector<int> > &distance_matrix, vector < vector<int> > &features,
-			   vector < list<point_t> > segments, unsigned int max_area_ratio)
+			   vector < list<point_t> > segments, unsigned int max_area_ratio,
+                           vector < vector<int> > &area_matrix)
 			   
 {
   int d;
@@ -4108,6 +4109,9 @@ void build_distance_matrix(vector < vector<point_t> > margins, unsigned int max_
 	      distance_matrix[s1][s2]=d;
 	      distance_matrix[s2][s1]=d;
 	      ar=area_ratio(segments[s1].size(),segments[s2].size());
+	      //	      cout<<ar<<endl;
+	      area_matrix[s1][s2]=ar;
+              area_matrix[s2][s1]=ar;
 	      if (ar<max_area_ratio  && d<max_dist)
 		features[ar][d]++;
 	    }
@@ -4169,7 +4173,8 @@ void remove_separators(vector < list<point_t> > &segments,
 
 list < list <int> > assemble_clusters(vector < vector<point_t> > margins,int dist,
 				      vector < vector<int> > distance_matrix,
-				      vector<int> &avail, bool text, vector < list<point_t> > segments)
+				      vector<int> &avail, bool text,
+				      vector < vector<int> > area_matrix)
 {
   list < list <int> > clusters;
   list<int> bag;
@@ -4187,8 +4192,8 @@ list < list <int> > assemble_clusters(vector < vector<point_t> > margins,int dis
 	    new_cluster.push_back(c);
 	    avail[c]=0;
 	    for (unsigned int i=0;i<margins.size();i++)
-	      if (avail[i]==1 && distance_matrix[c][i]<dist &&
-		  (!text || area_ratio(segments[i].size(),segments[c].size())<=2))
+	      if (avail[i]==1 && distance_matrix[c][i]<dist)
+		//		&&  (!text || area_matrix[i][c]<=10))
 		{
 		  bag.push_back(i);
 		  avail[i]=2;
@@ -4306,9 +4311,10 @@ list < list < list<point_t> > > find_segments(Image image,double threshold,
   unsigned int max_dist=MAX_DIST;
   unsigned int max_area_ratio=MAX_AREA_RATIO;
   vector < vector<int> > distance_matrix(segments.size(), vector<int>(segments.size(),INT_MAX));
+  vector < vector<int> > area_matrix(segments.size(), vector<int>(segments.size(),INT_MAX));
   vector < vector<int> > features(max_area_ratio, vector<int>(max_dist,0));
 
-  build_distance_matrix(margins,max_dist,distance_matrix,features,segments,max_area_ratio);
+  build_distance_matrix(margins,max_dist,distance_matrix,features,segments,max_area_ratio,area_matrix);
 
   // 2m53s
 
@@ -4345,7 +4351,7 @@ list < list < list<point_t> > > find_segments(Image image,double threshold,
       
 
 
-      list < list <int> > text_blocks=assemble_clusters(margins,dist_text,distance_matrix,avail,true,segments);
+      list < list <int> > text_blocks=assemble_clusters(margins,dist_text,distance_matrix,avail,true,area_matrix);
       remove_text_blocks(text_blocks,segments,avail);
       
       dist=2*dist_text;
@@ -4357,7 +4363,7 @@ list < list < list<point_t> > > find_segments(Image image,double threshold,
 
 
 
-     list < list <int> > clusters=assemble_clusters(margins,dist,distance_matrix,avail,false,segments);
+     list < list <int> > clusters=assemble_clusters(margins,dist,distance_matrix,avail,false,area_matrix);
      explicit_clusters=build_explicit_clusters(clusters,segments);
      return explicit_clusters;
 }
@@ -4802,8 +4808,8 @@ int main(int argc,char **argv)
 
 	vector<box_t> boxes;
 	int n_boxes=prune_clusters(clusters,boxes);
-	//draw_box(image,boxes,n_boxes,"tmp.gif");
-	//exit(0);
+	//	draw_box(image,boxes,n_boxes,"tmp.gif");
+	//	exit(0);
 	std::sort(boxes.begin(),boxes.end(),comp_boxes);
 
 	potrace_param_t *param;

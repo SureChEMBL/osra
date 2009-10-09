@@ -182,8 +182,7 @@ resolution of 72 dpi),
 
 - Black-and-white PDF and PostScript files, including multi-page ones. Please
 note that you need Ghostcript installed for ImageMagick to be able to
-parse these kinds of files. OSRA internally renders PS and PDF at a resolution 
-of 150 dpi, so you do not need to specify the resolution as a commmand-line parameter,
+parse these kinds of files. 
 
 - Scanned images - black-and-white, a resolution of 300 dpi is recommended,
 though 150 dpi can also produce fair results. Please make sure the
@@ -204,7 +203,7 @@ will give you a list of available options with short descriptions.
 Most common use: ./osra [-r <resolution>] <filename>
 
 Resolution in dpi, default is "0" for automatic resolution
-determination (NEW in version 0.9.6), unless it's a PS or PDF file as mentioned above. 
+determination.
 Filename is the name of your image file (or PS/PDF document).
 
 Other options: 
