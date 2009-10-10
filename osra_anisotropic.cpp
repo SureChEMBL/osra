@@ -60,7 +60,7 @@ Image anisotropic_smoothing(Image image,int width,int height, const float amplit
   const bool fast_approx=true;
   const unsigned int tile=512;
   const unsigned int btile=4;
-  const unsigned int threads=2;
+  const unsigned int threads=1; // orig - 2
 
   dest.greycstoration_run(amplitude,sharpness,anisotropy,alpha,sigma,gfact,dl,da,gauss_prec,interp,fast_approx,tile,btile,threads);
   do {
@@ -109,7 +109,7 @@ Image anisotropic_scaling(Image image,int width,int height, int nw, int nh)
   const bool fast_approx=true;
   const unsigned int tile=512; // 512 0
   const unsigned int btile=4;
-  const unsigned int threads=2; // 2 1
+  const unsigned int threads=1; // 2 1
 
   const unsigned int init=5;
   CImg<unsigned char> mask;
@@ -121,7 +121,7 @@ Image anisotropic_scaling(Image image,int width,int height, int nw, int nh)
 
   dest.greycstoration_run(mask,amplitude,sharpness,anisotropy,alpha,sigma,gfact,dl,da,gauss_prec,interp,fast_approx,tile,btile,threads);
   do {
-    cimg::wait(200);
+    cimg::wait(10);
   } while (dest.greycstoration_is_running());
 
   for(int i=0;i<nw;i++)

@@ -4755,6 +4755,7 @@ int main(int argc,char **argv)
 	  ColorGray g;
 	  double a;
 	  bool matte=image.matte();
+	  // 0m0s
 	  //#pragma omp parallel for
 	  for (unsigned int i=0;i<image.columns();i++)
 	    for (unsigned int j=0;j<image.rows();j++)
@@ -4777,9 +4778,10 @@ int main(int argc,char **argv)
 		  }
 	      }
 	}
+	// 0m21s
 	image.contrast(2);
 	image.type( GrayscaleType );
-	
+	// 0m22s
 	int num_resolutions=NUM_RESOLUTIONS;
 	if (input_resolution!=0) num_resolutions=1;
 	vector<int> select_resolution(num_resolutions,input_resolution);
@@ -4804,8 +4806,10 @@ int main(int argc,char **argv)
 	  }
 
 	ColorGray bgColor=getBgColor(image,invert);
+	// 0m21s
 	list < list < list<point_t> > > clusters=find_segments(image,0.1,bgColor);
 
+		// 0m36s	
 	vector<box_t> boxes;
 	int n_boxes=prune_clusters(clusters,boxes);
 	//	draw_box(image,boxes,n_boxes,"tmp.gif");
@@ -4872,7 +4876,7 @@ int main(int argc,char **argv)
 		potrace_path_t *p;
 		potrace_state_t *st;
 
-
+		// 0m37s
 		Image orig_box( Geometry(boxes[k].x2-boxes[k].x1+2*FRAME,
 
 					 boxes[k].y2-boxes[k].y1+2*FRAME), bgColor);
@@ -4886,7 +4890,8 @@ int main(int argc,char **argv)
 		    orig_box.pixelColor(x-boxes[k].x1+FRAME,y-boxes[k].y1+FRAME,color);
 		  }
 		
-	
+
+		    // 0m37s
 		int width=orig_box.columns();
 		int height=orig_box.rows();
 		Image thick_box;
@@ -4896,6 +4901,8 @@ int main(int argc,char **argv)
 		    int max_hist;
 		    double nf=noise_factor(orig_box,width,height,bgColor,
 					   THRESHOLD_BOND,resolution,max_hist);
+		    // 0m46s
+
 		    //if (max_hist<5) thick=false;
 		    if (res_iter==3)
 		      {
@@ -4934,6 +4941,7 @@ int main(int argc,char **argv)
 		    if (nf>0.5 && nf<1. && max_hist<=6)// && res_iter!=3 && max_hist<=6)
 		      try {
 		        thick_box=anisotropic_smoothing(orig_box,width,height,20,0.6,2);
+			// 1m30s
                       }
                       catch(...) 
                       {
@@ -4957,8 +4965,8 @@ int main(int argc,char **argv)
 		else 
 		  thick_box=orig_box;
 
-		
-		    
+
+				    // 1m29s
 		param->turnpolicy=POTRACE_TURNPOLICY_MINORITY;
 		double c_width=1.*width*72/working_resolution;
 		double c_height=1.*height*72/working_resolution;
@@ -4971,7 +4979,8 @@ int main(int argc,char **argv)
 		  box=thin_image(thick_box,THRESHOLD_BOND,bgColor);
 		else  box=thick_box;
 	   
-	    
+
+		    // 1m38s
 		bm = bm_new(width,height);
 		for(int i=0;i<width;i++)
 		  for(int j=0;j<height;j++)
@@ -4979,6 +4988,8 @@ int main(int argc,char **argv)
 	
 		st = potrace_trace(param, bm);
 		p = st->plist;
+
+		    // 1m40s
 		n_atom=find_atoms(p,atom,bond,&n_bond);
 
 		int real_font_width,real_font_height;
@@ -5010,13 +5021,13 @@ int main(int argc,char **argv)
 		double dist=3.;
 		if (working_resolution<150) dist=2;
 		
+		// 1m42s
 
-	
 		double thickness=skeletize(atom,bond,n_bond,box,THRESHOLD_BOND,
 				    bgColor,dist,avg_bond);
 
-	
-		    
+
+		    // 2m03s
 	
 		remove_disconnected_atoms(atom,bond,n_atom,n_bond);
 		collapse_atoms(atom,bond,n_atom,n_bond,3);
@@ -5071,8 +5082,8 @@ int main(int argc,char **argv)
 					   THRESHOLD_BOND,max_dist_double_bond,
 					   avg_bond,3,1);
 
-	
 
+		    // 2m11s
 		n_label=assemble_labels(letters,n_letters,label);
 
 
@@ -5151,6 +5162,8 @@ int main(int argc,char **argv)
 		    vector < vector<int> > frags=find_fragments(bond,n_bond,atom);
 		    vector<fragment_t> fragments=populate_fragments(frags,atom);
 		    std::sort(fragments.begin(),fragments.end(),comp_fragments);
+		    // 2m14s
+
 		    for (unsigned int i=0;i<fragments.size();i++)
 		      if (fragments[i].atom.size()>MIN_A_COUNT)
 			{
