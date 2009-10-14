@@ -64,7 +64,7 @@ Image anisotropic_smoothing(Image image,int width,int height, const float amplit
 
   dest.greycstoration_run(amplitude,sharpness,anisotropy,alpha,sigma,gfact,dl,da,gauss_prec,interp,fast_approx,tile,btile,threads);
   do {
-    cimg::wait(10);
+    cimg::wait(1);
   } while (dest.greycstoration_is_running());
 
   for(int i=0;i<width;i++)
@@ -121,7 +121,7 @@ Image anisotropic_scaling(Image image,int width,int height, int nw, int nh)
 
   dest.greycstoration_run(mask,amplitude,sharpness,anisotropy,alpha,sigma,gfact,dl,da,gauss_prec,interp,fast_approx,tile,btile,threads);
   do {
-    cimg::wait(10);
+    cimg::wait(1);
   } while (dest.greycstoration_is_running());
 
   for(int i=0;i<nw;i++)

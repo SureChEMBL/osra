@@ -151,7 +151,6 @@ int getAnum(string s, OBMol *mol,int *n, int *bondn,
   int isotope;
   int anum=etab.GetAtomicNum(s.c_str(),isotope);
   if (anum!=0) return(anum);
-
   return(6);
 
 }
@@ -187,6 +186,7 @@ string get_smiles(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, int &r
 	   a=mol.CreateAtom();
 	   int oldn=n;
 	   int oldbond=bondn;
+	   //	   cout<<i<<" "<<bond[i].a<<" "<<atom[bond[i].a].label<<endl;
 	   anum=getAnum(atom[bond[i].a].label,&mol,&n,&bondn,superatom);
 	   if (oldn!=n) 
 	     {

@@ -4748,25 +4748,35 @@ int main(int argc,char **argv)
 	    a/=BG_PICK_POINTS;
 	    if (a<0.5 && !transparent) invert=true;
 	  }
+	Image scaled=image;
+	int factor=1;
+	if (scaled.columns()>SCALED_LENGTH && scaled.rows()>SCALED_LENGTH)
+	  {
+	    factor=int(min(scaled.columns(),scaled.rows())/SCALED_LENGTH);
+	    int percent=100/factor;
+	    stringstream scale;
+	    scale<<percent<<"%";
+	    scaled.scale(scale.str());
+	  }
 
 	{
 	  ColorRGB c,b;
 	  Color t;
 	  ColorGray g;
 	  double a;
-	  bool matte=image.matte();
+	  bool matte=scaled.matte();
 	  // 0m0s
 	  //#pragma omp parallel for
-	  for (unsigned int i=0;i<image.columns();i++)
-	    for (unsigned int j=0;j<image.rows();j++)
+	  for (unsigned int i=0;i<scaled.columns();i++)
+	    for (unsigned int j=0;j<scaled.rows();j++)
 	      {
-		t=image.pixelColor(i,j);
+		t=scaled.pixelColor(i,j);
 		b=t;
 		g=t;
 		if (matte && t.alpha()==1 && g.shade()<0.5)
 		  {
 		    g.shade(1);
-		    image.pixelColor(i,j,g);
+		    scaled.pixelColor(i,j,g);
 		  }
 		else
 		  {
@@ -4774,13 +4784,13 @@ int main(int argc,char **argv)
 		    if (invert)
 		      a=max(b.red(),max(b.green(),b.blue()));
 		    c.red(a);c.green(a);c.blue(a);
-		    image.pixelColor(i,j,c);
+		    scaled.pixelColor(i,j,c);
 		  }
 	      }
 	}
 	// 0m21s
-	image.contrast(2);
-	image.type( GrayscaleType );
+	scaled.contrast(2);
+	scaled.type( GrayscaleType );
 	// 0m22s
 	int num_resolutions=NUM_RESOLUTIONS;
 	if (input_resolution!=0) num_resolutions=1;
@@ -4805,15 +4815,15 @@ int main(int argc,char **argv)
 	    image.scale(scale.str());
 	  }
 
-	ColorGray bgColor=getBgColor(image,invert);
+	ColorGray bgColor=getBgColor(scaled,invert);
 	// 0m21s
-	list < list < list<point_t> > > clusters=find_segments(image,0.1,bgColor);
+	list < list < list<point_t> > > clusters=find_segments(scaled,0.1,bgColor);
 
 		// 0m36s	
 	vector<box_t> boxes;
 	int n_boxes=prune_clusters(clusters,boxes);
-	//	draw_box(image,boxes,n_boxes,"tmp.gif");
-	//	exit(0);
+	//draw_box(scaled,boxes,n_boxes,"tmp.gif");
+	//exit(0);
 	std::sort(boxes.begin(),boxes.end(),comp_boxes);
 
 	potrace_param_t *param;
@@ -4856,14 +4866,14 @@ int main(int argc,char **argv)
 	    bool thick=true;
 	    if (resolution<=150) thick=false;
 
-	    //	    Image dbg=image;
+	    //Image dbg=image;
 	    //	    dbg.modifyImage();
 	    //	    dbg.type(TrueColorType);
 	    for (int k=0;k<n_boxes;k++)
-	      if ((boxes[k].x2-boxes[k].x1)>max_font_width &&
-		  (boxes[k].y2-boxes[k].y1)>max_font_height && !boxes[k].c.empty()
-		  && ((boxes[k].x2-boxes[k].x1)>2*max_font_width ||
-		      (boxes[k].y2-boxes[k].y1)>2*max_font_height))
+	      if ((boxes[k].x2-boxes[k].x1)*factor>max_font_width &&
+		  (boxes[k].y2-boxes[k].y1)*factor>max_font_height && !boxes[k].c.empty()
+		  && ((boxes[k].x2-boxes[k].x1)*factor>2*max_font_width ||
+		      (boxes[k].y2-boxes[k].y1)*factor>2*max_font_height))
 	      {
 		int n_atom=0,n_bond=0,n_letters=0,n_label=0;
 		vector<atom_t> atom;
@@ -4877,19 +4887,48 @@ int main(int argc,char **argv)
 		potrace_state_t *st;
 
 		// 0m37s
-		Image orig_box( Geometry(boxes[k].x2-boxes[k].x1+2*FRAME,
+		Image orig_box( Geometry((boxes[k].x2-boxes[k].x1)*factor+2*FRAME,
 
-					 boxes[k].y2-boxes[k].y1+2*FRAME), bgColor);
-
-		for(unsigned int p=0;p<boxes[k].c.size();p++)
-		  {
-		    int x=boxes[k].c[p].x;
-		    int y=boxes[k].c[p].y;
-		    ColorGray color=image.pixelColor(x,y);
-		    //		    dbg.pixelColor(x,y,"green");
-		    orig_box.pixelColor(x-boxes[k].x1+FRAME,y-boxes[k].y1+FRAME,color);
-		  }
-		
+					 (boxes[k].y2-boxes[k].y1)*factor+2*FRAME), bgColor);
+		orig_box.modifyImage();
+		{
+		  ColorRGB c,b;
+		  Color t;
+		  ColorGray g;
+		  double a;
+		  bool matte=image.matte();
+		  
+		  for(unsigned int p=0;p<boxes[k].c.size();p++)
+		    {
+		      int x=boxes[k].c[p].x;
+		      int y=boxes[k].c[p].y;
+		      for (int xx=x*factor;xx<x*factor+factor && xx<image.columns();xx++)
+			for  (int yy=y*factor;yy<y*factor+factor && yy<image.rows();yy++)
+			  {
+			    t=image.pixelColor(xx,yy);
+			    b=t;
+			    g=t;
+			    if (matte && t.alpha()==1 && g.shade()<0.5)
+			      {
+				g.shade(1);
+				orig_box.pixelColor(xx-boxes[k].x1*factor+FRAME,yy-boxes[k].y1*factor+FRAME,g);
+			      }
+			    else
+			      {
+				a=min(b.red(),min(b.green(),b.blue()));
+				if (invert)
+				  a=max(b.red(),max(b.green(),b.blue()));
+				c.red(a);c.green(a);c.blue(a);
+				orig_box.pixelColor(xx-boxes[k].x1*factor+FRAME,yy-boxes[k].y1*factor+FRAME,c);
+				//   dbg.pixelColor(xx,yy,"green");
+			      }
+			  }
+		    }
+		}
+		//dbg.write("debug.png");
+		//continue;
+		orig_box.contrast(2);
+		orig_box.type( GrayscaleType );
 
 		    // 0m37s
 		int width=orig_box.columns();
@@ -5142,7 +5181,7 @@ int main(int argc,char **argv)
 		assign_charge(atom,bond,n_atom,n_bond,fix,debug.getValue());
 		find_up_down_bonds(bond,n_bond,atom,thickness);
 		int real_atoms=count_atoms(atom,n_atom);
-
+		//		cout<<real_atoms<<endl;
 		if ((real_atoms>MIN_A_COUNT) && (real_atoms<MAX_A_COUNT))
 		  {
 
@@ -5183,11 +5222,11 @@ int main(int argc,char **argv)
 			    {
 			      frag_bond.push_back(bond[b]);
 			    }
-
 			  remove_zero_bonds(frag_bond,n_bond,frag_atom);
-
+			  
 			  int rotors,rings;
 			  double confidence=0;
+			  if (n_atom>=MAX_ATOMS-1 || n_bond>=MAX_ATOMS-1) continue;
 			  string smiles=get_smiles(frag_atom,frag_bond,n_bond,rotors, confidence,f,rings,avg_bond, format.getValue(),resolution, conf.getValue(),guess.getValue(),superatom);
 
 			  if (f<10 && f>0 && smiles!="")
@@ -5232,7 +5271,6 @@ int main(int argc,char **argv)
 	      }
 	    if (total_boxes>0) 
 	      array_of_confidence[res_iter]=total_confidence/total_boxes;
-	    //	    dbg.write("debug.png");
       }
     potrace_param_free(param); 
 
