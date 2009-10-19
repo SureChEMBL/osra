@@ -178,7 +178,7 @@ string get_smiles(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, int &r
 
  mol.BeginModify();
  for (int i=0;i<n_bond;i++)
-   if (bond[i].exists) 
+   if (bond[i].exists && i<MAX_ATOMS-1 && bond[i].a<MAX_ATOMS-1 && bond[i].b<MAX_ATOMS-1) 
      {
        //       cout<<i<<endl;
        if (atom[bond[i].a].n==0)

@@ -152,4 +152,4 @@ bool detect_bracket(int x, int y,unsigned char *pic);
 #define PARTS_IN_MARGIN 3
 #define SPELLING_TXT "spelling.txt"
 #define SUPERATOM_TXT "superatom.txt"
-#define SCALED_LENGTH 1000
+
