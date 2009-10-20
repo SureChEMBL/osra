@@ -4705,22 +4705,15 @@ int main(int argc,char **argv)
     int image_count=0;
     int ttt=1;
     
-    if ((type=="PDF") || (type=="PS")) input_resolution=150;
+    if (input_resolution==0 && (type=="PDF" || type=="PS")) input_resolution=150;
     for(int l=0;l<page;l++)
       {
 	Image image;
 	
-	//image.density("150x150");
-	if (input_resolution!=0)
-          {
-            stringstream density;
-            density<<input_resolution<<"x"<<input_resolution;
-            image.density(density.str());
-          }
-	else   
-	  {                                           
-	    image.density("150x150");
-	  }
+
+	stringstream density;
+	density<<input_resolution<<"x"<<input_resolution;
+	image.density(density.str());
 	
 	stringstream pname;
 	pname<<input.getValue()<<"["<<l<<"]";
