@@ -4699,15 +4699,17 @@ int main(int argc,char **argv)
     load_config_map(superatom_file,superatom);
 
 
-    // if ((type=="PDF") || (type=="PS")) input_resolution=150;
+
     int page=count_pages(input.getValue());
 
     int image_count=0;
     int ttt=1;
-
+    
+    if ((type=="PDF") || (type=="PS")) input_resolution=150;
     for(int l=0;l<page;l++)
       {
 	Image image;
+	
 	//image.density("150x150");
 	if (input_resolution!=0)
           {
@@ -4718,9 +4720,8 @@ int main(int argc,char **argv)
 	else   
 	  {                                           
 	    image.density("150x150");
-	    //	    input_resolution=300;
 	  }
-	 
+	
 	stringstream pname;
 	pname<<input.getValue()<<"["<<l<<"]";
 	image.read(pname.str());
@@ -4796,7 +4797,7 @@ int main(int argc,char **argv)
 	    select_resolution[2]=300;
 	    select_resolution[3]=500;
 	  }
-	int res_iter;
+
 	if (input_resolution>300)
 	  {
 	    int percent=(100*300)/input_resolution;
@@ -4822,7 +4823,7 @@ int main(int argc,char **argv)
 	//    param->turnpolicy=POTRACE_TURNPOLICY_MINORITY;
 	param->turdsize=0;
 
-    for (res_iter=0;res_iter<num_resolutions;res_iter++)
+    for (int res_iter=0;res_iter<num_resolutions;res_iter++)
       {
 	int total_boxes=0;
 	double total_confidence=0;

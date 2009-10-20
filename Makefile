@@ -4,7 +4,7 @@ ARCH=unix
 POTRACE=../potrace-1.8/
 GOCR=../gocr-0.45/
 OCRAD=../ocrad-0.18/
-OPENBABEL=/usr/local
+OPENBABEL=/usr
 
 ifeq ($(ARCH), osx-static)
 MAGICK_STATIC_INC=-I/Users/igor/build/include/ImageMagick
@@ -16,8 +16,8 @@ TCLAPINC=-I/usr/local/include/tclap/
 #TESSERACTINC=-I/usr/local/include
 #TESSERACTLIB=-L/usr/local/lib -ltesseract_full
 
-CPP = g++  -O2
-LD=g++ -g -O2 -fPIC
+CPP = g++   -O3
+LD=g++  -O3 -fPIC
 CP=cp
 SED=sed
 RM=rm
