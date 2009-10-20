@@ -2574,7 +2574,7 @@ int resolve_bridge_bonds(vector<atom_t> &atom,int n_atom,vector<bond_t> &bond,in
   int rotors1,rotors2,f1,f2,rings1,rings2;
   double confidence;
   string smiles1=get_smiles(atom,bond,n_bond,rotors1,confidence,f1,
-			    rings1,avg,"empty",0,false,false,superatom);
+			    rings1,avg,"empty",0,false,false,false,0,superatom);
   for (int i=0;i<n_atom;i++)
     if ((atom[i].exists) && (atom[i].label==" "))
       {
@@ -2641,7 +2641,7 @@ int resolve_bridge_bonds(vector<atom_t> &atom,int n_atom,vector<bond_t> &bond,in
 		    else if (bond[c].b==bond[d].b) bond[c].b=bond[d].a;
 		    string smiles2=get_smiles(atom,bond,n_bond,rotors2,
 					      confidence,f2,rings2,avg,
-					      "empty",0,false,false,superatom);
+					      "empty",0,false,false,false,0,superatom);
 		    if (f1!=f2 || rotors1!=rotors2 || rings1-rings2==2)
 		      {
 			bond[b].exists=true;
@@ -4671,6 +4671,9 @@ int main(int argc,char **argv)
     TCLAP::SwitchArg debug("d","debug","Print out debug information on spelling corrections",false);
     cmd.add(debug);
 
+    TCLAP::SwitchArg showpage("e","page","Show page number for PDF/PS documents",false);
+    cmd.add(showpage);
+
     cmd.parse( argc, argv );
 
     char progname[1024];
@@ -5182,7 +5185,7 @@ int main(int argc,char **argv)
 
 			  int rotors,rings;
 			  double confidence=0;
-			  string smiles=get_smiles(frag_atom,frag_bond,n_bond,rotors, confidence,f,rings,avg_bond, format.getValue(),resolution, conf.getValue(),guess.getValue(),superatom);
+			  string smiles=get_smiles(frag_atom,frag_bond,n_bond,rotors, confidence,f,rings,avg_bond, format.getValue(),resolution, conf.getValue(),guess.getValue(),showpage.getValue(),l+1,superatom);
 
 			  if (f<10 && f>0 && smiles!="")
 			    {

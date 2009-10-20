@@ -107,7 +107,8 @@ typedef struct fragment_s fragment_t;
 
 
 string fix_atom_name(string s,int n,map<string,string> fix, bool debug);
-string get_smiles(vector<atom_t> &atom,vector<bond_t> &bond, int n_bond, int &rotors, double &confidence, int &num_fragments, int &r56,double avg,string format,int resolution,bool conf, bool guess, map<string,string> superatom);
+string get_smiles(vector<atom_t> &atom,vector<bond_t> &bond, int n_bond, int &rotors, double &confidence, int &num_fragments, int &r56,double avg,string format,int resolution,bool conf, bool guess, bool showpage, 
+		  int page, map<string,string> superatom);
 Magick::Image anisotropic_smoothing(Magick::Image image,int width,int height, const float amplitude,const float alpha, const float sigma);
 Magick::Image anisotropic_scaling(Magick::Image image,int width,int height, int nw, int nh);
 char get_atom_label(Magick::Image image, Magick::ColorGray bg, int x1, int y1, int x2, int y2, double THRESHOLD, int dropx, int dropy);

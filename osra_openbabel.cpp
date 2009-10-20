@@ -159,7 +159,7 @@ int getAnum(string s, OBMol *mol,int *n, int *bondn,
 
 string get_smiles(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, int &rotors, 
 		  double &confidence, int &num_fragments, int &r56, double avg,
-		  string format,int resolution,bool conf, bool guess,
+		  string format,int resolution,bool conf, bool guess, bool showpage, int page,
 		  map<string,string> superatom)
 {
  OBMol mol;
@@ -363,6 +363,18 @@ string get_smiles(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, int &r
      mol.SetData(label);
    }
 
+ if (showpage)
+   {
+     OBPairData *label = new OBPairData;
+     label->SetAttribute("Page");
+     stringstream cs;
+     cs<<page;
+     label->SetValue(cs.str());
+     //label->SetOrigin(userInput); // set by user, not by Open Babel
+     mol.SetData(label);
+   }
+
+
 if (format=="sdf")
    {
      for (unsigned int i=0;i<atomN.size();i++)
@@ -411,6 +423,8 @@ if (format=="sdf")
        strstr<<" "<<resolution;
      if (conf)
        strstr<<" "<<confidence;
+     if (showpage)
+       strstr<<" "<<page;
    }
  strstr<<endl;
  return(strstr.str());
