@@ -326,14 +326,11 @@ Function .onInit
  SectionGetFlags "${symyx_draw}" $0
  IntOp $0 $0 | ${SF_SELECTED}
  SectionSetFlags "${symyx_draw}" $0
-; strcpy $3 "CambridgeSoft\ChemScript"
-; call CheckSoftVersion
-; strcmp $2 "12.0" +1 no_chemoffice
+ no_symyx:
  call getChemScriptPath
  strcmp $1 "" no_chemoffice
  SectionGetFlags "${chemoffice}" $0
  IntOp $0 $0 | ${SF_SELECTED}
  SectionSetFlags "${chemoffice}" $0
- no_symyx:
  no_chemoffice:
 FunctionEnd
