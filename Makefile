@@ -42,7 +42,7 @@ ifeq ($(ARCH), osx-static)
 NETPBM=
 LDFLAGS_STATIC=-static-libgcc -static-libstc++
 MAGIKINC := $(MAGIKINC) -Dcimg_display_type=0
-MAGIKLIB := -L$(STATIC_LIB_DIR)/ -lGraphicsMagick++ -lGraphicsMagick -llcms -ltiff -lfreetype -ljasper -ljpeg -lpng -lxml2 $(STATIC_LIB_DIR)/libbz2.a $(STATIC_LIB_DIR)/libz.a -lm
+MAGIKLIB := -L$(STATIC_LIB_DIR)/ -lGraphicsMagick++ -lGraphicsMagick -llcms -ltiff -lfreetype -ljasper -ljpeg -lpng  $(STATIC_LIB_DIR)/libbz2.a $(STATIC_LIB_DIR)/libz.a -lm
 endif
 
 POTRACELIB=-L$(POTRACE)/src/ -lpotrace
