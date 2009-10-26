@@ -5,6 +5,7 @@ POTRACE=../potrace-1.8/
 GOCR=../gocr-0.45/
 OCRAD=../ocrad-0.18/
 OPENBABEL=/usr/local/
+MAGICKCONFIG=/usr/bin/Magick++-config
 
 ifeq ($(ARCH), osx-static)
 MAGICK_STATIC_INC=-I/Users/igor/build/include/ImageMagick
@@ -37,8 +38,8 @@ MINGWINC=-I/usr/local/include
 endif
 
 ifneq ($(ARCH), osx-static)
-MAGIKINC := $(shell Magick++-config --cppflags) $(shell Magick++-config --cxxflags)
-MAGIKLIB := $(shell Magick++-config --libs) $(shell Magick++-config --ldflags) $(MAGIKLIB_WIN32)
+MAGIKINC := $(shell $(MAGICKCONFIG) --cppflags) $(shell $(MAGICKCONFIG) --cxxflags)
+MAGIKLIB := $(shell $(MAGICKCONFIG) --libs) $(shell $(MAGICKCONFIG) --ldflags) $(MAGIKLIB_WIN32)
 else
 NETPBM=
 LDFLAGS_STATIC=-static-libgcc -static-libstc++
