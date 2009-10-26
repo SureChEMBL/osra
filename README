@@ -35,14 +35,14 @@ Dependencies:
 
 OSRA needs the following Open Source libraries installed:
 
-- ImageMagick, image manipulation library, version 6.2.8 or later
-(6.4.1 or later recommended),
+- GraphicsMagick, image manipulation library (faster ImageMagick clone)
+version 1.3.7 or later
 if installing from RPM make sure you have the following packages:
-	ImageMagick
-	ImageMagick-devel
-	ImageMagick-c++-devel
-	ImageMagick-c++ 
-http://www.imagemagick.com/
+	GraphicsMagick
+	GraphicsMagick-devel
+	GraphicsMagick-c++-devel
+	GraphicsMagick-c++ 
+http://www.graphicsmagick.org/
 
 - POTRACE, vector tracing library, version 1.7 or later,
 http://potrace.sourceforge.net/
@@ -95,8 +95,8 @@ it - OSRA will automatically patch it and compile the object files it needs.
 
 Compile and/or install all the other necessary dependencies.
 Special note for GOCR - do not use version 0.46; I recommend using 0.45
-for the moment - it seems to give the best results. If using version 0.47
-compile the library libPgm2asc.a the following way:
+for the moment - it seems to give the best results. If using version 0.47 or
+later compile the library libPgm2asc.a the following way:
 cd gocr-0.47
  ./configure CPPFLAGS=-fPIC LDFLAGS=-fPIC
 make libs
@@ -112,7 +112,7 @@ win32 - for building on Windows MinGW environment.
 Running make should then generate the executable - osra.
 
 Mac OS X (courtesy of Emilio Esposito):
-Install ImageMagick through MacPorts as it's just easier.
+I recommend using GraphicsMagick as  it is much faster than ImageMagick.
 Note - the older version of imagemagick, available from fink seems 
 to compile fine but does not work. The version from macports works fine.
 Download OSRA, POTRACE, GOCR OCRAD, TCLAP, and OpenBabel. Unzipped and
@@ -125,15 +125,10 @@ GraphicsMagick:
 ./configure --disable-shared --with-x=no --disable-openmp --without-threads --prefix=/Users/igor/build LDFLAGS=-L/Users/igor/build/lib CPPFLAGS=-I/Users/igor/build/include
 make
 make install
-Once the previous programs were successfully installed I modified my
-~/.profile file to reflect the installation of the OpenBabel and
-ImageMagick libraries:
-export LD_LIBRARY_PATH=/usr/local/lib:/usr/local/lib/openbabel/2.2.0:/usr/local/lib/ImageMagick-6.4.1
+
 Then, modify the OSRA Makefile:
-ARCH=unix
-OPENBABEL=/usr/local/
-# comment out the line about netpbm:
-#NETPBM=-lnetpbm
+ARCH=osx-static
+STATIC_LIB_DIR=/Users/igor/build/lib
 
 Running make should then generate the executable - osra.
 
@@ -144,7 +139,7 @@ magnitude slower than a Linux version running on an equivalent class CPU.
 Therefore it is strongly recommended NOT to use Cygwin to compile OSRA.
 
 The instructions below are for MinGW environment.
-Before you compile ImageMagick it is necessary to install the pre-requisite
+Before you compile GraphicsMagick it is necessary to install the pre-requisite
 libraries - zlib, bzip2, jasper (I was able to compile only version 1.701.0
 and not the later 1.900.1), jbigkit, jpeg-6b, lcms, libpng, tiff.
 You can read "ADD-ON LIBRARIES & PROGRAMS" for GraphicsMagick which
@@ -153,10 +148,10 @@ seems to apply to ImageMagick as well: http://www.graphicsmagick.org/www/README.
 Whenever "configure" script was available I used the following options:
 ./configure --disable-shared LDFLAGS=-L/usr/local/lib CPPFLAGS=-I/usr/local/include
 
-To configure ImageMagick I used the following options:
+To configure GraphicsMagick I used the following options:
 ./configure --disable-shared --without-threads --disable-openmp LDFLAGS=-L/usr/local/lib/ CPPFLAGS=-I/usr/local/include/
 
-Compile and install ImageMagick, GOCR, Potrace, TCLAP.
+Compile and install GraphicsMagick, GOCR, Potrace, TCLAP.
 
 Compiling OpenBabel version 2.2.2:
 Run configure with the following options:

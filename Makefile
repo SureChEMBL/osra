@@ -1,11 +1,11 @@
-ARCH=osx-static
+ARCH=unix
 #unix,win32, osx-static
 
 POTRACE=../potrace-1.8/
 GOCR=../gocr-0.45/
 OCRAD=../ocrad-0.18/
 OPENBABEL=/usr/local/
-MAGICKCONFIG=/Users/igor/build/bin/GraphicsMagick++-config
+MAGICKCONFIG=/usr/bin/GraphicsMagick++-config
 
 TCLAPINC=-I/usr/local/include/tclap/
 
