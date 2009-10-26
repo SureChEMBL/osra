@@ -9,6 +9,10 @@ MAGICKCONFIG=/Users/igor/build/bin/GraphicsMagick++-config
 
 TCLAPINC=-I/usr/local/include/tclap/
 
+ifeq ($(ARCH), osx-static)
+STATIC_LIB_DIR=/Users/igor/build/lib
+endif
+
 #TESSERACTINC=-I/usr/local/include
 #TESSERACTLIB=-L/usr/local/lib -ltesseract_full
 
@@ -38,6 +42,7 @@ ifeq ($(ARCH), osx-static)
 NETPBM=
 LDFLAGS_STATIC=-static-libgcc -static-libstc++
 MAGIKINC := $(MAGIKINC) -Dcimg_display_type=0
+MAGIKLIB := -L$(STATIC_LIB_DIR)/ -lGraphicsMagick++ -lGraphicsMagick -llcms -ltiff -lfreetype -ljasper -ljpeg -lpng -lxml2 $(STATIC_LIB_DIR)/libbz2.a $(STATIC_LIB_DIR)/libz.a -lm
 endif
 
 POTRACELIB=-L$(POTRACE)/src/ -lpotrace
