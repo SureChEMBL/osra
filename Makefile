@@ -1,16 +1,11 @@
-ARCH=unix
+ARCH=osx-static
 #unix,win32, osx-static
 
 POTRACE=../potrace-1.8/
 GOCR=../gocr-0.45/
 OCRAD=../ocrad-0.18/
 OPENBABEL=/usr/local/
-MAGICKCONFIG=/usr/bin/Magick++-config
-
-ifeq ($(ARCH), osx-static)
-MAGICK_STATIC_INC=-I/Users/igor/build/include/ImageMagick
-STATIC_LIB_DIR=/Users/igor/build/lib
-endif
+MAGICKCONFIG=/Users/igor/build/bin/GraphicsMagick++-config
 
 TCLAPINC=-I/usr/local/include/tclap/
 
@@ -37,14 +32,12 @@ MAGIKLIB_WIN32=-lgdi32 -llcms -ljbig  -ltiff -ljasper  -ljpeg -lpng
 MINGWINC=-I/usr/local/include
 endif
 
-ifneq ($(ARCH), osx-static)
 MAGIKINC := $(shell $(MAGICKCONFIG) --cppflags) $(shell $(MAGICKCONFIG) --cxxflags)
 MAGIKLIB := $(shell $(MAGICKCONFIG) --libs) $(shell $(MAGICKCONFIG) --ldflags) $(MAGIKLIB_WIN32)
-else
+ifeq ($(ARCH), osx-static)
 NETPBM=
 LDFLAGS_STATIC=-static-libgcc -static-libstc++
-MAGIKINC := $(MAGICK_STATIC_INC) -Dcimg_display_type=0
-MAGIKLIB := -L$(STATIC_LIB_DIR) -lMagick++ -lMagickWand -lMagickCore -ltiff -lfreetype -ljasper -ljpeg -lpng $(STATIC_LIB_DIR)/libbz2.a $(STATIC_LIB_DIR)/libz.a -lm -lfreetype
+MAGIKINC := $(MAGIKINC) -Dcimg_display_type=0
 endif
 
 POTRACELIB=-L$(POTRACE)/src/ -lpotrace
