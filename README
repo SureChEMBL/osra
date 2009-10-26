@@ -121,6 +121,10 @@ Compile POTRACE and GOCR as follows:
 ./configure;make
 Compile and install TCLAP and OpenBabel as follows: 
 ./configure;make;sudo make install
+GraphicsMagick:
+./configure --disable-shared --with-x=no --disable-openmp --without-threads --prefix=/Users/igor/build LDFLAGS=-L/Users/igor/build/lib CPPFLAGS=-I/Users/igor/build/include
+make
+make install
 Once the previous programs were successfully installed I modified my
 ~/.profile file to reflect the installation of the OpenBabel and
 ImageMagick libraries:
