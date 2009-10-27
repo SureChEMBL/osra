@@ -4,14 +4,14 @@
 Name "Optical Structure Recognition Application"
 
 ; The file to write
-OutFile "osra-setup-1-3-0.exe"
+OutFile "osra-setup-1-3-2.exe"
 
 ; The default installation directory
-InstallDir $PROGRAMFILES\osra\1.3.0
+InstallDir $PROGRAMFILES\osra\1.3.2
 
 ; Registry key to check for directory (so if you install again, it will 
 ; overwrite the old one automatically)
-InstallDirRegKey HKLM "Software\osra\1.3.0" "Install_Dir"
+InstallDirRegKey HKLM "Software\osra\1.3.2" "Install_Dir"
 
 LicenseData "license.txt"
 
@@ -42,12 +42,20 @@ Section "osra (required)"
   
   ; Put file there
   File "osra.exe"
-  File "delegates.xml"
+  File "delegates.mgk"
+  File "type.mgk"
+  File "type-ghostscript.mgk"
+  File "type-solaris.mgk"
+  File "type-windows.mgk"
+  File "colors.mgk"
+  File "log.mgk"
+  File "magic.mgk"
+  File "modules.mgk"
   File "README.txt"
   File "libopenbabel-3.dll"
+  File "libgcc_s_dw2-1.dll"
   File "spelling.txt"
   File "superatom.txt"
-  
   strcpy $3 "GPL Ghostscript"
   call checkSoftVersion
   call getGhostscriptInstPath
@@ -58,11 +66,11 @@ Section "osra (required)"
   
   
   ; Write the installation path into the registry
-  WriteRegStr HKLM SOFTWARE\osra\1.3.0 "Install_Dir" "$INSTDIR"
+  WriteRegStr HKLM SOFTWARE\osra\1.3.2 "Install_Dir" "$INSTDIR"
   WriteRegStr HKLM SOFTWARE\osra "Install_Dir" "$INSTDIR"
   
   ; Write the uninstall keys for Windows
-  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\osra" "DisplayName" "OSRA 1.3.0"
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\osra" "DisplayName" "OSRA 1.3.2"
   WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\osra" "UninstallString" '"$INSTDIR\uninstall.exe"'
   WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\osra" "NoModify" 1
   WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\osra" "NoRepair" 1
@@ -99,7 +107,7 @@ Section /o "ChemBioOffice 12 plugin" chemoffice
  call downloadPIL
  pil_exists:
  SetOutPath "$1\Scripts"
- File "Import Structures with OSRA.py"
+ File "plugins\chemoffice\Import Structures with OSRA.py"
  Goto done
  no_chemoffice:
   MessageBox MB_OK "ChemScript 12.0 not found" IDOK done
@@ -109,18 +117,27 @@ SectionEnd
 ; Uninstaller
 
 Section "Uninstall"
-  ReadRegStr $0 HKLM SOFTWARE\osra\1.3.0 "Install_Dir"
+  ReadRegStr $0 HKLM SOFTWARE\osra\1.3.2 "Install_Dir"
   strcpy $INSTDIR $0
   ; Remove registry keys
   DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\osra"
-  DeleteRegKey HKLM SOFTWARE\osra\1.3.0
+  DeleteRegKey HKLM SOFTWARE\osra\1.3.2
 
   ; Remove files and uninstaller
   Delete $INSTDIR\osra.exe
-  Delete $INSTDIR\delegates.xml
+  Delete $INSTDIR\delegates.mgk
+  Delete $INSTDIR\type.mgk
+  Delete $INSTDIR\type-ghostscript.mgk
+  Delete $INSTDIR\type-solaris.mgk
+  Delete $INSTDIR\type-windows.mgk
+  Delete $INSTDIR\colors.mgk
+  Delete $INSTDIR\log.mgk
+  Delete $INSTDIR\magic.mgk
+  Delete $INSTDIR\modules.mgk
   Delete $INSTDIR\README.txt
   Delete $INSTDIR\osra.bat
   Delete $INSTDIR\libopenbabel-3.dll
+  Delete $INSTDIR\libgcc_s_dw2-1.dll
   Delete $INSTDIR\superatom.txt
   Delete $INSTDIR\spelling.txt
   Delete $INSTDIR\uninstall.exe
