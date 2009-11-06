@@ -284,7 +284,8 @@ bool detect_bracket(int x, int y,unsigned char *pic)
 }
 
 
-string fix_atom_name(string s,int n,map<string,string> fix, bool debug)
+string fix_atom_name(string s,int n,map<string,string> fix, 
+		     map<string,string> superatom, bool debug)
 {
   string r=s;
   if (s.length()==1) r=toupper(s.at(0));
@@ -298,9 +299,14 @@ string fix_atom_name(string s,int n,map<string,string> fix, bool debug)
       mapped=r;
     }
 
-
   if (debug && s!=" " && s!="") 
-    cout<<s<<" --> "<<mapped<<" --> "<<r<<endl;
+    {
+      it=superatom.find(r);
+      string smiles=" ";
+      if (it!=superatom.end())   
+	  smiles=it->second;
+      cout<<s<<" --> "<<mapped<<" --> "<<smiles<<endl;
+    }
 
   return(r);
 }

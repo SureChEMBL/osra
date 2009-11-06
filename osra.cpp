@@ -1442,7 +1442,7 @@ void extend_terminal_bond_to_bonds(vector<atom_t> &atom,vector<bond_t> &bond, in
 
 
 
-void assign_charge(vector<atom_t> &atom, vector<bond_t> &bond, int n_atom,int n_bond, map<string,string> fix, bool debug)
+void assign_charge(vector<atom_t> &atom, vector<bond_t> &bond, int n_atom,int n_bond, map<string,string> fix,map<string,string> superatom, bool debug)
 {
   for (int j=0;j<n_bond;j++)
     if (bond[j].exists && (!atom[bond[j].a].exists || !atom[bond[j].b].exists))
@@ -1486,7 +1486,7 @@ void assign_charge(vector<atom_t> &atom, vector<bond_t> &bond, int n_atom,int n_
           if (bond[j].exists && bond[j].hash && bond[j].b==i)
             atom[i].charge=0;
                                                                                 
-	atom[i].label=fix_atom_name(atom[i].label,n,fix,debug);
+	atom[i].label=fix_atom_name(atom[i].label,n,fix,superatom,debug);
       }
 }
 
@@ -5136,7 +5136,7 @@ int main(int argc,char **argv)
 		  }   	
 		*/
 	
-		assign_charge(atom,bond,n_atom,n_bond,fix,debug.getValue());
+		assign_charge(atom,bond,n_atom,n_bond,fix,superatom,debug.getValue());
 		find_up_down_bonds(bond,n_bond,atom,thickness);
 		int real_atoms=count_atoms(atom,n_atom);
 
