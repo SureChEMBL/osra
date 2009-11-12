@@ -121,7 +121,7 @@ double confidence_function(int C_Count,int N_Count,int O_Count,int F_Count,
 
 bool detect_bracket(int x, int y,unsigned char *pic);
 
-#define OSRA_VERSION "1.3.2"
+#define OSRA_VERSION "1.3.3"
 #define MAX_ATOMS 10000
 #define MAX_FONT_HEIGHT 22
 #define MAX_FONT_WIDTH 21
@@ -152,6 +152,7 @@ bool detect_bracket(int x, int y,unsigned char *pic);
 #define THRESHOLD_LEVEL 4
 #define TEXT_LINE_SIZE 8
 #define PARTS_IN_MARGIN 3
+#define BORDER_COUNT 100
 #define SPELLING_TXT "spelling.txt"
 #define SUPERATOM_TXT "superatom.txt"
 

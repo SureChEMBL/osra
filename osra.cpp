@@ -4156,7 +4156,8 @@ void remove_separators(vector < list<point_t> > &segments,
 	  if (p->y>sbottom) sbottom=p->y;
 	}
       double aspect=0;
-      if (right!=left)  aspect=1.*(sbottom-stop)/(sright-sleft);
+
+      if (sright!=sleft)  aspect=1.*(sbottom-stop)/(sright-sleft);   // where did right and left come from?
       if ((aspect>max_aspect || aspect<1./max_aspect) && s->size()>size)
 	{
 	  s=segments.erase(s);
@@ -4168,8 +4169,50 @@ void remove_separators(vector < list<point_t> > &segments,
 	  m++;
 	}
     }
-
 }
+
+void remove_tables(vector < list<point_t> > &segments, 
+		   vector < vector<point_t> > &margins,
+		   unsigned int size)
+
+{
+  vector < list<point_t> >::iterator s;
+  vector < vector<point_t> >::iterator m;
+  s=segments.begin();
+  m=margins.begin();
+  while (s!=segments.end() && m!=margins.end())
+    {
+      int top=INT_MAX,left=INT_MAX,bottom=0,right=0;
+      int border_count=0;
+      for (vector<point_t>::iterator p=m->begin();p!=m->end();p++)
+	{
+	  if (p->x<left) left=p->x;
+	  if (p->x>right) right=p->x;
+	  if (p->y<top) top=p->y;
+	  if (p->y>bottom) bottom=p->y;
+	}
+      for (vector<point_t>::iterator p=m->begin();p!=m->end();p++)
+	if (p->x==left || p->x==right || p->y==top || p->y==bottom)
+	  {
+	    border_count++;
+	  }
+
+      double aspect=FLT_MAX;
+      if (right!=left)  aspect=1.*(bottom-top)/(right-left); 
+
+      if (border_count>BORDER_COUNT && aspect<10 && aspect>1./10 && m->size()>size)
+	{
+	  s=segments.erase(s);
+	  m=margins.erase(m);
+	}
+      else
+	{
+	  s++;
+	  m++;
+	}
+    }
+}
+
 
 list < list <int> > assemble_clusters(vector < vector<point_t> > margins,int dist,
 				      vector < vector<int> > distance_matrix,
@@ -4305,6 +4348,7 @@ list < list < list<point_t> > > find_segments(Image image,double threshold,
 
   find_connected_components(image,threshold,bgColor,segments,margins);
   remove_separators(segments,margins,SEPARATOR_ASPECT,SEPARATOR_AREA);
+   remove_tables(segments,margins,SEPARATOR_AREA);
 
   // 2m22s
 
@@ -4809,8 +4853,8 @@ int main(int argc,char **argv)
 		// 0m36s	
 	vector<box_t> boxes;
 	int n_boxes=prune_clusters(clusters,boxes);
-	//	draw_box(image,boxes,n_boxes,"tmp.gif");
-	//	exit(0);
+	//draw_box(image,boxes,n_boxes,"tmp.gif");
+	//exit(0);
 	std::sort(boxes.begin(),boxes.end(),comp_boxes);
 
 	potrace_param_t *param;
