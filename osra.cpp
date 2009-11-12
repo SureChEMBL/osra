@@ -4199,8 +4199,9 @@ void remove_tables(vector < list<point_t> > &segments,
 
       double aspect=FLT_MAX;
       if (right!=left)  aspect=1.*(bottom-top)/(right-left); 
+      //      cout<<border_count<<" "<<aspect<<" "<<m->size()<<endl;
 
-      if (border_count>BORDER_COUNT && aspect<10 && aspect>1./10 && m->size()>size)
+      if (border_count>BORDER_COUNT && aspect<MAX_ASPECT && aspect>MIN_ASPECT && m->size()>size)
 	{
 	  s=segments.erase(s);
 	  m=margins.erase(m);
@@ -4348,7 +4349,7 @@ list < list < list<point_t> > > find_segments(Image image,double threshold,
 
   find_connected_components(image,threshold,bgColor,segments,margins);
   remove_separators(segments,margins,SEPARATOR_ASPECT,SEPARATOR_AREA);
-   remove_tables(segments,margins,SEPARATOR_AREA);
+  remove_tables(segments,margins,SEPARATOR_AREA);
 
   // 2m22s
 
