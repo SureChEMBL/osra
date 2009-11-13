@@ -4719,6 +4719,11 @@ int main(int argc,char **argv)
     TCLAP::SwitchArg showpage("e","page","Show page number for PDF/PS documents",false);
     cmd.add(showpage);
 
+    TCLAP::ValueArg<double> rotate("R","rotate",
+				   "Rotate image clockwise by specified number of degrees",
+				   false,0,"0..360");
+    cmd.add(rotate);
+
     cmd.parse( argc, argv );
 
     char progname[1024];
@@ -4766,6 +4771,9 @@ int main(int argc,char **argv)
 	stringstream pname;
 	pname<<input.getValue()<<"["<<l<<"]";
 	image.read(pname.str());
+	
+	if (rotate.getValue() != 0)
+	  image.rotate(rotate.getValue());
 
 	image.modifyImage();
 
