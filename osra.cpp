@@ -3956,7 +3956,7 @@ int reconnect_fragments(vector<bond_t> &bond,int n_bond,vector<atom_t> &atom,dou
 		      atom2=frags[j][jj];
 		    }
 		}
-	    if (l<avg && l>avg/3)
+	    if (l<1.1*avg && l>avg/3)
 	      {
 		bond_t b1;
 		bond.push_back(b1);
