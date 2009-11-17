@@ -3985,7 +3985,7 @@ int reconnect_fragments(vector<bond_t> &bond,int n_bond,vector<atom_t> &atom,dou
   return(n_bond);
 }
 
-unsigned int distance_between_points(point_t p1,point_t p2)
+const unsigned int distance_between_points(point_t p1,point_t p2)
 {
    return max(abs(p1.x-p2.x),abs(p1.y-p2.y));
 }
@@ -4147,6 +4147,13 @@ void remove_separators(vector < list<point_t> > &segments,
   m=margins.begin();
   while (s!=segments.end() && m!=margins.end())
     {
+      if (s->size()<=size)
+	{
+	  s++;
+	  m++;
+	  continue;
+	}
+
       int stop=INT_MAX,sleft=INT_MAX,sbottom=0,sright=0;
       for (list<point_t>::iterator p=s->begin();p!=s->end();p++)
 	{
@@ -4158,7 +4165,7 @@ void remove_separators(vector < list<point_t> > &segments,
       double aspect=0;
 
       if (sright!=sleft)  aspect=1.*(sbottom-stop)/(sright-sleft);   // where did right and left come from?
-      if ((aspect>max_aspect || aspect<1./max_aspect) && s->size()>size)
+      if (aspect>max_aspect || aspect<1./max_aspect)
 	{
 	  s=segments.erase(s);
 	  m=margins.erase(m);
@@ -4182,6 +4189,13 @@ void remove_tables(vector < list<point_t> > &segments,
   m=margins.begin();
   while (s!=segments.end() && m!=margins.end())
     {
+      if (m->size()<=size)
+	{
+	  s++;
+	  m++;
+	  continue;
+	}
+      
       int top=INT_MAX,left=INT_MAX,bottom=0,right=0;
       int border_count=0;
       for (vector<point_t>::iterator p=m->begin();p!=m->end();p++)
@@ -4191,17 +4205,26 @@ void remove_tables(vector < list<point_t> > &segments,
 	  if (p->y<top) top=p->y;
 	  if (p->y>bottom) bottom=p->y;
 	}
+
+      double aspect=FLT_MAX;
+      if (right!=left)  aspect=1.*(bottom-top)/(right-left); 
+      if (aspect>=MAX_ASPECT || aspect<=MIN_ASPECT)
+	{
+	  s++;
+	  m++;
+	  continue;
+	}
+
       for (vector<point_t>::iterator p=m->begin();p!=m->end();p++)
 	if (p->x==left || p->x==right || p->y==top || p->y==bottom)
 	  {
 	    border_count++;
 	  }
 
-      double aspect=FLT_MAX;
-      if (right!=left)  aspect=1.*(bottom-top)/(right-left); 
+     
       //      cout<<border_count<<" "<<aspect<<" "<<m->size()<<endl;
 
-      if (border_count>BORDER_COUNT && aspect<MAX_ASPECT && aspect>MIN_ASPECT && m->size()>size)
+      if (border_count>BORDER_COUNT)
 	{
 	  s=segments.erase(s);
 	  m=margins.erase(m);
@@ -4767,6 +4790,7 @@ int main(int argc,char **argv)
 	stringstream density;
 	density<<input_resolution<<"x"<<input_resolution;
 	image.density(density.str());
+
 	
 	stringstream pname;
 	pname<<input.getValue()<<"["<<l<<"]";
