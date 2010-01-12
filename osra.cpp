@@ -4796,8 +4796,7 @@ int main(int argc,char **argv)
 	pname<<input.getValue()<<"["<<l<<"]";
 	image.read(pname.str());
 	
-	if (rotate.getValue() != 0)
-	  image.rotate(rotate.getValue());
+	
 
 	image.modifyImage();
 
@@ -4880,6 +4879,13 @@ int main(int argc,char **argv)
 	  }
 
 	ColorGray bgColor=getBgColor(image,invert);
+
+	if (rotate.getValue() != 0)
+	  {
+	    image.backgroundColor(bgColor);
+	    image.rotate(rotate.getValue());
+	  }
+
 	// 0m21s
 	list < list < list<point_t> > > clusters=find_segments(image,0.1,bgColor);
 
@@ -4930,10 +4936,11 @@ int main(int argc,char **argv)
 	    bool thick=true;
 	    if (resolution<=150) thick=false;
 
-	    Image dbg=image;
-	    dbg.modifyImage();
-	    dbg.erase();
-	    dbg.type(TrueColorType);
+	    	    Image dbg=image;
+	    	    dbg.modifyImage();
+		    //		    dbg.backgroundColor("white");
+	    	    dbg.erase();
+	    	    dbg.type(TrueColorType);
 	    for (int k=0;k<n_boxes;k++)
 	      if ((boxes[k].x2-boxes[k].x1)>max_font_width &&
 		  (boxes[k].y2-boxes[k].y1)>max_font_height && !boxes[k].c.empty()
@@ -4961,7 +4968,7 @@ int main(int argc,char **argv)
 		    int x=boxes[k].c[p].x;
 		    int y=boxes[k].c[p].y;
 		    ColorGray color=image.pixelColor(x,y);
-		    dbg.pixelColor(x,y,color);
+		    		    dbg.pixelColor(x,y,color);
 		    orig_box.pixelColor(x-boxes[k].x1+FRAME,y-boxes[k].y1+FRAME,color);
 		  }
 		
@@ -5307,7 +5314,7 @@ int main(int argc,char **argv)
 	      }
 	    if (total_boxes>0) 
 	      array_of_confidence[res_iter]=total_confidence/total_boxes;
-	    dbg.write("debug.png");
+	    	    dbg.write("debug.png");
       }
     potrace_param_free(param); 
 
