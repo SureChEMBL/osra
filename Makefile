@@ -16,8 +16,8 @@ endif
 #TESSERACTINC=-I/usr/local/include
 #TESSERACTLIB=-L/usr/local/lib -ltesseract_full
 
-CPP = g++   -O3
-LD=g++  -O3 -fPIC
+CPP = g++  -g -O3
+LD=g++ -g -O3 -fPIC
 CP=cp
 SED=sed
 RM=rm
@@ -72,7 +72,7 @@ MCDLUTIL=mcdlutil.o
 CPPFLAGS= -g -O2 -fPIC $(OCRADINC) $(MINGWINC) -D_LIB -D_MT -Wall $(POTRACEINC) $(GOCRINC) $(MOL_BACKEND_INC) $(TCLAPINC) $(MAGIKINC) $(TESSERACTINC)
 
 LIBS=$(POTRACELIB) $(OCRADLIB) -lm  $(MAGIKLIB) $(GOCRLIB) $(MOL_BACKEND_LIB)  $(TESSERACTLIB)
-OBJ = osra.o osra_anisotropic.o osra_ocr.o $(MOL_BACKEND_OBJ) $(MCDLUTIL)
+OBJ = osra.o osra_anisotropic.o osra_ocr.o $(MOL_BACKEND_OBJ) $(MCDLUTIL) unpaper.o
 
 
 all:	$(OBJ)
@@ -109,3 +109,5 @@ list.h: $(GOCRSRC)/list.h
 	$(SED) 's/struct\ list/struct\ list\_s/' $(GOCRSRC)/list.h >$(SRCDIR)/list.h
 
 
+unpaper.o:	unpaper.c
+	$(CPP) $(CPPFLAGS) -c unpaper.c

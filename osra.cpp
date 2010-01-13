@@ -4880,6 +4880,8 @@ int main(int argc,char **argv)
 
 	ColorGray bgColor=getBgColor(image,invert);
 
+	process(image);
+
 	if (rotate.getValue() != 0)
 	  {
 	    image.backgroundColor(bgColor);
