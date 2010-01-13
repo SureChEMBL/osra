@@ -4938,11 +4938,11 @@ int main(int argc,char **argv)
 	    bool thick=true;
 	    if (resolution<=150) thick=false;
 
-	    	    Image dbg=image;
-	    	    dbg.modifyImage();
+	    //	    	    Image dbg=image;
+	    //	    dbg.modifyImage();
 		    //		    dbg.backgroundColor("white");
-	    	    dbg.erase();
-	    	    dbg.type(TrueColorType);
+	    //	    dbg.erase();
+	    //	    dbg.type(TrueColorType);
 	    for (int k=0;k<n_boxes;k++)
 	      if ((boxes[k].x2-boxes[k].x1)>max_font_width &&
 		  (boxes[k].y2-boxes[k].y1)>max_font_height && !boxes[k].c.empty()
@@ -4970,7 +4970,7 @@ int main(int argc,char **argv)
 		    int x=boxes[k].c[p].x;
 		    int y=boxes[k].c[p].y;
 		    ColorGray color=image.pixelColor(x,y);
-		    		    dbg.pixelColor(x,y,color);
+		    //		    		    dbg.pixelColor(x,y,color);
 		    orig_box.pixelColor(x-boxes[k].x1+FRAME,y-boxes[k].y1+FRAME,color);
 		  }
 		
@@ -5316,7 +5316,7 @@ int main(int argc,char **argv)
 	      }
 	    if (total_boxes>0) 
 	      array_of_confidence[res_iter]=total_confidence/total_boxes;
-	    	    dbg.write("debug.png");
+	    //	    	    dbg.write("debug.png");
       }
     potrace_param_free(param); 
 

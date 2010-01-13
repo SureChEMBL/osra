@@ -1898,13 +1898,16 @@ void fromStructToImage(Magick::Image &target,struct IMAGE* image)
 {
   int bytesPerLine = image->width;
   Magick::ColorGray c;
-
+  target.modifyImage();
+  target.erase();
   for (int j=0;j<image->height;j++)
     for (int i=0;i<image->width;i++)
       {
+	//	printf("%d ",image->buffer[j*bytesPerLine+i]);
 	c.shade((1.*image->buffer[j*bytesPerLine+i])/255);
 	target.pixelColor(i,j,c);
       }
+  //  target.write("debug.png");
 }
 
 /**
