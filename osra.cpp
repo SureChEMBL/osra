@@ -654,6 +654,7 @@ double dist_double_bonds(vector<atom_t> &atom,vector<bond_t> &bond,int n_bond,do
 	if (a[i]-max_dist_double_bond<1 && a[i]>max_dist_double_bond)
 	  max_dist_double_bond=a[i];
     }
+  max_dist_double_bond+=0.001;
   return(max_dist_double_bond);
 }
 
@@ -4854,6 +4855,9 @@ int main(int argc,char **argv)
 	// 0m21s
 	image.contrast(2);
 	image.type( GrayscaleType );
+
+	process(image);
+
 	// 0m22s
 	int num_resolutions=NUM_RESOLUTIONS;
 	if (input_resolution!=0) num_resolutions=1;
@@ -4879,8 +4883,6 @@ int main(int argc,char **argv)
 	  }
 
 	ColorGray bgColor=getBgColor(image,invert);
-
-	process(image);
 
 	if (rotate.getValue() != 0)
 	  {
