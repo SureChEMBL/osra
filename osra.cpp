@@ -4856,8 +4856,6 @@ int main(int argc,char **argv)
 	image.contrast(2);
 	image.type( GrayscaleType );
 
-	process(image);
-
 	// 0m22s
 	int num_resolutions=NUM_RESOLUTIONS;
 	if (input_resolution!=0) num_resolutions=1;
@@ -4889,6 +4887,8 @@ int main(int argc,char **argv)
 	    image.backgroundColor(bgColor);
 	    image.rotate(rotate.getValue());
 	  }
+
+	unpaper(image);
 
 	// 0m21s
 	list < list < list<point_t> > > clusters=find_segments(image,0.1,bgColor);
