@@ -4217,7 +4217,7 @@ void remove_tables(vector < list<point_t> > &segments,
 	}
 
       for (vector<point_t>::iterator p=m->begin();p!=m->end();p++)
-	if (p->x==left || p->x==right || p->y==top || p->y==bottom)
+	if (p->x-left<2 || right-p->x<2 || p->y-top<2 || bottom-p->y<2)
 	  {
 	    border_count++;
 	  }
