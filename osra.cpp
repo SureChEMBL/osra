@@ -4889,6 +4889,7 @@ int main(int argc,char **argv)
 	  }
 
 	unpaper(image);
+	//image.write("tmp.png");
 
 	// 0m21s
 	list < list < list<point_t> > > clusters=find_segments(image,0.1,bgColor);
@@ -5142,11 +5143,11 @@ int main(int argc,char **argv)
 		n_bond=double_triple_bonds(atom,bond,n_bond,avg_bond,n_atom,
 					   max_dist_double_bond);
 
-		if (ttt++==9) 
+		/*		if (ttt++==9) 
 		  {
 		    debug_img(orig_box,atom,n_atom,bond,n_bond,"tmp.png");	
 		  }   	
-		
+		*/
 		n_atom=find_dashed_bonds(p,atom,bond,n_atom,&n_bond,
 					 max(MAX_DASH,int(avg_bond/3)),
 					 avg_bond,orig_box,bgColor,
