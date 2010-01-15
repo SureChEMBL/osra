@@ -1506,7 +1506,7 @@ Color getBgColor(Image image,bool inv)
   return(r);
 }
 
-void debug(Image image,vector<atom_t> &atom, int n_atom,vector<bond_t> &bond,int n_bond, string fname)
+void debug_img(Image image,vector<atom_t> &atom, int n_atom,vector<bond_t> &bond,int n_bond, string fname)
 {
   image.modifyImage();
   image.type(TrueColorType);
@@ -4406,7 +4406,7 @@ list < list < list<point_t> > > find_segments(Image image,double threshold,
 
 
   int dist=SINGLE_IMAGE_DIST;
-  if (entropy_max>=THRESHOLD_LEVEL) 
+  if (entropy_max>THRESHOLD_LEVEL) 
     {
       vector<int> text_stats(max_dist,0);
       for (unsigned int j=2;j<max_dist;j++)
@@ -5142,7 +5142,11 @@ int main(int argc,char **argv)
 		n_bond=double_triple_bonds(atom,bond,n_bond,avg_bond,n_atom,
 					   max_dist_double_bond);
 
-
+		if (ttt++==9) 
+		  {
+		    debug_img(orig_box,atom,n_atom,bond,n_bond,"tmp.png");	
+		  }   	
+		
 		n_atom=find_dashed_bonds(p,atom,bond,n_atom,&n_bond,
 					 max(MAX_DASH,int(avg_bond/3)),
 					 avg_bond,orig_box,bgColor,
@@ -5219,11 +5223,7 @@ int main(int argc,char **argv)
 
 
 			
-		/*if (ttt++==1) 
-		  {
-		    debug(orig_box,atom,n_atom,bond,n_bond,"tmp.png");	
-		  }   	
-		*/
+		
 	
 		assign_charge(atom,bond,n_atom,n_bond,fix,superatom,debug.getValue());
 		find_up_down_bonds(bond,n_bond,atom,thickness);
