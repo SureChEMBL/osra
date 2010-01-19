@@ -4888,7 +4888,7 @@ int main(int argc,char **argv)
 	    image.rotate(rotate.getValue());
 	  }
 
-	unpaper(image);
+	//	unpaper(image);
 	//image.write("tmp.png");
 
 	// 0m21s
