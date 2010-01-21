@@ -4747,6 +4747,9 @@ int main(int argc,char **argv)
 				   "Rotate image clockwise by specified number of degrees",
 				   false,0,"0..360");
     cmd.add(rotate);
+    
+    TCLAP::ValueArg<int> dounpaper("u","unpaper","Pre-process image with unpaper algorithm, rounds",false,0,"default: 0 rounds");
+    cmd.add(dounpaper);
 
     cmd.parse( argc, argv );
 
@@ -4888,7 +4891,8 @@ int main(int argc,char **argv)
 	    image.rotate(rotate.getValue());
 	  }
 
-	//	unpaper(image);
+	for (int i=0;i<dounpaper.getValue();i++)
+	  unpaper(image);
 	//image.write("tmp.png");
 
 	// 0m21s
@@ -4989,7 +4993,6 @@ int main(int argc,char **argv)
 		    double nf=noise_factor(orig_box,width,height,bgColor,
 					   THRESHOLD_BOND,resolution,max_hist);
 		    // 0m46s
-
 		    //if (max_hist<5) thick=false;
 		    if (res_iter==3)
 		      {

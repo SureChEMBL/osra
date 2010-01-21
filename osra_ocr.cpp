@@ -30,6 +30,7 @@ extern "C" {
 #include <algorithm>
 #include <cstdio>
 #include <vector>
+#include <cstring>
 
 #include "common.h"
 #include "rectangle.h"
@@ -39,6 +40,7 @@ extern "C" {
 #include "blob.h"
 #include "character.h"
 
+#include "ocradlib.h"
 
 //#include <tesseract/baseapi.h>
 
@@ -185,6 +187,31 @@ char get_atom_label(Magick::Image image, Magick::ColorGray bg, int x1, int y1, i
 	      string patern=job.cfg.cfilter;
 	      if (patern.find(c2,0)==string::npos) c2='_';
 	      if (isalnum(c2)) c=c2;
+	      /*else
+		{
+		  struct OCRAD_Pixmap opix;
+		  opix.height = job.src.p.y;
+		  opix.width = job.src.p.x;
+		  opix.mode = OCRAD_greymap;
+		  opix.data = (const unsigned char *)malloc( opix.height * opix.width );
+		  memcpy( (void *)opix.data, job.src.p.p, opix.height * opix.width );
+		  char c2=0;
+		  OCRAD_Descriptor * const ocrdes = OCRAD_open();
+		  if( ocrdes && OCRAD_get_errno( ocrdes ) == OCRAD_ok )
+		    {
+		      if( OCRAD_set_image( ocrdes, &opix, 0 ) == 0 &&
+			  OCRAD_recognize( ocrdes, 0 ) == 0 &&
+			  OCRAD_result_blocks( ocrdes ) >= 1 &&
+			  OCRAD_result_lines( ocrdes, 0 ) &&
+			  OCRAD_result_line( ocrdes, 0, 0 ) != 0 )
+			c2 = OCRAD_result_line( ocrdes, 0, 0 )[0];
+		    }
+		  OCRAD_close( ocrdes );
+		  //cout<<"c2="<<c2<<endl;
+		  string patern=job.cfg.cfilter;
+		  if (patern.find(c2,0)==string::npos) c2='_';
+		  if (isalnum(c2)) c=c2;
+		  }*/
 	     /* else
 	      {
 	        char c3=0;
