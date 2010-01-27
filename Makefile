@@ -3,7 +3,7 @@ ARCH=unix
 
 POTRACE=../potrace-1.8/
 GOCR=../gocr-0.45/
-OCRAD=../ocrad-0.19-pre1/
+OCRAD=../ocrad-0.19/
 OPENBABEL=/usr/
 MAGICKCONFIG=GraphicsMagick++-config
 

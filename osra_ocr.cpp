@@ -187,7 +187,7 @@ char get_atom_label(Magick::Image image, Magick::ColorGray bg, int x1, int y1, i
 	      string patern=job.cfg.cfilter;
 	      if (patern.find(c2,0)==string::npos) c2='_';
 	      if (isalnum(c2)) c=c2;
-	      /*else
+	  /* else
 		{
 		  struct OCRAD_Pixmap opix;
 		  opix.height = job.src.p.y;
@@ -204,14 +204,15 @@ char get_atom_label(Magick::Image image, Magick::ColorGray bg, int x1, int y1, i
 			  OCRAD_result_blocks( ocrdes ) >= 1 &&
 			  OCRAD_result_lines( ocrdes, 0 ) &&
 			  OCRAD_result_line( ocrdes, 0, 0 ) != 0 )
-			c2 = OCRAD_result_line( ocrdes, 0, 0 )[0];
+			//	  c2 = OCRAD_result_line( ocrdes, 0, 0 )[0];
+			c2=OCRAD_result_first_character(ocrdes);
 		    }
 		  OCRAD_close( ocrdes );
 		  //cout<<"c2="<<c2<<endl;
 		  string patern=job.cfg.cfilter;
 		  if (patern.find(c2,0)==string::npos) c2='_';
 		  if (isalnum(c2)) c=c2;
-		  }*/
+		    }*/
 	     /* else
 	      {
 	        char c3=0;
