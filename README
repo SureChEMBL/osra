@@ -52,7 +52,7 @@ http://potrace.sourceforge.net/
 compilation below)
 http://jocr.sourceforge.net/
 
-- OCRAD, optical character recognition program, version 0.18. Unpack the
+- OCRAD, optical character recognition program, version 0.19. Unpack the
 downloaded source code only. Do not compile or install OCRAD - OSRA will 
 automatically patch it and compile the object files it needs.
 http://www.gnu.org/software/ocrad/ocrad.html
@@ -86,14 +86,16 @@ http://cimg.sourceforge.net
 
 - MCDL utility from Sergei Trepalin and Andrei Gakh for 2D coordinate generation
 
+- Unpaper, is a post-processing tool for scanned sheets of paper, especially for book pages that have been scanned from previously created photocopies. The main purpose is to make scanned book pages better readable on screen after conversion to PDF. Additionally, unpaper might be useful to enhance the quality of scanned pages before performing optical character recognition (OCR). 
+http://unpaper.berlios.de/
+
 =============================================================================
 Compilation:
 
 On Linux/Unix systems:
-Unpack downloaded source code for the OCRAD package. Do not compile or install 
-it - OSRA will automatically patch it and compile the object files it needs.
-
-Compile and/or install all the other necessary dependencies.
+Compile and/or install all the necessary dependencies. Note - starting with ocrad-0.19
+OCRAD compilation generates libocrad.a library used by OSRA. You need to run
+./configure;make to compile OCRAD.
 Special note for GOCR - do not use version 0.46; I recommend using 0.45
 for the moment - it seems to give the best results. If using version 0.47 or
 later compile the library libPgm2asc.a the following way:
@@ -231,6 +233,10 @@ Other options:
 -a <configfile>,  --superatom <configfile>:  Superatom label map to SMILES (superatom.txt by default)
 
 -l <configfile>,  --spelling <configfile>:   Spelling correction dictionary (spelling.txt by default)
+
+-u <roundss>,  --unpaper <rounds>
+     Pre-process image with unpaper algorithm, rounds (default: do not pre-process)
+
 
 =============================================================================
 Windows users:
