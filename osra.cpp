@@ -4080,6 +4080,7 @@ void find_connected_components(Image image,double threshold,ColorGray bgColor,
 	      if (on_the_margin && (new_margin.size()<PARTS_IN_MARGIN || rand()<RAND_MAX/PARTS_IN_MARGIN))
 		new_margin.push_back(p);
 	    }
+	  if (segments.size()>MAX_SEGMENTS) return;
 	  segments.push_back(new_segment);
 	  margins.push_back(new_margin);
 	}
@@ -4708,7 +4709,7 @@ job_t *JOB;
 
 int main(int argc,char **argv)
 {
-    fclose(stderr);
+    
     srand(1);
     TCLAP::CmdLine cmd("OSRA: Optical Structure Recognition Application, created by Igor Filippov, 2007-2009",' ',OSRA_VERSION);
     TCLAP::UnlabeledValueArg<string>  input( "in", "input file",true,"", "filename"  );
@@ -4771,7 +4772,15 @@ int main(int argc,char **argv)
 
 
     int input_resolution=resolution_param.getValue();
-    string type=image_type(input.getValue());
+    string type;
+    try {
+      type=image_type(input.getValue());
+    } catch(...)
+      {
+	cerr<<"Cannot open file "<<input.getValue()<<endl;
+	exit(1);
+      }
+    fclose(stderr);
     bool invert=inv.getValue();
 
     map<string,string> fix,superatom;
