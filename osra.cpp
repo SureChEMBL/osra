@@ -4770,7 +4770,8 @@ int main(int argc,char **argv)
 	superatom_file=osra_dir+"/"+SUPERATOM_TXT;
       }
 
-
+    InitializeMagick(NULL);
+    // necessary for GraphicsMagick-1.3.8 according to http://www.graphicsmagick.org/1.3/NEWS.html#january-21-2010
     int input_resolution=resolution_param.getValue();
     string type;
     try {
