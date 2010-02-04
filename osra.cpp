@@ -4373,6 +4373,11 @@ list < list < list<point_t> > > find_segments(Image image,double threshold,
   // 1m34s
 
   find_connected_components(image,threshold,bgColor,segments,margins);
+  if (segments.size()>MAX_SEGMENTS)
+    {
+      segments.clear();
+      margins.clear();
+    }
   remove_separators(segments,margins,SEPARATOR_ASPECT,SEPARATOR_AREA);
   remove_tables(segments,margins,SEPARATOR_AREA);
 
