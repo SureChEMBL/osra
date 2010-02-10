@@ -4812,9 +4812,10 @@ int main(int argc,char **argv)
 
     int page=count_pages(input.getValue());
 
-    int image_count=0;
     int ttt=1;
-    
+    vector < vector <string> > pages_of_structures(page, vector<string>(0));
+    vector < vector <Image> > pages_of_images(page, vector<Image>(0));
+
     if (input_resolution==0 && (type=="PDF" || type=="PS")) input_resolution=150;
 #pragma omp parallel for default(shared) private(JOB)
     for(int l=0;l<page;l++)
@@ -5368,36 +5369,47 @@ int main(int argc,char **argv)
 	  }
       }
 
+   
+    for (unsigned int i=0;i<array_of_smiles[max_res].size();i++)
+      {
+	pages_of_structures[l].push_back(array_of_smiles[max_res][i]);
+        pages_of_images[l].push_back(array_of_images[max_res][i]);
+      }
+  }
+
     ofstream outfile;
     if (writeout.getValue()!="")
       {
 	string filename=writeout.getValue();
-	outfile.open(filename.c_str(), ios::out | ios::app);
+	outfile.open(filename.c_str(), ios::out);
       }
-    for (unsigned int i=0;i<array_of_smiles[max_res].size();i++)
+    int image_count=0;
+    for (int l=0;l<page;l++)
       {
 	if (outfile.is_open())
-	  outfile<<array_of_smiles[max_res][i];
+	  for (int i=0;i<pages_of_structures[l].size();i++)
+	    outfile<<pages_of_structures[l][i];
 	else
-	  cout<<array_of_smiles[max_res][i];
-	stringstream fname;
-	if (output.getValue()!="") fname<<output.getValue()<<image_count<<".png";
-	image_count++;
-	if (fname.str()!="")
+	  for (int i=0;i<pages_of_structures[l].size();i++)
+	    cout<<pages_of_structures[l][i];
+	for (int i=0;i<pages_of_images[l].size();i++)
 	  {
-	    Image tmp=array_of_images[max_res][i];
-	    if (resize.getValue()!="")
+	    stringstream fname;
+	    if (output.getValue()!="") fname<<output.getValue()<<image_count<<".png";
+	    image_count++;
+	    if (fname.str()!="")
 	      {
-		tmp.scale(resize.getValue());
+		Image tmp=pages_of_images[l][i];
+		if (resize.getValue()!="")
+		  {
+		    tmp.scale(resize.getValue());
+		  }
+		tmp.write(fname.str());
 	      }
-	    tmp.write(fname.str());
 	  }
       }
     if (outfile.is_open())
       outfile.close();
-  }
-
-   
 
   return 0;
 }
