@@ -16,8 +16,8 @@ endif
 #TESSERACTINC=-I/usr/local/include
 #TESSERACTLIB=-L/usr/local/lib -ltesseract_full
 
-CPP = g++  -g -O3
-LD=g++ -g -O3 -fPIC
+CPP = g++ -fopenmp  -g -O3
+LD=g++ -fopenmp -g -O3 -fPIC
 CP=cp
 SED=sed
 RM=rm

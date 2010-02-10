@@ -4816,6 +4816,7 @@ int main(int argc,char **argv)
     int ttt=1;
     
     if (input_resolution==0 && (type=="PDF" || type=="PS")) input_resolution=150;
+#pragma omp parallel for default(shared) private(JOB)
     for(int l=0;l<page;l++)
       {
 	Image image;
