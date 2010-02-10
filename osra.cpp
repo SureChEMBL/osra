@@ -4757,6 +4757,9 @@ int main(int argc,char **argv)
     TCLAP::ValueArg<int> dounpaper("u","unpaper","Pre-process image with unpaper algorithm, rounds",false,0,"default: 0 rounds");
     cmd.add(dounpaper);
 
+    TCLAP::ValueArg<string> writeout("w","write","Write output to file",false,"","filename");
+    cmd.add(writeout);
+
     cmd.parse( argc, argv );
 
     char progname[1024];
@@ -4785,6 +4788,18 @@ int main(int argc,char **argv)
       {
 	cerr<<"Cannot open file "<<input.getValue()<<endl;
 	exit(1);
+      }
+    if (writeout.getValue()!="")
+      {
+	string filename=writeout.getValue();
+	ofstream outfile;
+	outfile.open (filename.c_str(), ios::out | ios::trunc);
+	if (outfile.bad() || !outfile.is_open())
+	  {
+	    cerr<<"Cannot open file for output "<<filename<<endl;
+	    exit(1);
+	  }
+	outfile.close();
       }
     fclose(stderr);
     bool invert=inv.getValue();
@@ -5352,9 +5367,18 @@ int main(int argc,char **argv)
 	  }
       }
 
+    ofstream outfile;
+    if (writeout.getValue()!="")
+      {
+	string filename=writeout.getValue();
+	outfile.open(filename.c_str(), ios::out | ios::app);
+      }
     for (unsigned int i=0;i<array_of_smiles[max_res].size();i++)
       {
-	cout<<array_of_smiles[max_res][i];
+	if (outfile.is_open())
+	  outfile<<array_of_smiles[max_res][i];
+	else
+	  cout<<array_of_smiles[max_res][i];
 	stringstream fname;
 	if (output.getValue()!="") fname<<output.getValue()<<image_count<<".png";
 	image_count++;
@@ -5368,8 +5392,9 @@ int main(int argc,char **argv)
 	    tmp.write(fname.str());
 	  }
       }
-   
-   }
+    if (outfile.is_open())
+      outfile.close();
+  }
 
    
 

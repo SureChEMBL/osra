@@ -3440,8 +3440,6 @@ void applyBorder(int border[EDGES_COUNT], int borderColor, struct IMAGE* image) 
  */
 int unpaper(Magick::Image &picture) {
 
-  int argc=0; 
-  char** argv;
 
     // --- parameter variables ---
     int layout;
@@ -3559,9 +3557,7 @@ int unpaper(Magick::Image &picture) {
     int ignoreMultiIndexCount;    
     int autoborder[MAX_MASKS][EDGES_COUNT];
     int autoborderMask[MAX_MASKS][EDGES_COUNT];
-    int insertBlank[MAX_MULTI_INDEX];
     int insertBlankCount;    
-    int replaceBlank[MAX_MULTI_INDEX];
     int replaceBlankCount;    
     BOOLEAN overwrite;
     BOOLEAN showTime;
