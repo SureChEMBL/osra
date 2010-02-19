@@ -152,7 +152,7 @@ void unpaper(Magick::Image &picture);
 #define SINGLE_IMAGE_DIST 100
 #define THRESHOLD_LEVEL 4
 #define TEXT_LINE_SIZE 8
-#define PARTS_IN_MARGIN 3
+#define PARTS_IN_MARGIN 2
 #define BORDER_COUNT 100
 #define MAX_SEGMENTS 10000
 #define SPELLING_TXT "spelling.txt"

@@ -50,6 +50,8 @@ extern "C" {
 char get_atom_label(Magick::Image image, Magick::ColorGray bg, int x1, int y1, int x2, int y2, double THRESHOLD, int dropx,int dropy)
 {
   char c=0;
+  #pragma omp critical
+ {
   Control control;
   char c1=0;
   unsigned char* tmp;
@@ -163,28 +165,31 @@ char get_atom_label(Magick::Image image, Magick::ColorGray bg, int x1, int y1, i
 	  cout<<endl;
 	  }*/
 
+      string patern=job.cfg.cfilter;
 
       if (count>MIN_CHAR_POINTS && zeros>MIN_CHAR_POINTS)
 	{
-	  JOB=&job;
-	  try {
-	    pgm2asc(&job);
-	  }
-	  catch(...){}
-	  char *l;
-	  l=(char *)job.res.linelist.start.next->data;
-	  if (l!=NULL)  c1=l[0];
-	  //cout<<"c1="<<c1<<endl;
+
+	    JOB=&job;
+	    try {
+	      pgm2asc(&job);
+	    }
+	    catch(...){}
+	    char *l;
+	    l=(char *)job.res.linelist.start.next->data;
+	    if (l!=NULL)  c1=l[0];
+	    job_free(&job);
+	    JOB=NULL;
+	    //cout<<"c1="<<c1<<endl;
 	  if (isalnum(c1)) c=c1;
 	  else
-	    {
+	      {
 	      char c2=0;
 	      b->find_holes();
 	      Character a(b);
 	      a.recognize1(control.charset,Rectangle::Rectangle( a.left(), a.top(), a.right(), a.bottom()));
 	      c2=a.byte_result();
 	      //cout<<"c2="<<c2<<endl;
-	      string patern=job.cfg.cfilter;
 	      if (patern.find(c2,0)==string::npos) c2='_';
 	      if (isalnum(c2)) c=c2;
 	  /* else
@@ -230,9 +235,8 @@ char get_atom_label(Magick::Image image, Magick::ColorGray bg, int x1, int y1, i
 	}
       //cout<<c<<endl;//<<"=========================="<<endl;
     }
-  job_free(&job);
   free(tmp);
-  
+ }  
   if (isalnum(c))
     {
       return (c);
@@ -308,7 +312,6 @@ bool detect_bracket(int x, int y,unsigned char *pic)
 	}
 
       job_free(&job);
-      JOB=NULL;
       return(res);
 }
 

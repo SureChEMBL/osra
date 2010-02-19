@@ -163,7 +163,8 @@ string get_smiles(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, int &r
 		  map<string,string> superatom)
 {
  stringstream strstr;
-
+#pragma omp critical
+ {
  OBMol mol;
  OBAtom *a,*b;
  string str;
@@ -429,5 +430,6 @@ if (format=="sdf")
        strstr<<" "<<page;
    }
  strstr<<endl;
+ }
  return(strstr.str());
 }
