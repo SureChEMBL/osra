@@ -4714,7 +4714,7 @@ job_t *JOB;
 int main(int argc,char **argv)
 {
     
-    TCLAP::CmdLine cmd("OSRA: Optical Structure Recognition Application, created by Igor Filippov, 2007-2009",' ',OSRA_VERSION);
+    TCLAP::CmdLine cmd("OSRA: Optical Structure Recognition Application, created by Igor Filippov, 2007-2010",' ',OSRA_VERSION);
     TCLAP::UnlabeledValueArg<string>  input( "in", "input file",true,"", "filename"  );
     cmd.add(input);
     TCLAP::ValueArg<double> threshold("t","threshold","Gray level threshold",
