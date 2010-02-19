@@ -237,6 +237,7 @@ Other options:
 -u <roundss>,  --unpaper <rounds>
      Pre-process image with unpaper algorithm, rounds (default: do not pre-process)
 
+-w <filename>, --write <filename> Write output to a file instead of stdout
 
 =============================================================================
 Windows users:
