@@ -3986,9 +3986,9 @@ int reconnect_fragments(vector<bond_t> &bond,int n_bond,vector<atom_t> &atom,dou
   return(n_bond);
 }
 
-const unsigned int distance_between_points(point_t p1,point_t p2)
+unsigned int distance_between_points(point_t p1,point_t p2)
 {
-   return max(abs(p1.x-p2.x),abs(p1.y-p2.y));
+  return max(abs(p1.x-p2.x),abs(p1.y-p2.y));
 }
 
 unsigned int distance_between_segments(vector<point_t> s1,vector<point_t> s2)
@@ -4045,7 +4045,6 @@ void find_connected_components(Image image,double threshold,ColorGray bgColor,
       if (getPixel(image,bgColor,i,j,threshold)==1) // populate with low threshold for future anisotropic smoothing
 	tmp[i][j]=1;
 
-
   for(unsigned int i=0;i<image.columns();i++)
     for(unsigned int j=0;j<image.rows();j++)
       if (tmp[i][j]==1)
@@ -4056,6 +4055,7 @@ void find_connected_components(Image image,double threshold,ColorGray bgColor,
 	  points.push_back(p);
 	  list<point_t> new_segment;
 	  vector<point_t> new_margin;
+	  int counter=0;
 	  point_t p1;
 	  while (!points.empty())
 	    {
@@ -4077,8 +4077,9 @@ void find_connected_components(Image image,double threshold,ColorGray bgColor,
 		    else if (k>=0 && l>=0 && k<image.columns() && l<image.rows() && k!=p.x && l!=p.y && tmp[k][l]==0)
 		      on_the_margin=true;
 		  }
-	      if (on_the_margin && (new_margin.size()<PARTS_IN_MARGIN || rand()<RAND_MAX/PARTS_IN_MARGIN))
+	      if (on_the_margin && (new_margin.size()<PARTS_IN_MARGIN || (counter % PARTS_IN_MARGIN)==0))
 		new_margin.push_back(p);
+	      if (on_the_margin) counter++;
 	    }
 	  if (segments.size()>MAX_SEGMENTS) return;
 	  segments.push_back(new_segment);
@@ -4380,7 +4381,6 @@ list < list < list<point_t> > > find_segments(Image image,double threshold,
     }
   remove_separators(segments,margins,SEPARATOR_ASPECT,SEPARATOR_AREA);
   remove_tables(segments,margins,SEPARATOR_AREA);
-
   // 2m22s
 
   unsigned int max_dist=MAX_DIST;
@@ -4435,7 +4435,6 @@ list < list < list<point_t> > > find_segments(Image image,double threshold,
      for(unsigned int i=0;i<margins.size();i++)
        if (avail[i]!=-1)
 	 avail[i]=1;
-
 
 
      list < list <int> > clusters=assemble_clusters(margins,dist,distance_matrix,avail,false,area_matrix);
@@ -4715,7 +4714,6 @@ job_t *JOB;
 int main(int argc,char **argv)
 {
     
-    srand(1);
     TCLAP::CmdLine cmd("OSRA: Optical Structure Recognition Application, created by Igor Filippov, 2007-2009",' ',OSRA_VERSION);
     TCLAP::UnlabeledValueArg<string>  input( "in", "input file",true,"", "filename"  );
     cmd.add(input);
@@ -4778,8 +4776,11 @@ int main(int argc,char **argv)
 	superatom_file=osra_dir+"/"+SUPERATOM_TXT;
       }
 
-    InitializeMagick(NULL);
+    InitializeMagick(*argv);
     // necessary for GraphicsMagick-1.3.8 according to http://www.graphicsmagick.org/1.3/NEWS.html#january-21-2010
+
+    srand(1);
+
     int input_resolution=resolution_param.getValue();
     string type;
     try {
@@ -4817,7 +4818,7 @@ int main(int argc,char **argv)
     vector < vector <Image> > pages_of_images(page, vector<Image>(0));
 
     if (input_resolution==0 && (type=="PDF" || type=="PS")) input_resolution=150;
-#pragma omp parallel for default(shared) private(JOB)
+   #pragma omp parallel for default(shared) private(JOB)
     for(int l=0;l<page;l++)
       {
 	Image image;
@@ -4864,8 +4865,7 @@ int main(int argc,char **argv)
 	  ColorGray g;
 	  double a;
 	  bool matte=image.matte();
-	  // 0m0s
-	  //#pragma omp parallel for
+
 	  for (unsigned int i=0;i<image.columns();i++)
 	    for (unsigned int j=0;j<image.rows();j++)
 	      {
@@ -4887,11 +4887,10 @@ int main(int argc,char **argv)
 		  }
 	      }
 	}
-	// 0m21s
+
 	image.contrast(2);
 	image.type( GrayscaleType );
 
-	// 0m22s
 	int num_resolutions=NUM_RESOLUTIONS;
 	if (input_resolution!=0) num_resolutions=1;
 	vector<int> select_resolution(num_resolutions,input_resolution);
@@ -4925,16 +4924,12 @@ int main(int argc,char **argv)
 
 	for (int i=0;i<dounpaper.getValue();i++)
 	  unpaper(image);
-	//image.write("tmp.png");
 
-	// 0m21s
+
 	list < list < list<point_t> > > clusters=find_segments(image,0.1,bgColor);
 
-		// 0m36s	
 	vector<box_t> boxes;
 	int n_boxes=prune_clusters(clusters,boxes);
-	//draw_box(image,boxes,n_boxes,"tmp.gif");
-	//exit(0);
 	std::sort(boxes.begin(),boxes.end(),comp_boxes);
 
 	potrace_param_t *param;
@@ -4982,6 +4977,7 @@ int main(int argc,char **argv)
 		    //		    dbg.backgroundColor("white");
 	    //	    dbg.erase();
 	    //	    dbg.type(TrueColorType);
+
 	    for (int k=0;k<n_boxes;k++)
 	      if ((boxes[k].x2-boxes[k].x1)>max_font_width &&
 		  (boxes[k].y2-boxes[k].y1)>max_font_height && !boxes[k].c.empty()
@@ -4999,9 +4995,8 @@ int main(int argc,char **argv)
 		potrace_path_t *p;
 		potrace_state_t *st;
 
-		// 0m37s
-		Image orig_box( Geometry(boxes[k].x2-boxes[k].x1+2*FRAME,
 
+		Image orig_box( Geometry(boxes[k].x2-boxes[k].x1+2*FRAME,
 					 boxes[k].y2-boxes[k].y1+2*FRAME), bgColor);
 
 		for(unsigned int p=0;p<boxes[k].c.size();p++)
@@ -5012,9 +5007,8 @@ int main(int argc,char **argv)
 		    //		    		    dbg.pixelColor(x,y,color);
 		    orig_box.pixelColor(x-boxes[k].x1+FRAME,y-boxes[k].y1+FRAME,color);
 		  }
-		
 
-		    // 0m37s
+
 		int width=orig_box.columns();
 		int height=orig_box.rows();
 		Image thick_box;
@@ -5024,7 +5018,7 @@ int main(int argc,char **argv)
 		    int max_hist;
 		    double nf=noise_factor(orig_box,width,height,bgColor,
 					   THRESHOLD_BOND,resolution,max_hist);
-		    // 0m46s
+
 		    //if (max_hist<5) thick=false;
 		    if (res_iter==3)
 		      {
@@ -5063,7 +5057,6 @@ int main(int argc,char **argv)
 		    if (nf>0.5 && nf<1. && max_hist<=6)// && res_iter!=3 && max_hist<=6)
 		      try {
 		        thick_box=anisotropic_smoothing(orig_box,width,height,20,0.6,2);
-			// 1m30s
                       }
                       catch(...) 
                       {
@@ -5088,7 +5081,6 @@ int main(int argc,char **argv)
 		  thick_box=orig_box;
 
 
-				    // 1m29s
 		param->turnpolicy=POTRACE_TURNPOLICY_MINORITY;
 		double c_width=1.*width*72/working_resolution;
 		double c_height=1.*height*72/working_resolution;
@@ -5102,7 +5094,6 @@ int main(int argc,char **argv)
 		else  box=thick_box;
 	   
 
-		    // 1m38s
 		bm = bm_new(width,height);
 		for(int i=0;i<width;i++)
 		  for(int j=0;j<height;j++)
@@ -5111,7 +5102,6 @@ int main(int argc,char **argv)
 		st = potrace_trace(param, bm);
 		p = st->plist;
 
-		    // 1m40s
 		n_atom=find_atoms(p,atom,bond,&n_bond);
 
 		int real_font_width,real_font_height;
@@ -5121,8 +5111,6 @@ int main(int argc,char **argv)
 				     max_font_width,max_font_height,
 				     real_font_width,real_font_height);
 	
-
-
 
 		double avg_bond=percentile75(bond,n_bond,atom);
 
@@ -5143,13 +5131,9 @@ int main(int argc,char **argv)
 		double dist=3.;
 		if (working_resolution<150) dist=2;
 		
-		// 1m42s
-
 		double thickness=skeletize(atom,bond,n_bond,box,THRESHOLD_BOND,
 				    bgColor,dist,avg_bond);
 
-
-		    // 2m03s
 	
 		remove_disconnected_atoms(atom,bond,n_atom,n_bond);
 		collapse_atoms(atom,bond,n_atom,n_bond,3);
@@ -5209,7 +5193,6 @@ int main(int argc,char **argv)
 					   avg_bond,3,1);
 
 
-		    // 2m11s
 		n_label=assemble_labels(letters,n_letters,label);
 
 
@@ -5267,8 +5250,10 @@ int main(int argc,char **argv)
 
 		if ((real_atoms>MIN_A_COUNT) && (real_atoms<MAX_A_COUNT))
 		  {
-
-		    int f=resolve_bridge_bonds(atom,n_atom,bond,n_bond,2*thickness,avg_bond,superatom);
+		    vector < vector<int> > frags;
+		    vector<fragment_t> fragments;
+		    int f;
+		    f=resolve_bridge_bonds(atom,n_atom,bond,n_bond,2*thickness,avg_bond,superatom);
                     collapse_bonds(atom,bond,n_bond,avg_bond/4);
                     collapse_atoms(atom,bond,n_atom,n_bond,3);
                     remove_zero_bonds(bond,n_bond,atom);
@@ -5280,12 +5265,10 @@ int main(int argc,char **argv)
 		    collapse_atoms(atom,bond,n_atom,n_bond,1);
 
 		    mark_terminal_atoms(bond,n_bond,atom,n_atom);
-
-		    vector < vector<int> > frags=find_fragments(bond,n_bond,atom);
-		    vector<fragment_t> fragments=populate_fragments(frags,atom);
+		    frags=find_fragments(bond,n_bond,atom);
+		    fragments=populate_fragments(frags,atom);
 		    std::sort(fragments.begin(),fragments.end(),comp_fragments);
-		    // 2m14s
-
+		    
 		    for (unsigned int i=0;i<fragments.size();i++)
 		      if (fragments[i].atom.size()>MIN_A_COUNT)
 			{
@@ -5375,7 +5358,7 @@ int main(int argc,char **argv)
 	pages_of_structures[l].push_back(array_of_smiles[max_res][i]);
         pages_of_images[l].push_back(array_of_images[max_res][i]);
       }
-  }
+   }
 
     ofstream outfile;
     if (writeout.getValue()!="")
@@ -5410,6 +5393,6 @@ int main(int argc,char **argv)
       }
     if (outfile.is_open())
       outfile.close();
-
+    
   return 0;
 }

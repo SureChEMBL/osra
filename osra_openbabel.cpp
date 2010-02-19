@@ -162,6 +162,8 @@ string get_smiles(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, int &r
 		  string format,int resolution,bool conf, bool guess, bool showpage, int page,
 		  map<string,string> superatom)
 {
+ stringstream strstr;
+
  OBMol mol;
  OBAtom *a,*b;
  string str;
@@ -415,7 +417,7 @@ if (format=="sdf")
        atom[bond[i].a].n=0;
        atom[bond[i].b].n=0;
      }
- stringstream strstr;
+
  strstr<<str;
  if (format=="smi" || format=="can")
    {

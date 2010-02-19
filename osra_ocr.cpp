@@ -49,14 +49,13 @@ extern "C" {
 
 char get_atom_label(Magick::Image image, Magick::ColorGray bg, int x1, int y1, int x2, int y2, double THRESHOLD, int dropx,int dropy)
 {
+  char c=0;
   Control control;
-
-
-  char c=0,c1=0;
+  char c1=0;
   unsigned char* tmp;
   job_t job;
   double f=1.;
-  JOB=&job;
+
   job_init(&job);
   job.cfg.cfilter="oOcCnNHFsSBuUgMeEXYZRPp23568";
 
@@ -167,6 +166,7 @@ char get_atom_label(Magick::Image image, Magick::ColorGray bg, int x1, int y1, i
 
       if (count>MIN_CHAR_POINTS && zeros>MIN_CHAR_POINTS)
 	{
+	  JOB=&job;
 	  try {
 	    pgm2asc(&job);
 	  }
@@ -231,7 +231,8 @@ char get_atom_label(Magick::Image image, Magick::ColorGray bg, int x1, int y1, i
       //cout<<c<<endl;//<<"=========================="<<endl;
     }
   job_free(&job);
-  free(tmp);  
+  free(tmp);
+  
   if (isalnum(c))
     {
       return (c);
@@ -307,7 +308,7 @@ bool detect_bracket(int x, int y,unsigned char *pic)
 	}
 
       job_free(&job);
-      
+      JOB=NULL;
       return(res);
 }
 
