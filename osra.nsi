@@ -4,14 +4,14 @@
 Name "Optical Structure Recognition Application"
 
 ; The file to write
-OutFile "osra-setup-1-3-2.exe"
+OutFile "osra-setup-1-3-5.exe"
 
 ; The default installation directory
-InstallDir $PROGRAMFILES\osra\1.3.2
+InstallDir $PROGRAMFILES\osra\1.3.5
 
 ; Registry key to check for directory (so if you install again, it will 
 ; overwrite the old one automatically)
-InstallDirRegKey HKLM "Software\osra\1.3.2" "Install_Dir"
+InstallDirRegKey HKLM "Software\osra\1.3.5" "Install_Dir"
 
 LicenseData "license.txt"
 
@@ -66,11 +66,11 @@ Section "osra (required)"
   
   
   ; Write the installation path into the registry
-  WriteRegStr HKLM SOFTWARE\osra\1.3.2 "Install_Dir" "$INSTDIR"
+  WriteRegStr HKLM SOFTWARE\osra\1.3.5 "Install_Dir" "$INSTDIR"
   WriteRegStr HKLM SOFTWARE\osra "Install_Dir" "$INSTDIR"
   
   ; Write the uninstall keys for Windows
-  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\osra" "DisplayName" "OSRA 1.3.2"
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\osra" "DisplayName" "OSRA 1.3.5"
   WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\osra" "UninstallString" '"$INSTDIR\uninstall.exe"'
   WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\osra" "NoModify" 1
   WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\osra" "NoRepair" 1
@@ -117,11 +117,11 @@ SectionEnd
 ; Uninstaller
 
 Section "Uninstall"
-  ReadRegStr $0 HKLM SOFTWARE\osra\1.3.2 "Install_Dir"
+  ReadRegStr $0 HKLM SOFTWARE\osra\1.3.5 "Install_Dir"
   strcpy $INSTDIR $0
   ; Remove registry keys
   DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\osra"
-  DeleteRegKey HKLM SOFTWARE\osra\1.3.2
+  DeleteRegKey HKLM SOFTWARE\osra\1.3.5
 
   ; Remove files and uninstaller
   Delete $INSTDIR\osra.exe
@@ -299,7 +299,7 @@ fileOpen $0 "$INSTDIR\osra.bat" w
 @echo off$\r$\n\
 setlocal$\r$\n\
 set exec_dir=%~dp0%$\r$\n\
-set OMP_NUM_THREADS=1$\r$\n\
+rem set OMP_NUM_THREADS=1$\r$\n\
 set PATH=%exec_dir%;$1\bin;$1\lib;%PATH%$\r$\n\
 set MAGICK_CONFIGURE_PATH=%exec_dir%$\r$\n\
 "%exec_dir%osra.exe" %*$\r$\n\
