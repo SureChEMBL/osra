@@ -4822,7 +4822,6 @@ int main(int argc,char **argv)
     for(int l=0;l<page;l++)
       {
 	Image image;
-	
 
 	stringstream density;
 	density<<input_resolution<<"x"<<input_resolution;
@@ -4977,7 +4976,6 @@ int main(int argc,char **argv)
 		    //		    dbg.backgroundColor("white");
 	    //	    dbg.erase();
 	    //	    dbg.type(TrueColorType);
-
 	    for (int k=0;k<n_boxes;k++)
 	      if ((boxes[k].x2-boxes[k].x1)>max_font_width &&
 		  (boxes[k].y2-boxes[k].y1)>max_font_height && !boxes[k].c.empty()
@@ -5139,7 +5137,6 @@ int main(int argc,char **argv)
 		collapse_atoms(atom,bond,n_atom,n_bond,3);
 		remove_zero_bonds(bond,n_bond,atom);
 
-
 		n_letters=find_fused_chars(bond,n_bond,atom,letters,n_letters,
 					   real_font_height,real_font_width,
 					   0,orig_box,bgColor,
@@ -5241,14 +5238,14 @@ int main(int argc,char **argv)
 							letters,n_letters);
 
 
-			
 		
 	
 		assign_charge(atom,bond,n_atom,n_bond,fix,superatom,debug.getValue());
 		find_up_down_bonds(bond,n_bond,atom,thickness);
 		int real_atoms=count_atoms(atom,n_atom);
+		int real_bonds=count_bonds(bond,n_bond);
 
-		if ((real_atoms>MIN_A_COUNT) && (real_atoms<MAX_A_COUNT))
+		if (real_atoms>MIN_A_COUNT && real_atoms<MAX_A_COUNT && real_bonds<MAX_A_COUNT)
 		  {
 		    vector < vector<int> > frags;
 		    vector<fragment_t> fragments;
@@ -5260,7 +5257,6 @@ int main(int argc,char **argv)
 		    extend_terminal_bond_to_bonds(atom,bond,n_bond,avg_bond,7,0);
 
 		    remove_small_terminal_bonds(bond,n_bond,atom,avg_bond);
-
 		    n_bond=reconnect_fragments(bond,n_bond,atom,avg_bond);
 		    collapse_atoms(atom,bond,n_atom,n_bond,1);
 
@@ -5268,7 +5264,6 @@ int main(int argc,char **argv)
 		    frags=find_fragments(bond,n_bond,atom);
 		    fragments=populate_fragments(frags,atom);
 		    std::sort(fragments.begin(),fragments.end(),comp_fragments);
-		    
 		    for (unsigned int i=0;i<fragments.size();i++)
 		      if (fragments[i].atom.size()>MIN_A_COUNT)
 			{
@@ -5294,7 +5289,6 @@ int main(int argc,char **argv)
 			  int rotors,rings;
 			  double confidence=0;
 			  string smiles=get_smiles(frag_atom,frag_bond,n_bond,rotors, confidence,f,rings,avg_bond, format.getValue(),resolution, conf.getValue(),guess.getValue(),showpage.getValue(),l+1,superatom);
-
 			  if (f<10 && f>0 && smiles!="")
 			    {
 			      array_of_smiles[res_iter].push_back(smiles);
