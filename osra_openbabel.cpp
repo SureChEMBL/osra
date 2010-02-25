@@ -160,7 +160,7 @@ int getAnum(string s, OBMol *mol,int *n, int *bondn,
 string get_smiles(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, int &rotors, 
 		  double &confidence, int &num_fragments, int &r56, double avg,
 		  string format,int resolution,bool conf, bool guess, bool showpage, int page,
-		  map<string,string> superatom)
+		  map<string,string> superatom, bool showbond)
 {
  stringstream strstr;
 #pragma omp critical
@@ -377,6 +377,17 @@ string get_smiles(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, int &r
      mol.SetData(label);
    }
 
+ if (showbond)
+   {
+     OBPairData *label = new OBPairData;
+     label->SetAttribute("Average_bond_length");
+     stringstream cs;
+     cs<<avg;
+     label->SetValue(cs.str());
+     //label->SetOrigin(userInput); // set by user, not by Open Babel
+     mol.SetData(label);
+   }
+
 
 if (format=="sdf")
    {
@@ -428,6 +439,8 @@ if (format=="sdf")
        strstr<<" "<<confidence;
      if (showpage)
        strstr<<" "<<page;
+     if (showbond)
+       strstr<<" "<<avg;
    }
  strstr<<endl;
  }

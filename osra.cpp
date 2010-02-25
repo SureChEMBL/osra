@@ -1,10 +1,10 @@
 /*********************************************************************
   OSRA: Optical Structure Recognition
   
-  This is a U.S. Government work (2007-2008) and is therefore not subject to 
+  This is a U.S. Government work (2007-2010) and is therefore not subject to 
   copyright.  
   However, portions of this work were obtained from a GPL or GPL-compatiple source.   
-  Created by Igor Filippov, 2007-2008 (igorf@helix.nih.gov)
+  Created by Igor Filippov, 2007-2010 (igorf@helix.nih.gov)
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -2575,7 +2575,7 @@ int resolve_bridge_bonds(vector<atom_t> &atom,int n_atom,vector<bond_t> &bond,in
   int rotors1,rotors2,f1,f2,rings1,rings2;
   double confidence;
   string smiles1=get_smiles(atom,bond,n_bond,rotors1,confidence,f1,
-			    rings1,avg,"empty",0,false,false,false,0,superatom);
+			    rings1,avg,"empty",0,false,false,false,0,superatom,false);
   for (int i=0;i<n_atom;i++)
     if ((atom[i].exists) && (atom[i].label==" "))
       {
@@ -2642,7 +2642,7 @@ int resolve_bridge_bonds(vector<atom_t> &atom,int n_atom,vector<bond_t> &bond,in
 		    else if (bond[c].b==bond[d].b) bond[c].b=bond[d].a;
 		    string smiles2=get_smiles(atom,bond,n_bond,rotors2,
 					      confidence,f2,rings2,avg,
-					      "empty",0,false,false,false,0,superatom);
+					      "empty",0,false,false,false,0,superatom,false);
 		    if (f1!=f2 || rotors1!=rotors2 || rings1-rings2==2)
 		      {
 			bond[b].exists=true;
@@ -4758,6 +4758,9 @@ int main(int argc,char **argv)
     TCLAP::ValueArg<string> writeout("w","write","Write output to file",false,"","filename");
     cmd.add(writeout);
 
+    TCLAP::SwitchArg showbond("b","bond","Show average bond length in pixels",false);
+    cmd.add(showbond);
+
     cmd.parse( argc, argv );
 
     char progname[1024];
@@ -5288,7 +5291,7 @@ int main(int argc,char **argv)
 
 			  int rotors,rings;
 			  double confidence=0;
-			  string smiles=get_smiles(frag_atom,frag_bond,n_bond,rotors, confidence,f,rings,avg_bond, format.getValue(),resolution, conf.getValue(),guess.getValue(),showpage.getValue(),l+1,superatom);
+			  string smiles=get_smiles(frag_atom,frag_bond,n_bond,rotors, confidence,f,rings,avg_bond, format.getValue(),resolution, conf.getValue(),guess.getValue(),showpage.getValue(),l+1,superatom,showbond.getValue());
 			  if (f<10 && f>0 && smiles!="")
 			    {
 			      array_of_smiles[res_iter].push_back(smiles);

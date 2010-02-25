@@ -1,9 +1,9 @@
 /*********************************************************************
   OSRA: Optical Structure Recognition
 
-  This is a U.S. Government work (year) and is therefore not subject to copyright.  
+  This is a U.S. Government work (2007-2010) and is therefore not subject to copyright.  
   However, portions of this work were obtained from a GPL or GPL-compatiple source.   
-  Created by Igor Filippov, 2007-2008 (igorf@helix.nih.gov)
+  Created by Igor Filippov, 2007-2010 (igorf@helix.nih.gov)
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -109,7 +109,7 @@ typedef struct fragment_s fragment_t;
 string fix_atom_name(string s,int n,map<string,string> fix,map<string,string> superatom,
 		     bool debug);
 string get_smiles(vector<atom_t> &atom,vector<bond_t> &bond, int n_bond, int &rotors, double &confidence, int &num_fragments, int &r56,double avg,string format,int resolution,bool conf, bool guess, bool showpage, 
-		  int page, map<string,string> superatom);
+		  int page, map<string,string> superatom, bool showbond);
 Magick::Image anisotropic_smoothing(Magick::Image image,int width,int height, const float amplitude,const float alpha, const float sigma);
 Magick::Image anisotropic_scaling(Magick::Image image,int width,int height, int nw, int nh);
 char get_atom_label(Magick::Image image, Magick::ColorGray bg, int x1, int y1, int x2, int y2, double THRESHOLD, int dropx, int dropy);
