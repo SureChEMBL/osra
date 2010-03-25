@@ -4654,6 +4654,10 @@ void load_config_map(string file, map<string,string> &out)
 		//line = line.substr( 0, line.find(comm) );
 		if (line.length()==0 || line.at(0)=='#') continue;
 		
+		// replace tabs with spaces
+		pos t;
+		while((t = line.find('\t'))!=string::npos) line[t] = ' ';
+		
 		// Parse the line if it contains a delimiter
 		pos delimPos = line.find( delim );
 		if( delimPos < string::npos )
