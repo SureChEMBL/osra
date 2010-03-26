@@ -247,6 +247,8 @@ char get_atom_label(Magick::Image image, Magick::ColorGray bg, int x1, int y1, i
     }
 }
 
+
+
 bool detect_bracket(int x, int y,unsigned char *pic)
 {
   Control control;

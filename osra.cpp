@@ -4225,7 +4225,7 @@ void remove_tables(vector < list<point_t> > &segments,
 	  }
 
      
-      //      cout<<border_count<<" "<<aspect<<" "<<m->size()<<endl;
+      //  cout<<border_count<<" "<<aspect<<" "<<m->size()<<endl;
 
       if (border_count>BORDER_COUNT)
 	{
@@ -4374,14 +4374,18 @@ list < list < list<point_t> > > find_segments(Image image,double threshold,
   // 1m34s
 
   find_connected_components(image,threshold,bgColor,segments,margins);
+
   if (segments.size()>MAX_SEGMENTS)
     {
       segments.clear();
       margins.clear();
     }
+
   remove_separators(segments,margins,SEPARATOR_ASPECT,SEPARATOR_AREA);
+
   remove_tables(segments,margins,SEPARATOR_AREA);
   // 2m22s
+
 
   unsigned int max_dist=MAX_DIST;
   unsigned int max_area_ratio=MAX_AREA_RATIO;
@@ -4410,7 +4414,6 @@ list < list < list<point_t> > > find_segments(Image image,double threshold,
   int entropy_max=locate_max_entropy(features,max_area_ratio,max_dist,stats);
 
 
-
   int dist=SINGLE_IMAGE_DIST;
   if (entropy_max>THRESHOLD_LEVEL) 
     {
@@ -4435,7 +4438,6 @@ list < list < list<point_t> > > find_segments(Image image,double threshold,
      for(unsigned int i=0;i<margins.size();i++)
        if (avail[i]!=-1)
 	 avail[i]=1;
-
 
      list < list <int> > clusters=assemble_clusters(margins,dist,distance_matrix,avail,false,area_matrix);
      explicit_clusters=build_explicit_clusters(clusters,segments);
@@ -4933,10 +4935,11 @@ int main(int argc,char **argv)
 
 
 	list < list < list<point_t> > > clusters=find_segments(image,0.1,bgColor);
-
+	
 	vector<box_t> boxes;
 	int n_boxes=prune_clusters(clusters,boxes);
 	std::sort(boxes.begin(),boxes.end(),comp_boxes);
+
 
 	potrace_param_t *param;
 	param = potrace_param_default();
@@ -5012,6 +5015,7 @@ int main(int argc,char **argv)
 		    //		    		    dbg.pixelColor(x,y,color);
 		    orig_box.pixelColor(x-boxes[k].x1+FRAME,y-boxes[k].y1+FRAME,color);
 		  }
+
 
 
 		int width=orig_box.columns();
@@ -5110,7 +5114,6 @@ int main(int argc,char **argv)
 		n_atom=find_atoms(p,atom,bond,&n_bond);
 
 		int real_font_width,real_font_height;
-
 		n_letters=find_chars(p,orig_box,letters,atom,bond,n_atom,n_bond,
 				     height,width,bgColor,THRESHOLD_CHAR,
 				     max_font_width,max_font_height,
