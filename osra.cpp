@@ -5299,7 +5299,7 @@ int main(int argc,char **argv)
 			  int rotors,rings;
 			  double confidence=0;
 			  string smiles=get_smiles(frag_atom,frag_bond,n_bond,rotors, confidence,f,rings,avg_bond, format.getValue(),resolution, conf.getValue(),guess.getValue(),showpage.getValue(),l+1,superatom,showbond.getValue());
-			  if (f<10 && f>0 && smiles!="")
+			  if (f<MAX_FRAGMENTS && f>0 && smiles!="")
 			    {
 			      array_of_smiles[res_iter].push_back(smiles);
 			      total_boxes++;
