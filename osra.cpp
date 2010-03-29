@@ -4225,7 +4225,7 @@ void remove_tables(vector < list<point_t> > &segments,
 	  }
 
      
-      //  cout<<border_count<<" "<<aspect<<" "<<m->size()<<endl;
+//       cout<<border_count<<" "<<2*(right-left)+2*(bottom-top)<<endl;
 
       if (border_count>BORDER_COUNT)
 	{
