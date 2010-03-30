@@ -4687,6 +4687,42 @@ bool comp_fragments(const fragment_t &aa, const fragment_t &bb)
  return(false);
  }
 
+void find_limits_on_avg_bond(double &min_bond, double &max_bond, 
+			     vector < vector <double> > pages_of_avg_bonds, vector < vector <double> > pages_of_ind_conf)
+{
+  double max_ind_conf=-FLT_MAX;
+  for(int l=0;l<pages_of_ind_conf.size();l++)
+    for (int i=0;i<pages_of_ind_conf[l].size();i++)
+      if (max_ind_conf<pages_of_ind_conf[l][i])
+	{
+	  max_ind_conf=pages_of_ind_conf[l][i];
+	  min_bond=pages_of_avg_bonds[l][i];
+	  max_bond=pages_of_avg_bonds[l][i];
+	}
+  bool flag=true;
+  while (flag)
+    {
+      flag=false;
+      for(int l=0;l<pages_of_avg_bonds.size();l++)
+	for (int i=0;i<pages_of_avg_bonds[l].size();i++)
+	  {
+	    if (pages_of_avg_bonds[l][i]>max_bond && 
+		(pages_of_avg_bonds[l][i]-max_bond<5 || pages_of_ind_conf[l][i]>max_ind_conf-0.1))
+	      {
+		max_bond=pages_of_avg_bonds[l][i];
+		flag=true;
+	      }
+	    if (pages_of_avg_bonds[l][i]<min_bond && 
+		(min_bond-pages_of_avg_bonds[l][i]<5  || pages_of_ind_conf[l][i]>max_ind_conf-0.1))
+	      {
+		min_bond=pages_of_avg_bonds[l][i];
+		flag=true;
+	      }
+	  }
+    }
+  min_bond--;
+  max_bond++;
+}
 
 double confidence_function(int C_Count,int N_Count,int O_Count,int F_Count,
 			   int S_Count,int Cl_Count,int Br_Count, 
@@ -4825,6 +4861,8 @@ int main(int argc,char **argv)
     int ttt=1;
     vector < vector <string> > pages_of_structures(page, vector<string>(0));
     vector < vector <Image> > pages_of_images(page, vector<Image>(0));
+    vector < vector <double> > pages_of_avg_bonds(page, vector<double>(0));
+    vector < vector <double> > pages_of_ind_conf(page, vector<double>(0));
 
     if (input_resolution==0 && (type=="PDF" || type=="PS")) input_resolution=150;
    #pragma omp parallel for default(shared) private(JOB)
@@ -4903,6 +4941,7 @@ int main(int argc,char **argv)
 	if (input_resolution!=0) num_resolutions=1;
 	vector<int> select_resolution(num_resolutions,input_resolution);
 	vector < vector <string> > array_of_smiles(num_resolutions);
+	vector < vector <double> > array_of_avg_bonds(num_resolutions), array_of_ind_conf(num_resolutions);
 	vector<double> array_of_confidence(num_resolutions,-FLT_MAX);
 	vector< vector <Image> >  array_of_images(num_resolutions);
 	    
@@ -5302,6 +5341,8 @@ int main(int argc,char **argv)
 			  if (f<MAX_FRAGMENTS && f>0 && smiles!="")
 			    {
 			      array_of_smiles[res_iter].push_back(smiles);
+			      array_of_avg_bonds[res_iter].push_back(avg_bond);
+			      array_of_ind_conf[res_iter].push_back(confidence);
 			      total_boxes++;
 			      total_confidence+=confidence;
 			      Image tmp=image;
@@ -5361,8 +5402,14 @@ int main(int argc,char **argv)
       {
 	pages_of_structures[l].push_back(array_of_smiles[max_res][i]);
         pages_of_images[l].push_back(array_of_images[max_res][i]);
+	pages_of_avg_bonds[l].push_back(array_of_avg_bonds[max_res][i]);
+	pages_of_ind_conf[l].push_back(array_of_ind_conf[max_res][i]);
       }
    }
+
+    double min_bond,max_bond;
+    find_limits_on_avg_bond(min_bond,max_bond,pages_of_avg_bonds,pages_of_ind_conf);
+
 
     ofstream outfile;
     if (writeout.getValue()!="")
@@ -5375,25 +5422,32 @@ int main(int argc,char **argv)
       {
 	if (outfile.is_open())
 	  for (int i=0;i<pages_of_structures[l].size();i++)
-	    outfile<<pages_of_structures[l][i];
+	    {
+	      if (pages_of_avg_bonds[l][i]>min_bond && pages_of_avg_bonds[l][i]<max_bond)
+		outfile<<pages_of_structures[l][i];
+	    }
 	else
 	  for (int i=0;i<pages_of_structures[l].size();i++)
-	    cout<<pages_of_structures[l][i];
+	    {
+	      if (pages_of_avg_bonds[l][i]>min_bond && pages_of_avg_bonds[l][i]<max_bond)
+		cout<<pages_of_structures[l][i];
+	    }
 	for (int i=0;i<pages_of_images[l].size();i++)
-	  {
-	    stringstream fname;
-	    if (output.getValue()!="") fname<<output.getValue()<<image_count<<".png";
-	    image_count++;
-	    if (fname.str()!="")
-	      {
-		Image tmp=pages_of_images[l][i];
-		if (resize.getValue()!="")
-		  {
-		    tmp.scale(resize.getValue());
-		  }
-		tmp.write(fname.str());
-	      }
-	  }
+	  if (pages_of_avg_bonds[l][i]>min_bond && pages_of_avg_bonds[l][i]<max_bond)
+	    {
+	      stringstream fname;
+	      if (output.getValue()!="") fname<<output.getValue()<<image_count<<".png";
+	      image_count++;
+	      if (fname.str()!="")
+		{
+		  Image tmp=pages_of_images[l][i];
+		  if (resize.getValue()!="")
+		    {
+		      tmp.scale(resize.getValue());
+		    }
+		  tmp.write(fname.str());
+		}
+	    }
       }
     if (outfile.is_open())
       outfile.close();
