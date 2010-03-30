@@ -4865,6 +4865,9 @@ int main(int argc,char **argv)
     vector < vector <double> > pages_of_ind_conf(page, vector<double>(0));
 
     if (input_resolution==0 && (type=="PDF" || type=="PS")) input_resolution=150;
+
+    int total_structure_count=0;
+
    #pragma omp parallel for default(shared) private(JOB)
     for(int l=0;l<page;l++)
       {
@@ -5404,11 +5407,13 @@ int main(int argc,char **argv)
         pages_of_images[l].push_back(array_of_images[max_res][i]);
 	pages_of_avg_bonds[l].push_back(array_of_avg_bonds[max_res][i]);
 	pages_of_ind_conf[l].push_back(array_of_ind_conf[max_res][i]);
+	total_structure_count++;
       }
    }
 
-    double min_bond,max_bond;
-    find_limits_on_avg_bond(min_bond,max_bond,pages_of_avg_bonds,pages_of_ind_conf);
+    double min_bond=-FLT_MAX,max_bond=FLT_MAX;
+    if (total_structure_count>STRUCTURE_COUNT)
+      find_limits_on_avg_bond(min_bond,max_bond,pages_of_avg_bonds,pages_of_ind_conf);
 
 
     ofstream outfile;

@@ -156,6 +156,7 @@ void unpaper(Magick::Image &picture);
 #define BORDER_COUNT 300
 #define MAX_SEGMENTS 10000
 #define MAX_FRAGMENTS 10
+#define STRUCTURE_COUNT 20
 #define SPELLING_TXT "spelling.txt"
 #define SUPERATOM_TXT "superatom.txt"
 
