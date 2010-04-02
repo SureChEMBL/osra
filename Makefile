@@ -4,7 +4,7 @@ ARCH=unix
 POTRACE=../potrace-1.8/
 GOCR=../gocr-0.45/
 OCRAD=../ocrad-0.19/
-OPENBABEL=/usr/
+OPENBABEL=/usr/local/
 MAGICKCONFIG=GraphicsMagick++-config
 
 TCLAPINC=-I/usr/local/include/tclap/

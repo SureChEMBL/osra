@@ -1,6 +1,6 @@
                         OSRA: Optical Structure Recognition
 
-							Igor Filippov, 2007-2009
+							Igor Filippov, 2007-2010
 							igorf@helix.nih.gov
 
 
@@ -238,6 +238,8 @@ Other options:
      Pre-process image with unpaper algorithm, rounds (default: do not pre-process)
 
 -w <filename>, --write <filename> Write output to a file instead of stdout
+
+-b, --bond: Print out average bond length in pixels
 
 =============================================================================
 Windows users:
