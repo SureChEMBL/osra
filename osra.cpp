@@ -5412,9 +5412,10 @@ int main(int argc,char **argv)
    }
 
     double min_bond=-FLT_MAX,max_bond=FLT_MAX;
-    if (total_structure_count>STRUCTURE_COUNT)
+    if (total_structure_count>=STRUCTURE_COUNT)
       find_limits_on_avg_bond(min_bond,max_bond,pages_of_avg_bonds,pages_of_ind_conf);
 
+    //cout<<min_bond<<" "<<max_bond<<endl;
 
     ofstream outfile;
     if (writeout.getValue()!="")
