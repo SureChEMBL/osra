@@ -1,0 +1,4 @@
+#!/bin/sh
+defaults write ~/.MacOSX/environment OSRA /usr/local/bin/
+chown $USER ~/.MacOSX/environment.plist
+chmod a+r ~/.MacOSX/environment.plist

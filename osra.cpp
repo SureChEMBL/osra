@@ -5409,11 +5409,15 @@ int main(int argc,char **argv)
 	pages_of_ind_conf[l].push_back(array_of_ind_conf[max_res][i]);
 	total_structure_count++;
       }
-   }
+  }
 
     double min_bond=-FLT_MAX,max_bond=FLT_MAX;
     if (total_structure_count>=STRUCTURE_COUNT)
       find_limits_on_avg_bond(min_bond,max_bond,pages_of_avg_bonds,pages_of_ind_conf);
+    // If multiple pages are processed at several  resoutions different pages
+    // may be processed at different resolutions leading to a seemingly different average bond length
+    // Currently multi-page documents (PDF and PS) are all processed at the same resolution
+    // and single-page images have all structures on the page at the same resolution
 
     //cout<<min_bond<<" "<<max_bond<<endl;
 

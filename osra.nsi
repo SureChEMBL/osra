@@ -1,17 +1,26 @@
+!define DOT_VERSION  "1.3.6"
+!define DASH_VERSION "1-3-6"
+
 !include Sections.nsh
+; include for some of the windows messages defines
+!include "winmessages.nsh"
+; HKLM (all users) vs HKCU (current user) defines
+!define env_hklm 'HKLM "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"'
+!define env_hkcu 'HKCU "Environment"'
+   
 
 ; The name of the installer
 Name "Optical Structure Recognition Application"
 
 ; The file to write
-OutFile "osra-setup-1-3-5.exe"
+OutFile "osra-setup-${DASH_VERSION}.exe"
 
 ; The default installation directory
-InstallDir $PROGRAMFILES\osra\1.3.5
+InstallDir $PROGRAMFILES\osra\${DOT_VERSION}
 
 ; Registry key to check for directory (so if you install again, it will 
 ; overwrite the old one automatically)
-InstallDirRegKey HKLM "Software\osra\1.3.5" "Install_Dir"
+InstallDirRegKey HKLM "Software\osra\${DOT_VERSION}" "Install_Dir"
 
 LicenseData "license.txt"
 
@@ -53,6 +62,9 @@ Section "osra (required)"
   File "modules.mgk"
   File "README.txt"
   File "libopenbabel-3.dll"
+  File "pthreadGC2.dll"
+  File "mingwm10.dll"
+  File "libgomp-1.dll"
   File "libgcc_s_dw2-1.dll"
   File "spelling.txt"
   File "superatom.txt"
@@ -66,16 +78,22 @@ Section "osra (required)"
   
   
   ; Write the installation path into the registry
-  WriteRegStr HKLM SOFTWARE\osra\1.3.5 "Install_Dir" "$INSTDIR"
+  WriteRegStr HKLM SOFTWARE\osra\${DOT_VERSION} "Install_Dir" "$INSTDIR"
   WriteRegStr HKLM SOFTWARE\osra "Install_Dir" "$INSTDIR"
   
   ; Write the uninstall keys for Windows
-  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\osra" "DisplayName" "OSRA 1.3.5"
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\osra" "DisplayName" "OSRA ${DOT_VERSION}"
   WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\osra" "UninstallString" '"$INSTDIR\uninstall.exe"'
   WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\osra" "NoModify" 1
   WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\osra" "NoRepair" 1
   WriteUninstaller "uninstall.exe"
   
+  
+  ; set variable
+  WriteRegExpandStr ${env_hklm} OSRA "$INSTDIR"
+  ; make sure windows knows about the change
+  SendMessage ${HWND_BROADCAST} ${WM_WININICHANGE} 0 "STR:Environment" /TIMEOUT=5000
+
 SectionEnd
 
 Section /o "Symyx Draw plugin" symyx_draw
@@ -117,11 +135,15 @@ SectionEnd
 ; Uninstaller
 
 Section "Uninstall"
-  ReadRegStr $0 HKLM SOFTWARE\osra\1.3.5 "Install_Dir"
+  ReadRegStr $0 HKLM SOFTWARE\osra\${DOT_VERSION} "Install_Dir"
   strcpy $INSTDIR $0
   ; Remove registry keys
   DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\osra"
-  DeleteRegKey HKLM SOFTWARE\osra\1.3.5
+  DeleteRegKey HKLM SOFTWARE\osra\${DOT_VERSION}
+  ; delete variable
+  DeleteRegValue ${env_hklm} OSRA
+  ; make sure windows knows about the change
+  SendMessage ${HWND_BROADCAST} ${WM_WININICHANGE} 0 "STR:Environment" /TIMEOUT=5000
 
   ; Remove files and uninstaller
   Delete $INSTDIR\osra.exe
@@ -137,6 +159,9 @@ Section "Uninstall"
   Delete $INSTDIR\README.txt
   Delete $INSTDIR\osra.bat
   Delete $INSTDIR\libopenbabel-3.dll
+  Delete $INSTDIR\pthreadGC2.dll
+  Delete $INSTDIR\mingwm10.dll
+  Delete $INSTDIR\libgomp-1.dll
   Delete $INSTDIR\libgcc_s_dw2-1.dll
   Delete $INSTDIR\superatom.txt
   Delete $INSTDIR\spelling.txt
@@ -299,7 +324,7 @@ fileOpen $0 "$INSTDIR\osra.bat" w
 @echo off$\r$\n\
 setlocal$\r$\n\
 set exec_dir=%~dp0%$\r$\n\
-rem set OMP_NUM_THREADS=1$\r$\n\
+set OMP_NUM_THREADS=1$\r$\n\
 set PATH=%exec_dir%;$1\bin;$1\lib;%PATH%$\r$\n\
 set MAGICK_CONFIGURE_PATH=%exec_dir%$\r$\n\
 "%exec_dir%osra.exe" %*$\r$\n\
