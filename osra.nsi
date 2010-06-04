@@ -1,13 +1,20 @@
 !define DOT_VERSION  "1.3.6"
 !define DASH_VERSION "1-3-6"
 
+!define PIL_EXE "PIL-1.1.6.win32-py2.5.exe"
+!define PIL_URL "http://effbot.org/media/downloads/${PIL_EXE}"
+!define GS_EXE "gs870w32.exe"
+!define GS_URL "http://voxel.dl.sourceforge.net/sourceforge/ghostscript/${GS_EXE}"
+
 !include Sections.nsh
 ; include for some of the windows messages defines
 !include "winmessages.nsh"
 ; HKLM (all users) vs HKCU (current user) defines
 !define env_hklm 'HKLM "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"'
 !define env_hkcu 'HKCU "Environment"'
-   
+
+!include "TextFunc.nsh" 
+!insertmacro LineFind
 
 ; The name of the installer
 Name "Optical Structure Recognition Application"
@@ -126,6 +133,10 @@ Section /o "ChemBioOffice 12 plugin" chemoffice
  pil_exists:
  SetOutPath "$1\Scripts"
  File "plugins\chemoffice\Import Structures with OSRA.py"
+ Push "$1\Scripts\Import Structures with OSRA.py" ; file to modify
+ Push "dot_version=" ; string that a line must begin with *WS Sensitive*
+ Push "dot_version='${DOT_VERSION}'" ; string to replace whole line with
+ Call ReplaceLineStr		       
  Goto done
  no_chemoffice:
   MessageBox MB_OK "ChemScript 12.0 not found" IDOK done
@@ -216,8 +227,8 @@ FunctionEnd
 Function downloadPIL
    DetailPrint "need to download and install Python Imaging Library"
    Call ConnectInternet ;Make an internet connection (if no connection available)
-   StrCpy $2 "$TEMP\PIL-1.1.6.win32-py2.5.exe"
-   NSISdl::download http://effbot.org/media/downloads/PIL-1.1.6.win32-py2.5.exe $2
+   StrCpy $2 "$TEMP\${PIL_EXE}"
+   NSISdl::download ${PIL_URL} $2
    Pop $0
    StrCmp $0 success success
     SetDetailsView show
@@ -233,8 +244,8 @@ Function getGhostscriptInstPath
  download_gs:
    DetailPrint "need to download and install Ghostscript"
    Call ConnectInternet ;Make an internet connection (if no connection available)
-   StrCpy $2 "$TEMP\gs870w32.exe"
-   NSISdl::download http://voxel.dl.sourceforge.net/sourceforge/ghostscript/gs870w32.exe $2
+   StrCpy $2 "$TEMP\${GS_EXE}"
+   NSISdl::download ${GS_URL} $2
    Pop $0
    StrCmp $0 success success
     SetDetailsView show
@@ -331,6 +342,65 @@ set MAGICK_CONFIGURE_PATH=%exec_dir%$\r$\n\
 endlocal$\r$\n\
 '
 fileClose $0
+FunctionEnd
+
+Function ReplaceLineStr
+ Exch $R0 ; string to replace that whole line with
+ Exch
+ Exch $R1 ; string that line should start with
+ Exch
+ Exch 2
+ Exch $R2 ; file
+ Push $R3 ; file handle
+ Push $R4 ; temp file
+ Push $R5 ; temp file handle
+ Push $R6 ; global
+ Push $R7 ; input string length
+ Push $R8 ; line string length
+ Push $R9 ; global
+ 
+  StrLen $R7 $R1
+ 
+  GetTempFileName $R4
+ 
+  FileOpen $R5 $R4 w
+  FileOpen $R3 $R2 r
+ 
+  ReadLoop:
+  ClearErrors
+   FileRead $R3 $R6
+    IfErrors Done
+ 
+   StrLen $R8 $R6
+   StrCpy $R9 $R6 $R7 -$R8
+   StrCmp $R9 $R1 0 +3
+ 
+    FileWrite $R5 "$R0$\r$\n"
+    Goto ReadLoop
+ 
+    FileWrite $R5 $R6
+    Goto ReadLoop
+ 
+  Done:
+ 
+  FileClose $R3
+  FileClose $R5
+ 
+  SetDetailsPrint none
+   Delete $R2
+   Rename $R4 $R2
+  SetDetailsPrint both
+ 
+ Pop $R9
+ Pop $R8
+ Pop $R7
+ Pop $R6
+ Pop $R5
+ Pop $R4
+ Pop $R3
+ Pop $R2
+ Pop $R1
+ Pop $R0
 FunctionEnd
 
 
