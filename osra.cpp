@@ -4594,10 +4594,10 @@ vector<fragment_t> populate_fragments(vector < vector<int> > frags,vector<atom_t
       for (unsigned j=0;j<frags[i].size();j++)
 	{
 	  f.atom.push_back(frags[i][j]);
-	  if (atom[frags[i][j]].x<f.x1) f.x1=atom[frags[i][j]].x;
-	  if (atom[frags[i][j]].x>f.x2) f.x2=atom[frags[i][j]].x;
-	  if (atom[frags[i][j]].y<f.y1) f.y1=atom[frags[i][j]].y;
-	  if (atom[frags[i][j]].y>f.y2) f.y2=atom[frags[i][j]].y;
+	  if ((int)atom[frags[i][j]].x<f.x1) f.x1=(int)atom[frags[i][j]].x;
+	  if ((int)atom[frags[i][j]].x>f.x2) f.x2=(int)atom[frags[i][j]].x;
+	  if ((int)atom[frags[i][j]].y<f.y1) f.y1=(int)atom[frags[i][j]].y;
+	  if ((int)atom[frags[i][j]].y>f.y2) f.y2=(int)atom[frags[i][j]].y;
 	}
       r.push_back(f);
     }
@@ -4630,14 +4630,16 @@ void trim( string& s )
 	s.erase( s.find_last_not_of(whitespace) + 1U );
 }
 
+struct file_not_found 
+{
+  string filename;
+  file_not_found( const string& filename_ = string() )
+    : filename(filename_) {} 
+};
+
 void load_config_map(string file, map<string,string> &out)
 {
-  struct file_not_found 
-  {
-    string filename;
-    file_not_found( const string& filename_ = string() )
-      : filename(filename_) {} 
-  };
+ 
 
 	typedef string::size_type pos;
 	const string& delim  = " ";  // separator
@@ -4751,7 +4753,6 @@ double confidence=0.316030
  return(confidence);
 }
 
-job_t *JOB;
 
 int main(int argc,char **argv)
 {
@@ -4810,7 +4811,7 @@ int main(int argc,char **argv)
     progname[1023]='\0';
     string osra_dir=dirname(progname);
 
-    string spelling_file=spelling.getValue();
+    /*    string spelling_file=spelling.getValue();
     string superatom_file=abbr.getValue();
     if (spelling_file.length()==0)
       {
@@ -4820,7 +4821,7 @@ int main(int argc,char **argv)
       {
 	superatom_file=osra_dir+"/"+SUPERATOM_TXT;
       }
-
+    */
     InitializeMagick(*argv);
     // necessary for GraphicsMagick-1.3.8 according to http://www.graphicsmagick.org/1.3/NEWS.html#january-21-2010
 
@@ -4847,14 +4848,85 @@ int main(int argc,char **argv)
 	  }
 	outfile.close();
       }
-    fclose(stderr);
     bool invert=inv.getValue();
 
-    map<string,string> fix,superatom;
-    load_config_map(spelling_file,fix);
-    load_config_map(superatom_file,superatom);
+    //    map<string,string> fix,superatom;
+    //    load_config_map(spelling_file,fix);
+    //    load_config_map(superatom_file,superatom);
 
 
+
+    map<string,string> fix;
+    bool spelling_loaded = false;
+    
+    if (spelling.getValue().length()!=0) {
+		try {
+		  load_config_map(spelling.getValue(),fix);
+		  spelling_loaded = true;
+		}
+		catch (file_not_found e) {
+		}
+    }
+
+    /*    if (!spelling_loaded) {
+      try {
+	load_config_map(string(DATA_DIR)+"/"+SPELLING_TXT,fix);
+	spelling_loaded = true;
+      }
+		catch (file_not_found e) {
+		}
+    }
+    */
+    if (!spelling_loaded) {
+      try {
+	load_config_map(osra_dir+"/"+SPELLING_TXT,fix);
+	spelling_loaded = true;
+      }
+      catch (file_not_found e) {
+      }
+    }
+
+    if (!spelling_loaded) {
+      cerr<<"Cannot open "<<SPELLING_TXT<<" file (tried locations "<<osra_dir<<"). Specify the custom file location via -l option."<<endl;
+      exit(1);
+    }
+
+    map<string,string> superatom;
+    bool superatom_loaded = false;
+    
+    if (abbr.getValue().length()!=0) {
+      try {
+	load_config_map(abbr.getValue(),superatom);
+	superatom_loaded = true;
+      }
+      catch (file_not_found e) {
+      }
+    }
+
+    /*    if (!superatom_loaded) {
+      try {
+	load_config_map(string(DATA_DIR)+"/"+SUPERATOM_TXT,superatom);
+	superatom_loaded = true;
+      }
+      catch (file_not_found e) {
+      }
+    }
+    */
+    if (!superatom_loaded) {
+      try {
+	load_config_map(osra_dir+"/"+SUPERATOM_TXT,superatom);
+	superatom_loaded = true;
+      }
+      catch (file_not_found e) {
+      }
+    }
+    
+    if (!superatom_loaded) {
+      cerr<<"Cannot open "<<SUPERATOM_TXT<<" file (tried locations "<<osra_dir<<"). Specify the custom file location via -a option."<<endl;
+      exit(1);
+    }
+    
+    fclose(stderr);
 
     int page=count_pages(input.getValue());
 

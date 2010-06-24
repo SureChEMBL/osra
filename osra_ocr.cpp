@@ -46,6 +46,7 @@ extern "C" {
 
 #include "osra.h"
 
+job_t *JOB;
 
 char get_atom_label(Magick::Image image, Magick::ColorGray bg, int x1, int y1, int x2, int y2, double THRESHOLD, int dropx,int dropy)
 {
