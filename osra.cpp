@@ -3827,7 +3827,7 @@ void remove_small_terminal_bonds(vector<bond_t> &bond,int n_bond,vector<atom_t> 
 			      if (bond[i].hash) dashed=true;
 			    }
 			if (!dashed)
-			  atom[bond[j].b].label="X";
+			  atom[bond[j].b].label="Xx";
 		      }
 		  }
 	      }
@@ -3852,7 +3852,7 @@ void remove_small_terminal_bonds(vector<bond_t> &bond,int n_bond,vector<atom_t> 
 			      if (bond[i].hash) dashed=true;
 			    }
 			if (!dashed)
-			  atom[bond[j].a].label="X";
+			  atom[bond[j].a].label="Xx";
 		      }
 		  }
 	      }
@@ -4727,7 +4727,7 @@ void find_limits_on_avg_bond(double &min_bond, double &max_bond,
 }
 
 double confidence_function(int C_Count,int N_Count,int O_Count,int F_Count,
-			   int S_Count,int Cl_Count,int Br_Count, 
+			   int S_Count,int Cl_Count,int Br_Count, int R_Count,
 			   int num_rings,int num_aromatic,
 			   int num_fragments,vector<int> *Num_Rings,int num_double, int num_triple)
 {
@@ -4739,7 +4739,7 @@ double confidence=0.316030
   +0.065504*S_Count
   +0.198795*Cl_Count
   +0.066811*Br_Count
-  //   +0.1*R_Count
+  +0.1*R_Count
   -0.212739*num_rings
   +0.071300*num_aromatic
   //+0.339289*(*Num_Rings)[3]

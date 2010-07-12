@@ -30,6 +30,7 @@
 #include "openbabel/mol.h"
 #include "openbabel/obconversion.h" 
 #include <openbabel/builder.h> 
+#include <openbabel/alias.h>
 #include "mcdlutil.h"
 using namespace OpenBabel;
 
@@ -140,7 +141,10 @@ int getAnum(string s, OBMol *mol,int *n, int *bondn,
 	    map<string,string> superatom)
 {
   //    mol_to_abbr();
-  if (s=="X") return(0);
+  if (s=="Xx" || s=="X" || s=="R" || s=="Y" || s=="Z" || s=="R1" ||
+      s=="R2" || s=="R3" || s=="R4" || s=="R5" || s=="R6" ||
+      s=="R7" || s=="R8" || s=="R9" || s=="R10" || s=="Y2")
+    return(0);
 
   map<string,string>::iterator it=superatom.find(s);
   if (it!=superatom.end()) 
@@ -207,6 +211,15 @@ string get_smiles(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, int &r
 	       if (atom[bond[i].a].charge!=0)
 		 a->SetFormalCharge(atom[bond[i].a].charge);
 	       a->SetVector(atom[bond[i].a].x*scale,-atom[bond[i].a].y*scale,0);
+	       if (anum==0)
+		 {
+		   AliasData* ad = new AliasData();
+		   ad->SetAlias(atom[bond[i].a].label);
+		   ad->SetOrigin(external);
+		   a->SetData(ad);
+		   ad->Expand(mol, anum); //Make chemically meaningful, if possible.
+		 }
+
 	       mol.AddAtom(*a);
 	       atom[bond[i].a].n=n;
 	       n++;
@@ -235,6 +248,14 @@ string get_smiles(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, int &r
 	       if (atom[bond[i].b].charge!=0)
 		 b->SetFormalCharge(atom[bond[i].b].charge);
 	       b->SetVector(atom[bond[i].b].x*scale,-atom[bond[i].b].y*scale,0);
+	       if (anum==0)
+		 {
+		   AliasData* ad = new AliasData();
+		   ad->SetAlias(atom[bond[i].b].label);
+		   ad->SetOrigin(external);
+		   b->SetData(ad);
+		   ad->Expand(mol, anum); //Make chemically meaningful, if possible.
+		 }
 	       mol.AddAtom(*b);
 	       atom[bond[i].b].n=n;
 	       n++;
@@ -319,7 +340,13 @@ string get_smiles(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, int &r
      else if (a->GetAtomicNum()==9) F_Count++;
      else if (a->GetAtomicNum()==17) Cl_Count++;
      else if (a->GetAtomicNum()==35) Br_Count++;
-     else if (a->GetAtomicNum()==0) R_Count++;
+     else if (a->GetAtomicNum()==0) 
+       {
+	 AliasData *ad;
+	 ad=(AliasData *) mol.GetData(OBGenericDataType::SetData);
+	 if (ad!=NULL && ad->GetAlias()!="Xx")
+	   R_Count++;
+       }
    }
 
  vector<OBRing*> vr=mol.GetSSSR();
@@ -340,7 +367,7 @@ string get_smiles(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, int &r
  mol.ContigFragList(cfl);
  num_fragments=cfl.size();
 
- confidence=confidence_function(C_Count,N_Count,O_Count,F_Count,S_Count,Cl_Count,Br_Count,
+ confidence=confidence_function(C_Count,N_Count,O_Count,F_Count,S_Count,Cl_Count,Br_Count,R_Count,
 				num_rings,num_aromatic,num_fragments,&Num_Rings,num_double,num_triple);
 
  r56=Num_Rings[5]+Num_Rings[6];

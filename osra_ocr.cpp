@@ -60,7 +60,7 @@ char get_atom_label(Magick::Image image, Magick::ColorGray bg, int x1, int y1, i
   double f=1.;
 
   job_init(&job);
-  job.cfg.cfilter="oOcCnNHFsSBuUgMeEXYZRPp23568";
+  job.cfg.cfilter="oOcCnNHFsSBuUgMeEXYZRPp235678";
 
   //job.cfg.cs=160;
   //job.cfg.certainty=80;

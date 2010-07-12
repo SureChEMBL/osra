@@ -123,22 +123,6 @@ BC Br
 CH3 C
 H3C C
 
-R X
-Rl X
-Rlo X
-R2 X
-R3 X
-Rg X
-R4 X
-R5 X
-R6 X
-R7 X
-R8 X
-Z X
-Y X
-2 X
-RlO X
-
 pl Ar
 nl Ar
 
@@ -221,7 +205,6 @@ HUn2C COOH
 CO2E  CO2Et
 EO   EtO
 HO2C COOH
-Y2 X
 CUn2H COOH
 CnU2H COOH
 MeHN MeN
@@ -371,3 +354,19 @@ COOCH2P COOCH2Ph
 NeO MeO
 ONe MeO
 
+R R
+Rl R1
+Rlo R10
+R2 R2
+R3 R3
+Rg R9
+Rp R4
+#R5 X
+#R6 X
+#R7 X
+#R8 X
+#Z X
+#Y X
+2 Z
+RlO R10
+Y2 Y2
