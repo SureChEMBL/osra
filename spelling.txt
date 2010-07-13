@@ -60,6 +60,7 @@ OMB MeO
 OCH3 MeO  
 OCHS MeO  
 H3CO MeO  
+OM4 MeO
 
 NC CN 
 YC CN
