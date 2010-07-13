@@ -51,7 +51,7 @@ char get_atom_label(Magick::Image image, Magick::ColorGray bg, int x1, int y1, i
   double f=1.;
 
   job_init(&job);
-  job.cfg.cfilter="oOcCnNHFsSBuUgMeEXYZRPp235678";
+  job.cfg.cfilter="oOcCnNHFsSBuUgMeEXYZRPp23456789";
 
   //job.cfg.cs=160;
   //job.cfg.certainty=80;
@@ -64,11 +64,13 @@ char get_atom_label(Magick::Image image, Magick::ColorGray bg, int x1, int y1, i
   job.src.p.bpp=1;
   job.src.p.p = (unsigned char *)malloc(job.src.p.x*job.src.p.y);
 
+  int height=job.src.p.y;
+  int width=job.src.p.x;
   struct OCRAD_Pixmap* opix = new OCRAD_Pixmap();
-  unsigned char* bitmap_data = (unsigned char*) malloc(job.src.p.x*job.src.p.y);
-  memset(bitmap_data, 0, job.src.p.x*job.src.p.y);
-  opix->height = job.src.p.y;
-  opix->width = job.src.p.x;
+  unsigned char* bitmap_data = (unsigned char*) malloc(width*height);
+  memset(bitmap_data, 0, width*height);
+  opix->height = height;
+  opix->width = width;
   opix->mode = OCRAD_bitmap;  opix->data = bitmap_data;
 
   tmp=(unsigned char *)malloc(int((x2-x1+1)*(y2-y1+1)));
@@ -150,15 +152,16 @@ char get_atom_label(Magick::Image image, Magick::ColorGray bg, int x1, int y1, i
 	    }
 	}
 
+
       // cout<<x2-x1<<" "<<y2-y1<<endl;
-      /*      cout<<x1<<" "<<y1<<" "<<x2<<" "<<y2<<endl;           
-      for (int i=0;i<job.src.p.y;i++)
+      //      cout<<x1<<" "<<y1<<" "<<x2<<" "<<y2<<endl;           
+      /* for (int i=0;i<job.src.p.y;i++)
 	{
 	  for(int j=0;j<job.src.p.x;j++)
 	    cout<<job.src.p.p[i*job.src.p.x+j]/255;
 	  cout<<endl;
-	  }*/
-
+	}
+      */
       string patern=job.cfg.cfilter;
 
       if (count>MIN_CHAR_POINTS && zeros>MIN_CHAR_POINTS)
@@ -171,21 +174,29 @@ char get_atom_label(Magick::Image image, Magick::ColorGray bg, int x1, int y1, i
 	  char *l;
 	  l=(char *)job.res.linelist.start.next->data;
 	  if (l!=NULL)  c1=l[0];  
-	  // cout<<"c1="<<c1<<endl;
+	  //   cout<<"c1="<<c1<<endl;
 	  if (isalnum(c1)) c=c1;
 	  else
 	      {
 		char c2 = 0;
+		string line="_";
 		OCRAD_Descriptor * const ocrdes = OCRAD_open();
 		
 		if (ocrdes && OCRAD_get_errno(ocrdes) == OCRAD_ok &&
 		    OCRAD_set_image(ocrdes, opix, 0) == 0 &&
 		    ( job.src.p.y >= 10 || OCRAD_scale( ocrdes, 2 ) == 0 ) &&
 		    OCRAD_recognize(ocrdes, 0) == 0 )
-		  c2 = OCRAD_result_first_character(ocrdes);
-		
-		OCRAD_close(ocrdes);			
+		  {
+		    c2 = OCRAD_result_first_character(ocrdes);
+		    if (OCRAD_result_blocks( ocrdes ) >= 1 &&
+			OCRAD_result_lines( ocrdes, 0 ) &&
+			OCRAD_result_line( ocrdes, 0, 0 ) != 0 )
+		      line=OCRAD_result_line(ocrdes,0,0);
+		  }
 		//cout<<"c2="<<c2<<endl;
+
+		if (line.length()>2) c2='_';
+		OCRAD_close(ocrdes);			
 		if (patern.find(c2,0)==string::npos) c2='_';
 		if (isalnum(c2)) c=c2;
 		/*
