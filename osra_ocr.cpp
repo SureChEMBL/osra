@@ -32,14 +32,6 @@ extern "C" {
 #include <vector>
 #include <cstring>
 
-#include "common.h"
-#include "rectangle.h"
-#include "ucs.h"
-#include "bitmap.h"
-//#include "block.h"
-#include "blob.h"
-#include "character.h"
-
 #include "ocradlib.h"
 
 //#include <tesseract/baseapi.h>
@@ -53,7 +45,6 @@ char get_atom_label(Magick::Image image, Magick::ColorGray bg, int x1, int y1, i
   char c=0;
   #pragma omp critical
  {
-  Control control;
   char c1=0;
   unsigned char* tmp;
   job_t job;
@@ -73,10 +64,14 @@ char get_atom_label(Magick::Image image, Magick::ColorGray bg, int x1, int y1, i
   job.src.p.bpp=1;
   job.src.p.p = (unsigned char *)malloc(job.src.p.x*job.src.p.y);
 
-  Blob *b=new Blob(0,0,job.src.p.x,job.src.p.y);
+  struct OCRAD_Pixmap* opix = new OCRAD_Pixmap();
+  unsigned char* bitmap_data = (unsigned char*) malloc(job.src.p.x*job.src.p.y);
+  memset(bitmap_data, 0, job.src.p.x*job.src.p.y);
+  opix->height = job.src.p.y;
+  opix->width = job.src.p.x;
+  opix->mode = OCRAD_bitmap;  opix->data = bitmap_data;
 
   tmp=(unsigned char *)malloc(int((x2-x1+1)*(y2-y1+1)));
-  //  tmp1=(unsigned char *)malloc(int((x2-x1+1)*(y2-y1+1)));
 
   for(int i=0;i<job.src.p.x*job.src.p.y;i++) job.src.p.p[i]=255;
 
@@ -88,8 +83,7 @@ char get_atom_label(Magick::Image image, Magick::ColorGray bg, int x1, int y1, i
   int t=1;
   int y=dropy-y1+1;
   int x=dropx-x1;
-  //int y=0;
-  //int x=int((x2-x1+1)/2);
+
   while ((t!=0) && (y<int(y2-y1+1)))
     {
       t=tmp[y*(x2-x1+1)+x];
@@ -126,12 +120,10 @@ char get_atom_label(Magick::Image image, Magick::ColorGray bg, int x1, int y1, i
 	  if (tmp[i*(x2-x1+1)+j]==1) 
 	    {
 	      tmp[i*(x2-x1+1)+j]=0;
-	      //	      tmp1[i*(x2-x1+1)+j]=255;
 	    }
 	  else 
 	    {
 	      tmp[i*(x2-x1+1)+j]=255;
-	      //	      tmp1[i*(x2-x1+1)+j]=0;
 	    }
 
       int count=0;
@@ -147,7 +139,7 @@ char get_atom_label(Magick::Image image, Magick::ColorGray bg, int x1, int y1, i
 		  job.src.p.p[y*job.src.p.x+x]= tmp[(i-y1)*(x2-x1+1)+j-x1];
 		  if (tmp[(i-y1)*(x2-x1+1)+j-x1]==0) 
 		    {
-		      b->set_bit(y,x,true);
+		      bitmap_data[y * job.src.p.x + x] = 1;
 		      if(x>0 && x<job.src.p.x-1 && y>0 && y<job.src.p.y-1) count++;
 		    }
 		  else 
@@ -171,75 +163,56 @@ char get_atom_label(Magick::Image image, Magick::ColorGray bg, int x1, int y1, i
 
       if (count>MIN_CHAR_POINTS && zeros>MIN_CHAR_POINTS)
 	{
-
-	    JOB=&job;
-	    try {
-	      pgm2asc(&job);
-	    }
-	    catch(...){}
-	    char *l;
-	    l=(char *)job.res.linelist.start.next->data;
-	    if (l!=NULL)  c1=l[0];
-	    job_free(&job);
-	    JOB=NULL;
-	    // cout<<"c1="<<c1<<endl;
+	  JOB=&job;
+	  try {
+	    pgm2asc(&job);
+	  }
+	  catch(...){}
+	  char *l;
+	  l=(char *)job.res.linelist.start.next->data;
+	  if (l!=NULL)  c1=l[0];  
+	  // cout<<"c1="<<c1<<endl;
 	  if (isalnum(c1)) c=c1;
 	  else
 	      {
-	      char c2=0;
-	      b->find_holes();
-	      Character a(b);
-	      a.recognize1(control.charset,Rectangle::Rectangle( a.left(), a.top(), a.right(), a.bottom()));
-	      c2=a.byte_result();
-	      //cout<<"c2="<<c2<<endl;
-	      if (patern.find(c2,0)==string::npos) c2='_';
-	      if (isalnum(c2)) c=c2;
-	      /*
-	  else
-		{
-		  struct OCRAD_Pixmap opix;
-		  opix.height = job.src.p.y;
-		  opix.width = job.src.p.x;
-		  opix.mode = OCRAD_greymap;
-		  opix.data = (const unsigned char *)malloc( opix.height * opix.width );
-		  memcpy( (void *)opix.data, job.src.p.p, opix.height * opix.width );
-		  char c2=0;
-		  OCRAD_Descriptor * const ocrdes = OCRAD_open();
-		  if( ocrdes && OCRAD_get_errno( ocrdes ) == OCRAD_ok )
-		    {
-		      if( OCRAD_set_image( ocrdes, &opix, 0 ) == 0 &&
-			  OCRAD_recognize( ocrdes, 0 ) == 0 &&
-			  OCRAD_result_blocks( ocrdes ) >= 1 &&
-			  OCRAD_result_lines( ocrdes, 0 ) &&
-			  OCRAD_result_line( ocrdes, 0, 0 ) != 0 )
-			//	  c2 = OCRAD_result_line( ocrdes, 0, 0 )[0];
-			c2=OCRAD_result_first_character(ocrdes);
-		    }
-		  OCRAD_close( ocrdes );
-		  //cout<<"c2="<<c2<<endl;
-		  string patern=job.cfg.cfilter;
-		  if (patern.find(c2,0)==string::npos) c2='_';
-		  if (isalnum(c2)) c=c2;
-	     else
-	      {
-	        char c3=0;
-	        TessBaseAPI::InitWithLanguage(NULL, NULL,"eng", NULL, false, 0, NULL);
-                char* text = TessBaseAPI::TesseractRect(tmp1, 1, x2-x1+1, 0, 0, x2-x1+1, y2-y1+1);
-                TessBaseAPI::End();
-                if (text!=NULL)  c3=text[0];  
-		patern="OCN";
-                if (patern.find(c3,0)==string::npos) c3='_';
-                if (isalnum(c3)) c=c3;
-              }*/
+		char c2 = 0;
+		OCRAD_Descriptor * const ocrdes = OCRAD_open();
+		
+		if (ocrdes && OCRAD_get_errno(ocrdes) == OCRAD_ok &&
+		    OCRAD_set_image(ocrdes, opix, 0) == 0 &&
+		    ( job.src.p.y >= 10 || OCRAD_scale( ocrdes, 2 ) == 0 ) &&
+		    OCRAD_recognize(ocrdes, 0) == 0 )
+		  c2 = OCRAD_result_first_character(ocrdes);
+		
+		OCRAD_close(ocrdes);			
+		//cout<<"c2="<<c2<<endl;
+		if (patern.find(c2,0)==string::npos) c2='_';
+		if (isalnum(c2)) c=c2;
+		/*
+		  else
+		  {
+		  char c3=0;
+		  TessBaseAPI::InitWithLanguage(NULL, NULL,"eng", NULL, false, 0, NULL);
+		  char* text = TessBaseAPI::TesseractRect(tmp1, 1, x2-x1+1, 0, 0, x2-x1+1, y2-y1+1);
+		  TessBaseAPI::End();
+		  if (text!=NULL)  c3=text[0];  
+		  patern="OCN";
+		  if (patern.find(c3,0)==string::npos) c3='_';
+		  if (isalnum(c3)) c=c3;
+		  }*/
 	      }
-
+	  
 
 	}
       //cout<<c<<endl;//<<"=========================="<<endl;
     }
+  job_free(&job);
+  JOB=NULL;
   free(tmp);
+  delete opix;
+  free(bitmap_data);
   if (c=='7' && (x2-x1<=10 || y2-y1<=20)) c=0;
-
+  
  }
  
 
@@ -254,7 +227,7 @@ char get_atom_label(Magick::Image image, Magick::ColorGray bg, int x1, int y1, i
 }
 
 
-
+/*
 bool detect_bracket(int x, int y,unsigned char *pic)
 {
   Control control;
@@ -291,13 +264,7 @@ bool detect_bracket(int x, int y,unsigned char *pic)
 	  zeros++;
       }
 
-  /* for (int i=0;i<job.src.p.y;i++)
-    {
-      for(int j=0;j<job.src.p.x;j++)
-	cout<<job.src.p.p[i*job.src.p.x+j]/255;
-      cout<<endl;
-    }
-  */
+
       if (count>MIN_CHAR_POINTS && zeros>MIN_CHAR_POINTS)
 	{
 	  try {
@@ -323,7 +290,7 @@ bool detect_bracket(int x, int y,unsigned char *pic)
       return(res);
 }
 
-
+*/
 string fix_atom_name(string s,int n,map<string,string> fix, 
 		     map<string,string> superatom, bool debug)
 {

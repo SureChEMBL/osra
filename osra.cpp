@@ -4444,6 +4444,7 @@ list < list < list<point_t> > > find_segments(Image image,double threshold,
      return explicit_clusters;
 }
 
+/*
 void remove_brackets(int left, int right, int top, int bottom,list < list < list<point_t> > >::iterator c)
 {
   vector < vector <bool> > tmp(right-left+1, vector<bool> (bottom-top+1,false));
@@ -4520,6 +4521,7 @@ void remove_brackets(int left, int right, int top, int bottom,list < list < list
       }
     }
 }
+*/
 
 int prune_clusters(list < list < list<point_t> > > clusters,vector<box_t> &boxes)
 {

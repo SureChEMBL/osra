@@ -119,7 +119,7 @@ double confidence_function(int C_Count,int N_Count,int O_Count,int F_Count,
 			   int num_rings,int num_aromatic,
 			   int num_fragments,vector<int> *Num_Rings, int num_double, int num_triple);
 
-bool detect_bracket(int x, int y,unsigned char *pic);
+//bool detect_bracket(int x, int y,unsigned char *pic);
 void unpaper(Magick::Image &picture);
 
 #define OSRA_VERSION "1.3.7"
