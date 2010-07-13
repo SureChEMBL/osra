@@ -343,7 +343,7 @@ string get_smiles(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, int &r
      else if (a->GetAtomicNum()==0) 
        {
 	 AliasData *ad;
-	 ad=(AliasData *) mol.GetData(OBGenericDataType::SetData);
+	 ad=(AliasData *) a->GetData(OBGenericDataType::SetData);
 	 if (ad!=NULL && ad->GetAlias()!="Xx")
 	   R_Count++;
        }

@@ -158,6 +158,7 @@ char get_atom_label(Magick::Image image, Magick::ColorGray bg, int x1, int y1, i
 	    }
 	}
 
+      // cout<<x2-x1<<" "<<y2-y1<<endl;
       /*      cout<<x1<<" "<<y1<<" "<<x2<<" "<<y2<<endl;           
       for (int i=0;i<job.src.p.y;i++)
 	{
@@ -181,7 +182,7 @@ char get_atom_label(Magick::Image image, Magick::ColorGray bg, int x1, int y1, i
 	    if (l!=NULL)  c1=l[0];
 	    job_free(&job);
 	    JOB=NULL;
-	    //cout<<"c1="<<c1<<endl;
+	    // cout<<"c1="<<c1<<endl;
 	  if (isalnum(c1)) c=c1;
 	  else
 	      {
@@ -193,7 +194,8 @@ char get_atom_label(Magick::Image image, Magick::ColorGray bg, int x1, int y1, i
 	      //cout<<"c2="<<c2<<endl;
 	      if (patern.find(c2,0)==string::npos) c2='_';
 	      if (isalnum(c2)) c=c2;
-	  /* else
+	      /*
+	  else
 		{
 		  struct OCRAD_Pixmap opix;
 		  opix.height = job.src.p.y;
@@ -218,8 +220,7 @@ char get_atom_label(Magick::Image image, Magick::ColorGray bg, int x1, int y1, i
 		  string patern=job.cfg.cfilter;
 		  if (patern.find(c2,0)==string::npos) c2='_';
 		  if (isalnum(c2)) c=c2;
-		    }*/
-	     /* else
+	     else
 	      {
 	        char c3=0;
 	        TessBaseAPI::InitWithLanguage(NULL, NULL,"eng", NULL, false, 0, NULL);
@@ -230,14 +231,18 @@ char get_atom_label(Magick::Image image, Magick::ColorGray bg, int x1, int y1, i
                 if (patern.find(c3,0)==string::npos) c3='_';
                 if (isalnum(c3)) c=c3;
               }*/
-	    }
+	      }
 
 
 	}
       //cout<<c<<endl;//<<"=========================="<<endl;
     }
   free(tmp);
- }  
+  if (c=='7' && (x2-x1<=10 || y2-y1<=20)) c=0;
+
+ }
+ 
+
   if (isalnum(c))
     {
       return (c);
