@@ -4739,7 +4739,7 @@ double confidence=0.316030
   +0.066810*O_Count
   +0.035674*F_Count
   +0.065504*S_Count
-  +0.02*Cl_Count
+  +0.04*Cl_Count
   +0.066811*Br_Count
   +0.01*R_Count
   -0.02*Xx_Count
