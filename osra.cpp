@@ -4739,19 +4739,14 @@ double confidence=0.316030
   +0.066810*O_Count
   +0.035674*F_Count
   +0.065504*S_Count
-  +0.198795*Cl_Count
+  +0.02*Cl_Count
   +0.066811*Br_Count
-  +0.1*R_Count
+  +0.01*R_Count
   -0.212739*num_rings
   +0.071300*num_aromatic
-  //+0.339289*(*Num_Rings)[3]
-  //+0.422291*(*Num_Rings)[4]
   +0.329922*(*Num_Rings)[5]
   +0.342865*(*Num_Rings)[6]
-  //+0.350747*(*Num_Rings)[7]
   -0.037796*num_fragments;
-  //  +0.001*num_double
-  //+0.002*num_triple;
  return(confidence);
 }
 
