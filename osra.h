@@ -115,7 +115,7 @@ Magick::Image anisotropic_scaling(Magick::Image image,int width,int height, int 
 char get_atom_label(Magick::Image image, Magick::ColorGray bg, int x1, int y1, int x2, int y2, double THRESHOLD, int dropx, int dropy);
 int getPixel(Magick::Image image, Magick::ColorGray bg,unsigned int x, unsigned int y, double THRESHOLD);
 double confidence_function(int C_Count,int N_Count,int O_Count,int F_Count,
-			   int S_Count,int Cl_Count,int Br_Count, int R_Count,
+			   int S_Count,int Cl_Count,int Br_Count, int R_Count,int Xx_Count,
 			   int num_rings,int num_aromatic,
 			   int num_fragments,vector<int> *Num_Rings, int num_double, int num_triple);
 

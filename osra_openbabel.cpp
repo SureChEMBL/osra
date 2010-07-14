@@ -155,6 +155,7 @@ int getAnum(string s, OBMol *mol,int *n, int *bondn,
   int isotope;
   int anum=etab.GetAtomicNum(s.c_str(),isotope);
   if (anum!=0) return(anum);
+  
   return(6);
 
 }
@@ -330,6 +331,7 @@ string get_smiles(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, int &r
  int Cl_Count=0;
  int Br_Count=0;
  int R_Count=0;
+ int Xx_Count=0;
  for (unsigned int i=1;i<=mol.NumAtoms();i++)
    {
      OBAtom *a=mol.GetAtom(i);
@@ -346,6 +348,8 @@ string get_smiles(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, int &r
 	 ad=(AliasData *) a->GetData(OBGenericDataType::SetData);
 	 if (ad!=NULL && ad->GetAlias()!="Xx")
 	   R_Count++;
+	 else
+	   Xx_Count++;
        }
    }
 
@@ -367,7 +371,7 @@ string get_smiles(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, int &r
  mol.ContigFragList(cfl);
  num_fragments=cfl.size();
 
- confidence=confidence_function(C_Count,N_Count,O_Count,F_Count,S_Count,Cl_Count,Br_Count,R_Count,
+ confidence=confidence_function(C_Count,N_Count,O_Count,F_Count,S_Count,Cl_Count,Br_Count,R_Count,Xx_Count,
 				num_rings,num_aromatic,num_fragments,&Num_Rings,num_double,num_triple);
 
  r56=Num_Rings[5]+Num_Rings[6];

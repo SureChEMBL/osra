@@ -4729,7 +4729,7 @@ void find_limits_on_avg_bond(double &min_bond, double &max_bond,
 }
 
 double confidence_function(int C_Count,int N_Count,int O_Count,int F_Count,
-			   int S_Count,int Cl_Count,int Br_Count, int R_Count,
+			   int S_Count,int Cl_Count,int Br_Count, int R_Count, int Xx_Count,
 			   int num_rings,int num_aromatic,
 			   int num_fragments,vector<int> *Num_Rings,int num_double, int num_triple)
 {
@@ -4742,6 +4742,7 @@ double confidence=0.316030
   +0.02*Cl_Count
   +0.066811*Br_Count
   +0.01*R_Count
+  -0.02*Xx_Count
   -0.212739*num_rings
   +0.071300*num_aromatic
   +0.329922*(*Num_Rings)[5]
