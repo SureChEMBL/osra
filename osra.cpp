@@ -5451,7 +5451,11 @@ int main(int argc,char **argv)
 
 		if (st != NULL)
 		  potrace_state_free(st);
-		if (bm!=NULL)	free(bm);
+		if (bm!=NULL)	
+		  {
+		    free(bm->map);
+		    free(bm);
+		  }
 	      }
 	    if (total_boxes>0) 
 	      array_of_confidence[res_iter]=total_confidence/total_boxes;

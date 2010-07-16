@@ -39,7 +39,7 @@ int abbreviation_to_mol(OBMol *mol,int *n,int *bondn,string smiles_superatom)
 {
   OBMol mol1;
   OBConversion conv;
-  OBAtom *atom,*a,*a1;
+  OBAtom *atom,*a1;
   OBBond *bond;
 
   conv.SetInFormat("SMI");
@@ -56,11 +56,12 @@ int abbreviation_to_mol(OBMol *mol,int *n,int *bondn,string smiles_superatom)
       atom=mol1.GetAtom(i);
       if (atom!=NULL)
 	{
-	  a=mol->CreateAtom();
+	  OBAtom *a=mol->CreateAtom();
 	  a->SetAtomicNum(atom->GetAtomicNum());
 	  a->SetFormalCharge(atom->GetFormalCharge());
 	  a->SetIdx(mol->NumAtoms()+1);
 	  mol->AddAtom(*a);
+	  delete a;
 	  (*n)++;
 	}
 
@@ -171,7 +172,6 @@ string get_smiles(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, int &r
 #pragma omp critical
  {
  OBMol mol;
- OBAtom *a,*b;
  string str;
  OBConversion conv;
  int n=1;
@@ -191,7 +191,6 @@ string get_smiles(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, int &r
        //       cout<<i<<endl;
        if (atom[bond[i].a].n==0)
 	 {
-	   a=mol.CreateAtom();
 	   int oldn=n;
 	   int oldbond=bondn;
 	   //	   cout<<i<<" "<<bond[i].a<<" "<<atom[bond[i].a].label<<endl;
@@ -203,11 +202,12 @@ string get_smiles(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, int &r
 	       bondB.push_back(oldbond);
 	       bondN.push_back(bondn);
 	       atom[bond[i].a].n=n-1;
-	       a=mol.GetAtom(n-1);
+	       OBAtom *a=mol.GetAtom(n-1);
 	       a->SetVector(atom[bond[i].a].x*scale,-atom[bond[i].a].y*scale,0);
 	     }
 	   else
 	     {
+	       OBAtom *a=mol.CreateAtom();
 	       a->SetAtomicNum(anum);
 	       if (atom[bond[i].a].charge!=0)
 		 a->SetFormalCharge(atom[bond[i].a].charge);
@@ -222,6 +222,7 @@ string get_smiles(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, int &r
 		 }
 
 	       mol.AddAtom(*a);
+	       delete a;
 	       atom[bond[i].a].n=n;
 	       n++;
 	     }
@@ -229,7 +230,7 @@ string get_smiles(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, int &r
 	 }
        if (atom[bond[i].b].n==0)
 	 {
-	   b=mol.CreateAtom();
+	   OBAtom *b=mol.CreateAtom();
 	   int oldn=n;
 	   int oldbond=bondn;
 	   anum=getAnum(atom[bond[i].b].label,&mol,&n,&bondn,superatom);
@@ -258,6 +259,7 @@ string get_smiles(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, int &r
 		   ad->Expand(mol, anum); //Make chemically meaningful, if possible.
 		 }
 	       mol.AddAtom(*b);
+	       delete b;
 	       atom[bond[i].b].n=n;
 	       n++;
 	     }
