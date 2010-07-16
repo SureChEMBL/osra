@@ -230,7 +230,6 @@ string get_smiles(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, int &r
 	 }
        if (atom[bond[i].b].n==0)
 	 {
-	   OBAtom *b=mol.CreateAtom();
 	   int oldn=n;
 	   int oldbond=bondn;
 	   anum=getAnum(atom[bond[i].b].label,&mol,&n,&bondn,superatom);
@@ -241,11 +240,12 @@ string get_smiles(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, int &r
 	       bondB.push_back(oldbond);
 	       bondN.push_back(bondn);
 	       atom[bond[i].b].n=n-1;
-	       b=mol.GetAtom(n-1);
+	       OBAtom *b=mol.GetAtom(n-1);
 	       b->SetVector(atom[bond[i].b].x*scale,-atom[bond[i].b].y*scale,0);
 	     }
 	   else
 	     {
+	       OBAtom *b=mol.CreateAtom();
 	       b->SetAtomicNum(anum);
 	       if (atom[bond[i].b].charge!=0)
 		 b->SetFormalCharge(atom[bond[i].b].charge);
