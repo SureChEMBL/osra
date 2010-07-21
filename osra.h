@@ -27,7 +27,7 @@
 #include <Magick++.h>
 
 extern "C" {
-#include "potracelib.h"
+#include <potracelib.h>
 }
 
 using namespace std;
@@ -37,7 +37,7 @@ struct atom_s {
 	string label;
 	int n;
 	int anum;
-	potrace_path_t *curve;
+	const potrace_path_t *curve;
 	bool exists, corner, terminal;
 	int charge;
 };
@@ -45,7 +45,7 @@ typedef struct atom_s atom_t;
 
 struct bond_s {
 	int a, b, type;
-	potrace_path_t *curve;
+	const potrace_path_t *curve;
 	bool exists;
 	bool hash;
 	bool wedge;
@@ -92,7 +92,7 @@ typedef struct lbond_s lbond_t;
 struct dash_s {
 	double x, y;
 	bool free;
-	potrace_path_t *curve;
+	const potrace_path_t *curve;
 	int area;
 };
 typedef struct dash_s dash_t;
@@ -103,27 +103,29 @@ struct fragment_s {
 };
 typedef struct fragment_s fragment_t;
 
-string fix_atom_name(string s, int n, map<string, string> fix, map<string, string> superatom, bool debug);
+const string fix_atom_name(const string &s, int n, const map<string, string> &fix,
+		const map<string, string> &superatom, bool debug);
 
-string get_smiles(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, int &rotors, double &confidence,
-		int &num_fragments, int &r56, double avg, string format, int resolution, bool conf, bool guess, bool showpage,
-		int page, map<string, string> superatom, bool showbond);
+const string get_smiles(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, int &rotors, double &confidence,
+		int &num_fragments, int &r56, double avg, const string &format, int resolution, bool conf, bool guess,
+		bool showpage, int page, const map<string, string> &superatom, bool showbond);
 
-Magick::Image anisotropic_smoothing(Magick::Image image, int width, int height, const float amplitude,
+Magick::Image anisotropic_smoothing(const Magick::Image &image, int width, int height, const float amplitude,
 		const float alpha, const float sigma);
 
-Magick::Image anisotropic_scaling(Magick::Image image, int width, int height, int nw, int nh);
+Magick::Image anisotropic_scaling(const Magick::Image &image, int width, int height, int nw, int nh);
 
-char get_atom_label(Magick::Image image, Magick::ColorGray bg, int x1, int y1, int x2, int y2, double THRESHOLD,
-		int dropx, int dropy);
+char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int x1, int y1, int x2, int y2,
+		double THRESHOLD, int dropx, int dropy);
 
-int getPixel(Magick::Image image, Magick::ColorGray bg, unsigned int x, unsigned int y, double THRESHOLD);
+int getPixel(const Magick::Image &image, const Magick::ColorGray &bg, unsigned int x, unsigned int y, double THRESHOLD);
 
 double confidence_function(int C_Count, int N_Count, int O_Count, int F_Count, int S_Count, int Cl_Count, int Br_Count,
-		int R_Count, int Xx_Count, int num_rings, int num_aromatic, int num_fragments, vector<int> *Num_Rings,
+		int R_Count, int Xx_Count, int num_rings, int num_aromatic, int num_fragments, const vector<int> &Num_Rings,
 		int num_double, int num_triple);
 
-//bool detect_bracket(int x, int y,unsigned char *pic);
+//bool detect_bracket(int x, int y, unsigned char *pic);
+
 void unpaper(Magick::Image &picture);
 
 #define OSRA_VERSION "1.3.7"

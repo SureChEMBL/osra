@@ -29,7 +29,7 @@ extern "C" {
 #include "pgm2asc.h"
 }
 
-#include "ocradlib.h"
+#include <ocradlib.h>
 
 //#include <tesseract/baseapi.h>
 
@@ -37,18 +37,18 @@ extern "C" {
 
 job_t *JOB;
 
-char get_atom_label(Magick::Image image, Magick::ColorGray bg, int x1, int y1, int x2, int y2, double THRESHOLD,
-		int dropx, int dropy) {
+char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int x1, int y1, int x2, int y2,
+		double THRESHOLD, int dropx, int dropy) {
 	char c = 0;
 #pragma omp critical
 	{
 		char c1 = 0;
-		unsigned char* tmp;
+		unsigned char *tmp;
 		job_t job;
 		double f = 1.;
 
 		job_init(&job);
-		job.cfg.cfilter = "oOcCnNHFsSBuUgMeEXYZRPp23456789";
+		job.cfg.cfilter = (char *) "oOcCnNHFsSBuUgMeEXYZRPp23456789";
 
 		//job.cfg.cs = 160;
 		//job.cfg.certainty = 80;
@@ -63,8 +63,8 @@ char get_atom_label(Magick::Image image, Magick::ColorGray bg, int x1, int y1, i
 
 		int height = job.src.p.y;
 		int width = job.src.p.x;
-		struct OCRAD_Pixmap* opix = new OCRAD_Pixmap();
-		unsigned char* bitmap_data = (unsigned char*) malloc(width * height);
+		struct OCRAD_Pixmap *opix = new OCRAD_Pixmap();
+		unsigned char *bitmap_data = (unsigned char *) malloc(width * height);
 		memset(bitmap_data, 0, width * height);
 		opix->height = height;
 		opix->width = width;
@@ -228,7 +228,7 @@ bool detect_bracket(int x, int y, unsigned char *pic) {
 	job_t job;
 	JOB = &job;
 	job_init(&job);
-	job.cfg.cfilter = "([{";
+	job.cfg.cfilter = (char *) "([{";
 
 	//job.cfg.cs = 160;
 	//job.cfg.certainty = 80;
@@ -281,14 +281,16 @@ bool detect_bracket(int x, int y, unsigned char *pic) {
 }
 */
 
-string fix_atom_name(string s, int n, map<string, string> fix, map<string, string> superatom, bool debug) {
+const string fix_atom_name(const string &s, int n, const map<string, string> &fix,
+		const map<string, string> &superatom, bool debug) {
 	string r = s;
+
 	if (s.length() == 1)
 		r = toupper(s.at(0));
 	if (s == "H" && n > 1)
 		r = "N";
 
-	map<string, string>::iterator it = fix.find(s);
+	map<string, string>::const_iterator it = fix.find(s);
 	string mapped = " ";
 	if (it != fix.end()) {
 		r = it->second;
@@ -305,4 +307,3 @@ string fix_atom_name(string s, int n, map<string, string> fix, map<string, strin
 
 	return (r);
 }
-

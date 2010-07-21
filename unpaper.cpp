@@ -1856,7 +1856,7 @@ void floodFill(int x, int y, int color, int maskMin, int maskMax, int intensity,
 /**
  * Tests if a file exists.
  */
-BOOLEAN fileExists(char* filename) {
+BOOLEAN fileExists(const char* filename) {
     FILE *f;
     f = fopen(filename,"r");
     if (f == NULL) {
@@ -2042,7 +2042,7 @@ BOOLEAN loadImage(char* filename, struct IMAGE* image, int* type) {
  * @param blackThreshold threshold for grayscale-to-black&white conversion
  * @return TRUE on success, FALSE on failure
  */
-BOOLEAN saveImage(char* filename, struct IMAGE* image, int type, BOOLEAN overwrite, float blackThreshold) {
+BOOLEAN saveImage(const char* filename, struct IMAGE* image, int type, BOOLEAN overwrite, float blackThreshold) {
     unsigned char* buf;
     int bytesPerLine;
     int inputSize;
@@ -2057,7 +2057,7 @@ BOOLEAN saveImage(char* filename, struct IMAGE* image, int type, BOOLEAN overwri
     int off;
     unsigned char bit;
     unsigned char val;
-    char* outputMagic;
+    const char* outputMagic;
     FILE* outputFile;
     int blackThresholdAbs;
     BOOLEAN result;
@@ -2149,7 +2149,7 @@ BOOLEAN saveImage(char* filename, struct IMAGE* image, int type, BOOLEAN overwri
 /**
  * Saves the image if full debugging mode is enabled.
  */
-void saveDebug(char* filename, struct IMAGE* image) {
+void saveDebug(const char* filename, struct IMAGE* image) {
     int type;
     
     if (verbose >= VERBOSE_DEBUG_SAVE) {
@@ -3449,9 +3449,9 @@ int unpaper(Magick::Image &picture) {
     int startOutput;
     int inputCount;
     int outputCount;
-    char* inputFileSequence[MAX_FILES];
+    const char* inputFileSequence[MAX_FILES];
     int inputFileSequenceCount;
-    char* outputFileSequence[MAX_FILES];
+    const char* outputFileSequence[MAX_FILES];
     int outputFileSequenceCount;
     int sheetSize[DIMENSIONS_COUNT];
     int sheetBackground;
@@ -3564,16 +3564,10 @@ int unpaper(Magick::Image &picture) {
     int dpi;
     
     // --- local variables ---
-    int x;
-    int y;
     int w;
     int h;
-    int left;
-    int top;
-    int right;
-    int bottom;
     int i;
-    int j;
+    int j = 0;
     int previousWidth;
     int previousHeight;
     int previousBitdepth;
@@ -3581,19 +3575,12 @@ int unpaper(Magick::Image &picture) {
     int inputFileSequencePos; // index 'looping' through input-file-seq (without additionally inserted blank images)
     int outputFileSequencePos; // index 'looping' through output-file-seq
     int inputFileSequencePosTotal; // index 'looping' through input-file-seq (with additional blank images)
-    char inputFilenamesResolvedBuffer[MAX_PAGES][255]; // count: inputCount
-    char outputFilenamesResolvedBuffer[MAX_PAGES][255]; // count: outputCount;
-    char* inputFilenamesResolved[MAX_PAGES];
-    char* outputFilenamesResolved[MAX_PAGES];
-    char s1[1023]; // buffers for result of implode()
-    char s2[1023];
-    char debugFilename[100];
     struct IMAGE sheet;
     struct IMAGE sheetBackup;
     struct IMAGE originalSheet;
     struct IMAGE qpixelSheet;
     struct IMAGE page;
-    char* layoutStr;
+    const char* layoutStr;
     char* inputTypeName; 
     char* inputTypeNames[MAX_PAGES];
     int inputType;
@@ -3607,10 +3594,9 @@ int unpaper(Magick::Image &picture) {
     int bd;
     BOOLEAN col;
     BOOLEAN success;
-    BOOLEAN done;
     BOOLEAN anyWildcards;
     BOOLEAN allInputFilesMissing;
-    int nr;
+    int nr = 0;
     int inputNr;
     int outputNr;
     BOOLEAN first;
@@ -3619,8 +3605,6 @@ int unpaper(Magick::Image &picture) {
     clock_t time;
     unsigned long int totalTime;
     int totalCount;
-    BOOLEAN ins;
-    BOOLEAN repl;
     int blankCount;
     int exitCode;
 

@@ -41,7 +41,7 @@
 #include <CmdLine.h>
 
 extern "C" {
-#include "potracelib.h"
+#include <potracelib.h>
 #include "pgm2asc.h"
 }
 
@@ -89,7 +89,7 @@ double distance(double x1, double y1, double x2, double y2) {
 	return (sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2)));
 }
 
-double atom_distance(vector<atom_t> &atom, int a, int b) {
+double atom_distance(const vector<atom_t> &atom, int a, int b) {
 	return (distance(atom[a].x, atom[a].y, atom[b].x, atom[b].y));
 }
 
@@ -141,7 +141,7 @@ void collapse_doubleup_bonds(vector<bond_t> &bond, int n_bond) {
 				}
 }
 
-int getPixel(Image image, ColorGray bg, unsigned int x, unsigned int y, double THRESHOLD) {
+int getPixel(const Image &image, const ColorGray &bg, unsigned int x, unsigned int y, double THRESHOLD) {
 	if ((x < image.columns()) && (y < image.rows())) {
 		ColorGray c = image.pixelColor(x, y);
 		if (fabs(c.shade() - bg.shade()) > THRESHOLD)
@@ -150,7 +150,8 @@ int getPixel(Image image, ColorGray bg, unsigned int x, unsigned int y, double T
 	return (0);
 }
 
-void delete_curve(vector<atom_t> &atom, vector<bond_t> &bond, int n_atom, int n_bond, potrace_path_t *curve) {
+void delete_curve(vector<atom_t> &atom, vector<bond_t> &bond, int n_atom, int n_bond,
+		const potrace_path_t * const curve) {
 	for (int i = 0; i < n_atom; i++) {
 		if (atom[i].curve == curve) {
 			atom[i].exists = false;
@@ -163,7 +164,8 @@ void delete_curve(vector<atom_t> &atom, vector<bond_t> &bond, int n_atom, int n_
 	}
 }
 
-void delete_curve_with_children(vector<atom_t> &atom, vector<bond_t> &bond, int n_atom, int n_bond, potrace_path_t *p) {
+void delete_curve_with_children(vector<atom_t> &atom, vector<bond_t> &bond, int n_atom, int n_bond,
+		const potrace_path_t * const p) {
 	delete_curve(atom, bond, n_atom, n_bond, p);
 	potrace_path_t *child = p->childlist;
 	while (child != NULL) {
@@ -181,12 +183,12 @@ void delete_bonds_in_char(vector<bond_t> &bond, int n_bond, vector<atom_t> &atom
 			bond[j].exists = false;
 }
 
-double angle_between_bonds(vector<bond_t> &bond, int i, int j, vector<atom_t> &atom) {
+double angle_between_bonds(const vector<bond_t> &bond, int i, int j, const vector<atom_t> &atom) {
 	return (angle4(atom[bond[i].a].x, atom[bond[i].a].y, atom[bond[i].b].x, atom[bond[i].b].y, atom[bond[j].a].x,
 			atom[bond[j].a].y, atom[bond[j].b].x, atom[bond[j].b].y));
 }
 
-double bond_length(vector<bond_t> &bond, int i, vector<atom_t> &atom) {
+double bond_length(const vector<bond_t> &bond, int i, const vector<atom_t> &atom) {
 	return (distance(atom[bond[i].a].x, atom[bond[i].a].y, atom[bond[i].b].x, atom[bond[i].b].y));
 }
 
@@ -198,7 +200,7 @@ double distance_from_bond_y(double x0, double y0, double x1, double y1, double x
 	return (h);
 }
 
-double distance_between_bonds(vector<bond_t> &bond, int i, int j, vector<atom_t> &atom) {
+double distance_between_bonds(const vector<bond_t> &bond, int i, int j, const vector<atom_t> &atom) {
 	/*
 	double y1 = distance_from_bond_y(atom[bond[j].a].x, atom[bond[j].a].y, atom[bond[j].b].x, atom[bond[j].b].y,
 			atom[bond[i].a].x, atom[bond[i].a].y);
@@ -240,7 +242,7 @@ void bond_end_swap(vector<bond_t> &bond, int i) {
 	bond[i].b = t;
 }
 
-bool bonds_within_each_other(vector<bond_t> &bond, int ii, int jj, vector<atom_t> &atom) {
+bool bonds_within_each_other(const vector<bond_t> &bond, int ii, int jj, const vector<atom_t> &atom) {
 	int i, j;
 	bool res = false;
 
@@ -266,7 +268,7 @@ bool bonds_within_each_other(vector<bond_t> &bond, int ii, int jj, vector<atom_t
 	return (res);
 }
 
-double percentile75(vector<bond_t> &bond, int n_bond, vector<atom_t> &atom) {
+double percentile75(const vector<bond_t> &bond, int n_bond, const vector<atom_t> &atom) {
 	vector<double> a;
 	int n = 0;
 
@@ -283,9 +285,9 @@ double percentile75(vector<bond_t> &bond, int n_bond, vector<atom_t> &atom) {
 		return (10.0);
 }
 
-bool alone(vector<bond_t> &bond, int i, double avg) {
+bool alone(const vector<bond_t> &bond, int i, double avg) {
 	bool alone = false;
-	potrace_path_t *p = bond[i].curve;
+	const potrace_path_t * const p = bond[i].curve;
 
 	if ((p->sign == int('+')) && (p->area < 2 * avg))
 		alone = true;
@@ -293,8 +295,8 @@ bool alone(vector<bond_t> &bond, int i, double avg) {
 	return (alone);
 }
 
-bool no_white_space(int ai, int bi, int aj, int bj, vector<atom_t> &atom, Image image, double threshold,
-		ColorGray bgColor) {
+bool no_white_space(int ai, int bi, int aj, int bj, const vector<atom_t> &atom, const Image &image, double threshold,
+		const ColorGray &bgColor) {
 	vector<double> xx(4);
 	double dx1 = atom[bi].x - atom[ai].x;
 	double dy1 = atom[bi].y - atom[ai].y;
@@ -374,8 +376,8 @@ bool no_white_space(int ai, int bi, int aj, int bj, vector<atom_t> &atom, Image 
 
 }
 
-double skeletize(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, Image image, double threshold,
-		ColorGray bgColor, double dist, double avg) {
+double skeletize(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, const Image &image, double threshold,
+		const ColorGray &bgColor, double dist, double avg) {
 	double thickness = 0;
 	vector<double> a;
 	int n = 0;
@@ -495,7 +497,7 @@ double skeletize(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, Image i
 	return (thickness);
 }
 
-double dist_double_bonds(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, double avg) {
+double dist_double_bonds(const vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, double avg) {
 	vector<double> a;
 	int n = 0;
 	double max_dist_double_bond = 0;
@@ -709,7 +711,7 @@ int double_triple_bonds(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, 
 	return (n_bond);
 }
 
-bool chlorine(vector<bond_t> &bond, vector<atom_t> &atom, int i, vector<letters_t> &letters, int n_letters,
+bool chlorine(const vector<bond_t> &bond, const vector<atom_t> &atom, int i, vector<letters_t> &letters, int n_letters,
 		int max_font_height, int min_font_height) {
 	bool res = false;
 	double x = (atom[bond[i].a].x + atom[bond[i].b].x) / 2;
@@ -728,7 +730,7 @@ bool chlorine(vector<bond_t> &bond, vector<atom_t> &atom, int i, vector<letters_
 	return (res);
 }
 
-int remove_small_bonds(vector<bond_t> &bond, int n_bond, vector<atom_t> &atom, vector<letters_t> &letters,
+int remove_small_bonds(vector<bond_t> &bond, int n_bond, const vector<atom_t> &atom, vector<letters_t> &letters,
 		int n_letters, int max_font_height, int min_font_height, double avg) {
 	for (int i = 0; i < n_bond; i++)
 		if ((bond[i].exists) && (bond[i].type == 1)) {
@@ -768,7 +770,7 @@ bool comp_letters(const letters_t &left, const letters_t &right) {
 	return (false);
 }
 
-bool terminal_bond(int a, int b, vector<bond_t> &bond, int n_bond) {
+bool terminal_bond(int a, int b, const vector<bond_t> &bond, int n_bond) {
 	bool terminal = true;
 
 	for (int l = 0; l < n_bond; l++)
@@ -975,8 +977,8 @@ int assemble_labels(vector<letters_t> &letters, int n_letters, vector<label_t> &
 	return (n_label);
 }
 
-void extend_terminal_bond_to_label(vector<atom_t> &atom, vector<letters_t> &letters, int n_letters,
-		vector<bond_t> &bond, int n_bond, vector<label_t> &label, int n_label, double avg, double maxh,
+void extend_terminal_bond_to_label(vector<atom_t> &atom, const vector<letters_t> &letters, int n_letters, const vector<
+		bond_t> &bond, int n_bond, const vector<label_t> &label, int n_label, double avg, double maxh,
 		double max_dist_double_bond) {
 	for (int j = 0; j < n_bond; j++)
 		if (bond[j].exists) {
@@ -1208,8 +1210,8 @@ void extend_terminal_bond_to_bonds(vector<atom_t> &atom, vector<bond_t> &bond, i
 	}
 }
 
-void assign_charge(vector<atom_t> &atom, vector<bond_t> &bond, int n_atom, int n_bond, map<string, string> fix, map<
-		string, string> superatom, bool debug) {
+void assign_charge(vector<atom_t> &atom, vector<bond_t> &bond, int n_atom, int n_bond, const map<string, string> &fix,
+		const map<string, string> &superatom, bool debug) {
 	for (int j = 0; j < n_bond; j++)
 		if (bond[j].exists && (!atom[bond[j].a].exists || !atom[bond[j].b].exists))
 			bond[j].exists = false;
@@ -1250,7 +1252,7 @@ void assign_charge(vector<atom_t> &atom, vector<bond_t> &bond, int n_atom, int n
 		}
 }
 
-Color getBgColor(Image image, bool inv) {
+const Color getBgColor(const Image &image, bool inv) {
 	ColorGray c, r;
 	r = image.pixelColor(1, 1);
 
@@ -1267,7 +1269,8 @@ Color getBgColor(Image image, bool inv) {
 	return (r);
 }
 
-void debug_img(Image image, vector<atom_t> &atom, int n_atom, vector<bond_t> &bond, int n_bond, string fname) {
+void debug_img(Image &image, const vector<atom_t> &atom, int n_atom, const vector<bond_t> &bond, int n_bond,
+		const string &fname) {
 	image.modifyImage();
 	image.type(TrueColorType);
 	image.strokeWidth(1);
@@ -1303,21 +1306,21 @@ void debug_img(Image image, vector<atom_t> &atom, int n_atom, vector<bond_t> &bo
 	image.write(fname);
 }
 
-void draw_square(Image *image, int x1, int y1, int x2, int y2, string color) {
-	image->strokeWidth(1);
-	image->strokeColor(color);
-	image->draw(DrawableLine(x1, y1, x2, y1));
-	image->draw(DrawableLine(x1, y2, x2, y2));
-	image->draw(DrawableLine(x1, y1, x1, y2));
-	image->draw(DrawableLine(x2, y1, x2, y2));
+void draw_square(Image &image, int x1, int y1, int x2, int y2, const string &color) {
+	image.strokeWidth(1);
+	image.strokeColor(color);
+	image.draw(DrawableLine(x1, y1, x2, y1));
+	image.draw(DrawableLine(x1, y2, x2, y2));
+	image.draw(DrawableLine(x1, y1, x1, y2));
+	image.draw(DrawableLine(x2, y1, x2, y2));
 }
 
-void draw_box(Image image, vector<box_t> &boxes, int n_boxes, string fname) {
+void draw_box(Image &image, vector<box_t> &boxes, int n_boxes, const string &fname) {
 	image.modifyImage();
 	image.type(TrueColorType);
 
 	for (int i = 0; i < n_boxes; i++) {
-		draw_square(&image, boxes[i].x1, boxes[i].y1, boxes[i].x2, boxes[i].y2, "green");
+		draw_square(image, boxes[i].x1, boxes[i].y1, boxes[i].x2, boxes[i].y2, "green");
 	}
 	image.write(fname);
 }
@@ -1330,7 +1333,7 @@ int next_atom(int cur, int begin, int total) {
 	return (n);
 }
 
-bool dir_change(int n, int last, int begin, int total, vector<atom_t> &atom) {
+bool dir_change(int n, int last, int begin, int total, const vector<atom_t> &atom) {
 	int m = next_atom(n, begin, total);
 	while (distance(atom[m].x, atom[m].y, atom[n].x, atom[n].y) < V_DISPLACEMENT && m != n)
 		m = next_atom(m, begin, total);
@@ -1342,7 +1345,7 @@ bool dir_change(int n, int last, int begin, int total, vector<atom_t> &atom) {
 	return (false);
 }
 
-bool smaller_distance(int n, int last, int begin, int total, vector<atom_t> &atom) {
+bool smaller_distance(int n, int last, int begin, int total, const vector<atom_t> &atom) {
 	int m = next_atom(n, begin, total);
 	double d1 = distance(atom[n].x, atom[n].y, atom[last].x, atom[last].y);
 	double d2 = distance(atom[m].x, atom[m].y, atom[last].x, atom[last].y);
@@ -1352,7 +1355,8 @@ bool smaller_distance(int n, int last, int begin, int total, vector<atom_t> &ato
 	return (false);
 }
 
-int find_bonds(vector<atom_t> &atom, vector<bond_t> &bond, int b_atom, int n_atom, int n_bond, potrace_path_t * p) {
+int find_bonds(vector<atom_t> &atom, vector<bond_t> &bond, int b_atom, int n_atom, int n_bond,
+		const potrace_path_t * const p) {
 	int i = b_atom + 1;
 	int last = b_atom;
 
@@ -1400,9 +1404,9 @@ int find_bonds(vector<atom_t> &atom, vector<bond_t> &bond, int b_atom, int n_ato
 	return (n_bond);
 }
 
-int find_chars(potrace_path_t *p, Image orig, vector<letters_t> &letters, vector<atom_t> &atom, vector<bond_t> &bond,
-		int n_atom, int n_bond, int height, int width, ColorGray bgColor, double THRESHOLD, int max_font_width,
-		int max_font_height, int &real_font_width, int &real_font_height) {
+int find_chars(const potrace_path_t * p, const Image &orig, vector<letters_t> &letters, vector<atom_t> &atom, vector<
+		bond_t> &bond, int n_atom, int n_bond, int height, int width, ColorGray &bgColor, double THRESHOLD,
+		int max_font_width, int max_font_height, int &real_font_width, int &real_font_height) {
 	int n, *tag, n_letters = 0;
 	potrace_dpoint_t (*c)[3];
 	real_font_width = 0;
@@ -1654,7 +1658,7 @@ int find_chars(potrace_path_t *p, Image orig, vector<letters_t> &letters, vector
 	return (n_letters);
 }
 
-int find_atoms(potrace_path_t *p, vector<atom_t> &atom, vector<bond_t> &bond, int *n_bond) {
+int find_atoms(const potrace_path_t *p, vector<atom_t> &atom, vector<bond_t> &bond, int *n_bond) {
 	int *tag, n_atom = 0;
 	potrace_dpoint_t (*c)[3];
 	long n;
@@ -1753,19 +1757,19 @@ int find_atoms(potrace_path_t *p, vector<atom_t> &atom, vector<bond_t> &bond, in
 	return (n_atom);
 }
 
-int count_pages(string input) {
+int count_pages(const string &input) {
 	list<Image> imageList;
 	readImages(&imageList, input);
 	return (imageList.size());
 }
 
-string image_type(string input) {
+string image_type(const string &input) {
 	Image image;
 	image.ping(input);
 	return (image.magick());
 }
 
-int count_atoms(vector<atom_t> &atom, int n_atom) {
+int count_atoms(const vector<atom_t> &atom, int n_atom) {
 	int r = 0;
 	for (int i = 0; i < n_atom; i++)
 		if (atom[i].exists)
@@ -1773,7 +1777,7 @@ int count_atoms(vector<atom_t> &atom, int n_atom) {
 	return (r);
 }
 
-int count_bonds(vector<bond_t> &bond, int n_bond) {
+int count_bonds(const vector<bond_t> &bond, int n_bond) {
 	int r = 0;
 	for (int i = 0; i < n_bond; i++)
 		if (bond[i].exists)
@@ -1822,7 +1826,7 @@ static unsigned char todelete[512] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 		0, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1,
 		1, 1, 1, 1 };
 
-void thin1(unsigned char *ptr, unsigned int xsize, unsigned int ysize) {
+void thin1(unsigned char * const ptr, unsigned int xsize, unsigned int ysize) {
 	unsigned char *y_ptr, *y1_ptr;
 	unsigned char bg_color = 0, colour = 1;
 	unsigned int x, y; /* Pixel location               */
@@ -1894,7 +1898,7 @@ void thin1(unsigned char *ptr, unsigned int xsize, unsigned int ysize) {
 	free(qb);
 }
 
-Image thin_image(Image box, double THRESHOLD_BOND, ColorGray bgColor) {
+Image thin_image(const Image &box, double THRESHOLD_BOND, const ColorGray &bgColor) {
 	Image image(Geometry(box.columns(), box.rows()), "white");
 	image.type(GrayscaleType);
 	unsigned int xsize = box.columns();
@@ -1954,16 +1958,16 @@ void extend_dashed_bond(int a, int b, int n, vector<atom_t> &atom) {
 	atom[b].y = ky * l / (n - 1) + y1;
 }
 
-int count_area(vector<vector<int> > *box, double &x0, double &y0) {
+int count_area(vector<vector<int> > &box, double &x0, double &y0) {
 	int a = 0;
-	int w = (*box).size();
-	int h = (*box)[0].size();
+	int w = box.size();
+	int h = box[0].size();
 	int x = int(x0);
 	int y = int(y0);
 	int xm = 0, ym = 0;
 
-	if ((*box)[x][y] == 1) {
-		(*box)[x][y] = 2;
+	if (box[x][y] == 1) {
+		box[x][y] = 2;
 		list<int> cx;
 		list<int> cy;
 		cx.push_back(x);
@@ -1973,16 +1977,16 @@ int count_area(vector<vector<int> > *box, double &x0, double &y0) {
 			y = cy.front();
 			cx.pop_front();
 			cy.pop_front();
-			(*box)[x][y] = 0;
+			box[x][y] = 0;
 			a++;
 			xm += x;
 			ym += y;
 			for (int i = x - 1; i < x + 2; i++)
 				for (int j = y - 1; j < y + 2; j++)
-					if (i < w && j < h && i >= 0 && j >= 0 && (*box)[i][j] == 1) {
+					if (i < w && j < h && i >= 0 && j >= 0 && box[i][j] == 1) {
 						cx.push_back(i);
 						cy.push_back(j);
-						(*box)[i][j] = 2;
+						box[i][j] = 2;
 					}
 		}
 	} else
@@ -1994,8 +1998,8 @@ int count_area(vector<vector<int> > *box, double &x0, double &y0) {
 	return (a);
 }
 
-int find_dashed_bonds(potrace_path_t *p, vector<atom_t> &atom, vector<bond_t> &bond, int n_atom, int *n_bond, int max,
-		double avg, Image img, ColorGray bg, double THRESHOLD, bool thick, double dist) {
+int find_dashed_bonds(const potrace_path_t *p, vector<atom_t> &atom, vector<bond_t> &bond, int n_atom, int *n_bond,
+		int max, double avg, const Image &img, const ColorGray &bg, double THRESHOLD, bool thick, double dist) {
 	int n, n_dot = 0;
 	potrace_dpoint_t (*c)[3];
 	dash_t dot[100];
@@ -2075,7 +2079,7 @@ int find_dashed_bonds(potrace_path_t *p, vector<atom_t> &atom, vector<bond_t> &b
 			dot[n_dot].x /= tot;
 			dot[n_dot].y /= tot;
 			if (thick)
-				dot[n_dot].area = count_area(&box, dot[n_dot].x, dot[n_dot].y);
+				dot[n_dot].area = count_area(box, dot[n_dot].x, dot[n_dot].y);
 			else
 				dot[n_dot].area = p->area;
 			if (distance(l, t, r, b) < avg / 3)
@@ -2239,7 +2243,7 @@ int find_dashed_bonds(potrace_path_t *p, vector<atom_t> &atom, vector<bond_t> &b
 	return (n_atom);
 }
 
-int find_small_bonds(potrace_path_t *p, vector<atom_t> &atom, vector<bond_t> &bond, int n_atom, int *n_bond,
+int find_small_bonds(const potrace_path_t *p, vector<atom_t> &atom, vector<bond_t> &bond, int n_atom, int *n_bond,
 		double max_area, double Small, double thickness) {
 	while (p != NULL) {
 		if ((p->sign == int('+')) && (p->area <= max_area)) {
@@ -2338,7 +2342,7 @@ int find_small_bonds(potrace_path_t *p, vector<atom_t> &atom, vector<bond_t> &bo
 }
 
 int resolve_bridge_bonds(vector<atom_t> &atom, int n_atom, vector<bond_t> &bond, int n_bond, double thickness,
-		double avg, map<string, string> superatom) {
+		double avg, const map<string, string> &superatom) {
 	int rotors1, rotors2, f1, f2, rings1, rings2;
 	double confidence;
 	string smiles1 = get_smiles(atom, bond, n_bond, rotors1, confidence, f1, rings1, avg, "empty", 0, false, false,
@@ -2464,7 +2468,7 @@ void collapse_atoms(vector<atom_t> &atom, vector<bond_t> &bond, int n_atom, int 
 	}
 }
 
-void collapse_bonds(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, double dist) {
+void collapse_bonds(vector<atom_t> &atom, const vector<bond_t> &bond, int n_bond, double dist) {
 	for (int i = 0; i < n_bond; i++)
 		if (bond[i].exists && bond_length(bond, i, atom) < dist) {
 			atom[bond[i].a].x = (atom[bond[i].a].x + atom[bond[i].b].x) / 2;
@@ -2474,7 +2478,7 @@ void collapse_bonds(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, doub
 		}
 }
 
-int fix_one_sided_bonds(vector<bond_t> &bond, int n_bond, vector<atom_t> &atom, double thickness, double avg) {
+int fix_one_sided_bonds(vector<bond_t> &bond, int n_bond, const vector<atom_t> &atom, double thickness, double avg) {
 	double l;
 
 	for (int i = 0; i < n_bond; i++)
@@ -2567,8 +2571,8 @@ int fix_one_sided_bonds(vector<bond_t> &bond, int n_bond, vector<atom_t> &atom, 
 }
 
 int find_fused_chars(vector<bond_t> &bond, int n_bond, vector<atom_t> &atom, vector<letters_t> &letters, int n_letters,
-		int max_font_height, int max_font_width, char dummy, Image orig, ColorGray bgColor, double THRESHOLD,
-		unsigned int size) {
+		int max_font_height, int max_font_width, char dummy, const Image &orig, const ColorGray &bgColor,
+		double THRESHOLD, unsigned int size) {
 	double dist = max(max_font_width, max_font_height);
 
 	for (int i = 0; i < n_bond; i++)
@@ -2693,8 +2697,8 @@ bool comp_boxes(const box_t &aa, const box_t &bb) {
 	return (false);
 }
 
-double noise_factor(Image image, int width, int height, ColorGray bgColor, double THRESHOLD_BOND, int resolution,
-		int &max) {
+double noise_factor(const Image &image, int width, int height, const ColorGray &bgColor, double THRESHOLD_BOND,
+		int resolution, int &max) {
 	int max_thick = 20;
 	vector<double> n(max_thick, 0);
 	double nf;
@@ -2745,7 +2749,7 @@ double noise_factor(Image image, int width, int height, ColorGray bgColor, doubl
 	return (nf);
 }
 
-int thickness_hor(Image image, int x1, int y1, ColorGray bgColor, double THRESHOLD_BOND) {
+int thickness_hor(const Image &image, int x1, int y1, const ColorGray &bgColor, double THRESHOLD_BOND) {
 	int i = 0, s = 0, w = 0;
 	int width = image.columns();
 	s = getPixel(image, bgColor, x1, y1, THRESHOLD_BOND);
@@ -2771,7 +2775,7 @@ int thickness_hor(Image image, int x1, int y1, ColorGray bgColor, double THRESHO
 	return (w);
 }
 
-int thickness_ver(Image image, int x1, int y1, ColorGray bgColor, double THRESHOLD_BOND) {
+int thickness_ver(const Image &image, int x1, int y1, const ColorGray &bgColor, double THRESHOLD_BOND) {
 	int i = 0, s = 0, w = 0;
 	int height = image.rows();
 	s = getPixel(image, bgColor, x1, y1, THRESHOLD_BOND);
@@ -2797,8 +2801,9 @@ int thickness_ver(Image image, int x1, int y1, ColorGray bgColor, double THRESHO
 	return (w);
 }
 
-double find_wedge_bonds(Image image, vector<atom_t> &atom, int n_atom, vector<bond_t> &bond, int n_bond,
-		ColorGray bgColor, double THRESHOLD_BOND, double max_dist_double_bond, double avg, int limit, int dist = 0) {
+double find_wedge_bonds(const Image &image, vector<atom_t> &atom, int n_atom, vector<bond_t> &bond, int n_bond,
+		const ColorGray &bgColor, double THRESHOLD_BOND, double max_dist_double_bond, double avg, int limit, int dist =
+				0) {
 	double l;
 	vector<double> a;
 	int n = 0;
@@ -3049,7 +3054,7 @@ void find_up_down_bonds(vector<bond_t> &bond, int n_bond, vector<atom_t> &atom, 
 		}
 }
 
-bool detect_curve(vector<bond_t> &bond, int n_bond, potrace_path_t *curve) {
+bool detect_curve(vector<bond_t> &bond, int n_bond, const potrace_path_t * const curve) {
 	bool res = false;
 	for (int i = 0; i < n_bond; i++)
 		if (bond[i].exists && bond[i].curve == curve && bond[i].type == 1 && !bond[i].wedge && !bond[i].hash)
@@ -3057,7 +3062,7 @@ bool detect_curve(vector<bond_t> &bond, int n_bond, potrace_path_t *curve) {
 	return (res);
 }
 
-int find_plus_minus(potrace_path_t *p, vector<letters_t> &letters, vector<atom_t> &atom, vector<bond_t> &bond,
+int find_plus_minus(const potrace_path_t *p, vector<letters_t> &letters, vector<atom_t> &atom, vector<bond_t> &bond,
 		int n_atom, int n_bond, int height, int width, int max_font_height, int max_font_width, int n_letters) {
 	int n, *tag;
 	potrace_dpoint_t (*c)[3];
@@ -3203,9 +3208,9 @@ int find_plus_minus(potrace_path_t *p, vector<letters_t> &letters, vector<atom_t
 	return (n_letters);
 }
 
-void find_old_aromatic_bonds(potrace_path_t *p, vector<bond_t> &bond, int n_bond, vector<atom_t> &atom, int n_atom,
-		double avg) {
-	potrace_path_t *p1 = p;
+void find_old_aromatic_bonds(const potrace_path_t *p, vector<bond_t> &bond, int n_bond, vector<atom_t> &atom,
+		int n_atom, double avg) {
+	const potrace_path_t *p1 = p;
 
 	for (int i = 0; i < n_bond; i++)
 		if (bond[i].exists)
@@ -3409,7 +3414,7 @@ void flatten_bonds(vector<bond_t> &bond, int n_bond, vector<atom_t> &atom, doubl
 	}
 }
 
-int clean_unrecognized_characters(vector<bond_t> &bond, int n_bond, vector<atom_t> &atom, int real_font_height,
+int clean_unrecognized_characters(vector<bond_t> &bond, int n_bond, const vector<atom_t> &atom, int real_font_height,
 		int real_font_width, unsigned int size, vector<letters_t> &letters, int n_letters) {
 	vector<int> all_bonds(n_bond, 0);
 
@@ -3535,7 +3540,7 @@ void remove_small_terminal_bonds(vector<bond_t> &bond, int n_bond, vector<atom_t
 	}
 }
 
-void mark_terminal_atoms(vector<bond_t> &bond, int n_bond, vector<atom_t> &atom, int n_atom) {
+void mark_terminal_atoms(const vector<bond_t> &bond, int n_bond, vector<atom_t> &atom, int n_atom) {
 	for (int i = 0; i < n_atom; i++)
 		atom[i].terminal = false;
 
@@ -3548,7 +3553,11 @@ void mark_terminal_atoms(vector<bond_t> &bond, int n_bond, vector<atom_t> &atom,
 		}
 }
 
-vector<vector<int> > find_fragments(vector<bond_t> &bond, int n_bond, vector<atom_t> &atom) {
+/**
+ * TODO: Returning the vector from the stack causes copy constructor to trigger, which is inefficient.
+ * Consider passing the vector as a reference.
+ */
+vector<vector<int> > find_fragments(const vector<bond_t> &bond, int n_bond, const vector<atom_t> &atom) {
 	vector<vector<int> > frags;
 	vector<int> pool;
 	int n = 0;
@@ -3612,7 +3621,7 @@ int reconnect_fragments(vector<bond_t> &bond, int n_bond, vector<atom_t> &atom, 
 				for (unsigned int j = i + 1; j < frags.size(); j++)
 					if (frags[j].size() > 2) {
 						double l = FLT_MAX;
-						int atom1, atom2;
+						int atom1 = 0, atom2 = 0;
 						for (unsigned int ii = 0; ii < frags[i].size(); ii++)
 							for (unsigned int jj = 0; jj < frags[j].size(); jj++) {
 								double d = atom_distance(atom, frags[i][ii], frags[j][jj]);
@@ -3649,17 +3658,16 @@ int reconnect_fragments(vector<bond_t> &bond, int n_bond, vector<atom_t> &atom, 
 	return (n_bond);
 }
 
-unsigned int distance_between_points(point_t p1, point_t p2) {
+unsigned int distance_between_points(const point_t &p1, const point_t &p2) {
 	return max(abs(p1.x - p2.x), abs(p1.y - p2.y));
 }
 
-unsigned int distance_between_segments(vector<point_t> s1, vector<point_t> s2) {
+unsigned int distance_between_segments(const vector<point_t> &s1, const vector<point_t> &s2) {
 	int r = INT_MAX;
-	unsigned int ii, jj;
 	int d;
 
-	for (vector<point_t>::iterator i = s1.begin(); i != s1.end(); i++)
-		for (vector<point_t>::iterator j = s2.begin(); j != s2.end(); j++) {
+	for (vector<point_t>::const_iterator i = s1.begin(); i != s1.end(); i++)
+		for (vector<point_t>::const_iterator j = s2.begin(); j != s2.end(); j++) {
 			d = distance_between_points(*i, *j);
 			if (d < r)
 				r = d;
@@ -3693,8 +3701,8 @@ unsigned int distance_between_segments(vector<point_t> s1, vector<point_t> s2) {
 	return r;
 }
 
-void find_connected_components(Image image, double threshold, ColorGray bgColor, vector<list<point_t> > &segments,
-		vector<vector<point_t> > &margins) {
+void find_connected_components(const Image &image, double threshold, const ColorGray &bgColor,
+		vector<list<point_t> > &segments, vector<vector<point_t> > &margins) {
 	point_t p;
 	list<point_t> points;
 
@@ -3722,6 +3730,9 @@ void find_connected_components(Image image, double threshold, ColorGray bgColor,
 					new_segment.push_back(p);
 					tmp[p.x][p.y] = -1;
 					bool on_the_margin = false;
+					//TODO:
+					// * Can "p.x" be zero? Then "k" can be negative.
+					// * Can "p.x" be MAX_INT? Then "k" is bigger then "int".
 					for (int k = p.x - 1; k < p.x + 2; k++)
 						for (int l = p.y - 1; l < p.y + 2; l++) {
 							if (k >= 0 && l >= 0 && k < image.columns() && l < image.rows() && tmp[k][l] == 1) {
@@ -3730,8 +3741,9 @@ void find_connected_components(Image image, double threshold, ColorGray bgColor,
 								points.push_back(p1);
 								tmp[k][l] = 2;
 							} else if (k >= 0 && l >= 0 && k < image.columns() && l < image.rows() && k != p.x && l
-									!= p.y && tmp[k][l] == 0)
+									!= p.y && tmp[k][l] == 0) {
 								on_the_margin = true;
+							}
 						}
 					if (on_the_margin && (new_margin.size() < PARTS_IN_MARGIN || (counter % PARTS_IN_MARGIN) == 0))
 						new_margin.push_back(p);
@@ -3750,12 +3762,11 @@ unsigned int area_ratio(unsigned int a, unsigned int b) {
 	return (unsigned int) r;
 }
 
-void build_distance_matrix(vector<vector<point_t> > margins, unsigned int max_dist,
-		vector<vector<int> > &distance_matrix, vector<vector<int> > &features, vector<list<point_t> > segments,
+void build_distance_matrix(const vector<vector<point_t> > &margins, unsigned int max_dist,
+		vector<vector<int> > &distance_matrix, vector<vector<int> > &features, const vector<list<point_t> > &segments,
 		unsigned int max_area_ratio, vector<vector<int> > &area_matrix)
-
 {
-	int d;
+	unsigned int d;
 	unsigned int ar;
 
 	for (unsigned int s1 = 0; s1 < margins.size(); s1++)
@@ -3776,12 +3787,12 @@ void build_distance_matrix(vector<vector<point_t> > margins, unsigned int max_di
 			}
 }
 
-list<list<list<point_t> > > build_explicit_clusters(list<list<int> > clusters, vector<list<point_t> > segments) {
+list<list<list<point_t> > > build_explicit_clusters(const list<list<int> > &clusters,
+		const vector<list<point_t> > &segments) {
 	list<list<list<point_t> > > explicit_clusters;
-
-	for (list<list<int> >::iterator c = clusters.begin(); c != clusters.end(); c++) {
+	for (list<list<int> >::const_iterator c = clusters.begin(); c != clusters.end(); c++) {
 		list<list<point_t> > set_of_segments;
-		for (list<int>::iterator s = c->begin(); s != c->end(); s++)
+		for (list<int>::const_iterator s = c->begin(); s != c->end(); s++)
 			if (!segments[*s].empty())
 				set_of_segments.push_back(segments[*s]);
 		if (!set_of_segments.empty())
@@ -3881,8 +3892,9 @@ void remove_tables(vector<list<point_t> > &segments, vector<vector<point_t> > &m
 	}
 }
 
-list<list<int> > assemble_clusters(vector<vector<point_t> > margins, int dist, vector<vector<int> > distance_matrix,
-		vector<int> &avail, bool text, vector<vector<int> > area_matrix) {
+list<list<int> > assemble_clusters(const vector<vector<point_t> > &margins, int dist,
+		const vector<vector<int> > &distance_matrix, vector<int> &avail, bool text,
+		const vector<vector<int> > &area_matrix) {
 	list<list<int> > clusters;
 	list<int> bag;
 
@@ -3910,17 +3922,17 @@ list<list<int> > assemble_clusters(vector<vector<point_t> > margins, int dist, v
 	return (clusters);
 }
 
-void remove_text_blocks(list<list<int> > clusters, vector<list<point_t> > segments, vector<int> &avail) {
-	for (list<list<int> >::iterator c = clusters.begin(); c != clusters.end(); c++) {
+void remove_text_blocks(const list<list<int> > &clusters, const vector<list<point_t> > &segments, vector<int> &avail) {
+	for (list<list<int> >::const_iterator c = clusters.begin(); c != clusters.end(); c++) {
 		unsigned int area = 0, square_area = 0;
 		double ratio = 0, aspect = 0;
 		int top = INT_MAX, left = INT_MAX, bottom = 0, right = 0;
 		bool fill_below_max = false;
 
-		for (list<int>::iterator i = c->begin(); i != c->end(); i++)
+		for (list<int>::const_iterator i = c->begin(); i != c->end(); i++)
 			if (!segments[*i].empty()) {
 				int stop = INT_MAX, sleft = INT_MAX, sbottom = 0, sright = 0;
-				for (list<point_t>::iterator p = segments[*i].begin(); p != segments[*i].end(); p++) {
+				for (list<point_t>::const_iterator p = segments[*i].begin(); p != segments[*i].end(); p++) {
 					if (p->x < sleft)
 						sleft = p->x;
 					if (p->x > sright)
@@ -3954,13 +3966,13 @@ void remove_text_blocks(list<list<int> > clusters, vector<list<point_t> > segmen
 			if (right != left)
 				aspect = 1. * (bottom - top) / (right - left);
 			if (aspect < MIN_ASPECT || aspect > MAX_ASPECT || !fill_below_max)
-				for (list<int>::iterator i = c->begin(); i != c->end(); i++)
+				for (list<int>::const_iterator i = c->begin(); i != c->end(); i++)
 					avail[*i] = -1;
 		}
 	}
 }
 
-int locate_first_min(vector<int> stats) {
+int locate_first_min(const vector<int> &stats) {
 	int peak = 1;
 
 	for (unsigned int j = 3; j < stats.size(); j++)
@@ -3977,7 +3989,7 @@ int locate_first_min(vector<int> stats) {
 	return (dist);
 }
 
-int locate_max_entropy(vector<vector<int> > features, unsigned int max_area_ratio, unsigned int max_dist,
+int locate_max_entropy(const vector<vector<int> > &features, unsigned int max_area_ratio, unsigned int max_dist,
 		vector<int> &stats) {
 	vector<double> entropy(max_area_ratio, 0);
 
@@ -4002,7 +4014,7 @@ int locate_max_entropy(vector<vector<int> > features, unsigned int max_area_rati
 	return (start_b);
 }
 
-list<list<list<point_t> > > find_segments(Image image, double threshold, ColorGray bgColor) {
+list<list<list<point_t> > > find_segments(const Image &image, double threshold, const ColorGray &bgColor) {
 	vector<list<point_t> > segments;
 	vector<vector<point_t> > margins;
 	list<list<list<point_t> > > explicit_clusters;
@@ -4060,7 +4072,8 @@ list<list<list<point_t> > > find_segments(Image image, double threshold, ColorGr
 
 		int dist_text = locate_first_min(text_stats);
 
-		list<list<int> > text_blocks = assemble_clusters(margins, dist_text, distance_matrix, avail, true, area_matrix);
+		const list<list<int> > &text_blocks = assemble_clusters(margins, dist_text, distance_matrix, avail, true,
+				area_matrix);
 		remove_text_blocks(text_blocks, segments, avail);
 
 		dist = 2 * dist_text;
@@ -4070,7 +4083,7 @@ list<list<list<point_t> > > find_segments(Image image, double threshold, ColorGr
 		if (avail[i] != -1)
 			avail[i] = 1;
 
-	list<list<int> > clusters = assemble_clusters(margins, dist, distance_matrix, avail, false, area_matrix);
+	const list<list<int> > &clusters = assemble_clusters(margins, dist, distance_matrix, avail, false, area_matrix);
 	explicit_clusters = build_explicit_clusters(clusters, segments);
 	return explicit_clusters;
 }
@@ -4080,18 +4093,18 @@ void remove_brackets(int left, int right, int top, int bottom, list<list<list<po
 	vector < vector<bool> > tmp(right - left + 1, vector<bool> (bottom - top + 1, false));
 	vector < vector<bool> > global_pic(right - left + 1, vector<bool> (bottom - top + 1, false));
 
-	for (list<list<point_t> >::iterator s = c->begin(); s != c->end(); s++)
-		for (list<point_t>::iterator p = s->begin(); p != s->end(); p++)
+	for (list<list<point_t> >::const_iterator s = c->begin(); s != c->end(); s++)
+		for (list<point_t>::const_iterator p = s->begin(); p != s->end(); p++)
 			global_pic[p->x - left][p->y - top] = true;
 
 	bool found = false;
 	//Image t(Geometry(right - left + 1, bottom - top + 1), "white");
 
 	for (int i = left + FRAME; i < right - FRAME; i++)
-		for (list<list<point_t> >::iterator s = c->begin(); s != c->end(); s++) {
+		for (list<list<point_t> >::const_iterator s = c->begin(); s != c->end(); s++) {
 			vector<point_t> set;
 			int x1 = INT_MAX, y1 = INT_MAX, x2 = 0, y2 = 0;
-			for (list<point_t>::iterator p = s->begin(); p != s->end(); p++)
+			for (list<point_t>::const_iterator p = s->begin(); p != s->end(); p++)
 				if (p->x < i && i + (i - p->x) < right && global_pic[i + (i - p->x) - left][p->y - top]) {
 					set.push_back(*p);
 					if (p->x < x1)
@@ -4153,7 +4166,7 @@ void remove_brackets(int left, int right, int top, int bottom, list<list<list<po
 }
 */
 
-int prune_clusters(list<list<list<point_t> > > clusters, vector<box_t> &boxes) {
+int prune_clusters(list<list<list<point_t> > > &clusters, vector<box_t> &boxes) {
 	int n_boxes = 0;
 	list<list<list<point_t> > >::iterator c = clusters.begin();
 
@@ -4162,9 +4175,9 @@ int prune_clusters(list<list<list<point_t> > > clusters, vector<box_t> &boxes) {
 		double ratio = 0, aspect = 0;
 		int top = INT_MAX, left = INT_MAX, bottom = 0, right = 0;
 		bool fill_below_max = false;
-		for (list<list<point_t> >::iterator s = c->begin(); s != c->end(); s++) {
+		for (list<list<point_t> >::const_iterator s = c->begin(); s != c->end(); s++) {
 			int stop = INT_MAX, sleft = INT_MAX, sbottom = 0, sright = 0;
-			for (list<point_t>::iterator p = s->begin(); p != s->end(); p++) {
+			for (list<point_t>::const_iterator p = s->begin(); p != s->end(); p++) {
 				if (p->x < sleft)
 					sleft = p->x;
 				if (p->x > sright)
@@ -4205,8 +4218,8 @@ int prune_clusters(list<list<list<point_t> > > clusters, vector<box_t> &boxes) {
 
 			//remove_brackets(left, right, top, bottom, c);
 
-			for (list<list<point_t> >::iterator s = c->begin(); s != c->end(); s++)
-				for (list<point_t>::iterator p = s->begin(); p != s->end(); p++)
+			for (list<list<point_t> >::const_iterator s = c->begin(); s != c->end(); s++)
+				for (list<point_t>::const_iterator p = s->begin(); p != s->end(); p++)
 					boxes[n_boxes].c.push_back(*p);
 			c++;
 			n_boxes++;
@@ -4217,7 +4230,11 @@ int prune_clusters(list<list<list<point_t> > > clusters, vector<box_t> &boxes) {
 	return (n_boxes);
 }
 
-vector<fragment_t> populate_fragments(vector<vector<int> > frags, vector<atom_t> &atom) {
+/**
+ * TODO: Returning the vector from the stack causes copy constructor to trigger, which is inefficient.
+ * Consider passing the vector as a reference.
+ */
+vector<fragment_t> populate_fragments(const vector<vector<int> > &frags, const vector<atom_t> &atom) {
 	vector<fragment_t> r;
 
 	for (unsigned int i = 0; i < frags.size(); i++) {
@@ -4261,7 +4278,7 @@ vector<fragment_t> populate_fragments(vector<vector<int> > frags, vector<atom_t>
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
 
-void trim(string& s) {
+void trim(string &s) {
 	// Remove leading and trailing whitespace
 	static const char whitespace[] = " \n\t\v\r\f";
 	s.erase(0, s.find_first_not_of(whitespace));
@@ -4291,7 +4308,7 @@ void load_config_map(string file, map<string, string> &out) {
 		std::getline(is, line);
 
 		// Ignore comments
-		//line = line.substr( 0, line.find(comm) );
+		//line = line.substr(0, line.find(comm));
 		if (line.length() == 0 || line.at(0) == '#')
 			continue;
 
@@ -4329,12 +4346,12 @@ bool comp_fragments(const fragment_t &aa, const fragment_t &bb) {
 	return (false);
 }
 
-void find_limits_on_avg_bond(double &min_bond, double &max_bond, vector<vector<double> > pages_of_avg_bonds, vector<
-		vector<double> > pages_of_ind_conf) {
+void find_limits_on_avg_bond(double &min_bond, double &max_bond, const vector<vector<double> > &pages_of_avg_bonds,
+		const vector<vector<double> > &pages_of_ind_conf) {
 	double max_ind_conf = -FLT_MAX;
 
-	for (int l = 0; l < pages_of_ind_conf.size(); l++)
-		for (int i = 0; i < pages_of_ind_conf[l].size(); i++)
+	for (unsigned int l = 0; l < pages_of_ind_conf.size(); l++)
+		for (unsigned int i = 0; i < pages_of_ind_conf[l].size(); i++)
 			if (max_ind_conf < pages_of_ind_conf[l][i]) {
 				max_ind_conf = pages_of_ind_conf[l][i];
 				min_bond = pages_of_avg_bonds[l][i];
@@ -4343,8 +4360,8 @@ void find_limits_on_avg_bond(double &min_bond, double &max_bond, vector<vector<d
 	bool flag = true;
 	while (flag) {
 		flag = false;
-		for (int l = 0; l < pages_of_avg_bonds.size(); l++)
-			for (int i = 0; i < pages_of_avg_bonds[l].size(); i++) {
+		for (unsigned int l = 0; l < pages_of_avg_bonds.size(); l++)
+			for (unsigned int i = 0; i < pages_of_avg_bonds[l].size(); i++) {
 				if (pages_of_avg_bonds[l][i] > max_bond && (pages_of_avg_bonds[l][i] - max_bond < 5
 						|| pages_of_ind_conf[l][i] > max_ind_conf - 0.1)) {
 					max_bond = pages_of_avg_bonds[l][i];
@@ -4362,11 +4379,11 @@ void find_limits_on_avg_bond(double &min_bond, double &max_bond, vector<vector<d
 }
 
 double confidence_function(int C_Count, int N_Count, int O_Count, int F_Count, int S_Count, int Cl_Count, int Br_Count,
-		int R_Count, int Xx_Count, int num_rings, int num_aromatic, int num_fragments, vector<int> *Num_Rings,
+		int R_Count, int Xx_Count, int num_rings, int num_aromatic, int num_fragments, const vector<int> &Num_Rings,
 		int num_double, int num_triple) {
 	double confidence = 0.316030 - 0.016315 * C_Count + 0.034336 * N_Count + 0.066810 * O_Count + 0.035674 * F_Count
 			+ 0.065504 * S_Count + 0.04 * Cl_Count + 0.066811 * Br_Count + 0.01 * R_Count - 0.02 * Xx_Count - 0.212739
-			* num_rings + 0.071300 * num_aromatic + 0.329922 * (*Num_Rings)[5] + 0.342865 * (*Num_Rings)[6] - 0.037796
+			* num_rings + 0.071300 * num_aromatic + 0.329922 * Num_Rings[5] + 0.342865 * Num_Rings[6] - 0.037796
 			* num_fragments;
 	return (confidence);
 }
@@ -4540,7 +4557,6 @@ int main(int argc, char **argv) {
 
 	int page = count_pages(input.getValue());
 
-	int ttt = 1;
 	vector<vector<string> > pages_of_structures(page, vector<string> (0));
 	vector<vector<Image> > pages_of_images(page, vector<Image> (0));
 	vector<vector<double> > pages_of_avg_bonds(page, vector<double> (0));
@@ -5031,16 +5047,16 @@ int main(int argc, char **argv) {
 
 	for (int l = 0; l < page; l++) {
 		if (outfile.is_open())
-			for (int i = 0; i < pages_of_structures[l].size(); i++) {
+			for (unsigned int i = 0; i < pages_of_structures[l].size(); i++) {
 				if (pages_of_avg_bonds[l][i] > min_bond && pages_of_avg_bonds[l][i] < max_bond)
 					outfile << pages_of_structures[l][i];
 			}
 		else
-			for (int i = 0; i < pages_of_structures[l].size(); i++) {
+			for (unsigned int i = 0; i < pages_of_structures[l].size(); i++) {
 				if (pages_of_avg_bonds[l][i] > min_bond && pages_of_avg_bonds[l][i] < max_bond)
 					cout << pages_of_structures[l][i];
 			}
-		for (int i = 0; i < pages_of_images[l].size(); i++)
+		for (unsigned int i = 0; i < pages_of_images[l].size(); i++)
 			if (pages_of_avg_bonds[l][i] > min_bond && pages_of_avg_bonds[l][i] < max_bond) {
 				stringstream fname;
 				if (output.getValue() != "")

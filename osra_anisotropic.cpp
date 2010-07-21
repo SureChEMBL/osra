@@ -28,7 +28,7 @@
 using namespace cimg_library;
 using namespace Magick;
 
-Image anisotropic_smoothing(Image image, int width, int height, const float amplitude, const float alpha,
+Image anisotropic_smoothing(const Image &image, int width, int height, const float amplitude, const float alpha,
 		const float sigma) {
 
 	CImg<unsigned char> source(width, height, 1, 1, 0);
@@ -76,7 +76,7 @@ Image anisotropic_smoothing(Image image, int width, int height, const float ampl
 	return (res);
 }
 
-Image anisotropic_scaling(Image image, int width, int height, int nw, int nh) {
+Image anisotropic_scaling(const Image &image, int width, int height, int nw, int nh) {
 
 	CImg<unsigned char> source(width, height, 1, 1, 0);
 	unsigned char color[1] = { 0 };

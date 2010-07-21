@@ -22,7 +22,7 @@
 
 #include <Magick++.h>
 
-void fromImageToStruct(Magick::Image source, struct IMAGE* image, int* type) {
+void fromImageToStruct(const Magick::Image &source, struct IMAGE* image, int* type) {
 	*type = PGM;
 
 	image->bitdepth = 8;
@@ -30,7 +30,6 @@ void fromImageToStruct(Magick::Image source, struct IMAGE* image, int* type) {
 	image->width = source.columns();
 	image->height = source.rows();
 
-	int maxColorIndex = 255;
 	int bytesPerLine = image->width;
 	int inputSize = bytesPerLine * image->height;
 

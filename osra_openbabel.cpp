@@ -32,7 +32,7 @@
 
 using namespace OpenBabel;
 
-int abbreviation_to_mol(OBMol *mol, int *n, int *bondn, string smiles_superatom) {
+int abbreviation_to_mol(OBMol &mol, int &n, int &bondn, const string &smiles_superatom) {
 	OBMol mol1;
 	OBConversion conv;
 	OBAtom *atom, *a1;
@@ -44,21 +44,20 @@ int abbreviation_to_mol(OBMol *mol, int *n, int *bondn, string smiles_superatom)
 	unsigned int anum = a1->GetAtomicNum();
 
 	int firstatom = a1->GetIdx();
-	int prevatms = mol->NumAtoms();
+	int prevatms = mol.NumAtoms();
 	int numatms = mol1.NumAtoms();
 
 	for (unsigned int i = mol1.NumAtoms(); i >= 1; i--) {
 		atom = mol1.GetAtom(i);
 		if (atom != NULL) {
-			OBAtom *a = mol->CreateAtom();
+			OBAtom *a = mol.CreateAtom();
 			a->SetAtomicNum(atom->GetAtomicNum());
 			a->SetFormalCharge(atom->GetFormalCharge());
-			a->SetIdx(mol->NumAtoms() + 1);
-			mol->AddAtom(*a);
+			a->SetIdx(mol.NumAtoms() + 1);
+			mol.AddAtom(*a);
 			delete a;
-			(*n)++;
+			n++;
 		}
-
 	}
 
 	for (unsigned int j = 0; j <= mol1.NumBonds(); j++) {
@@ -66,8 +65,8 @@ int abbreviation_to_mol(OBMol *mol, int *n, int *bondn, string smiles_superatom)
 		if (bond != NULL) {
 			int b1 = (numatms - bond->GetBeginAtomIdx() + 1) - firstatom + 1 + prevatms;
 			int b2 = (numatms - bond->GetEndAtomIdx() + 1) - firstatom + 1 + prevatms;
-			mol->AddBond(b1, b2, bond->GetBO(), bond->GetFlags());
-			(*bondn)++;
+			mol.AddBond(b1, b2, bond->GetBO(), bond->GetFlags());
+			bondn++;
 		}
 	}
 
@@ -122,13 +121,14 @@ void mol_to_abbr() {
 }
 */
 
-int getAnum(string s, OBMol *mol, int *n, int *bondn, map<string, string> superatom) {
+int getAnum(const string &s, OBMol &mol, int &n, int &bondn, const map<string, string> &superatom) {
 	//mol_to_abbr();
 	if (s == "Xx" || s == "X" || s == "R" || s == "Y" || s == "Z" || s == "R1" || s == "R2" || s == "R3" || s == "R4"
 			|| s == "R5" || s == "R6" || s == "R7" || s == "R8" || s == "R9" || s == "R10" || s == "Y2")
 		return (0);
 
-	map<string, string>::iterator it = superatom.find(s);
+	map<string, string>::const_iterator it = superatom.find(s);
+
 	if (it != superatom.end()) {
 		return (abbreviation_to_mol(mol, n, bondn, it->second));
 	}
@@ -139,13 +139,13 @@ int getAnum(string s, OBMol *mol, int *n, int *bondn, map<string, string> supera
 	if (anum != 0)
 		return (anum);
 	return (6);
-
 }
 
-string get_smiles(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, int &rotors, double &confidence,
-		int &num_fragments, int &r56, double avg, string format, int resolution, bool conf, bool guess, bool showpage,
-		int page, map<string, string> superatom, bool showbond) {
+const string get_smiles(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, int &rotors, double &confidence,
+		int &num_fragments, int &r56, double avg, const string &format, int resolution, bool conf, bool guess,
+		bool showpage, int page, const map<string, string> &superatom, bool showbond) {
 	stringstream strstr;
+
 #pragma omp critical
 	{
 		OBMol mol;
@@ -169,7 +169,7 @@ string get_smiles(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, int &r
 					int oldn = n;
 					int oldbond = bondn;
 					//cout << i << " " << bond[i].a << " " << atom[bond[i].a].label << endl;
-					anum = getAnum(atom[bond[i].a].label, &mol, &n, &bondn, superatom);
+					anum = getAnum(atom[bond[i].a].label, mol, n, bondn, superatom);
 					if (oldn != n) {
 						atomB.push_back(oldn);
 						atomN.push_back(n - 1);
@@ -191,7 +191,6 @@ string get_smiles(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, int &r
 							a->SetData(ad);
 							ad->Expand(mol, anum); //Make chemically meaningful, if possible.
 						}
-
 						mol.AddAtom(*a);
 						delete a;
 						atom[bond[i].a].n = n;
@@ -202,7 +201,7 @@ string get_smiles(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, int &r
 				if (atom[bond[i].b].n == 0) {
 					int oldn = n;
 					int oldbond = bondn;
-					anum = getAnum(atom[bond[i].b].label, &mol, &n, &bondn, superatom);
+					anum = getAnum(atom[bond[i].b].label, mol, n, bondn, superatom);
 					if (oldn != n) {
 						atomB.push_back(oldn);
 						atomN.push_back(n - 1);
@@ -329,7 +328,7 @@ string get_smiles(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, int &r
 		num_fragments = cfl.size();
 
 		confidence = confidence_function(C_Count, N_Count, O_Count, F_Count, S_Count, Cl_Count, Br_Count, R_Count,
-				Xx_Count, num_rings, num_aromatic, num_fragments, &Num_Rings, num_double, num_triple);
+				Xx_Count, num_rings, num_aromatic, num_fragments, Num_Rings, num_double, num_triple);
 
 		r56 = Num_Rings[5] + Num_Rings[6];
 
