@@ -3612,8 +3612,7 @@ vector<vector<int> > find_fragments(const vector<bond_t> &bond, int n_bond, cons
 }
 
 int reconnect_fragments(vector<bond_t> &bond, int n_bond, vector<atom_t> &atom, double avg) {
-	vector<vector<int> > frags;
-	frags = find_fragments(bond, n_bond, atom);
+	vector<vector<int> > frags = find_fragments(bond, n_bond, atom);
 
 	if (frags.size() <= 3) {
 		for (unsigned int i = 0; i < frags.size(); i++)
@@ -4330,7 +4329,7 @@ void load_config_map(string file, map<string, string> &out) {
 			out[key] = line; // overwrites if key is repeated
 		}
 	}
-
+	is.close();
 }
 
 bool comp_fragments(const fragment_t &aa, const fragment_t &bb) {
@@ -4719,9 +4718,6 @@ int main(int argc, char **argv) {
 					vector<bond_t> frag_bond;
 					vector<letters_t> letters;
 					vector<label_t> label;
-					potrace_bitmap_t *bm;
-					potrace_path_t *p;
-					potrace_state_t *st;
 
 					Image orig_box(Geometry(boxes[k].x2 - boxes[k].x1 + 2 * FRAME, boxes[k].y2 - boxes[k].y1 + 2
 							* FRAME), bgColor);
@@ -4808,13 +4804,13 @@ int main(int argc, char **argv) {
 					else
 						box = thick_box;
 
-					bm = bm_new(width, height);
+					potrace_bitmap_t * const bm = bm_new(width, height);
 					for (int i = 0; i < width; i++)
 						for (int j = 0; j < height; j++)
 							BM_PUT(bm, i, j, getPixel(box, bgColor, i, j, THRESHOLD_BOND));
 
-					st = potrace_trace(param, bm);
-					p = st->plist;
+					potrace_state_t * const st = potrace_trace(param, bm);
+					potrace_path_t const * const p = st->plist;
 
 					n_atom = find_atoms(p, atom, bond, &n_bond);
 
@@ -4924,8 +4920,6 @@ int main(int argc, char **argv) {
 					int real_bonds = count_bonds(bond, n_bond);
 
 					if (real_atoms > MIN_A_COUNT && real_atoms < MAX_A_COUNT && real_bonds < MAX_A_COUNT) {
-						vector<vector<int> > frags;
-						vector<fragment_t> fragments;
 						int f;
 						f = resolve_bridge_bonds(atom, n_atom, bond, n_bond, 2 * thickness, avg_bond, superatom);
 						collapse_bonds(atom, bond, n_bond, avg_bond / 4);
@@ -4936,10 +4930,9 @@ int main(int argc, char **argv) {
 						remove_small_terminal_bonds(bond, n_bond, atom, avg_bond);
 						n_bond = reconnect_fragments(bond, n_bond, atom, avg_bond);
 						collapse_atoms(atom, bond, n_atom, n_bond, 1);
-
 						mark_terminal_atoms(bond, n_bond, atom, n_atom);
-						frags = find_fragments(bond, n_bond, atom);
-						fragments = populate_fragments(frags, atom);
+						const vector<vector<int> > &frags = find_fragments(bond, n_bond, atom);
+						vector<fragment_t> fragments = populate_fragments(frags, atom);
 						std::sort(fragments.begin(), fragments.end(), comp_fragments);
 						for (unsigned int i = 0; i < fragments.size(); i++)
 							if (fragments[i].atom.size() > MIN_A_COUNT) {
@@ -4965,7 +4958,7 @@ int main(int argc, char **argv) {
 								string smiles = get_smiles(frag_atom, frag_bond, n_bond, rotors, confidence, f, rings,
 										avg_bond, format.getValue(), resolution, conf.getValue(), guess.getValue(),
 										showpage.getValue(), l + 1, superatom, showbond.getValue());
-								if (f < MAX_FRAGMENTS && f > 0 && smiles != "") {
+								if (f < MAX_FRAGMENTS && f > 0 && !smiles.empty()) {
 									array_of_smiles[res_iter].push_back(smiles);
 									array_of_avg_bonds[res_iter].push_back(avg_bond);
 									array_of_ind_conf[res_iter].push_back(confidence);

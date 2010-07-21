@@ -37,6 +37,18 @@ extern "C" {
 
 job_t *JOB;
 
+/**
+ * THRESHOLD is the graylevel binarization threshold.
+ * dropx and dropy are the coordinates for the starting point from where the connected component (the image of the character) will be searched for.
+ * Very often there is no bounding rectangle that would exclude all extraneous pieces without cutting into the character itself.
+ * Those pieces confuse the OCR libraries quite a bit, so it's better to extract connected components (all characters that OSRA needs to resolve
+ * are luckily single connected components) and leave the extra bits out.
+ */
+
+/**
+ * The Tesseract code is supposed to be called only if both GOCR and OCRAD did't detect any alphanumeric character.
+ * It is commented out because Tesseract seems to get a lot of false positives.
+ */
 char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int x1, int y1, int x2, int y2,
 		double THRESHOLD, int dropx, int dropy) {
 	char c = 0;
@@ -70,6 +82,8 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
 		opix->width = width;
 		opix->mode = OCRAD_bitmap;
 		opix->data = bitmap_data;
+
+		// The code below initialises the "job.src.p.p" image buffer for GOCR and "opix" buffer for OCRAD.
 
 		tmp = (unsigned char *) malloc(int((x2 - x1 + 1) * (y2 - y1 + 1)));
 
@@ -163,8 +177,10 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
 					c1 = l[0];
 				//cout << "c1=" << c1 << endl;
 				if (isalnum(c1))
+					// Character recognition succeeded for GOCR:
 					c = c1;
 				else {
+					// Character recognition failed for GOCR and we try OCRAD:
 					char c2 = 0;
 					string line = "_";
 					OCRAD_Descriptor * const ocrdes = OCRAD_open();
@@ -212,7 +228,7 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
 		free(bitmap_data);
 		if (c == '7' && (x2 - x1 <= 10 || y2 - y1 <= 20))
 			c = 0;
-	}
+	} //#pragma omp critical
 
 	if (isalnum(c)) {
 		return (c);

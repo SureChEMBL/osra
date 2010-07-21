@@ -54,6 +54,8 @@ int abbreviation_to_mol(OBMol &mol, int &n, int &bondn, const string &smiles_sup
 			a->SetAtomicNum(atom->GetAtomicNum());
 			a->SetFormalCharge(atom->GetFormalCharge());
 			a->SetIdx(mol.NumAtoms() + 1);
+			// This operation copies the given atom into new one before addition,
+			// so the caller is still responsible to free the memory:
 			mol.AddAtom(*a);
 			delete a;
 			n++;
@@ -87,7 +89,11 @@ void mol_to_abbr() {
 	a = mol1.CreateAtom();
 	a->SetAtomicNum(8);
 
+	// This operation copies the given atom into new one before addition,
+	// so the caller is still responsible to free the memory:
 	mol1.AddAtom(*a);
+	delete a;
+
 	a1 = mol1.GetFirstAtom();
 
 	int firstatom = a1->GetIdx();
@@ -101,10 +107,12 @@ void mol_to_abbr() {
 			a->SetAtomicNum(atom->GetAtomicNum());
 			a->SetFormalCharge(atom->GetFormalCharge());
 			a->SetIdx(mol.NumAtoms() + 1);
+			// This operation copies the given atom into new one before addition,
+			// so the caller is still responsible to free the memory:
 			mol.AddAtom(*a);
+			delete a;
 			n++;
 		}
-
 	}
 
 	for (unsigned int j = 0; j <= mol1.NumBonds(); j++) {
@@ -191,6 +199,8 @@ const string get_smiles(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, 
 							a->SetData(ad);
 							ad->Expand(mol, anum); //Make chemically meaningful, if possible.
 						}
+						// This operation copies the given atom into new one before addition,
+						// so the caller is still responsible to free the memory:
 						mol.AddAtom(*a);
 						delete a;
 						atom[bond[i].a].n = n;
@@ -223,6 +233,8 @@ const string get_smiles(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, 
 							b->SetData(ad);
 							ad->Expand(mol, anum); // Make chemically meaningful, if possible.
 						}
+						// This operation copies the given atom into new one before addition,
+						// so the caller is still responsible to free the memory:
 						mol.AddAtom(*b);
 						delete b;
 						atom[bond[i].b].n = n;
@@ -418,6 +430,8 @@ const string get_smiles(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, 
 				strstr << " " << avg;
 		}
 		strstr << endl;
+
+		mol.Clear();
 	}
 
 	return (strstr.str());
