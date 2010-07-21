@@ -109,5 +109,5 @@ list.h: $(GOCRSRC)/list.h
 	$(SED) 's/struct\ list/struct\ list\_s/' $(GOCRSRC)/list.h >$(SRCDIR)/list.h
 
 
-unpaper.o:	unpaper.c unpaper.h
-	$(CPP) $(CPPFLAGS) -c unpaper.c
+unpaper.o:	unpaper.cpp unpaper.h
+	$(CPP) $(CPPFLAGS) -c unpaper.cpp

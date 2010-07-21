@@ -1,123 +1,127 @@
-/*********************************************************************
-  OSRA: Optical Structure Recognition
+/******************************************************************************
+ OSRA: Optical Structure Recognition
 
-  This is a U.S. Government work (2007-2010) and is therefore not subject to copyright.  
-  However, portions of this work were obtained from a GPL or GPL-compatiple source.   
-  Created by Igor Filippov, 2007-2010 (igorf@helix.nih.gov)
+ This is a U.S. Government work (2007-2010) and is therefore not subject to
+ copyright. However, portions of this work were obtained from a GPL or
+ GPL-compatible source.
+ Created by Igor Filippov, 2007-2010 (igorf@helix.nih.gov)
 
-  This program is free software; you can redistribute it and/or modify
-  it under the terms of the GNU General Public License as published by
-  the Free Software Foundation; either version 2 of the License, or
-  (at your option) any later version.
-  
-  This program is distributed in the hope that it will be useful, but
-  WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  General Public License for more details.
-  
-  You should have received a copy of the GNU General Public License
-  along with this program; if not, write to the Free Software
-  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
-  USA
+ This program is free software; you can redistribute it and/or modify it under
+ the terms of the GNU General Public License as published by the Free Software
+ Foundation; either version 2 of the License, or (at your option) any later
+ version.
 
-*********************************************************************/
+ This program is distributed in the hope that it will be useful, but WITHOUT ANY
+ WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+ PARTICULAR PURPOSE.  See the GNU General Public License for more details.
 
-#include <Magick++.h>
+ You should have received a copy of the GNU General Public License along with
+ this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
+ St, Fifth Floor, Boston, MA 02110-1301, USA
+ *****************************************************************************/
+
+#include <limits.h>
 #include <iostream>
 #include <vector>
 
+#include <Magick++.h>
 
-using namespace std;
 extern "C" {
 #include "potracelib.h"
 }
 
-#include <limits.h>
+using namespace std;
 
 struct atom_s {
-  double x,y;
-  string label;
-  int n;
-  int anum;
-  potrace_path_t *curve;
-  bool exists,corner,terminal;
-  int charge;
+	double x, y;
+	string label;
+	int n;
+	int anum;
+	potrace_path_t *curve;
+	bool exists, corner, terminal;
+	int charge;
 };
 typedef struct atom_s atom_t;
 
 struct bond_s {
-  int a,b,type;
-  potrace_path_t *curve;
-  bool exists;
-  bool hash;
-  bool wedge;
-  bool up;
-  bool down;
-  bool Small;
-  bool arom;
-  bool conjoined;
+	int a, b, type;
+	potrace_path_t *curve;
+	bool exists;
+	bool hash;
+	bool wedge;
+	bool up;
+	bool down;
+	bool Small;
+	bool arom;
+	bool conjoined;
 };
 typedef struct bond_s bond_t;
 
 struct letters_s {
-  double x,y,r;
-  char a;
-  bool free;
+	double x, y, r;
+	char a;
+	bool free;
 };
 typedef struct letters_s letters_t;
 
 struct label_s {
-  double x1,y1,r1,x2,y2,r2;
-  string a;
-  vector<int> n;
+	double x1, y1, r1, x2, y2, r2;
+	string a;
+	vector<int> n;
 };
 typedef struct label_s label_t;
 
 struct point_s {
-  int x,y;
+	int x, y;
 };
 typedef struct point_s point_t;
 
 struct box_s {
-  int x1,y1,x2,y2;
-  vector<point_t> c;
+	int x1, y1, x2, y2;
+	vector<point_t> c;
 };
 typedef struct box_s box_t;
 
-struct lbond_s{
-  int a,b;
-  double x;
-  bool exists;
+struct lbond_s {
+	int a, b;
+	double x;
+	bool exists;
 };
 typedef struct lbond_s lbond_t;
 
 struct dash_s {
-  double x,y;
-  bool free;
-  potrace_path_t *curve;
-  int area;
+	double x, y;
+	bool free;
+	potrace_path_t *curve;
+	int area;
 };
 typedef struct dash_s dash_t;
 
 struct fragment_s {
-  int x1,y1,x2,y2;
-  vector<int> atom;
+	int x1, y1, x2, y2;
+	vector<int> atom;
 };
 typedef struct fragment_s fragment_t;
 
+string fix_atom_name(string s, int n, map<string, string> fix, map<string, string> superatom, bool debug);
 
-string fix_atom_name(string s,int n,map<string,string> fix,map<string,string> superatom,
-		     bool debug);
-string get_smiles(vector<atom_t> &atom,vector<bond_t> &bond, int n_bond, int &rotors, double &confidence, int &num_fragments, int &r56,double avg,string format,int resolution,bool conf, bool guess, bool showpage, 
-		  int page, map<string,string> superatom, bool showbond);
-Magick::Image anisotropic_smoothing(Magick::Image image,int width,int height, const float amplitude,const float alpha, const float sigma);
-Magick::Image anisotropic_scaling(Magick::Image image,int width,int height, int nw, int nh);
-char get_atom_label(Magick::Image image, Magick::ColorGray bg, int x1, int y1, int x2, int y2, double THRESHOLD, int dropx, int dropy);
-int getPixel(Magick::Image image, Magick::ColorGray bg,unsigned int x, unsigned int y, double THRESHOLD);
-double confidence_function(int C_Count,int N_Count,int O_Count,int F_Count,
-			   int S_Count,int Cl_Count,int Br_Count, int R_Count,int Xx_Count,
-			   int num_rings,int num_aromatic,
-			   int num_fragments,vector<int> *Num_Rings, int num_double, int num_triple);
+string get_smiles(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, int &rotors, double &confidence,
+		int &num_fragments, int &r56, double avg, string format, int resolution, bool conf, bool guess, bool showpage,
+		int page, map<string, string> superatom, bool showbond);
+
+Magick::Image anisotropic_smoothing(Magick::Image image, int width, int height, const float amplitude,
+		const float alpha, const float sigma);
+
+Magick::Image anisotropic_scaling(Magick::Image image, int width, int height, int nw, int nh);
+
+char get_atom_label(Magick::Image image, Magick::ColorGray bg, int x1, int y1, int x2, int y2, double THRESHOLD,
+		int dropx, int dropy);
+
+int getPixel(Magick::Image image, Magick::ColorGray bg, unsigned int x, unsigned int y, double THRESHOLD);
+
+double confidence_function(int C_Count, int N_Count, int O_Count, int F_Count, int S_Count, int Cl_Count, int Br_Count,
+		int R_Count, int Xx_Count, int num_rings, int num_aromatic, int num_fragments, vector<int> *Num_Rings,
+		int num_double, int num_triple);
 
 //bool detect_bracket(int x, int y,unsigned char *pic);
 void unpaper(Magick::Image &picture);
@@ -159,4 +163,3 @@ void unpaper(Magick::Image &picture);
 #define STRUCTURE_COUNT 20
 #define SPELLING_TXT "spelling.txt"
 #define SUPERATOM_TXT "superatom.txt"
-
