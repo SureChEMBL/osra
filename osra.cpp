@@ -46,6 +46,7 @@ extern "C" {
 }
 
 #include "osra.h"
+//#include "config.h"
 
 using namespace std;
 using namespace Magick;
@@ -3729,21 +3730,32 @@ void find_connected_components(const Image &image, double threshold, const Color
 					new_segment.push_back(p);
 					tmp[p.x][p.y] = -1;
 					bool on_the_margin = false;
-					//TODO:
-					// * Can "p.x" be zero? Then "k" can be negative.
-					// * Can "p.x" be MAX_INT? Then "k" is bigger then "int".
-					for (int k = p.x - 1; k < p.x + 2; k++)
-						for (int l = p.y - 1; l < p.y + 2; l++) {
-							if (k >= 0 && l >= 0 && k < image.columns() && l < image.rows() && tmp[k][l] == 1) {
-								p1.x = k;
-								p1.y = l;
-								points.push_back(p1);
-								tmp[k][l] = 2;
-							} else if (k >= 0 && l >= 0 && k < image.columns() && l < image.rows() && k != p.x && l
-									!= p.y && tmp[k][l] == 0) {
-								on_the_margin = true;
+
+					// "k" should be in range "[0 .. image.columns) intercepted with [p.x - 1 .. p.x + 2)" ==> "p.x + 2" should be positive ==> "p.x >= -1"
+					// "l" should be in range "[0 .. image.rows)    intercepted with [p.y - 1 .. p.y + 2)" ==> "p.y + 2" should be positive ==> "p.y >= -1"
+					if (p.x >= -1 && p.y >= -1) {
+						unsigned int x_lower = p.x > 1 ? p.x - 1 : 0; // "k" cannot be less then zero
+						unsigned int y_lower = p.y > 1 ? p.y - 1 : 0; // "l" cannot be less then zero
+						unsigned int x_upper = p.x + 2;
+						if (x_upper > image.columns())
+							x_upper = image.columns();
+						unsigned int y_upper = p.y + 2;
+						if (y_upper > image.rows())
+							y_upper = image.rows();
+
+						for (int k = x_lower; k < x_upper; k++)
+							for (int l = y_lower; l < y_upper; l++) {
+								if (tmp[k][l] == 1) {
+									p1.x = k;
+									p1.y = l;
+									points.push_back(p1);
+									tmp[k][l] = 2;
+								} else if ((int) k != p.x && (int) l != p.y && tmp[k][l] == 0) {
+									on_the_margin = true;
+								}
 							}
-						}
+					}
+
 					if (on_the_margin && (new_margin.size() < PARTS_IN_MARGIN || (counter % PARTS_IN_MARGIN) == 0))
 						new_margin.push_back(p);
 					if (on_the_margin)
@@ -4284,22 +4296,14 @@ void trim(string &s) {
 	s.erase(s.find_last_not_of(whitespace) + 1U);
 }
 
-struct file_not_found {
-	string filename;
-	file_not_found(const string& filename_ = string()) :
-		filename(filename_) {
-	}
-};
-
-void load_config_map(string file, map<string, string> &out) {
-
+bool load_config_map(const string &file, map<string, string> &out) {
 	typedef string::size_type pos;
 	const string& delim = " "; // separator
 	const pos skip = delim.length(); // length of separator
 
 	std::ifstream is(file.c_str());
 	if (!is)
-		throw file_not_found(file);
+		return false;
 
 	while (is) {
 		// Read an entire line at a time
@@ -4329,7 +4333,10 @@ void load_config_map(string file, map<string, string> &out) {
 			out[key] = line; // overwrites if key is repeated
 		}
 	}
+
 	is.close();
+
+	return true;
 }
 
 bool comp_fragments(const fragment_t &aa, const fragment_t &bb) {
@@ -4438,121 +4445,65 @@ int main(int argc, char **argv) {
 
 	cmd.parse(argc, argv);
 
-	char progname[1024];
-	strncpy(progname, cmd.getProgramName().c_str(), 1023);
-	progname[1023] = '\0';
-	string osra_dir = dirname(progname);
-
-	/*    string spelling_file=spelling.getValue();
-	 string superatom_file=abbr.getValue();
-	 if (spelling_file.length()==0)
-	 {
-	 spelling_file=osra_dir+"/"+SPELLING_TXT;
-	 }
-	 if (superatom_file.length()==0)
-	 {
-	 superatom_file=osra_dir+"/"+SUPERATOM_TXT;
-	 }
-	 */
+	// Necessary for GraphicsMagick-1.3.8 according to http://www.graphicsmagick.org/1.3/NEWS.html#january-21-2010:
 	InitializeMagick(*argv);
-	// necessary for GraphicsMagick-1.3.8 according to http://www.graphicsmagick.org/1.3/NEWS.html#january-21-2010
 
 	srand(1);
 
-	int input_resolution = resolution_param.getValue();
-	string type;
-	try {
-		type = image_type(input.getValue());
-	} catch (...) {
-		cerr << "Cannot open file " << input.getValue() << endl;
-		exit(1);
-	}
-	if (writeout.getValue() != "") {
-		string filename = writeout.getValue();
-		ofstream outfile;
-		outfile.open(filename.c_str(), ios::out | ios::trunc);
-		if (outfile.bad() || !outfile.is_open()) {
-			cerr << "Cannot open file for output " << filename << endl;
-			exit(1);
-		}
-		outfile.close();
-	}
-	bool invert = inv.getValue();
-
-	//    map<string,string> fix,superatom;
-	//    load_config_map(spelling_file,fix);
-	//    load_config_map(superatom_file,superatom);
-
+	// Loading the program data files into maps:
+	char progname[1024];
+	strncpy(progname, cmd.getProgramName().c_str(), sizeof(progname) - 1);
+	progname[sizeof(progname) - 1] = '\0';
+	string osra_dir = dirname(progname);
 
 	map<string, string> fix;
-	bool spelling_loaded = false;
 
-	if (spelling.getValue().length() != 0) {
-		try {
-			load_config_map(spelling.getValue(), fix);
-			spelling_loaded = true;
-		} catch (file_not_found e) {
-		}
-	}
-
-	/*    if (!spelling_loaded) {
-	 try {
-	 load_config_map(string(DATA_DIR)+"/"+SPELLING_TXT,fix);
-	 spelling_loaded = true;
-	 }
-	 catch (file_not_found e) {
-	 }
-	 }
-	 */
-	if (!spelling_loaded) {
-		try {
-			load_config_map(osra_dir + "/" + SPELLING_TXT, fix);
-			spelling_loaded = true;
-		} catch (file_not_found e) {
-		}
-	}
-
-	if (!spelling_loaded) {
-		cerr << "Cannot open " << SPELLING_TXT << " file (tried locations " << osra_dir
-				<< "). Specify the custom file location via -l option." << endl;
+	if (!((spelling.getValue().length() != 0 && load_config_map(spelling.getValue(), fix)) || load_config_map(osra_dir + "/" + SPELLING_TXT, fix))) {
+		cerr << "Cannot open " << SPELLING_TXT << " file (tried locations \""  << osra_dir
+				<< "\"). Specify the custom file location via -a option." << endl;
 		exit(1);
 	}
 
 	map<string, string> superatom;
-	bool superatom_loaded = false;
 
-	if (abbr.getValue().length() != 0) {
-		try {
-			load_config_map(abbr.getValue(), superatom);
-			superatom_loaded = true;
-		} catch (file_not_found e) {
-		}
-	}
-
-	/*    if (!superatom_loaded) {
-	 try {
-	 load_config_map(string(DATA_DIR)+"/"+SUPERATOM_TXT,superatom);
-	 superatom_loaded = true;
-	 }
-	 catch (file_not_found e) {
-	 }
-	 }
-	 */
-	if (!superatom_loaded) {
-		try {
-			load_config_map(osra_dir + "/" + SUPERATOM_TXT, superatom);
-			superatom_loaded = true;
-		} catch (file_not_found e) {
-		}
-	}
-
-	if (!superatom_loaded) {
-		cerr << "Cannot open " << SUPERATOM_TXT << " file (tried locations " << osra_dir
-				<< "). Specify the custom file location via -a option." << endl;
+	if (!((abbr.getValue().length() != 0 && load_config_map(abbr.getValue(), superatom)) || load_config_map(osra_dir + "/" + SUPERATOM_TXT, superatom))) {
+		cerr << "Cannot open " << SUPERATOM_TXT << " file (tried locations \"" << osra_dir
+				<< "\"). Specify the custom file location via -l option." << endl;
 		exit(1);
 	}
 
-	fclose(stderr);
+	string type;
+
+	try {
+		type = image_type(input.getValue());
+	}
+	catch (...) {
+		// Unfortunately, GraphicsMagick does not throw exceptions in all cases, so it behaves inconsistent, see
+		// https://sourceforge.net/tracker/?func=detail&aid=3022955&group_id=40728&atid=428740
+	}
+
+	if (type.empty()) {
+		cerr << "Cannot open file \"" << input.getValue() << '"' << endl;
+		exit(1);
+	}
+
+	if (!writeout.getValue().empty()) {
+		string filename = writeout.getValue();
+		ofstream outfile;
+		outfile.open(filename.c_str(), ios::out | ios::trunc);
+		if (outfile.bad() || !outfile.is_open()) {
+			cerr << "Cannot open file \"" << filename << "\" for output" << endl;
+			exit(1);
+		}
+		outfile.close();
+	}
+
+	bool invert = inv.getValue();
+
+	int input_resolution = resolution_param.getValue();
+
+	if (input_resolution == 0 && (type == "PDF" || type == "PS"))
+		input_resolution = 150;
 
 	int page = count_pages(input.getValue());
 
@@ -4560,9 +4511,6 @@ int main(int argc, char **argv) {
 	vector<vector<Image> > pages_of_images(page, vector<Image> (0));
 	vector<vector<double> > pages_of_avg_bonds(page, vector<double> (0));
 	vector<vector<double> > pages_of_ind_conf(page, vector<double> (0));
-
-	if (input_resolution == 0 && (type == "PDF" || type == "PS"))
-		input_resolution = 150;
 
 	int total_structure_count = 0;
 
@@ -4670,8 +4618,10 @@ int main(int argc, char **argv) {
 		int n_boxes = prune_clusters(clusters, boxes);
 		std::sort(boxes.begin(), boxes.end(), comp_boxes);
 
-		potrace_param_t *param;
-		param = potrace_param_default();
+		// This will hide the output "Warning: non-positive median line gap" from GOCR. Remove after this is fixed:
+		fclose(stderr);
+
+		potrace_param_t * const param = potrace_param_default();
 		param->alphamax = 0.;
 		//param->turnpolicy = POTRACE_TURNPOLICY_MINORITY;
 		param->turdsize = 0;
@@ -4921,6 +4871,7 @@ int main(int argc, char **argv) {
 
 					if (real_atoms > MIN_A_COUNT && real_atoms < MAX_A_COUNT && real_bonds < MAX_A_COUNT) {
 						int f;
+
 						f = resolve_bridge_bonds(atom, n_atom, bond, n_bond, 2 * thickness, avg_bond, superatom);
 						collapse_bonds(atom, bond, n_bond, avg_bond / 4);
 						collapse_atoms(atom, bond, n_atom, n_bond, 3);
@@ -4930,6 +4881,7 @@ int main(int argc, char **argv) {
 						remove_small_terminal_bonds(bond, n_bond, atom, avg_bond);
 						n_bond = reconnect_fragments(bond, n_bond, atom, avg_bond);
 						collapse_atoms(atom, bond, n_atom, n_bond, 1);
+
 						mark_terminal_atoms(bond, n_bond, atom, n_atom);
 						const vector<vector<int> > &frags = find_fragments(bond, n_bond, atom);
 						vector<fragment_t> fragments = populate_fragments(frags, atom);
@@ -5031,7 +4983,7 @@ int main(int argc, char **argv) {
 
 	ofstream outfile;
 
-	if (writeout.getValue() != "") {
+	if (!writeout.getValue().empty()) {
 		string filename = writeout.getValue();
 		outfile.open(filename.c_str(), ios::out);
 	}
