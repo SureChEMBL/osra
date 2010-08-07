@@ -355,19 +355,10 @@ COOCH2P COOCH2Ph
 NeO MeO
 ONe MeO
 
-R R
 Rl R1
 Rlo R10
-R2 R2
-R3 R3
 Rg R9
 Rp R4
-#R5 X
-#R6 X
-#R7 X
-#R8 X
-#Z X
-#Y X
 2 Z
 RlO R10
 Y2 Y2

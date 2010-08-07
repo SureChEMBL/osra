@@ -48,7 +48,7 @@ int abbreviation_to_mol(OBMol &mol, int &n, int &bondn, const string &smiles_sup
 	int prevatms = mol.NumAtoms();
 	int numatms = mol1.NumAtoms();
 
-	for (unsigned int i = mol1.NumAtoms(); i > 1; i--) {
+	for (unsigned int i = mol1.NumAtoms(); i >= 1; i--) {
 		atom = mol1.GetAtom(i);
 		if (atom != NULL) {
 			OBAtom *a = mol.CreateAtom();
@@ -162,7 +162,7 @@ const string get_smiles(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, 
 		OBConversion conv;
 		int n = 1;
 		double scale = CC_BOND_LENGTH / avg;
-		vector<int> atomB, atomN, bondB, bondN;
+		vector<int> atomN, bondN;
 		int bondn = 0;
 		int anum;
 
@@ -173,20 +173,24 @@ const string get_smiles(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, 
 		mol.BeginModify();
 		for (int i = 0; i < n_bond; i++)
 			if (bond[i].exists && i < MAX_ATOMS - 1 && bond[i].a < MAX_ATOMS - 1 && bond[i].b < MAX_ATOMS - 1) {
-				//cout << i << endl;
 				if (atom[bond[i].a].n == 0) {
 					int oldn = n;
-					int oldbond = bondn;
-					//cout << i << " " << bond[i].a << " " << atom[bond[i].a].label << endl;
 					anum = getAnum(atom[bond[i].a].label, mol, n, bondn, superatom);
 					if (oldn != n) {
-						atomB.push_back(oldn);
-						atomN.push_back(n - 1);
-						bondB.push_back(oldbond);
-						bondN.push_back(bondn);
-						atom[bond[i].a].n = n - 1;
-						OBAtom *a = mol.GetAtom(n - 1);
-						a->SetVector(atom[bond[i].a].x * scale, -atom[bond[i].a].y * scale, 0);
+					  if (n != oldn+1) {
+					    atomN.push_back(n - 1);
+					    bondN.push_back(bondn);
+					  }
+					  atom[bond[i].a].n = n - 1;
+					  OBAtom *a = mol.GetAtom(n - 1);
+					  a->SetVector(atom[bond[i].a].x * scale, -atom[bond[i].a].y * scale, 0);
+					  if (anum == 0) {
+					    AliasData* ad = new AliasData();
+					    ad->SetAlias(atom[bond[i].a].label);
+					    ad->SetOrigin(external);
+					    a->SetData(ad);
+					    ad->Expand(mol, anum);
+					  }
 					} else {
 						OBAtom *a = mol.CreateAtom();
 						a->SetAtomicNum(anum);
@@ -211,16 +215,22 @@ const string get_smiles(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, 
 				}
 				if (atom[bond[i].b].n == 0) {
 					int oldn = n;
-					int oldbond = bondn;
 					anum = getAnum(atom[bond[i].b].label, mol, n, bondn, superatom);
 					if (oldn != n) {
-						atomB.push_back(oldn);
-						atomN.push_back(n - 1);
-						bondB.push_back(oldbond);
-						bondN.push_back(bondn);
-						atom[bond[i].b].n = n - 1;
-						OBAtom *b = mol.GetAtom(n - 1);
-						b->SetVector(atom[bond[i].b].x * scale, -atom[bond[i].b].y * scale, 0);
+					  if (n != oldn+1) {
+					    atomN.push_back(n - 1);
+					    bondN.push_back(bondn);
+					  }
+					  atom[bond[i].b].n = n - 1;
+					  OBAtom *b = mol.GetAtom(n - 1);
+					  b->SetVector(atom[bond[i].b].x * scale, -atom[bond[i].b].y * scale, 0);
+					  if (anum == 0) {
+					    AliasData* ad = new AliasData();
+					    ad->SetAlias(atom[bond[i].b].label);
+					    ad->SetOrigin(external);
+					    b->SetData(ad);
+					    ad->Expand(mol, anum);
+					  }
 					} else {
 						OBAtom *b = mol.CreateAtom();
 						b->SetAtomicNum(anum);
@@ -386,8 +396,7 @@ const string get_smiles(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, 
 
 		if (format == "sdf") {
 			for (unsigned int i = 0; i < atomN.size(); i++) {
-				//groupRedrawBeginEnd(&mol, atomB[i], atomN[i], bondB[i], bondN[i]);
-				groupRedraw(&mol, bondN[i], atomN[i], true);
+			  groupRedraw(&mol, bondN[i], atomN[i], true);
 			}
 		}
 
