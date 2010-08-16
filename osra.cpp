@@ -4387,11 +4387,23 @@ void find_limits_on_avg_bond(double &min_bond, double &max_bond, const vector<ve
 double confidence_function(int C_Count, int N_Count, int O_Count, int F_Count, int S_Count, int Cl_Count, int Br_Count,
 		int R_Count, int Xx_Count, int num_rings, int num_aromatic, int num_fragments, const vector<int> &Num_Rings,
 		int num_double, int num_triple) {
-	double confidence = 0.316030 - 0.016315 * C_Count + 0.034336 * N_Count + 0.066810 * O_Count + 0.035674 * F_Count
-			+ 0.065504 * S_Count + 0.04 * Cl_Count + 0.066811 * Br_Count + 0.01 * R_Count - 0.02 * Xx_Count - 0.212739
-			* num_rings + 0.071300 * num_aromatic + 0.329922 * Num_Rings[5] + 0.342865 * Num_Rings[6] - 0.037796
-			* num_fragments;
-	return (confidence);
+  double confidence = 0.316030 //
+    - 0.016315 * C_Count //
+    + 0.034336 * N_Count //
+    + 0.066810 * O_Count //
+    + 0.035674 * F_Count //
+    + 0.065504 * S_Count //
+    + 0.04 * Cl_Count //
+    + 0.066811 * Br_Count //
+    + 0.01 * R_Count //
+    - 0.02 * Xx_Count //
+    - 0.212739 * num_rings //
+    + 0.071300 * num_aromatic //
+    + 0.329922 * Num_Rings[5] //
+    + 0.342865 * Num_Rings[6] //
+    - 0.037796 * num_fragments;
+
+  return (confidence);
 }
 
 int main(int argc, char **argv) {
