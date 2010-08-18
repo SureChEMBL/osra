@@ -76,12 +76,12 @@ MCDLUTIL=mcdlutil.o
 
 CPPFLAGS= -g -O2 -fPIC $(OCRADINC) $(MINGWINC) -D_LIB -D_MT -Wall $(POTRACEINC) $(GOCRINC) $(MOL_BACKEND_INC) $(TCLAPINC) $(MAGIKINC) $(TESSERACTINC) $(CUNEIFORMINC)
 
-LIBS=$(POTRACELIB) $(OCRADLIB) -lm  $(MAGIKLIB) $(GOCRLIB) $(MOL_BACKEND_LIB)  $(TESSERACTLIB) 
+LIBS=$(POTRACELIB) $(OCRADLIB) -lm  $(MAGIKLIB) $(GOCRLIB) $(MOL_BACKEND_LIB)  $(TESSERACTLIB) $(CUNEIFORMLIB)
 OBJ = osra.o osra_anisotropic.o osra_ocr.o $(MOL_BACKEND_OBJ) $(MCDLUTIL) unpaper.o
 
 
 all:	$(OBJ)
-	${LD} $(LDFLAGS_STATIC)  -o osra $(CUNEIFORMLIB) $(OBJ) $(LIBS)
+	${LD} $(LDFLAGS_STATIC)  -o osra $(OBJ) $(LIBS)
 
 
 osra.o:	osra.cpp osra.h pgm2asc.h output.h list.h unicode.h gocr.h
