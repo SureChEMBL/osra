@@ -27,6 +27,9 @@
 #include <cstdio>
 #include <vector>
 #include <cstring>
+#include <iostream>
+#include <string>
+#include <sstream>
 
 extern "C" {
 #include "pgm2asc.h"
@@ -149,7 +152,7 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
 			int count = 0;
 			int zeros = 0;
 
-			Magick::Image bmp(Magick::Geometry(x2-x1+1+20,y2-y1+1+20),"white");
+			Magick::Image bmp(Magick::Geometry(2*(x2-x1+1)+2,y2-y1+1),"white");
 			bmp.monochrome(); 
 			bmp.type(Magick::BilevelType);
 
@@ -161,7 +164,8 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
 						job.src.p.p[y * job.src.p.x + x] = tmp[(i - y1) * (x2 - x1 + 1) + j - x1];
 						if (tmp[(i - y1) * (x2 - x1 + 1) + j - x1] == 0) {
 						        bitmap_data[y * job.src.p.x + x] = 1;
-							bmp.pixelColor(x+10, y+10, "black");
+							bmp.pixelColor(x, y, "black");
+							bmp.pixelColor(x+(x2-x1+1)+2, y, "black");
 							if (x > 0 && x < job.src.p.x - 1 && y > 0 && y < job.src.p.y - 1)
 								count++;
 						} else if (x > 0 && x < job.src.p.x - 1 && y > 0 && y < job.src.p.y - 1)
@@ -173,6 +177,9 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
 
 			Magick::Blob blob;
 			bmp.write(&blob, "DIB");
+			//stringstream fname;
+			//fname << tmpnam(NULL) << ".bmp";
+			//bmp.write(fname.str());
 			size_t data_size = blob.length();
 			char *dib = new char[data_size];
 			memcpy(dib, blob.data(), data_size);
@@ -245,19 +252,17 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
 					else
 					  {
 					    char c4=0;
-					    char str[2]="_";
+					    char str[256];
 
 					    PUMA_XOpen(dib, NULL);
 					    PUMA_XFinalRecognition();
-					    PUMA_SaveToMemory(NULL, PUMA_TOTEXT, PUMA_CODE_UTF8, str, 2);
+					    PUMA_SaveToMemory(NULL, PUMA_TOTEXT, PUMA_CODE_ASCII, str, 256);
 					    PUMA_XClose();
-					    
-					    c4=str[0];
-					    //cout<<"str="<<str<<endl;
+					    if ((str[0]==str[1] && isspace(str[3])) || (str[0]==str[2] && str[1]==' '))
+					      c4=str[0];
+					    //cout<<c4<<endl;
 					    if (patern.find(c4, 0) == string::npos)
 					      c4 = '_';
-					    if (isalnum(str[1]))  
-					      c4='_';
 					    if (isalnum(c4))
 					      c = c4;
 					  }

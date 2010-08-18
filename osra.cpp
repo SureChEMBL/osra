@@ -4471,7 +4471,6 @@ int main(int argc, char **argv) {
 	Bool dotmatrix = 0;
 	Bool fax = 0;
 	Bool onecolumn = 1;
-	int32_t outputformat = PUMA_TOTEXT;
 	PUMA_Init(0, 0);
 	PUMA_SetImportData(PUMA_Word32_Language, &langcode);
 	PUMA_SetImportData(PUMA_Bool32_DotMatrix, &dotmatrix);
