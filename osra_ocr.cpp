@@ -20,6 +20,9 @@
  St, Fifth Floor, Boston, MA 02110-1301, USA
  *****************************************************************************/
 
+
+
+
 #include <algorithm>
 #include <cstdio>
 #include <vector>
@@ -34,6 +37,15 @@ extern "C" {
 //#include <tesseract/baseapi.h>
 
 #include "osra.h"
+
+//#include "cuneiform.h"
+#include"ctiimage.h" // Must be first, or else you get compile errors.
+#include"cttypes.h"
+#include"puma.h"
+#include "lang_def.h"
+#include "mpuma.h"
+#include "compat_defs.h"
+//#include"config.h"
 
 job_t *JOB;
 
@@ -136,6 +148,11 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
 
 			int count = 0;
 			int zeros = 0;
+
+			Magick::Image bmp(Magick::Geometry(x2-x1+1,y2-y1+1),"white");
+			bmp.monochrome(); 
+			bmp.type(Magick::BilevelType);
+
 			for (int i = y1; i <= y2; i++) {
 				for (int j = x1; j <= x2; j++) {
 					int x = int(f * (j - x1));
@@ -143,7 +160,8 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
 					if ((x < job.src.p.x) && (y < job.src.p.y) && (job.src.p.p[y * job.src.p.x + x] == 255)) {
 						job.src.p.p[y * job.src.p.x + x] = tmp[(i - y1) * (x2 - x1 + 1) + j - x1];
 						if (tmp[(i - y1) * (x2 - x1 + 1) + j - x1] == 0) {
-							bitmap_data[y * job.src.p.x + x] = 1;
+						        bitmap_data[y * job.src.p.x + x] = 1;
+							bmp.pixelColor(x, y, "black");
 							if (x > 0 && x < job.src.p.x - 1 && y > 0 && y < job.src.p.y - 1)
 								count++;
 						} else if (x > 0 && x < job.src.p.x - 1 && y > 0 && y < job.src.p.y - 1)
@@ -152,6 +170,13 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
 
 				}
 			}
+
+			Magick::Blob blob;
+			bmp.write(&blob, "DIB");
+			size_t data_size = blob.length();
+			char *dib = new char[data_size];
+			memcpy(dib, blob.data(), data_size);
+
 
 			/*
 			cout << x2 - x1 << " " << y2 - y1 << endl;
@@ -216,10 +241,40 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
 							c = c3;
 					}
 					*/
+					else
+					  {
+					    char c4=0;
+					    char str[2]="_";
+					    int langcode = LANG_ENGLISH;
+					    Bool dotmatrix = 0;
+					    Bool fax = 0;
+					    Bool onecolumn = 1;
+					    int32_t outputformat = PUMA_TOTEXT;
+					    
+					      PUMA_Init(0, 0);
+					      PUMA_SetImportData(PUMA_Word32_Language, &langcode);
+					      PUMA_SetImportData(PUMA_Bool32_DotMatrix, &dotmatrix);
+					      PUMA_SetImportData(PUMA_Bool32_Fax100, &fax);
+					      PUMA_SetImportData(PUMA_Bool32_OneColumn, &onecolumn);
+					      PUMA_XOpen(dib, NULL);
+					      PUMA_XFinalRecognition();
+					      PUMA_SaveToMemory(NULL, outputformat, PUMA_CODE_UTF8, str, 2);
+					      PUMA_XClose();
+					      PUMA_Done();
+					    
+					    c4=str[0];
+					    if (patern.find(c4, 0) == string::npos)
+					      c4 = '_';
+					    if (isalnum(str[1]))  
+					      c4='_';
+					    if (isalnum(c4))
+					      c = c4;
+					  }
 				}
 
 			}
 			//cout << c << endl; // << "==========================" << endl;
+			delete []dib;
 		}
 		job_free(&job);
 		JOB = NULL;

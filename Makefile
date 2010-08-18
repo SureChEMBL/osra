@@ -4,7 +4,8 @@ ARCH=unix
 POTRACE=../potrace-1.8/
 GOCR=../gocr-0.45/
 OCRAD=../ocrad-0.20/
-OPENBABEL=/home/igor/openbabel/install/
+#OPENBABEL=/home/igor/openbabel/install/
+OPENBABEL=/usr/
 MAGICKCONFIG=GraphicsMagick++-config
 
 TCLAPINC=-I/usr/local/include/tclap/
@@ -16,8 +17,12 @@ endif
 #TESSERACTINC=-I/usr/local/include
 #TESSERACTLIB=-L/usr/local/lib -ltesseract_full
 
-CPP=g++ -fopenmp -g -O3
-LD=g++ -fopenmp -g -O3 -fPIC
+CUNEIFORMINC=-I../cuneiform-linux-1.0.0/install/include -I../cuneiform-linux-1.0.0/cuneiform_src/Kern/hhh/ -I../cuneiform-linux-1.0.0/cuneiform_src/Kern/h/  -I../cuneiform-linux-1.0.0/cuneiform_src/Kern/hrk/  -I../cuneiform-linux-1.0.0/cuneiform_src/Kern/puma/h/    -I../cuneiform-linux-1.0.0/cuneiform_src/Kern/include/ -I../cuneiform-linux-1.0.0/cuneiform_src/Kern/hdebug/
+CUNEIFORMLIB=-L../cuneiform-linux-1.0.0/install/lib64  -lcuneiform -lrcorrkegl -lrfrmt -lrmarker -lrblock -lrneg -lrout -lced -lrpic -lrselstr -lrstuff -lrimage -lrline -lrshelllines -lrverline -lcimage -lcfio -lcpage -llns32 -lrdib -lsmetric -lexc -lloc32 -lrreccom -lrpstr -lrstr -lcline -lrcutp -lpass2 -lrbal -lrsadd -lleo32 -levn32 -lfon32 -lctb32 -lmsk32 -ldif32 -lcpu32 -lr3532 -lmmx32 -lrling -lrlings -lcstr -lccom -lstd32 -lcfcompat
+
+
+CPP=g++ -g -O3
+LD=g++ -g -O3 -fPIC
 CP=cp
 SED=sed
 RM=rm
@@ -69,14 +74,14 @@ MCDLUTIL=mcdlutil.o
 
 
 
-CPPFLAGS= -g -O2 -fPIC $(OCRADINC) $(MINGWINC) -D_LIB -D_MT -Wall $(POTRACEINC) $(GOCRINC) $(MOL_BACKEND_INC) $(TCLAPINC) $(MAGIKINC) $(TESSERACTINC)
+CPPFLAGS= -g -O2 -fPIC $(OCRADINC) $(MINGWINC) -D_LIB -D_MT -Wall $(POTRACEINC) $(GOCRINC) $(MOL_BACKEND_INC) $(TCLAPINC) $(MAGIKINC) $(TESSERACTINC) $(CUNEIFORMINC)
 
-LIBS=$(POTRACELIB) $(OCRADLIB) -lm  $(MAGIKLIB) $(GOCRLIB) $(MOL_BACKEND_LIB)  $(TESSERACTLIB)
+LIBS=$(POTRACELIB) $(OCRADLIB) -lm  $(MAGIKLIB) $(GOCRLIB) $(MOL_BACKEND_LIB)  $(TESSERACTLIB) 
 OBJ = osra.o osra_anisotropic.o osra_ocr.o $(MOL_BACKEND_OBJ) $(MCDLUTIL) unpaper.o
 
 
 all:	$(OBJ)
-	${LD} $(LDFLAGS_STATIC)  -o osra $(OBJ) $(LIBS)
+	${LD} $(LDFLAGS_STATIC)  -o osra $(CUNEIFORMLIB) $(OBJ) $(LIBS)
 
 
 osra.o:	osra.cpp osra.h pgm2asc.h output.h list.h unicode.h gocr.h
