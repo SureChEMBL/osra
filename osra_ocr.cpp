@@ -254,15 +254,18 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
 					    char c4=0;
 					    char str[256];
 
-					    PUMA_XOpen(dib, NULL);
-					    PUMA_XFinalRecognition();
-					    PUMA_SaveToMemory(NULL, PUMA_TOTEXT, PUMA_CODE_ASCII, str, 256);
-					    PUMA_XClose();
-					    if ((str[0]==str[1] && isspace(str[3])) || (str[0]==str[2] && str[1]==' '))
-					      c4=str[0];
-					    //cout<<c4<<endl;
-					    if (patern.find(c4, 0) == string::npos)
-					      c4 = '_';
+					    if (x2-x1>5)
+					      {
+						PUMA_XOpen(dib, NULL);
+						PUMA_XFinalRecognition();
+						PUMA_SaveToMemory(NULL, PUMA_TOTEXT, PUMA_CODE_ASCII, str, 256);
+						PUMA_XClose();
+						if ((str[0]==str[1] && isspace(str[3])) || (str[0]==str[2] && str[1]==' '))
+						  c4=str[0];
+						//cout<<c4<<endl;
+						if (patern.find(c4, 0) == string::npos)
+						  c4 = '_';
+					      }
 					    if (isalnum(c4))
 					      c = c4;
 					  }
