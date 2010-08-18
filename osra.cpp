@@ -48,6 +48,13 @@ extern "C" {
 #include "osra.h"
 //#include "config.h"
 
+#include"ctiimage.h" // Must be first, or else you get compile errors.
+#include"cttypes.h"
+#include"puma.h"
+#include "lang_def.h"
+#include "mpuma.h"
+#include "compat_defs.h"
+
 using namespace std;
 using namespace Magick;
 
@@ -4460,6 +4467,18 @@ int main(int argc, char **argv) {
 	// Necessary for GraphicsMagick-1.3.8 according to http://www.graphicsmagick.org/1.3/NEWS.html#january-21-2010:
 	InitializeMagick(*argv);
 
+	int langcode = LANG_ENGLISH;
+	Bool dotmatrix = 0;
+	Bool fax = 0;
+	Bool onecolumn = 1;
+	int32_t outputformat = PUMA_TOTEXT;
+	PUMA_Init(0, 0);
+	PUMA_SetImportData(PUMA_Word32_Language, &langcode);
+	PUMA_SetImportData(PUMA_Bool32_DotMatrix, &dotmatrix);
+	PUMA_SetImportData(PUMA_Bool32_Fax100, &fax);
+	PUMA_SetImportData(PUMA_Bool32_OneColumn, &onecolumn);
+
+
 	srand(1);
 
 	// Loading the program data files into maps:
@@ -5031,6 +5050,7 @@ int main(int argc, char **argv) {
 
 	if (outfile.is_open())
 		outfile.close();
-
+	
+	PUMA_Done();
 	return 0;
 }

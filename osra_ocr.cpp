@@ -149,7 +149,7 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
 			int count = 0;
 			int zeros = 0;
 
-			Magick::Image bmp(Magick::Geometry(x2-x1+1,y2-y1+1),"white");
+			Magick::Image bmp(Magick::Geometry(x2-x1+1+20,y2-y1+1+20),"white");
 			bmp.monochrome(); 
 			bmp.type(Magick::BilevelType);
 
@@ -161,7 +161,7 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
 						job.src.p.p[y * job.src.p.x + x] = tmp[(i - y1) * (x2 - x1 + 1) + j - x1];
 						if (tmp[(i - y1) * (x2 - x1 + 1) + j - x1] == 0) {
 						        bitmap_data[y * job.src.p.x + x] = 1;
-							bmp.pixelColor(x, y, "black");
+							bmp.pixelColor(x+10, y+10, "black");
 							if (x > 0 && x < job.src.p.x - 1 && y > 0 && y < job.src.p.y - 1)
 								count++;
 						} else if (x > 0 && x < job.src.p.x - 1 && y > 0 && y < job.src.p.y - 1)
@@ -199,11 +199,11 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
 				char *l;
 				l = (char *) job.res.linelist.start.next->data;
 				if (l != NULL)
-					c1 = l[0];
+				  c1 = l[0];
 				//cout << "c1=" << c1 << endl;
-				if (isalnum(c1))
-					// Character recognition succeeded for GOCR:
-					c = c1;
+				//c1='_';
+				if (isalnum(c1)) // Character recognition succeeded for GOCR:
+				  c = c1;
 				else {
 					// Character recognition failed for GOCR and we try OCRAD:
 					char c2 = 0;
@@ -224,6 +224,7 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
 					OCRAD_close(ocrdes);
 					if (patern.find(c2, 0) == string::npos)
 						c2 = '_';
+					//c2='_';
 					if (isalnum(c2))
 						c = c2;
 					/*
@@ -245,24 +246,14 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
 					  {
 					    char c4=0;
 					    char str[2]="_";
-					    int langcode = LANG_ENGLISH;
-					    Bool dotmatrix = 0;
-					    Bool fax = 0;
-					    Bool onecolumn = 1;
-					    int32_t outputformat = PUMA_TOTEXT;
-					    
-					      PUMA_Init(0, 0);
-					      PUMA_SetImportData(PUMA_Word32_Language, &langcode);
-					      PUMA_SetImportData(PUMA_Bool32_DotMatrix, &dotmatrix);
-					      PUMA_SetImportData(PUMA_Bool32_Fax100, &fax);
-					      PUMA_SetImportData(PUMA_Bool32_OneColumn, &onecolumn);
-					      PUMA_XOpen(dib, NULL);
-					      PUMA_XFinalRecognition();
-					      PUMA_SaveToMemory(NULL, outputformat, PUMA_CODE_UTF8, str, 2);
-					      PUMA_XClose();
-					      PUMA_Done();
+
+					    PUMA_XOpen(dib, NULL);
+					    PUMA_XFinalRecognition();
+					    PUMA_SaveToMemory(NULL, PUMA_TOTEXT, PUMA_CODE_UTF8, str, 2);
+					    PUMA_XClose();
 					    
 					    c4=str[0];
+					    //cout<<"str="<<str<<endl;
 					    if (patern.find(c4, 0) == string::npos)
 					      c4 = '_';
 					    if (isalnum(str[1]))  

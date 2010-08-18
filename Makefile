@@ -21,8 +21,8 @@ CUNEIFORMINC=-I../cuneiform-linux-1.0.0/install/include -I../cuneiform-linux-1.0
 CUNEIFORMLIB=-L../cuneiform-linux-1.0.0/install/lib64  -lcuneiform -lrcorrkegl -lrfrmt -lrmarker -lrblock -lrneg -lrout -lced -lrpic -lrselstr -lrstuff -lrimage -lrline -lrshelllines -lrverline -lcimage -lcfio -lcpage -llns32 -lrdib -lsmetric -lexc -lloc32 -lrreccom -lrpstr -lrstr -lcline -lrcutp -lpass2 -lrbal -lrsadd -lleo32 -levn32 -lfon32 -lctb32 -lmsk32 -ldif32 -lcpu32 -lr3532 -lmmx32 -lrling -lrlings -lcstr -lccom -lstd32 -lcfcompat
 
 
-CPP=g++ -g -O3
-LD=g++ -g -O3 -fPIC
+CPP=g++ -g
+LD=g++ -g -fPIC
 CP=cp
 SED=sed
 RM=rm
