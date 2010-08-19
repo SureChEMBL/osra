@@ -37,18 +37,20 @@ extern "C" {
 
 #include <ocradlib.h>
 
-//#include <tesseract/baseapi.h>
+#ifdef TESSERACT_ENABLE
+#include <tesseract/baseapi.h>
+#endif
 
 #include "osra.h"
 
-//#include "cuneiform.h"
-#include"ctiimage.h" // Must be first, or else you get compile errors.
+#ifdef CUNEIFORM_ENABLE
+#include"ctiimage.h"
 #include"cttypes.h"
 #include"puma.h"
 #include "lang_def.h"
 #include "mpuma.h"
 #include "compat_defs.h"
-//#include"config.h"
+#endif
 
 job_t *JOB;
 
@@ -152,10 +154,11 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
 			int count = 0;
 			int zeros = 0;
 
+#ifdef CUNEIFORM_ENABLE	
 			Magick::Image bmp(Magick::Geometry(2*(x2-x1+1)+2,y2-y1+1),"white");
 			bmp.monochrome(); 
 			bmp.type(Magick::BilevelType);
-
+#endif
 			for (int i = y1; i <= y2; i++) {
 				for (int j = x1; j <= x2; j++) {
 					int x = int(f * (j - x1));
@@ -164,8 +167,10 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
 						job.src.p.p[y * job.src.p.x + x] = tmp[(i - y1) * (x2 - x1 + 1) + j - x1];
 						if (tmp[(i - y1) * (x2 - x1 + 1) + j - x1] == 0) {
 						        bitmap_data[y * job.src.p.x + x] = 1;
+#ifdef CUNEIFORM_ENABLE	
 							bmp.pixelColor(x, y, "black");
 							bmp.pixelColor(x+(x2-x1+1)+2, y, "black");
+#endif
 							if (x > 0 && x < job.src.p.x - 1 && y > 0 && y < job.src.p.y - 1)
 								count++;
 						} else if (x > 0 && x < job.src.p.x - 1 && y > 0 && y < job.src.p.y - 1)
@@ -175,15 +180,13 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
 				}
 			}
 
+#ifdef CUNEIFORM_ENABLE	
 			Magick::Blob blob;
 			bmp.write(&blob, "DIB");
-			//stringstream fname;
-			//fname << tmpnam(NULL) << ".bmp";
-			//bmp.write(fname.str());
 			size_t data_size = blob.length();
 			char *dib = new char[data_size];
 			memcpy(dib, blob.data(), data_size);
-
+#endif
 
 			/*
 			cout << x2 - x1 << " " << y2 - y1 << endl;
@@ -234,46 +237,53 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
 					//c2='_';
 					if (isalnum(c2))
 						c = c2;
-					/*
-					} else {
-						char c3 = 0;
-						TessBaseAPI::InitWithLanguage(NULL, NULL, "eng", NULL, false, 0, NULL);
-						char* text = TessBaseAPI::TesseractRect(tmp1, 1, x2 - x1 + 1, 0, 0, x2 - x1 + 1, y2 - y1 + 1);
-						TessBaseAPI::End();
-						if (text != NULL)
-							c3 = text[0];
-						patern = "OCN";
-						if (patern.find(c3, 0) == string::npos)
-							c3 = '_';
-						if (isalnum(c3))
-							c = c3;
-					}
-					*/
-					else
-					  {
-					    char c4=0;
-					    char str[256];
+#ifdef TESSERACT_ENABLE
+					else {
+					  char c3 = 0;
+					  TessBaseAPI::InitWithLanguage(NULL, NULL, "eng", NULL, false, 0, NULL);
+					  char* text = TessBaseAPI::TesseractRect(job.src.p.p, 1, x2 - x1 + 1, 0, 0, x2 - x1 + 1, y2 - y1 + 1);
+					  TessBaseAPI::End();
+					  if (text != NULL)
+					    c3 = text[0];
+					  //cout<<"c3="<<c3<<endl;
+					  if (patern.find(c3, 0) == string::npos)
+					    c3 = '_';
+					  if (isalnum(c3))
+					    c = c3;
+#endif
+#ifdef CUNEIFORM_ENABLE
+					  else
+					    {
+					      char c4=0;
+					      char str[256];
 
-					    if (x2-x1>5)
-					      {
-						PUMA_XOpen(dib, NULL);
-						PUMA_XFinalRecognition();
-						PUMA_SaveToMemory(NULL, PUMA_TOTEXT, PUMA_CODE_ASCII, str, 256);
-						PUMA_XClose();
-						if ((str[0]==str[1] && isspace(str[3])) || (str[0]==str[2] && str[1]==' '))
-						  c4=str[0];
-						//cout<<c4<<endl;
-						if (patern.find(c4, 0) == string::npos)
-						  c4 = '_';
-					      }
-					    if (isalnum(c4))
-					      c = c4;
-					  }
+					      if (x2-x1>5)
+						{
+						  PUMA_XOpen(dib, NULL);
+						  PUMA_XFinalRecognition();
+						  PUMA_SaveToMemory(NULL, PUMA_TOTEXT, PUMA_CODE_ASCII, str, 256);
+						  PUMA_XClose();
+						  if ((str[0]==str[1] && isspace(str[3])) || (str[0]==str[2] && str[1]==' '))
+						    c4=str[0];
+						  //cout<<c4<<endl;
+						  if (patern.find(c4, 0) == string::npos)
+						    c4 = '_';
+						}
+					      if (isalnum(c4))
+						c = c4;
+					    }
+#endif
+#ifdef TESSERACT_ENABLE
+					}
+#endif
 				}
+			
 
 			}
 			//cout << c << endl; // << "==========================" << endl;
+#ifdef CUNEIFORM_ENABLE
 			delete []dib;
+#endif
 		}
 		job_free(&job);
 		JOB = NULL;

@@ -48,12 +48,14 @@ extern "C" {
 #include "osra.h"
 //#include "config.h"
 
-#include"ctiimage.h" // Must be first, or else you get compile errors.
+#ifdef CUNEIFORM_ENABLE
+#include"ctiimage.h"
 #include"cttypes.h"
 #include"puma.h"
 #include "lang_def.h"
 #include "mpuma.h"
 #include "compat_defs.h"
+#endif
 
 using namespace std;
 using namespace Magick;
@@ -4467,6 +4469,7 @@ int main(int argc, char **argv) {
 	// Necessary for GraphicsMagick-1.3.8 according to http://www.graphicsmagick.org/1.3/NEWS.html#january-21-2010:
 	InitializeMagick(*argv);
 
+#ifdef CUNEIFORM_ENABLE
 	int langcode = LANG_ENGLISH;
 	Bool dotmatrix = 0;
 	Bool fax = 0;
@@ -4476,7 +4479,7 @@ int main(int argc, char **argv) {
 	PUMA_SetImportData(PUMA_Bool32_DotMatrix, &dotmatrix);
 	PUMA_SetImportData(PUMA_Bool32_Fax100, &fax);
 	PUMA_SetImportData(PUMA_Bool32_OneColumn, &onecolumn);
-
+#endif
 
 	srand(1);
 
@@ -5049,7 +5052,8 @@ int main(int argc, char **argv) {
 
 	if (outfile.is_open())
 		outfile.close();
-	
+#ifdef CUNEIFORM_ENABLE	
 	PUMA_Done();
+#endif
 	return 0;
 }
