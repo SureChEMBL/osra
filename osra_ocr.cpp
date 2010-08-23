@@ -243,7 +243,7 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
 					  TessBaseAPI::InitWithLanguage(NULL, NULL, "eng", NULL, false, 0, NULL);
 					  char* text = TessBaseAPI::TesseractRect(job.src.p.p, 1, x2 - x1 + 1, 0, 0, x2 - x1 + 1, y2 - y1 + 1);
 					  TessBaseAPI::End();
-					  if (text != NULL && strlen(text)==1)
+					  if (text != NULL && strlen(text)==3)
 					    c3 = text[0];
 					  //cout<<"c3="<<c3<<endl;
 					  if (patern.find(c3, 0) == string::npos)
@@ -263,8 +263,9 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
 						  PUMA_XFinalRecognition();
 						  PUMA_SaveToMemory(NULL, PUMA_TOTEXT, PUMA_CODE_ASCII, str, 256);
 						  PUMA_XClose();
-						  if ((str[0]==str[1] && isspace(str[3])) || (str[0]==str[2] && str[1]==' '))
+						  if ((str[0]==str[1] && isspace(str[2])) || (str[0]==str[2] && str[1]==' '))
 						    c4=str[0];
+						  //cout<<str[0]<<"|"<<str[1]<<"|"<<str[2]<<"|"<<str[3]<<"|"<<endl;
 						  //cout<<c4<<endl;
 						  if (patern.find(c4, 0) == string::npos)
 						    c4 = '_';
