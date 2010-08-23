@@ -71,7 +71,6 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
 	char c = 0;
 #pragma omp critical
 	{
-		char c1 = 0;
 		unsigned char *tmp;
 		job_t job;
 		double f = 1.;
@@ -201,6 +200,7 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
 			string patern = job.cfg.cfilter;
 
 			if (count > MIN_CHAR_POINTS && zeros > MIN_CHAR_POINTS) {
+			        char c1 = 0;
 				JOB = &job;
 				try {
 					pgm2asc(&job);
@@ -208,7 +208,7 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
 				}
 				char *l;
 				l = (char *) job.res.linelist.start.next->data;
-				if (l != NULL)
+				if (l != NULL && strlen(l)==1)
 				  c1 = l[0];
 				//cout << "c1=" << c1 << endl;
 				//c1='_';
@@ -243,7 +243,7 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
 					  TessBaseAPI::InitWithLanguage(NULL, NULL, "eng", NULL, false, 0, NULL);
 					  char* text = TessBaseAPI::TesseractRect(job.src.p.p, 1, x2 - x1 + 1, 0, 0, x2 - x1 + 1, y2 - y1 + 1);
 					  TessBaseAPI::End();
-					  if (text != NULL)
+					  if (text != NULL && strlen(text)==1)
 					    c3 = text[0];
 					  //cout<<"c3="<<c3<<endl;
 					  if (patern.find(c3, 0) == string::npos)

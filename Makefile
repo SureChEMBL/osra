@@ -1,12 +1,12 @@
 ARCH=unix
 #unix,win32, osx-static
 #TESSERACT_ENABLE=yes
-CUNEIFORM_ENABLE=yes
+#CUNEIFORM_ENABLE=yes
 
 
 POTRACE=../potrace-1.8/
-GOCR=../gocr-0.45/
-OCRAD=../ocrad-0.20/
+GOCR=../gocr-0.48-patched/
+OCRAD=../ocrad-0.21-pre1/
 OPENBABEL=/usr/
 MAGICKCONFIG=GraphicsMagick++-config
 
@@ -97,7 +97,7 @@ all:	$(OBJ)
 	${LD} $(LDFLAGS_STATIC)  -o osra $(OBJ) $(LIBS)
 
 
-osra.o:	osra.cpp osra.h pgm2asc.h output.h list.h unicode.h gocr.h
+osra.o:	osra.cpp osra.h #pgm2asc.h output.h list.h unicode.h gocr.h
 	$(CPP) $(CPPFLAGS) -c osra.cpp
 
 $(MOL_BACKEND_OBJ): $(MOL_BACKEND_CPP) osra.h
@@ -109,22 +109,22 @@ $(MCDLUTIL):	mcdlutil.cpp mcdlutil.h
 osra_anisotropic.o:	osra_anisotropic.cpp osra.h CImg.h greycstoration.h
 	$(CPP) $(CPPFLAGS) -c osra_anisotropic.cpp
 
-osra_ocr.o:	osra_ocr.cpp osra.h pgm2asc.h output.h list.h unicode.h gocr.h
+osra_ocr.o:	osra_ocr.cpp osra.h #pgm2asc.h output.h list.h unicode.h gocr.h
 	$(CPP) $(CPPFLAGS) -c osra_ocr.cpp
 
 clean:	
-	-$(RM) -f *.o osra pgm2asc.h output.h list.h unicode.h gocr.h
+	-$(RM) -f *.o osra #pgm2asc.h output.h list.h unicode.h gocr.h
 
-pgm2asc.h: $(GOCRSRC)/pgm2asc.h
-	$(CP) $(GOCRSRC)/pgm2asc.h $(SRCDIR)
-output.h: $(GOCRSRC)/output.h
-	$(CP) $(GOCRSRC)/output.h $(SRCDIR)
-gocr.h: $(GOCRSRC)/gocr.h
-	$(CP) $(GOCRSRC)/gocr.h $(SRCDIR)	
-unicode.h: $(GOCRSRC)/unicode.h
-	$(SED) '/INFINITY/d' $(GOCRSRC)/unicode.h >$(SRCDIR)/unicode.h
-list.h: $(GOCRSRC)/list.h
-	$(SED) 's/struct\ list/struct\ list\_s/' $(GOCRSRC)/list.h >$(SRCDIR)/list.h
+#pgm2asc.h: $(GOCRSRC)/pgm2asc.h
+#	$(CP) $(GOCRSRC)/pgm2asc.h $(SRCDIR)
+#output.h: $(GOCRSRC)/output.h
+#	$(CP) $(GOCRSRC)/output.h $(SRCDIR)
+#gocr.h: $(GOCRSRC)/gocr.h
+#	$(CP) $(GOCRSRC)/gocr.h $(SRCDIR)	
+#unicode.h: $(GOCRSRC)/unicode.h
+#	$(SED) '/INFINITY/d' $(GOCRSRC)/unicode.h >$(SRCDIR)/unicode.h
+#list.h: $(GOCRSRC)/list.h
+#	$(SED) 's/struct\ list/struct\ list\_s/' $(GOCRSRC)/list.h >$(SRCDIR)/list.h
 
 
 unpaper.o:	unpaper.cpp unpaper.h
