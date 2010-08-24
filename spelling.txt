@@ -44,6 +44,7 @@ on  O
 no  O  
 nO  O  
 ON  O
+oN  O
 
 Meo MeO 
 oMe MeO  
@@ -62,9 +63,15 @@ OCH3 MeO
 OCHS MeO  
 H3CO MeO  
 OM4 MeO
+ocH MeO
+OM6 MeO
+M6O MeO
+OMR MeO
 
 NC CN 
 YC CN
+Nc CN
+cN CN
 
 nBU nBu
 neU nBu 
@@ -99,6 +106,7 @@ Co2H COOH
 CO2H COOH
 HOOC COOH
 CO2n COOH
+co2H COOH
 
 AC Ac
 pC Ac
@@ -117,6 +125,8 @@ ORC AcO
 OnC AcO
 OAc AcO
 nCO AcO
+Rco AcO
+oRc AcO
 
 Bl Br
 el Br
@@ -169,15 +179,24 @@ lCnuH NHAc
 
 OlHP THPO
 lHPO THPO
+lNpo THPO
+olHp THPO
+
 
 NlOHCH3 NOHCH3
 
 HO3S SO3H
+so3H SO3H
+Ho3s SO3H
 
 NMe MeN
 NHMe MeN
+NHMF MeN
+NHlME MeN
 
 RO OR
+oR OR
+Ro OR
 
 lHPO THPO
 OlHP THPO
@@ -192,6 +211,11 @@ B2O BzO
 OB2 BzO
 OBz BzO
 OBZ BzO
+Blo BzO
+BZC BzO
+EBZO BzO
+CBZ BzO
+B2C BzO
 
 Sl Si
 
