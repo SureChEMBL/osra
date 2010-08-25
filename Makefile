@@ -1,12 +1,12 @@
 ARCH=unix
 #unix,win32, osx-static
 #TESSERACT_ENABLE=yes
-#CUNEIFORM_ENABLE=yes
+CUNEIFORM_ENABLE=yes
 
 
 POTRACE=../potrace-1.8/
-GOCR=../gocr-0.48-patched/
-OCRAD=../ocrad-0.21-pre1/
+GOCR=../gocr-0.45-patched/
+OCRAD=../ocrad-0.20/
 OPENBABEL=/usr/
 MAGICKCONFIG=GraphicsMagick++-config
 

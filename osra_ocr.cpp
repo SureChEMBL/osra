@@ -256,7 +256,8 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
 					    {
 					      char c4=0;
 					      char str[256];
-					      if (x2-x1>5)
+					      //cout<<x2-x1<<" "<<y2-y1<<endl;
+					      if (x2-x1>7)
 						{
 						  PUMA_XOpen(dib, NULL);
 						  PUMA_XFinalRecognition();
