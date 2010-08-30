@@ -37,28 +37,29 @@ using namespace std;
 
 // struct: atom_s
 // Contains information about perspective atom
-struct atom_s {
+struct atom_s
+{
 // doubles: x,y
 // coordinates within the image clip
-	double x, y;
+  double x, y;
 // string: label
 // atomic label
-	string label;
+  string label;
 // int: n
 // counter of created OBAtom objects in <get_smiles()>
-	int n;
+  int n;
 // int: anum
 // atomic number
-	int anum;
+  int anum;
 // pointer: curve
 // pointer to the curve found by Potrace
-	const potrace_path_t *curve;
+  const potrace_path_t *curve;
 // bools: exists, corner, terminal
 // atom exists, atom is at the corner (has two bonds leading to it), atom is a terminal atom
-	bool exists, corner, terminal;
+  bool exists, corner, terminal;
 // int: charge
 // electric charge on the atom
-	int charge;
+  int charge;
 };
 // typedef: atom_t
 // defines atom_t type based on atom_s struct
@@ -66,25 +67,26 @@ typedef struct atom_s atom_t;
 
 // struct: bond_s
 // Contains information about perspective bond between two atoms
-struct bond_s {
+struct bond_s
+{
   // ints: a,b, type
   // starting atom, ending atom, bond type (single/doouble/triple)
-	int a, b, type;
+  int a, b, type;
   // pointer: curve
   // pointer to the curve found by Potrace
-	const potrace_path_t *curve;
+  const potrace_path_t *curve;
   // bools: exists, hash, wedge, up, down, Small, arom
   // bond existence and type flags
-	bool exists;
-	bool hash;
-	bool wedge;
-	bool up;
-	bool down;
-	bool Small;
-	bool arom;
+  bool exists;
+  bool hash;
+  bool wedge;
+  bool up;
+  bool down;
+  bool Small;
+  bool arom;
   // bool: conjoined
   // true for a double bond which is joined at one end on the image
-	bool conjoined;
+  bool conjoined;
 };
 // typedef: bond_t
 // defines bond_t type based on bond_s struct
@@ -92,16 +94,17 @@ typedef struct bond_s bond_t;
 
 // struct: letters_s
 // character found as part of atomic label
-struct letters_s {
+struct letters_s
+{
   // double: x,y,r
   // coordinates of the center and radius of the circumscribing circle
-	double x, y, r;
+  double x, y, r;
   // char: a
   // character
-	char a;
+  char a;
   // bool: free
   // whether or not it was already assign to an existing atomic label
-	bool free;
+  bool free;
 };
 // typedef: letters_t
 // defines letters_t type based on letters_s struct
@@ -109,16 +112,17 @@ typedef struct letters_s letters_t;
 
 // struct: label_s
 // atomic label
-struct label_s {
+struct label_s
+{
   // doubles: x1,y1, x2, y2, r1, r2
   // central coordinates and circumradii for the first and last characters
-	double x1, y1, r1, x2, y2, r2;
+  double x1, y1, r1, x2, y2, r2;
   // string: a
   // atomic label string
-	string a;
+  string a;
   // array: n
   // vector of character indices comprising the atomic label
-	vector<int> n;
+  vector<int> n;
 };
 // typedef: label_t
 // defines label_t type based on label_s struct
@@ -126,10 +130,11 @@ typedef struct label_s label_t;
 
 //struct: point_s
 // a point of the image, used by image segmentation routines
-struct point_s {
+struct point_s
+{
   // int: x,y
   // coordinates of the image point
-	int x, y;
+  int x, y;
 };
 // typedef: point_t
 // defines point_t type based on point_s struct
@@ -137,13 +142,14 @@ typedef struct point_s point_t;
 
 //struct: box_s
 //encompassing box structure for image segmentation
-struct box_s {
+struct box_s
+{
   //int: x1,y1,x2,y2
   // coordinates of top-left and bottom-right corners
-	int x1, y1, x2, y2;
+  int x1, y1, x2, y2;
   //array: c
   //vector of points in the box
-	vector<point_t> c;
+  vector<point_t> c;
 };
 //typedef: box_t
 //defines box_t type based on box_s struct
@@ -151,16 +157,17 @@ typedef struct box_s box_t;
 
 //struct: lbond_s
 //pairs of characters used for constucting atomic labels in <osra.cpp::assemble_labels()>
-struct lbond_s {
+struct lbond_s
+{
   //int: a,b
   // indices of first and second character in a pair
-	int a, b;
+  int a, b;
   //double: x
   // x-coordinate of the first character
-	double x;
+  double x;
   //bool: exists
   //pair of characters is available
-	bool exists;
+  bool exists;
 };
 //typedef: lbond_t
 //defines lbond_t type based on lbond_s struct
@@ -168,19 +175,20 @@ typedef struct lbond_s lbond_t;
 
 //struct: dash_s
 // used to identify dashed bonds in <osra.cpp::find_dashed_bonds()> and small bonds in <osra.cpp::find_small_bonds()>
-struct dash_s {
+struct dash_s
+{
   //double: x,y
   //coordinates
-	double x, y;
+  double x, y;
   //bool: free
   // is this dash available for a perspective dashed bond?
-	bool free;
+  bool free;
   //pointer: curve
   // pointer to the curve found by Potrace
-	const potrace_path_t *curve;
+  const potrace_path_t *curve;
   //int: area
   // area occupied by the dash
-	int area;
+  int area;
 };
 //typedef: dash_t
 //defines dash_t type based on dash_s struct
@@ -188,13 +196,14 @@ typedef struct dash_s dash_t;
 
 //struct: fragment_s
 // used by <osra.cpp::populate_fragments()> to split chemical structure into unconnected molecules.
-struct fragment_s {
+struct fragment_s
+{
   //int: x1,y1,x2,y2
   //top left and bottom right coordinates of the fragment
-	int x1, y1, x2, y2;
+  int x1, y1, x2, y2;
   //array: atom
   //vector of atom indices for atoms in a molecules
-	vector<int> atom;
+  vector<int> atom;
 };
 //typedef: fragment_t
 //defines fragment_t type based on fragment_s struct
@@ -219,7 +228,7 @@ typedef struct fragment_s fragment_t;
 //
 //      Corrected atomic label.
 const string fix_atom_name(const string &s, int n, const map<string, string> &fix,
-		const map<string, string> &superatom, bool debug);
+                           const map<string, string> &superatom, bool debug);
 
 //  Function: get_smiles()
 //
@@ -249,8 +258,8 @@ const string fix_atom_name(const string &s, int n, const map<string, string> &fi
 //
 //    string containing SMILES, SDF or other representation of the molecule
 const string get_smiles(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, int &rotors, double &confidence,
-		int &num_fragments, int &r56, double avg, const string &format, int resolution, bool conf, bool guess,
-		bool showpage, int page, const map<string, string> &superatom, bool showbond);
+                        int &num_fragments, int &r56, double avg, const string &format, int resolution, bool conf, bool guess,
+                        bool showpage, int page, const map<string, string> &superatom, bool showbond);
 
 // Function: anisotropic_smoothing()
 //
@@ -272,11 +281,11 @@ const string get_smiles(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, 
 // See also:
 // <anisotropic_scaling()>
 Magick::Image anisotropic_smoothing(const Magick::Image &image, int width, int height, const float amplitude,
-		const float alpha, const float sigma);
+                                    const float alpha, const float sigma);
 
 // Function: anisotropic_scaling()
 //
-// Performs Greycstoration anisotropic scaling on an image 
+// Performs Greycstoration anisotropic scaling on an image
 //
 // Parameters:
 //
@@ -311,7 +320,7 @@ Magick::Image anisotropic_scaling(const Magick::Image &image, int width, int hei
 //
 // recognized character or 0
 char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int x1, int y1, int x2, int y2,
-		double THRESHOLD, int dropx, int dropy);
+                    double THRESHOLD, int dropx, int dropy);
 
 // Function: getPixel()
 //
@@ -349,8 +358,8 @@ int getPixel(const Magick::Image &image, const Magick::ColorGray &bg, unsigned i
 //
 // confidence estimate
 double confidence_function(int C_Count, int N_Count, int O_Count, int F_Count, int S_Count, int Cl_Count, int Br_Count,
-		int R_Count, int Xx_Count, int num_rings, int num_aromatic, int num_fragments, const vector<int> &Num_Rings,
-		int num_double, int num_triple);
+                           int R_Count, int Xx_Count, int num_rings, int num_aromatic, int num_fragments, const vector<int> &Num_Rings,
+                           int num_double, int num_triple);
 
 //bool detect_bracket(int x, int y, unsigned char *pic);
 
@@ -381,7 +390,7 @@ void unpaper(Magick::Image &picture);
 // MAX_RATIO - maximum black/white fill ratio for perspective molecular structures
 // MIN_ASPECT - minimum aspect ration
 // MAX_ASPECT - maximum aspect ratio
-// MIN_A_COUNT - minimum number of atoms 
+// MIN_A_COUNT - minimum number of atoms
 // MAX_A_COUNT - maximum number of atoms
 // MIN_CHAR_POINTS - minimum number of black and white pixels in a character box
 // MAX_BOND_THICKNESS - maximum bond thickness
