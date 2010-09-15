@@ -20,6 +20,10 @@
  St, Fifth Floor, Boston, MA 02110-1301, USA
  *****************************************************************************/
 
+#ifdef ANDROID
+#include <jni.h>
+#endif
+
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
@@ -5009,8 +5013,37 @@ double confidence_function(int C_Count, int N_Count, int O_Count, int F_Count, i
   return (confidence);
 }
 
+
+
+
+#ifdef ANDROID
+extern "C" {
+  JNIEXPORT jstring JNICALL Java_com_osra_runosra_nativeosra(JNIEnv * j_env, jobject j_this, jobjectArray jarr);
+};
+
+JNIEXPORT jstring JNICALL Java_com_osra_runosra_nativeosra(JNIEnv * j_env, jobject j_this, jobjectArray jarr)
+#else
 int main(int argc, char **argv)
+#endif
 {
+
+#ifdef ANDROID
+
+  int argc=j_env->GetArrayLength(jarr);
+  char **argv=(char **)calloc(argc,sizeof(char*));
+  jboolean isCopy;
+
+  for (int i=0;i<argc;i++)
+    {
+      jstring jstr = (jstring)j_env->GetObjectArrayElement(jarr, i);
+      const char *str = (j_env)->GetStringUTFChars(jstr, &isCopy);
+      argv[i]=(char *)calloc(strlen(str)+1,sizeof(char));
+      strcpy(argv[i],str);
+      j_env->ReleaseStringUTFChars(jstr, str);
+    }
+ 
+
+#endif
 
   TCLAP::CmdLine cmd("OSRA: Optical Structure Recognition Application, created by Igor Filippov, 2007-2010", ' ',
                      OSRA_VERSION);
@@ -5064,6 +5097,7 @@ int main(int argc, char **argv)
   // Necessary for GraphicsMagick-1.3.8 according to http://www.graphicsmagick.org/1.3/NEWS.html#january-21-2010:
   InitializeMagick(*argv);
 
+
 #ifdef CUNEIFORM_ENABLE
   int langcode = LANG_ENGLISH;
   Bool dotmatrix = 0;
@@ -5086,21 +5120,31 @@ int main(int argc, char **argv)
 
   map<string, string> fix;
 
+
   if (!((spelling.getValue().length() != 0 && load_config_map(spelling.getValue(), fix)) || load_config_map(osra_dir + "/" + SPELLING_TXT, fix)))
     {
+#ifdef ANDROID
+      return j_env->NewStringUTF("");
+#else
       cerr << "Cannot open " << SPELLING_TXT << " file (tried locations \""  << osra_dir
            << "\"). Specify the custom file location via -a option." << endl;
       exit(1);
+#endif
     }
 
   map<string, string> superatom;
 
   if (!((abbr.getValue().length() != 0 && load_config_map(abbr.getValue(), superatom)) || load_config_map(osra_dir + "/" + SUPERATOM_TXT, superatom)))
     {
+#ifdef ANDROID
+      return j_env->NewStringUTF("");
+#else
       cerr << "Cannot open " << SUPERATOM_TXT << " file (tried locations \"" << osra_dir
            << "\"). Specify the custom file location via -l option." << endl;
       exit(1);
+#endif
     }
+
 
   string type;
 
@@ -5116,8 +5160,12 @@ int main(int argc, char **argv)
 
   if (type.empty())
     {
+#ifdef ANDROID
+      return j_env->NewStringUTF("");
+#else
       cerr << "Cannot open file \"" << input.getValue() << '"' << endl;
       exit(1);
+#endif
     }
 
   if (!writeout.getValue().empty())
@@ -5127,8 +5175,12 @@ int main(int argc, char **argv)
       outfile.open(filename.c_str(), ios::out | ios::trunc);
       if (outfile.bad() || !outfile.is_open())
         {
+#ifdef ANDROID
+      return j_env->NewStringUTF("");
+#else
           cerr << "Cannot open file \"" << filename << "\" for output" << endl;
           exit(1);
+#endif
         }
       outfile.close();
     }
@@ -5532,6 +5584,8 @@ int main(int argc, char **argv)
                 int real_atoms = count_atoms(atom, n_atom);
                 int real_bonds = count_bonds(bond, n_bond);
 
+
+
                 if (real_atoms > MIN_A_COUNT && real_atoms < MAX_A_COUNT && real_bonds < MAX_A_COUNT)
                   {
                     int f;
@@ -5545,8 +5599,7 @@ int main(int argc, char **argv)
                     remove_small_terminal_bonds(bond, n_bond, atom, avg_bond);
                     n_bond = reconnect_fragments(bond, n_bond, atom, avg_bond);
                     collapse_atoms(atom, bond, n_atom, n_bond, 1);
-
-                    mark_terminal_atoms(bond, n_bond, atom, n_atom);
+		    mark_terminal_atoms(bond, n_bond, atom, n_atom);
                     const vector<vector<int> > &frags = find_fragments(bond, n_bond, atom);
                     vector<fragment_t> fragments = populate_fragments(frags, atom);
                     std::sort(fragments.begin(), fragments.end(), comp_fragments);
@@ -5662,6 +5715,17 @@ int main(int argc, char **argv)
 
   //cout << min_bond << " " << max_bond << endl;
 
+#ifdef ANDROID
+ double max_conf = -FLT_MAX;
+ string best_smiles;
+ for (int l = 0; l < page; l++)
+   for (unsigned int i = 0; i < pages_of_structures[l].size(); i++)
+     if (pages_of_avg_bonds[l][i] > min_bond && pages_of_avg_bonds[l][i] < max_bond && pages_of_ind_conf[l][i]>max_conf)
+       {
+	 max_conf=pages_of_ind_conf[l][i];
+	 best_smiles=pages_of_structures[l][i];
+       }
+#else
   ofstream outfile;
 
   if (!writeout.getValue().empty())
@@ -5707,8 +5771,18 @@ int main(int argc, char **argv)
 
   if (outfile.is_open())
     outfile.close();
+#endif
+
 #ifdef CUNEIFORM_ENABLE
   PUMA_Done();
 #endif
+
+#ifdef ANDROID
+  for (int i=0;i<argc;i++)
+    free(argv[i]);
+  free(argv);
+  return (j_env)->NewStringUTF(best_smiles.c_str());
+#else
   return 0;
+#endif
 }

@@ -157,7 +157,7 @@ static void greycstoration_mutex_destroy(_greycstoration_params &p)
     }
 }
 
-#if cimg_OS==1
+#if cimg_OS==1  || cimg_OS==0
 static void* greycstoration_thread(void *arg)
 {
 #elif cimg_OS==2
