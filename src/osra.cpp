@@ -5018,10 +5018,12 @@ double confidence_function(int C_Count, int N_Count, int O_Count, int F_Count, i
 
 #ifdef ANDROID
 extern "C" {
-  JNIEXPORT jstring JNICALL Java_com_osra_runosra_nativeosra(JNIEnv * j_env, jobject j_this, jobjectArray jarr);
+  JNIEXPORT jstring JNICALL Java_cadd_osra_main_runosra_nativeosra(JNIEnv * j_env, jobject j_this, jobjectArray jarr,
+      jbyteArray jrawimage);
 };
 
-JNIEXPORT jstring JNICALL Java_com_osra_runosra_nativeosra(JNIEnv * j_env, jobject j_this, jobjectArray jarr)
+JNIEXPORT jstring JNICALL Java_cadd_osra_main_runosra_nativeosra(JNIEnv * j_env, jobject j_this, jobjectArray jarr,
+    jbyteArray jrawimage)
 #else
 int main(int argc, char **argv)
 #endif
@@ -5033,7 +5035,7 @@ int main(int argc, char **argv)
   char **argv=(char **)calloc(argc,sizeof(char*));
   jboolean isCopy;
 
-  for (int i=0;i<argc;i++)
+  for (int i=0; i<argc; i++)
     {
       jstring jstr = (jstring)j_env->GetObjectArrayElement(jarr, i);
       const char *str = (j_env)->GetStringUTFChars(jstr, &isCopy);
@@ -5041,14 +5043,19 @@ int main(int argc, char **argv)
       strcpy(argv[i],str);
       j_env->ReleaseStringUTFChars(jstr, str);
     }
- 
-
+  char *rawimage=(char *)j_env->GetByteArrayElements(jrawimage, NULL);
+  if (rawimage==NULL)
+    return j_env->NewStringUTF("");
+  int rawimagelength=j_env->GetArrayLength(jrawimage);
 #endif
 
   TCLAP::CmdLine cmd("OSRA: Optical Structure Recognition Application, created by Igor Filippov, 2007-2010", ' ',
                      OSRA_VERSION);
+#ifndef ANDROID
   TCLAP::UnlabeledValueArg<string> input("in", "input file", true, "", "filename");
   cmd.add(input);
+#endif
+
   TCLAP::ValueArg<double> threshold("t", "threshold", "Gray level threshold", false, 0, "0.2..0.8");
   cmd.add(threshold);
   TCLAP::ValueArg<string> output("o", "output", "Write out images to files", false, "", "filename prefix");
@@ -5148,9 +5155,19 @@ int main(int argc, char **argv)
 
   string type;
 
+#ifdef ANDROID
+  Blob blob(rawimage,rawimagelength);
+#endif
+
   try
     {
+#ifdef ANDROID
+      Image image_typer;
+      image_typer.ping(blob);
+      type = image_typer.magick();
+#else
       type = image_type(input.getValue());
+#endif
     }
   catch (...)
     {
@@ -5176,7 +5193,7 @@ int main(int argc, char **argv)
       if (outfile.bad() || !outfile.is_open())
         {
 #ifdef ANDROID
-      return j_env->NewStringUTF("");
+          return j_env->NewStringUTF("");
 #else
           cerr << "Cannot open file \"" << filename << "\" for output" << endl;
           exit(1);
@@ -5192,7 +5209,12 @@ int main(int argc, char **argv)
   if (input_resolution == 0 && (type == "PDF" || type == "PS"))
     input_resolution = 150;
 
+#ifdef ANDROID
+  int page = 1;
+#else
   int page = count_pages(input.getValue());
+#endif
+
 
   vector<vector<string> > pages_of_structures(page, vector<string> (0));
   vector<vector<Image> > pages_of_images(page, vector<Image> (0));
@@ -5210,10 +5232,13 @@ int main(int argc, char **argv)
       density << input_resolution << "x" << input_resolution;
       image.density(density.str());
 
+#ifdef ANDROID
+      image.read(blob);
+#else
       stringstream pname;
       pname << input.getValue() << "[" << l << "]";
       image.read(pname.str());
-
+#endif
       image.modifyImage();
 
       if (!invert)
@@ -5599,7 +5624,7 @@ int main(int argc, char **argv)
                     remove_small_terminal_bonds(bond, n_bond, atom, avg_bond);
                     n_bond = reconnect_fragments(bond, n_bond, atom, avg_bond);
                     collapse_atoms(atom, bond, n_atom, n_bond, 1);
-		    mark_terminal_atoms(bond, n_bond, atom, n_atom);
+                    mark_terminal_atoms(bond, n_bond, atom, n_atom);
                     const vector<vector<int> > &frags = find_fragments(bond, n_bond, atom);
                     vector<fragment_t> fragments = populate_fragments(frags, atom);
                     std::sort(fragments.begin(), fragments.end(), comp_fragments);
@@ -5716,15 +5741,15 @@ int main(int argc, char **argv)
   //cout << min_bond << " " << max_bond << endl;
 
 #ifdef ANDROID
- double max_conf = -FLT_MAX;
- string best_smiles;
- for (int l = 0; l < page; l++)
-   for (unsigned int i = 0; i < pages_of_structures[l].size(); i++)
-     if (pages_of_avg_bonds[l][i] > min_bond && pages_of_avg_bonds[l][i] < max_bond && pages_of_ind_conf[l][i]>max_conf)
-       {
-	 max_conf=pages_of_ind_conf[l][i];
-	 best_smiles=pages_of_structures[l][i];
-       }
+  double max_conf = -FLT_MAX;
+  string best_smiles;
+  for (int l = 0; l < page; l++)
+    for (unsigned int i = 0; i < pages_of_structures[l].size(); i++)
+      if (pages_of_avg_bonds[l][i] > min_bond && pages_of_avg_bonds[l][i] < max_bond && pages_of_ind_conf[l][i]>max_conf)
+        {
+          max_conf=pages_of_ind_conf[l][i];
+          best_smiles=pages_of_structures[l][i];
+        }
 #else
   ofstream outfile;
 
@@ -5778,9 +5803,10 @@ int main(int argc, char **argv)
 #endif
 
 #ifdef ANDROID
-  for (int i=0;i<argc;i++)
+  for (int i=0; i<argc; i++)
     free(argv[i]);
   free(argv);
+  j_env->ReleaseByteArrayElements(jrawimage,(jbyte*)rawimage,0);
   return (j_env)->NewStringUTF(best_smiles.c_str());
 #else
   return 0;
