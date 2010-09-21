@@ -42,7 +42,7 @@
 //#include <omp.h>
 
 #include <Magick++.h>
-#include <CmdLine.h>
+#include <tclap/CmdLine.h>
 
 extern "C" {
 #include <potracelib.h>
