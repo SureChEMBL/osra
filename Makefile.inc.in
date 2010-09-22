@@ -1,0 +1,49 @@
+#
+# This makefile is included from all other makefiles.
+#
+# Notes:
+# - Use $(CXX) variable for compiler.
+# - Use $(LD) for linker. Currently it is equal to $(CXX), but if you need real linker detection, use libtool + LT_PATH_LD macros
+# - Pass optimization flags as follows:
+#   CXXFLAGS="-g -O3" ./configure
+#   There are no defaults for any options as there is no guarantee, that target compiler supports them, see http://www.gnu.org/software/autoconf/manual/make/Command-Variables.html.
+#
+
+name		:= @PACKAGE_NAME@
+version		:= @PACKAGE_VERSION@
+name_version	:= $(name)-$(version)
+cur_dir		:= $(shell basename `pwd`)
+
+prefix		:= @prefix@
+exec_prefix	:= @exec_prefix@
+bindir		:= @bindir@
+datarootdir	:= @datarootdir@
+datadir		:= @datadir@
+docdir		:= @docdir@
+mandir		:= @mandir@
+
+CXX		:= @CXX@
+LD		:= @CXX@
+RM		:= @RM@
+LN_S		:= @LN_S@
+INSTALL		:= @INSTALL@
+INSTALL_PROGRAM	:= @INSTALL_PROGRAM@
+INSTALL_DATA	:= @INSTALL_DATA@
+INSTALL_DIR	:= ${INSTALL} -d -m 755
+NATURALDOCS	:= @NATURALDOCS@
+XSLTPROC	:= @XSLTPROC@
+
+# Notes: see "configure --enable-static-linking" to enable static linking; use "configure --enable-profiling" to include extra debug info.
+
+CXXFLAGS	:= @CXXFLAGS@
+CPPFLAGS	:= @CPPFLAGS@
+LDFLAGS		:= @LDFLAGS@
+EXEEXT		:= @EXEEXT@
+
+LIBS		:= @LIBS@
+
+PHONY_TARGETS	:= all install uninstall clean distclean
+
+.PHONY: $(PHONY_TARGETS)
+
+.SUFFIXES: .c .cpp
