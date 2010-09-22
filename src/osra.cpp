@@ -46,7 +46,7 @@
 
 extern "C" {
 #include <potracelib.h>
-#include "pgm2asc.h"
+#include <gocr/pgm2asc.h>
 }
 
 #include "osra.h"

@@ -32,7 +32,7 @@
 #include <sstream>
 
 extern "C" {
-#include "pgm2asc.h"
+#include <gocr/pgm2asc.h>
 }
 
 #include <ocradlib.h>
