@@ -5134,7 +5134,7 @@ int main(int argc, char **argv)
       return j_env->NewStringUTF("");
 #else
       cerr << "Cannot open " << SPELLING_TXT << " file (tried locations \""  << osra_dir
-           << "\"). Specify the custom file location via -a option." << endl;
+           << "\"). Specify the custom file location via -l option." << endl;
       exit(1);
 #endif
     }
@@ -5147,7 +5147,7 @@ int main(int argc, char **argv)
       return j_env->NewStringUTF("");
 #else
       cerr << "Cannot open " << SUPERATOM_TXT << " file (tried locations \"" << osra_dir
-           << "\"). Specify the custom file location via -l option." << endl;
+           << "\"). Specify the custom file location via -a option." << endl;
       exit(1);
 #endif
     }

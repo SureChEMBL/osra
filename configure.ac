@@ -98,7 +98,7 @@ dnl tclap library
 AX_PROBE_LIBRARY(
 	[tclap],
 	[CmdLine.h],
-	[auto /usr/include/tclap],
+	[auto /usr/local/include/tclap],
 	[custom location of CmdLine.h from TCLAP (Templatized C++ Command Line Parser Library), see http://tclap.sourceforge.net/]
 )
 
@@ -116,7 +116,7 @@ dnl gocr library
 AX_PROBE_LIBRARY(
 	[gocr],
 	[pgm2asc.h],
-	[auto /usr/include/gocr],
+	[auto /usr/local/include/gocr],
 	[custom location of pgm2asc.h from GOCR (optical character recognition library), see http://jocr.sourceforge.net/]
 )
 
@@ -125,8 +125,8 @@ dnl ocrad library
 AX_PROBE_LIBRARY(
 	[ocrad],
 	[ocradlib.h],
-	[auto /usr/include/ocrad],
-	[custom location of pgm2asc.h from OCRAD (optical character recognition program), see http://www.gnu.org/software/ocrad/ocrad.html]
+	[auto /usr/local/include],
+	[custom location of ocradlib.h from OCRAD (optical character recognition program), see http://www.gnu.org/software/ocrad/ocrad.html]
 )
 
 dnl openbabel library
@@ -190,7 +190,7 @@ dnl tclap library
 
 osra_lib_tclap=yes
 
-AC_TRY_COMPILE([#include <CmdLine.h>], [
+AC_TRY_COMPILE([#include <tclap/CmdLine.h>], [
 	TCLAP::CmdLine cmd("");
 	TCLAP::ValueArg<int> a1("", "", "", false, 0, "");
 	cmd.add(a1);
@@ -245,8 +245,8 @@ dnl undefined reference to `JOB'
 
 AX_TRY_LINK([Pgm2asc], [
 	extern "C" {
-	#include <pgm2asc.h>
-	#include <gocr.h>
+	#include <gocr/pgm2asc.h>
+	#include <gocr/gocr.h>
 	}
 	job_t *JOB;
 ], [
@@ -267,6 +267,11 @@ osra_lib_ocrad=yes
 
 AX_TRY_LINK([ocrad], [
 	#include <ocradlib.h>
+	extern "C" {
+	#include <gocr/pgm2asc.h>
+	#include <gocr/gocr.h>
+	}
+	job_t *JOB;
 ], [
 	struct OCRAD_Pixmap opix;
 	
@@ -292,6 +297,11 @@ AX_TRY_LINK([openbabel], [
 	#include <openbabel/mol.h>
 	#include <openbabel/obconversion.h>
 	#include <openbabel/builder.h>
+	extern "C" {
+	#include <gocr/pgm2asc.h>
+	#include <gocr/gocr.h>
+	}
+	job_t *JOB;
 ], [
 	OpenBabel::OBPairData label;
 	OpenBabel::OBAtom atom;
@@ -386,7 +396,14 @@ osra_lib_graphicsmagick=yes
 
 AC_CHECK_HEADERS([magick/api.h Magick++.h], [], [osra_lib_graphicsmagick=no])
 
-AX_TRY_LINK([GraphicsMagick++], [#include <Magick++.h>], [
+AX_TRY_LINK([GraphicsMagick++], [
+	#include <Magick++.h>
+	extern "C" {
+	#include <gocr/pgm2asc.h>
+	#include <gocr/gocr.h>
+	}
+	job_t *JOB;
+	], [
 	Magick::Image image;
 	Magick::Color color;
 	Magick::ColorRGB colorRGB;
