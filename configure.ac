@@ -388,9 +388,11 @@ CPPFLAGS="${CPPFLAGS} `${GRAPHICS_MAGICK_CONFIG} --cppflags` -Dcimg_display_type
 LDFLAGS="${LDFLAGS} `${GRAPHICS_MAGICK_CONFIG} --ldflags`"
 # | sed -r 's#-L/usr/lib(\s+|$)##g'`"
 
+LIBS="${LIBS} `${GRAPHICS_MAGICK_CONFIG} --libs`" 
+
 dnl On some reason these libraries are not included into linker search path as transient dependencies of libGraphicsMagick++ under CygWin. 
 if test $build_os == "cygwin"; then
-	LIBS="-lGraphicsMagick -lX11 ${LIBS}"
+	LIBS="${LIBS} -lX11"
 fi
 
 osra_lib_graphicsmagick=yes
