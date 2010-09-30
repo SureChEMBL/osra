@@ -190,7 +190,10 @@ dnl tclap library
 
 osra_lib_tclap=yes
 
-AC_TRY_COMPILE([#include <tclap/CmdLine.h>], [
+AC_TRY_COMPILE([
+	#include <tclap/CmdLine.h>
+	using namespace std;
+	], [
 	TCLAP::CmdLine cmd("");
 	TCLAP::ValueArg<int> a1("", "", "", false, 0, "");
 	cmd.add(a1);
