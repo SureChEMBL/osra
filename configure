@@ -4743,8 +4743,8 @@ osra_lib_tclap=yes
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
+	#include "stdio.h"
 	#include <tclap/CmdLine.h>
-	using namespace std;
 
 int
 main ()
