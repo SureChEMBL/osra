@@ -385,7 +385,8 @@ if test "${GRAPHICS_MAGICK_CONFIG}" == ""; then
 fi
 
 CPPFLAGS="${CPPFLAGS} `${GRAPHICS_MAGICK_CONFIG} --cppflags`"
-LDFLAGS="${LDFLAGS} `${GRAPHICS_MAGICK_CONFIG} --ldflags | sed -r 's#-L/usr/lib(\s+|$)##g'`"
+LDFLAGS="${LDFLAGS} `${GRAPHICS_MAGICK_CONFIG} --ldflags`"
+# | sed -r 's#-L/usr/lib(\s+|$)##g'`"
 
 dnl On some reason these libraries are not included into linker search path as transient dependencies of libGraphicsMagick++ under CygWin. 
 if test $build_os == "cygwin"; then
