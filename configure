@@ -1320,7 +1320,8 @@ Optional Packages:
   --with-openbabel        custom location of openbabel/builder.h from
                           OpenBabel (open source chemistry toolbox), see
                           http://openbabel.sourceforge.net/wiki/Main_Page
-                          (default: "/usr/include/openbabel-2.0")
+                          (default: "/usr/include/openbabel-2.0
+                          /usr/local/include/openbabel-2.0")
 
 Some influential environment variables:
   CXX         C++ compiler command
@@ -4398,7 +4399,7 @@ done
 if test "${with_openbabel+set}" = set; then :
   withval=$with_openbabel;
 else
-  with_openbabel="/usr/include/openbabel-2.0"
+  with_openbabel="/usr/include/openbabel-2.0 /usr/local/include/openbabel-2.0"
 fi
 
 
@@ -5286,7 +5287,7 @@ if test "${GRAPHICS_MAGICK_CONFIG}" == ""; then
 	as_fn_error "GraphicsMagick++-config was not found; make sure you have installed libgraphicsmagick++-dev" "$LINENO" 5
 fi
 
-CPPFLAGS="${CPPFLAGS} `${GRAPHICS_MAGICK_CONFIG} --cppflags`"
+CPPFLAGS="${CPPFLAGS} `${GRAPHICS_MAGICK_CONFIG} --cppflags` -Dcimg_display_type=0"
 LDFLAGS="${LDFLAGS} `${GRAPHICS_MAGICK_CONFIG} --ldflags`"
 # | sed -r 's#-L/usr/lib(\s+|$)##g'`"
 

@@ -134,7 +134,7 @@ dnl openbabel library
 AX_PROBE_LIBRARY(
 	[openbabel],
 	[openbabel/mol.h openbabel/obconversion.h openbabel/builder.h],
-	[/usr/include/openbabel-2.0],
+	[/usr/include/openbabel-2.0 /usr/local/include/openbabel-2.0],
 	[custom location of openbabel/builder.h from OpenBabel (open source chemistry toolbox), see http://openbabel.sourceforge.net/wiki/Main_Page]
 )
 
@@ -384,7 +384,7 @@ if test "${GRAPHICS_MAGICK_CONFIG}" == ""; then
 	AC_MSG_ERROR([GraphicsMagick++-config was not found; make sure you have installed libgraphicsmagick++-dev])
 fi
 
-CPPFLAGS="${CPPFLAGS} `${GRAPHICS_MAGICK_CONFIG} --cppflags`"
+CPPFLAGS="${CPPFLAGS} `${GRAPHICS_MAGICK_CONFIG} --cppflags` -Dcimg_display_type=0"
 LDFLAGS="${LDFLAGS} `${GRAPHICS_MAGICK_CONFIG} --ldflags`"
 # | sed -r 's#-L/usr/lib(\s+|$)##g'`"
 
