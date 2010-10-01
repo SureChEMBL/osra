@@ -10,7 +10,8 @@ Vcs-browser: http://osra.svn.sourceforge.net/viewvc/osra/
 
 Package: osra
 Architecture: any
-Depends: ${misc:Depends}, ${shlibs:Depends}, libpotrace0 (>= 1.8), libopenbabel3 (>= 2.2), libgraphicsmagick++3 (>= 1.3)
+# cuneiform-dev (>= 1.0)
+Depends: ${misc:Depends}, ${shlibs:Depends}, libpotrace0 (>= 1.8), libopenbabel3 (>= 2.2), libgraphicsmagick++3 (>= 1.3), tesseract-ocr-dev (>= 2.00)
 Recommends: gocr, ocrad, potrace
 Description: A command line chemical structure recognition tool
  OSRA is a utility designed to convert graphical representations of chemical

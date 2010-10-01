@@ -12,5 +12,5 @@ uninstall:
 	$(RM) -f $(DESTDIR)$(datadir)/spelling.txt
 	$(RM) -f $(DESTDIR)$(datadir)/superatom.txt
 	
-#../Makefile.inc: ../Makefile.inc.in ../config.status
-#	cd .. && ./config.status
+../Makefile.inc: ../Makefile.inc.in ../config.status
+	cd .. && ./config.status

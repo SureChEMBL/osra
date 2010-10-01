@@ -33,3 +33,9 @@
 
 /* Define the location of data files. */
 #undef DATA_DIR
+
+/* Is tesseract library present? */
+#undef HAVE_TESSERACT_LIB
+
+/* Is cuneiform library present? */
+#undef HAVE_CUNEIFORM_LIB

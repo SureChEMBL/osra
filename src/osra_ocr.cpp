@@ -20,9 +20,6 @@
  St, Fifth Floor, Boston, MA 02110-1301, USA
  *****************************************************************************/
 
-
-
-
 #include <algorithm>
 #include <cstdio>
 #include <vector>
@@ -37,19 +34,15 @@ extern "C" {
 
 #include <ocradlib.h>
 
-#ifdef TESSERACT_ENABLE
+#include "osra.h"
+#include "config.h"
+
+#ifdef HAVE_TESSERACT_LIB
 #include <tesseract/baseapi.h>
 #endif
 
-#include "osra.h"
-
-#ifdef CUNEIFORM_ENABLE
-#include"ctiimage.h"
-#include"cttypes.h"
-#include"puma.h"
-#include "lang_def.h"
-#include "mpuma.h"
-#include "compat_defs.h"
+#ifdef HAVE_CUNEIFORM_LIB
+#include <cuneiform.h>
 #endif
 
 job_t *JOB;
@@ -161,7 +154,7 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
         int count = 0;
         int zeros = 0;
 
-#ifdef CUNEIFORM_ENABLE
+#ifdef HAVE_CUNEIFORM_LIB
         Magick::Image bmp(Magick::Geometry(2*(x2-x1+1)+2,y2-y1+1),"white");
         bmp.monochrome();
         bmp.type(Magick::BilevelType);
@@ -178,7 +171,7 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
                     if (tmp[(i - y1) * (x2 - x1 + 1) + j - x1] == 0)
                       {
                         bitmap_data[y * job.src.p.x + x] = 1;
-#ifdef CUNEIFORM_ENABLE
+#ifdef HAVE_CUNEIFORM_LIB
                         bmp.pixelColor(x, y, "black");
                         bmp.pixelColor(x+(x2-x1+1)+2, y, "black");
 #endif
@@ -192,7 +185,7 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
               }
           }
 
-#ifdef CUNEIFORM_ENABLE
+#ifdef HAVE_CUNEIFORM_LIB
         Magick::Blob blob;
         bmp.write(&blob, "DIB");
         size_t data_size = blob.length();
@@ -256,7 +249,7 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
                 //c2='_';
                 if (isalnum(c2))
                   c = c2;
-#ifdef TESSERACT_ENABLE
+#ifdef HAVE_TESSERACT_LIB
                 else
                   {
                     char c3 = 0;
@@ -271,7 +264,7 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
                     if (isalnum(c3))
                       c = c3;
 #endif
-#ifdef CUNEIFORM_ENABLE
+#ifdef HAVE_CUNEIFORM_LIB
                     else
                       {
                         char c4=0;
@@ -294,7 +287,7 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
                           c = c4;
                       }
 #endif
-#ifdef TESSERACT_ENABLE
+#ifdef HAVE_TESSERACT_LIB
                   }
 #endif
               }
@@ -302,7 +295,7 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
 
           }
         //cout << c << endl; // << "==========================" << endl;
-#ifdef CUNEIFORM_ENABLE
+#ifdef HAVE_CUNEIFORM_LIB
         delete []dib;
 #endif
       }

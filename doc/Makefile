@@ -53,5 +53,5 @@ clean:
 distclean:
 	$(RM) -Rf $(NATURALDOCS_DIR) manual.sgml
 
-#../Makefile.inc: ../Makefile.inc.in ../config.status
-#	cd .. && ./config.status
+../Makefile.inc: ../Makefile.inc.in ../config.status
+	cd .. && ./config.status

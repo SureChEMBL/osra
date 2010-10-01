@@ -376,8 +376,7 @@ void unpaper(Magick::Image &picture);
 //
 // Constants: global defines
 //
-// OSRA_VERSION  - version of the program
-// MAX_ATOMS  - maximum size of the vector holding perspective atoms
+// MAX_ATOMS - maximum size of the vector holding perspective atoms
 // MAX_FONT_HEIGHT - maximum font height at a resolution of 150 dpi
 // MAX_FONT_WIDTH - maximum font width at a resolution of 150 dpi
 // MIN_FONT_HEIGHT - minimum font height
@@ -413,7 +412,6 @@ void unpaper(Magick::Image &picture);
 // STRUCTURE_COUNT - threshold number of structures to compute limits on average bond length
 // SPELLING_TXT - spelling file for OCR corrections
 // SUPERATOM_TXT - superatom file for mapping labels to SMILES
-#define OSRA_VERSION "1.3.7"
 #define MAX_ATOMS 10000
 #define MAX_FONT_HEIGHT 22
 #define MAX_FONT_WIDTH 21

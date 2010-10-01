@@ -8,14 +8,15 @@ dnl http://www.gnu.org/software/autoconf/manual/html_node/Autoconf-Macro-Index.h
 dnl
 
 AC_INIT([osra], [1.3.6])
+AC_PREREQ([2.65])
 dnl AC_CONFIG_MACRO_DIR([m4])
 AC_CANONICAL_BUILD
 AC_LANG([C++])
 AC_CXX_HAVE_STL
 
-if test "${ac_cv_cxx_have_stl}" != "yes"; then
+AS_IF([test "${ac_cv_cxx_have_stl}" != "yes"], [
 	AC_MSG_ERROR([STL was not found; make sure you have installed libstdc++-dev])
-fi
+])
 
 dnl
 dnl Checks for programs
@@ -32,20 +33,17 @@ AC_ARG_ENABLE(
 	[
 		dnl NaturalDocs executable is present as "/usr/bin/naturaldocs" in Debian and "/usr/bin/NaturalDocs" in Fedora: 
 		AC_PATH_PROG(NATURALDOCS, naturaldocs)
-		if test -z "${NATURALDOCS}"
-		then
+		AS_IF([test -z "${NATURALDOCS}"], [
 			AC_PATH_PROG(NATURALDOCS, NaturalDocs)
-			if test -z "${NATURALDOCS}"
-			then
+			AS_IF([test -z "${NATURALDOCS}"], [
 				AC_MSG_ERROR([NaturalDocs executable was not found; make sure you have installed NaturalDocs package])
-			fi
-		fi
+			])
+		])
 		
 		AC_PATH_PROG(XSLTPROC, xsltproc)
-		if test -z "${XSLTPROC}"
-		then
+		AS_IF([test -z "${XSLTPROC}"], [
 			AC_MSG_ERROR([xsltproc executable was not found; make sure you have installed xsltproc package])
-		fi
+		])
 	]
 )
 
@@ -53,12 +51,12 @@ dnl
 dnl Include "/usr/local" tree into the list of default locations
 dnl
 
-if test -d "/usr/local/include"; then
+AS_IF([test -d "/usr/local/include"], [
 	CPPFLAGS="-I/usr/local/include ${CPPFLAGS}"
-fi
-if test -d "/usr/local/lib"; then
+])
+AS_IF([test -d "/usr/local/lib"], [
 	LDFLAGS="-L/usr/local/lib ${LDFLAGS}"
-fi
+])
 
 dnl
 dnl Compilation/linking configuration options
@@ -95,16 +93,16 @@ dnl
 
 dnl tclap library
 
-AX_PROBE_LIBRARY(
+AX_PROBE_OBLIGATORY_LIBRARY(
 	[tclap],
-	[CmdLine.h],
-	[auto /usr/local/include/tclap],
+	[tclap/CmdLine.h],
+	[auto],
 	[custom location of CmdLine.h from TCLAP (Templatized C++ Command Line Parser Library), see http://tclap.sourceforge.net/]
 )
 
 dnl potrace library
 
-AX_PROBE_LIBRARY(
+AX_PROBE_OBLIGATORY_LIBRARY(
 	[potrace],
 	[potracelib.h],
 	[auto],
@@ -113,25 +111,43 @@ AX_PROBE_LIBRARY(
 
 dnl gocr library
 
-AX_PROBE_LIBRARY(
+AX_PROBE_OBLIGATORY_LIBRARY(
 	[gocr],
 	[pgm2asc.h],
-	[auto /usr/local/include/gocr],
+	[auto /usr/include/gocr /usr/local/include/gocr],
 	[custom location of pgm2asc.h from GOCR (optical character recognition library), see http://jocr.sourceforge.net/]
 )
 
 dnl ocrad library
 
-AX_PROBE_LIBRARY(
+AX_PROBE_OBLIGATORY_LIBRARY(
 	[ocrad],
 	[ocradlib.h],
-	[auto /usr/local/include],
+	[auto /usr/include/ocrad /usr/local/include/ocrad],
 	[custom location of ocradlib.h from OCRAD (optical character recognition program), see http://www.gnu.org/software/ocrad/ocrad.html]
+)
+
+dnl tesseract library (optional)
+
+AX_PROBE_OPTIONAL_LIBRARY(
+	[tesseract],
+	[tesseract/baseapi.h],
+	[],
+	[custom location of tesseract/baseapi.h from Tesseract (OCR Engine developed at HP Labs), see http://code.google.com/p/tesseract-ocr/]
+)
+
+dnl cuneiform library (optional)
+
+AX_PROBE_OPTIONAL_LIBRARY(
+	[cuneiform],
+	[cuneiform.h],
+	[],
+	[custom location of cuneiform.h from Cuneiform (OCR system developed by Cognitive technologies), see https://launchpad.net/cuneiform-linux]
 )
 
 dnl openbabel library
 
-AX_PROBE_LIBRARY(
+AX_PROBE_OBLIGATORY_LIBRARY(
 	[openbabel],
 	[openbabel/mol.h openbabel/obconversion.h openbabel/builder.h],
 	[/usr/include/openbabel-2.0 /usr/local/include/openbabel-2.0],
@@ -149,9 +165,9 @@ osra_header_limits=yes
 AC_CHECK_HEADER([limits.h], [], [osra_header_limits=no])
 AC_TRY_COMPILE([#include <limits.h>], [ int a = INT_MAX; ], [], [osra_header_limits=no])
 
-if test "${osra_header_limits}" != "yes"; then
+AS_IF([test "${osra_header_limits}" != "yes"], [
 	AC_MSG_ERROR([limits.h was not found, do you have libc-dev installed?])
-fi
+])
 
 dnl float.h header
 
@@ -160,9 +176,9 @@ osra_header_float=yes
 AC_CHECK_HEADER([float.h], [], [osra_header_float=no])
 AC_TRY_COMPILE([#include <float.h>], [ float f = FLT_MAX; ], [], [osra_header_float=no])
 
-if test "${osra_header_float}" != "yes"; then
+AS_IF([test "${osra_header_float}" != "yes"], [
 	AC_MSG_ERROR([float.h was not found])
-fi
+])
 
 dnl libgen.h header
 
@@ -171,9 +187,9 @@ osra_header_libgen=yes
 AC_CHECK_HEADER([libgen.h], [], [osra_header_libgen=no])
 AC_TRY_COMPILE([#include <libgen.h>], [ char *a = dirname(""); ], [], [osra_header_libgen=no])
 
-if test "${osra_header_libgen}" != "yes"; then
+AS_IF([test "${osra_header_libgen}" != "yes"], [
 	AC_MSG_ERROR([libgen.h was not found, do you have libc-dev installed?])
-fi
+])
 
 dnl math library
 
@@ -182,29 +198,29 @@ osra_lib_math=yes
 AC_CHECK_HEADER([math.h], [], [osra_lib_math=no])
 AX_TRY_LINK([m], [#include <math.h>], [ sqrt(1); fabs(1); ], [], [osra_lib_math=no])
 
-if test "${osra_lib_math}" != "yes"; then
+AS_IF([test "${osra_lib_math}" != "yes"], [
 	AC_MSG_ERROR([math.h or libm was not found, do you have libc-dev installed?])
-fi
+])
 
 dnl tclap library
 
 osra_lib_tclap=yes
 
 AC_TRY_COMPILE([
-	#include "stdio.h"
+	#include <stddef.h>
 	#include <tclap/CmdLine.h>
-	], [
+], [
 	TCLAP::CmdLine cmd("");
 	TCLAP::ValueArg<int> a1("", "", "", false, 0, "");
 	cmd.add(a1);
 	TCLAP::SwitchArg a2("", "", "", false);
 	cmd.add(a2);
-	cmd.parse(NULL, NULL);
+	cmd.parse(0, NULL);
 ], [], [osra_lib_tclap=no])
 
-if test "${osra_lib_tclap}" != "yes"; then
+AS_IF([test "${osra_lib_tclap}" != "yes"], [
 	AC_MSG_ERROR([CmdLine.h was not found (use --with-tclap to define custom header location or check config.log)])
-fi
+])
 
 dnl potrace library
 
@@ -226,43 +242,9 @@ AX_TRY_LINK([potrace], [
 	potrace_param_default();
 ], [], [osra_lib_potrace=no])
 
-if test "${osra_lib_potrace}" != "yes"; then
+AS_IF([test "${osra_lib_potrace}" != "yes"], [
 	AC_MSG_ERROR([potracelib.h or libpotrace was not found (use --with-potrace to define custom header location or check config.log)])
-fi
-
-dnl netpbm library check (which is used by GOCR)
-dnl (copied from GOCR configure.in)
-
-AC_SEARCH_LIBS(pnm_readpnminit, [netpbm pnm])
-
-dnl gocr library
-
-osra_lib_gocr=yes
-
-dnl I have to add missing global JOB declaration because of the following:
-dnl (box.o): In function `cut_box':
-dnl (box.o): In function `merge_boxes':
-dnl (pixel.o): In function `pixel_filter_by_tree':
-dnl (pixel.o): In function `getpixel':
-dnl undefined reference to `JOB'
-
-AX_TRY_LINK([Pgm2asc], [
-	extern "C" {
-	#include <gocr/pgm2asc.h>
-	#include <gocr/gocr.h>
-	}
-	job_t *JOB;
-], [
-	job_t job;
-
-	job_init(&job);
-	job_free(&job);
-	pgm2asc(&job);
-], [], [osra_lib_gocr=no])
-
-if test "${osra_lib_gocr}" != "yes"; then
-	AC_MSG_ERROR([pgm2asc.h or pgm2asc.a was not found (use --with-gocr to define custom header location or check config.log)])
-fi
+])
 
 dnl ocrad library
 
@@ -270,11 +252,6 @@ osra_lib_ocrad=yes
 
 AX_TRY_LINK([ocrad], [
 	#include <ocradlib.h>
-	extern "C" {
-	#include <gocr/pgm2asc.h>
-	#include <gocr/gocr.h>
-	}
-	job_t *JOB;
 ], [
 	struct OCRAD_Pixmap opix;
 	
@@ -288,9 +265,46 @@ AX_TRY_LINK([ocrad], [
 	OCRAD_close(ocrdes);
 ], [], [osra_lib_ocrad=no])
 
-if test "${osra_lib_ocrad}" != "yes"; then
+AS_IF([test "${osra_lib_ocrad}" != "yes"], [
 	AC_MSG_ERROR([ocradlib.h or libocrad.a was not found (use --with-ocrad to define custom header location)])
-fi
+])
+
+dnl tesseract library (optional)
+
+AS_IF([test "${ac_lib_tesseract}" == "yes"], [
+	AC_CHECK_LIB([pthread], [sem_init], [], [ac_lib_tesseract=no])
+	AC_CHECK_LIB([tiff], [TIFFGetField], [], [ac_lib_tesseract=no])
+
+	AX_TRY_LINK([tesseract_full], [
+		#include <stddef.h>
+		#include <tesseract/baseapi.h>
+	], [
+		TessBaseAPI::InitWithLanguage("", "", "", "", false, 0, NULL);
+		TessBaseAPI::TesseractRect((const unsigned char*) NULL, 1, 0, 0, 0, 0, 0);
+		TessBaseAPI::End();
+	], [AC_DEFINE([HAVE_TESSERACT_LIB])], [ac_lib_tesseract=no])
+])
+
+AS_IF([test "${with_tesseract}" != "no" -a "${ac_lib_tesseract}" == "no"], [AC_MSG_WARN([Tesseract library support was requested, but disbaled (see above messages for the reason)])]);
+
+dnl cuneiform library (optional)
+
+AS_IF([test "${ac_lib_cuneiform}" == "yes"], [
+	AX_TRY_LINK([cuneiform rcorrkegl rfrmt rmarker rblock rneg rout ced rpic rselstr rstuff rimage rline rshelllines rverline cimage cfio cpage lns32 rdib smetric exc loc32 rreccom rpstr rstr cline rcutp pass2 rbal rsadd leo32 evn32 fon32 ctb32 msk32 dif32 cpu32 r3532 mmx32 rling rlings cstr ccom std32 cfcompat], [
+		#include <stddef.h>
+		#include <cuneiform.h>
+	], [
+		PUMA_XOpen(NULL, "");
+		PUMA_XFinalRecognition();
+		PUMA_XClose();
+		PUMA_Init(0, NULL);
+		PUMA_SetImportData(PUMA_Word32_Language, NULL);
+		PUMA_SaveToMemory(NULL, PUMA_TOTEXT, PUMA_CODE_ASCII, NULL, 1);
+		PUMA_Done();
+	], [AC_DEFINE([HAVE_CUNEIFORM_LIB])], [ac_lib_cuneiform=no])
+])
+
+AS_IF([test "${with_cuneifor}" != "no" -a "${ac_lib_cuneiform}" == "no"], [AC_MSG_WARN([Cineiform library support was requested, but disbaled (see above messages for the reason)])]);
 
 dnl openbabel library
 
@@ -300,11 +314,6 @@ AX_TRY_LINK([openbabel], [
 	#include <openbabel/mol.h>
 	#include <openbabel/obconversion.h>
 	#include <openbabel/builder.h>
-	extern "C" {
-	#include <gocr/pgm2asc.h>
-	#include <gocr/gocr.h>
-	}
-	job_t *JOB;
 ], [
 	OpenBabel::OBPairData label;
 	OpenBabel::OBAtom atom;
@@ -375,28 +384,26 @@ AX_TRY_LINK([openbabel], [
 
 ], [], [osra_lib_openbabel=no])
 
-if test "${osra_lib_openbabel}" != "yes"; then
+AS_IF([test "${osra_lib_openbabel}" != "yes"], [
 	AC_MSG_ERROR([openbabel headers or library was not found (use --with-openbabel to define custom header location)])
-fi
+])
 
 dnl GraphicsMagick library
 
 AC_PATH_PROG(GRAPHICS_MAGICK_CONFIG, GraphicsMagick++-config)
 
-if test "${GRAPHICS_MAGICK_CONFIG}" == ""; then
+AS_IF([test "${GRAPHICS_MAGICK_CONFIG}" == ""], [
 	AC_MSG_ERROR([GraphicsMagick++-config was not found; make sure you have installed libgraphicsmagick++-dev])
-fi
+])
 
 CPPFLAGS="${CPPFLAGS} `${GRAPHICS_MAGICK_CONFIG} --cppflags` -Dcimg_display_type=0"
 LDFLAGS="${LDFLAGS} `${GRAPHICS_MAGICK_CONFIG} --ldflags`"
-# | sed -r 's#-L/usr/lib(\s+|$)##g'`"
-
 LIBS="${LIBS} `${GRAPHICS_MAGICK_CONFIG} --libs`" 
 
 dnl On some reason these libraries are not included into linker search path as transient dependencies of libGraphicsMagick++ under CygWin. 
-if test $build_os == "cygwin"; then
+AS_IF([test $build_os == "cygwin"], [
 	LIBS="${LIBS} -lX11"
-fi
+])
 
 osra_lib_graphicsmagick=yes
 
@@ -404,12 +411,7 @@ AC_CHECK_HEADERS([magick/api.h Magick++.h], [], [osra_lib_graphicsmagick=no])
 
 AX_TRY_LINK([GraphicsMagick++], [
 	#include <Magick++.h>
-	extern "C" {
-	#include <gocr/pgm2asc.h>
-	#include <gocr/gocr.h>
-	}
-	job_t *JOB;
-	], [
+], [
 	Magick::Image image;
 	Magick::Color color;
 	Magick::ColorRGB colorRGB;
@@ -432,9 +434,42 @@ AX_TRY_LINK([GraphicsMagick++], [
 	colorGray.shade();
 ], [], [osra_lib_graphicsmagick=no])
 
-if test "${osra_lib_graphicsmagick}" != "yes"; then
+AS_IF([test "${osra_lib_graphicsmagick}" != "yes"], [
 	AC_MSG_ERROR([magick/api.h was not found; make sure you have installed libgraphicsmagick++-dev and all dependent -dev packages])
-fi
+])
+
+dnl netpbm library check (which is used by GOCR)
+dnl (copied from GOCR configure.in)
+
+AC_SEARCH_LIBS([pnm_readpnminit], [netpbm pnm])
+
+dnl gocr library
+dnl TODO: The check goes the last in the row, because of missing global JOB declaration:
+dnl (box.o): In function `cut_box':
+dnl (box.o): In function `merge_boxes':
+dnl (pixel.o): In function `pixel_filter_by_tree':
+dnl (pixel.o): In function `getpixel':
+dnl undefined reference to `JOB'
+
+osra_lib_gocr=yes
+
+AX_TRY_LINK([Pgm2asc], [
+	extern "C" {
+	#include <gocr/pgm2asc.h>
+	#include <gocr/gocr.h>
+	}
+	job_t *JOB;
+], [
+	job_t job;
+
+	job_init(&job);
+	job_free(&job);
+	pgm2asc(&job);
+], [], [osra_lib_gocr=no])
+
+AS_IF([test "${osra_lib_gocr}" != "yes"], [
+	AC_MSG_ERROR([pgm2asc.h or pgm2asc.a was not found (use --with-gocr to define custom header location or check config.log)])
+])
 
 dnl
 dnl Generate Makefile and config.h
@@ -454,6 +489,6 @@ AC_DEFINE_UNQUOTED(DATA_DIR, ["$resolved_datadir"])
 AC_SUBST([resolved_datadir], [$resolved_datadir])
 
 AC_CONFIG_HEADER([src/config.h])
-AC_CONFIG_FILES([Makefile.inc doc/manual.sgml])
+AC_CONFIG_FILES([Makefile Makefile.inc doc/manual.sgml])
 AC_OUTPUT
 AC_MSG_NOTICE([Now you can run "make all install" to compile and install the application.])

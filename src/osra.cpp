@@ -50,15 +50,10 @@ extern "C" {
 }
 
 #include "osra.h"
-//#include "config.h"
+#include "config.h"
 
-#ifdef CUNEIFORM_ENABLE
-#include"ctiimage.h"
-#include"cttypes.h"
-#include"puma.h"
-#include "lang_def.h"
-#include "mpuma.h"
-#include "compat_defs.h"
+#ifdef HAVE_CUNEIFORM_LIB
+#include <cuneiform.h>
 #endif
 
 using namespace std;
@@ -5050,7 +5045,7 @@ int main(int argc, char **argv)
 #endif
 
   TCLAP::CmdLine cmd("OSRA: Optical Structure Recognition Application, created by Igor Filippov, 2007-2010", ' ',
-                     OSRA_VERSION);
+                     PACKAGE_VERSION);
 #ifndef ANDROID
   TCLAP::UnlabeledValueArg<string> input("in", "input file", true, "", "filename");
   cmd.add(input);
@@ -5104,8 +5099,7 @@ int main(int argc, char **argv)
   // Necessary for GraphicsMagick-1.3.8 according to http://www.graphicsmagick.org/1.3/NEWS.html#january-21-2010:
   InitializeMagick(*argv);
 
-
-#ifdef CUNEIFORM_ENABLE
+#ifdef HAVE_CUNEIFORM_LIB
   int langcode = LANG_ENGLISH;
   Bool dotmatrix = 0;
   Bool fax = 0;
@@ -5127,27 +5121,29 @@ int main(int argc, char **argv)
 
   map<string, string> fix;
 
-
-  if (!((spelling.getValue().length() != 0 && load_config_map(spelling.getValue(), fix)) || load_config_map(osra_dir + "/" + SPELLING_TXT, fix)))
+  if (!((spelling.getValue().length() != 0 && load_config_map(spelling.getValue(), fix))
+        || load_config_map(string(DATA_DIR) + "/" + SPELLING_TXT, fix) || load_config_map(osra_dir + "/" + SPELLING_TXT, fix)))
     {
 #ifdef ANDROID
       return j_env->NewStringUTF("");
 #else
-      cerr << "Cannot open " << SPELLING_TXT << " file (tried locations \""  << osra_dir
-           << "\"). Specify the custom file location via -l option." << endl;
+      cerr << "Cannot open " << SPELLING_TXT << " file (tried locations \"" << DATA_DIR << "\", \"" << osra_dir
+           << "\"). Specify the custom file location via -a option." << endl;
       exit(1);
 #endif
     }
 
   map<string, string> superatom;
 
-  if (!((abbr.getValue().length() != 0 && load_config_map(abbr.getValue(), superatom)) || load_config_map(osra_dir + "/" + SUPERATOM_TXT, superatom)))
+  if (!((abbr.getValue().length() != 0 && load_config_map(abbr.getValue(), superatom))
+        || load_config_map(string(DATA_DIR) + "/" + SUPERATOM_TXT, superatom) || load_config_map(osra_dir + "/"
+            + SUPERATOM_TXT, superatom)))
     {
 #ifdef ANDROID
       return j_env->NewStringUTF("");
 #else
-      cerr << "Cannot open " << SUPERATOM_TXT << " file (tried locations \"" << osra_dir
-           << "\"). Specify the custom file location via -a option." << endl;
+      cerr << "Cannot open " << SUPERATOM_TXT << " file (tried locations \"" << DATA_DIR << "\", \"" << osra_dir
+           << "\"). Specify the custom file location via -l option." << endl;
       exit(1);
 #endif
     }
@@ -5798,7 +5794,7 @@ int main(int argc, char **argv)
     outfile.close();
 #endif
 
-#ifdef CUNEIFORM_ENABLE
+#ifdef HAVE_CUNEIFORM_LIB
   PUMA_Done();
 #endif
 

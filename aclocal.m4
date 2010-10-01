@@ -3,17 +3,80 @@ m4_include([m4/ac_cxx_have_stl.m4])
 
 # SYNOPSIS
 #
-# AX_ARG_WITH(lib_name, headers ..., paths_to_check ..., help_string)
+# AX_PROBE_OBLIGATORY_LIBRARY(lib-name, headers ..., default-paths-to-check ..., help-string)
 #
 # DESCRIPTION
 #
-# This macro defines the helper argument "--with-$libname" using AC_ARG_WITH and
+# This macro defines the helper argument "--with-${lib-name}" using AC_ARG_WITH and
 # probes the given (as 2nd argument) headers first in system-wide locations and
-# then for the specified space-separated locations (given as 3rd argument). If
+# then for the specified space-separated locations (given as 3rd argument).
+# If probing fails, the error is reported.
+# See AX_PROBE_LIBRARY for more details about the probing itself.
+#
+AC_DEFUN([AX_PROBE_OBLIGATORY_LIBRARY], [
+	dnl m4_if() macro on some reason does not work inside AC_HELP_STRING(): 
+	AC_ARG_WITH(
+		[$1],
+		[m4_if([$3], [], [AC_HELP_STRING([--with-$1], [$4])], [AC_HELP_STRING([--with-$1], [$4 (default: "$3")])])],
+		[],
+		[with_$1="$3"])
+
+	AS_IF([test "${with_$1}" == "no"], [AC_MSG_ERROR([The library $1 is obligatory. You cannot disable it.])])
+
+	dnl Here the value of ${with_$1} is either:
+	dnl * if option was given in a command-line, it's value (if empty, then only system paths are checked)
+	dnl * if option was omitted, the defaults ($3) are used 
+	AX_PROBE_LIBRARY([$1], [$2])
+
+	AS_IF([test "${ac_lib_$1}" != "yes"], [AC_MSG_ERROR([$2 header(s) is missing. Check the default/listed above headers locations.])])
+]) # AX_PROBE_OBLIGATORY_LIBRARY
+
+
+# SYNOPSIS
+#
+# AX_PROBE_OPTIONAL_LIBRARY(lib-name, headers ..., default-paths-to-check ..., help-string)
+#
+# DESCRIPTION
+#
+# This macro defines the helper argument "--with-${lib-name}" using AC_ARG_WITH and
+# probes the given (as 2nd argument) headers first in system-wide locations and
+# then for the specified space-separated locations (given as 3rd argument).
+# Behaves the same way as AX_PROBE_OBLIGATORY_LIBRARY, but does not report
+# the error if the library was not found.
+# See AX_PROBE_LIBRARY for more details about the probing itself.
+#
+AC_DEFUN([AX_PROBE_OPTIONAL_LIBRARY], [
+	AC_ARG_WITH(
+		[$1],
+		[m4_if([$3], [], [AC_HELP_STRING([--with-$1], [$4 (optional)])], [AC_HELP_STRING([--with-$1], [$4 (optional) (default: "$3")])])],
+		[],
+		[with_$1="no"])
+
+	AS_IF([test "${with_$1}" != "no"], [
+		AS_IF([test "${with_$1}" == ""], [
+			with_$1="$3"
+		])
+	
+		dnl Here the value of ${with_$1} is:
+		dnl * if option was given in a command-line, it's value (if empty, the defaults ($3) are used)
+		dnl * if option was omitted (or --without-$1 form was used), this block is not executed  
+		AX_PROBE_LIBRARY([$1], [$2])
+	])])
+]) # AX_PROBE_OPTIONAL_LIBRARY
+
+
+# SYNOPSIS
+#
+# AX_PROBE_LIBRARY(lib-name, headers ...)
+#
+# DESCRIPTION
+#
+# This macro probes the given (as 2nd argument) headers first in system-wide locations and
+# then for the specified space-separated locations (given as ${with_${lib-name}} variable). If
 # probing succeeds it adds the headers location to $CPPFLAGS and library locations
 # to $LDFLAGS. The special path "auto" means that the library will be autoprobed
 # in user's $HOME. If headers have been located this macro defines the variable
-# $ac_lib_{lib_name} (which is set to "yes") and also in case of "auto" location
+# $ac_lib_${lib-name} (which is set to "yes") and also in case of "auto" location
 # appends the found dirs with headers to $CPPFLAGS and appends the directories
 # with library binaries to $LDFLAGS.
 #
@@ -21,46 +84,37 @@ m4_include([m4/ac_cxx_have_stl.m4])
 # cause problems in other places).
 #
 AC_DEFUN([AX_PROBE_LIBRARY], [
-	AC_ARG_WITH([$1], [AC_HELP_STRING([--with-$1], [$4 (default: "$3")])], [], [with_$1="$3"])
-
 	dnl Testing for default locations, ignoring the optional locations:   
 	AC_CHECK_HEADERS([$2], [ac_lib_$1=yes], [ac_lib_$1=no])
 
 	dnl Testing the specified locations:   
-	if test "${ac_lib_$1}" != "yes" -a "${with_$1}" != ""
-	then
+	AS_IF([test "${ac_lib_$1}" != "yes" -a "${with_$1}" != ""], [
 		AX_RESET_HEADERS_CACHE([$2])
 
-		for ac_test_location in ${with_$1}
-		do
+		AS_FOR([], [ac_test_location], [${with_$1}], [
 			dnl Probing the library in user's $HOME:
-			if test "${ac_test_location}" = "auto"
-			then
+			AS_IF([test "${ac_test_location}" = "auto"], [
 				dnl Read the directory entries by mask sorted alphabetically in reverse order:
-				for ac_location in `ls -1d $HOME/$1-* 2>/dev/null | tac` 
-				do
-					if test -d "${ac_location}"
-					then
+				AS_FOR([], [ac_location], [`ls -1d $HOME/$1-* 2>/dev/null | tac`], [ 
+					AS_IF([test -d "${ac_location}"], [
 						dnl Save the current state
 						ax_probe_library_save_LDFLAGS=${LDFLAGS}
 						ax_probe_library_save_CPPFLAGS=${CPPFLAGS}
 						
 						dnl Compose the list of unique locations of headers:
-						for ac_inc_location in `find "${ac_location}" -iname '*.h' |
+						AS_FOR([], [ac_inc_location], [`find "${ac_location}" -iname '*.h' |
 							while read ac_include_location; do dirname "${ac_include_location}"; done |
-								sort -u`
-						do
+								sort -u`], [
 							CPPFLAGS="-I${ac_inc_location} ${CPPFLAGS}"
-						done
+						])
 									
 
 						dnl Compose the list of unique locations of libraries (standard library extensions are taken from autoconf/libs.m4:185):
-						for ac_lib_location in `find "${ac_location}" -iname '*.so' -o -iname '*.sl' -o -iname '*.dylib' -o -iname '*.a' -o -iname '*.dll' |
+						AS_FOR([], [ac_lib_location], [`find "${ac_location}" -iname '*.so' -o -iname '*.sl' -o -iname '*.dylib' -o -iname '*.a' -o -iname '*.dll' |
 							while read ac_library_location; do dirname "${ac_library_location}"; done |
-								sort -u`
-						do
+								sort -u`], [
 							LDFLAGS="-L${ac_lib_location} ${LDFLAGS}"
-						done
+						])
 						
 						AC_MSG_CHECKING([$1 for $2 in ${ac_location}])
 						AS_ECHO()
@@ -69,18 +123,15 @@ AC_DEFUN([AX_PROBE_LIBRARY], [
 						AC_CHECK_HEADERS([$2], [ac_lib_$1=yes], [ac_lib_$1=no])
 						
 						dnl We have found the location, leave the loop:
-						if test "${ac_lib_$1}" = "yes"
-						then
-							break 2;
-						fi
+						AS_IF([test "${ac_lib_$1}" = "yes"], [break 2])
 						
 						dnl Restore the state to original in case of unsuccessful attempt
 						LDFLAGS=${ax_probe_library_save_LDFLAGS}
 						CPPFLAGS=${ax_probe_library_save_CPPFLAGS}
 						AX_RESET_HEADERS_CACHE([$2])
-					fi
-				done
-			else
+					])
+				])
+			], [
 				dnl Save the current state
 				ax_probe_library_save_CPPFLAGS=${CPPFLAGS}
 
@@ -93,23 +144,65 @@ AC_DEFUN([AX_PROBE_LIBRARY], [
 				AC_CHECK_HEADERS([$2], [ac_lib_$1=yes], [ac_lib_$1=no])
 
 				dnl We have found the location, leave the loop:
-				if test "${ac_lib_$1}" = "yes"
-				then
-					break;
-				fi
+				AS_IF([test "${ac_lib_$1}" = "yes"], [break])
 
 				dnl Restore the state to original in case of unsuccessful attempt
 				CPPFLAGS=${ax_probe_library_save_CPPFLAGS}
 				AX_RESET_HEADERS_CACHE([$2])
-			fi
-		done
-	fi
-
-	if test "${ac_lib_$1}" != "yes"
-	then
-		AC_MSG_ERROR([$2 header(s) is missing. Check the default/listed above headers locations.])
-	fi
+			])
+		])
+	])
 ]) # AX_PROBE_LIBRARY
+
+# SYNOPSIS
+#
+# AX_TRY_LINK(library, includes, function-body [, action-if-true [, action-if-false]])
+#
+# DESCRIPTION
+#
+# This macro is a combination of autoconf's AC_TRY_LINK/AC_CHECK_LIB that checks the given given C++ program (3rd argument) successfully compiles.
+# If compilation succeeds then:
+# * the library (1st argument) is added to the $LIBS list (keeping this list unique).
+# * the action-if-true argument is executed (the difference from AC_TRY_LINK/AC_CHECK_LIB is that action-if-true does not replace above step)
+AC_DEFUN([AX_TRY_LINK], [
+	dnl Below steps is a workaround for the limitation, that variables may not contain symbols
+	dnl like "+" or "-" (and library names can). See AC_CHECK_LIB source comments for more information.
+	AS_VAR_PUSHDEF([ac_Lib], [ac_cv_lib_$1])
+
+	AC_CACHE_CHECK(
+		[m4_if(m4_index([$1], [ ]), [-1], [for -l$1], [for libs: $1])],
+		[ac_Lib],
+		[
+			dnl Save the current state
+			AC_LANG_SAVE
+			AC_LANG_CPLUSPLUS
+			ax_try_link_save_LIBS=${LIBS}
+	
+			AS_FOR([], [ax_var], [$1], [
+				LIBS="-l${ax_var} ${LIBS}"
+			])
+	
+			AC_TRY_LINK([$2], [$3], [AS_VAR_SET([ac_Lib], [yes])], [AS_VAR_SET([ac_Lib], [no])])
+	
+			dnl Restore the state to original regardless to the result
+			LIBS=${ax_try_link_save_LIBS}
+			AC_LANG_RESTORE
+		])
+
+	dnl If the variable is set, we define a constant and push library to $LIBS by default or execute $4, otherwise execute $5.
+	AS_VAR_IF([ac_Lib], [yes],
+		[
+			$4
+			AC_DEFINE_UNQUOTED(AS_TR_CPP(HAVE_LIB$1))
+			dnl Do not prepend a library, if it is already in the list:
+			AS_FOR([], [ax_var], [$1], [
+				(echo "${LIBS}" | grep -q -- "-l${ax_var} ") || LIBS="-l${ax_var} ${LIBS}"
+			])
+		],
+		[$5]
+	)
+	AS_VAR_POPDEF([ac_Lib])
+]) # AX_TRY_LINK
 
 # SYNOPSIS
 #
@@ -118,55 +211,13 @@ AC_DEFUN([AX_PROBE_LIBRARY], [
 # DESCRIPTION
 #
 # This macro invalidates the headers cache variables created by previous AC_CHECK_HEADER/AC_CHECK_HEADERS checks.
+# Should be used only internally.
 #
 AC_DEFUN([AX_RESET_HEADERS_CACHE], [
-	AS_FOR([AX_var], [ax_var], [$1], [
+	AS_FOR([], [ax_var], [$1], [
 		dnl You can replace "ac_cv_header_" with any prefix from http://www.gnu.org/software/autoconf/manual/html_node/Cache-Variable-Index.html
 		AS_VAR_PUSHDEF([ax_Var], [ac_cv_header_${ax_var}])
 		AS_UNSET([ax_Var])
 		AS_VAR_POPDEF([ax_Var])
 	])
 ]) # AX_RESET_HEADERS_CACHE
-
-# SYNOPSIS
-#
-# AX_TRY_LINK(library, includes, function-body [, action-if-true [, action-if-false]])
-#
-# DESCRIPTION
-#
-# This macro is a combination of autoconf's AC_TRY_LINK/AC_CHECK_LIB that checks the given given C++ program (3rd argument) successfully compiles
-# and adds the library (1st argument) to the $LIBS list (keeping this list unique).
-#
-AC_DEFUN([AX_TRY_LINK], [
-	dnl Below logic is a workaround for the limitation, that variables may not allow
-	dnl symbols like "+" or "-". See AC_CHECK_LIB source comments for more information.
-	m4_ifval([$4], , [AH_CHECK_LIB([$1])])
-	AS_LITERAL_IF([$1],
-		[AS_VAR_PUSHDEF([ac_Lib], [ac_cv_lib_$1_$2])],
-		[AS_VAR_PUSHDEF([ac_Lib], [ac_cv_lib_$1''_$2])])
-
-	AC_CACHE_CHECK([for -l$1], [ac_Lib], [
-		dnl Save the current state
-		AC_LANG_SAVE
-		AC_LANG_CPLUSPLUS
-		ax_try_link_save_LIBS=${LIBS}
-		LIBS="-l$1 ${LIBS}"
-
-		AC_TRY_LINK([$2], [$3], [AS_VAR_SET([ac_Lib], [yes])], [AS_VAR_SET([ac_Lib], [no])])
-
-		dnl Restore the state to original regardless to the result
-		LIBS=${ax_try_link_save_LIBS}
-		AC_LANG_RESTORE
-	])
-
-	dnl If the variable is set, we define a constant and push library to $LIBS by default or execute $4, otherwise execute $5.
-	AS_VAR_IF([ac_Lib], [yes],
-		[m4_default([$4], [
-			AC_DEFINE_UNQUOTED(AS_TR_CPP(HAVE_LIB$1))
-			dnl Do not prepend a library, if it is already in the list:
-			(echo "${LIBS}" | grep -q -- "-l$1 ") || LIBS="-l$1 ${LIBS}"
-		])],
-		[$5]
-	)
-	AS_VAR_POPDEF([ac_Lib])
-]) # AX_TRY_LINK

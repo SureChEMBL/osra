@@ -28,5 +28,8 @@ clean:
 distclean: clean
 	$(RM) -f config.h Makefile.dep
 
-#../Makefile.inc: ../Makefile.inc.in ../config.status
-#	cd .. && ./config.status
+beautify:
+	astyle --style=gnu --suffix=none --recursive "*.cpp" "*.h"
+
+../Makefile.inc: ../Makefile.inc.in ../config.status
+	cd .. && ./config.status

@@ -665,6 +665,8 @@ with_tclap
 with_potrace
 with_gocr
 with_ocrad
+with_tesseract
+with_cuneiform
 with_openbabel
 '
       ac_precious_vars='build_alias
@@ -1304,19 +1306,25 @@ Optional Packages:
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
   --with-tclap            custom location of CmdLine.h from TCLAP (Templatized
                           C++ Command Line Parser Library), see
-                          http://tclap.sourceforge.net/ (default: "auto
-                          /usr/local/include/tclap")
+                          http://tclap.sourceforge.net/ (default: "auto")
   --with-potrace          custom location of potracelib.h from POTRACE (vector
                           tracing library), see
                           http://potrace.sourceforge.net/ (default: "auto")
   --with-gocr             custom location of pgm2asc.h from GOCR (optical
                           character recognition library), see
                           http://jocr.sourceforge.net/ (default: "auto
-                          /usr/local/include/gocr")
+                          /usr/include/gocr /usr/local/include/gocr")
   --with-ocrad            custom location of ocradlib.h from OCRAD (optical
                           character recognition program), see
                           http://www.gnu.org/software/ocrad/ocrad.html
-                          (default: "auto /usr/local/include")
+                          (default: "auto /usr/include/ocrad
+                          /usr/local/include/ocrad")
+  --with-tesseract        custom location of tesseract/baseapi.h from
+                          Tesseract (OCR Engine developed at HP Labs), see
+                          http://code.google.com/p/tesseract-ocr/ (optional)
+  --with-cuneiform        custom location of cuneiform.h from Cuneiform (OCR
+                          system developed by Cognitive technologies), see
+                          https://launchpad.net/cuneiform-linux (optional)
   --with-openbabel        custom location of openbabel/builder.h from
                           OpenBabel (open source chemistry toolbox), see
                           http://openbabel.sourceforge.net/wiki/Main_Page
@@ -2044,6 +2052,7 @@ ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
+
 ac_aux_dir=
 for ac_dir in "$srcdir" "$srcdir/.." "$srcdir/../.."; do
   for ac_t in install-sh install.sh shtool; do
@@ -2717,8 +2726,10 @@ $as_echo "#define HAVE_STL /**/" >>confdefs.h
 fi
 
 
-if test "${ac_cv_cxx_have_stl}" != "yes"; then
+if test "${ac_cv_cxx_have_stl}" != "yes"; then :
+
 	as_fn_error "STL was not found; make sure you have installed libstdc++-dev" "$LINENO" 5
+
 fi
 
 
@@ -3167,8 +3178,8 @@ $as_echo "no" >&6; }
 fi
 
 
-		if test -z "${NATURALDOCS}"
-		then
+		if test -z "${NATURALDOCS}"; then :
+
 			# Extract the first word of "NaturalDocs", so it can be a program name with args.
 set dummy NaturalDocs; ac_word=$2
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
@@ -3209,11 +3220,13 @@ $as_echo "no" >&6; }
 fi
 
 
-			if test -z "${NATURALDOCS}"
-			then
+			if test -z "${NATURALDOCS}"; then :
+
 				as_fn_error "NaturalDocs executable was not found; make sure you have installed NaturalDocs package" "$LINENO" 5
-			fi
-		fi
+
+fi
+
+fi
 
 		# Extract the first word of "xsltproc", so it can be a program name with args.
 set dummy xsltproc; ac_word=$2
@@ -3255,21 +3268,26 @@ $as_echo "no" >&6; }
 fi
 
 
-		if test -z "${XSLTPROC}"
-		then
+		if test -z "${XSLTPROC}"; then :
+
 			as_fn_error "xsltproc executable was not found; make sure you have installed xsltproc package" "$LINENO" 5
-		fi
+
+fi
 
 
 fi
 
 
 
-if test -d "/usr/local/include"; then
+if test -d "/usr/local/include"; then :
+
 	CPPFLAGS="-I/usr/local/include ${CPPFLAGS}"
+
 fi
-if test -d "/usr/local/lib"; then
+if test -d "/usr/local/lib"; then :
+
 	LDFLAGS="-L/usr/local/lib ${LDFLAGS}"
+
 fi
 
 
@@ -3767,16 +3785,21 @@ done
 if test "${with_tclap+set}" = set; then :
   withval=$with_tclap;
 else
-  with_tclap="auto /usr/local/include/tclap"
+  with_tclap="auto"
 fi
 
 
-		for ac_header in CmdLine.h
+	if test "${with_tclap}" == "no"; then :
+  as_fn_error "The library tclap is obligatory. You cannot disable it." "$LINENO" 5
+fi
+
+
+		for ac_header in tclap/CmdLine.h
 do :
-  ac_fn_cxx_check_header_mongrel "$LINENO" "CmdLine.h" "ac_cv_header_CmdLine_h" "$ac_includes_default"
-if test "x$ac_cv_header_CmdLine_h" = x""yes; then :
+  ac_fn_cxx_check_header_mongrel "$LINENO" "tclap/CmdLine.h" "ac_cv_header_tclap_CmdLine_h" "$ac_includes_default"
+if test "x$ac_cv_header_tclap_CmdLine_h" = x""yes; then :
   cat >>confdefs.h <<_ACEOF
-#define HAVE_CMDLINE_H 1
+#define HAVE_TCLAP_CMDLINE_H 1
 _ACEOF
  ac_lib_tclap=yes
 else
@@ -3786,10 +3809,10 @@ fi
 done
 
 
-		if test "${ac_lib_tclap}" != "yes" -a "${with_tclap}" != ""
-	then
+		if test "${ac_lib_tclap}" != "yes" -a "${with_tclap}" != ""; then :
 
-	for ax_var in CmdLine.h
+
+	for ax_var in tclap/CmdLine.h
 do :
 
 				as_ax_Var=`$as_echo "ac_cv_header_${ax_var}" | $as_tr_sh`
@@ -3801,42 +3824,48 @@ done
 
 
 		for ac_test_location in ${with_tclap}
-		do
-						if test "${ac_test_location}" = "auto"
-			then
+do :
+
+						if test "${ac_test_location}" = "auto"; then :
+
 								for ac_location in `ls -1d $HOME/tclap-* 2>/dev/null | tac`
-				do
-					if test -d "${ac_location}"
-					then
+do :
+
+					if test -d "${ac_location}"; then :
+
 												ax_probe_library_save_LDFLAGS=${LDFLAGS}
 						ax_probe_library_save_CPPFLAGS=${CPPFLAGS}
 
 												for ac_inc_location in `find "${ac_location}" -iname '*.h' |
 							while read ac_include_location; do dirname "${ac_include_location}"; done |
 								sort -u`
-						do
+do :
+
 							CPPFLAGS="-I${ac_inc_location} ${CPPFLAGS}"
-						done
+
+done
 
 
 												for ac_lib_location in `find "${ac_location}" -iname '*.so' -o -iname '*.sl' -o -iname '*.dylib' -o -iname '*.a' -o -iname '*.dll' |
 							while read ac_library_location; do dirname "${ac_library_location}"; done |
 								sort -u`
-						do
-							LDFLAGS="-L${ac_lib_location} ${LDFLAGS}"
-						done
+do :
 
-						{ $as_echo "$as_me:${as_lineno-$LINENO}: checking tclap for CmdLine.h in ${ac_location}" >&5
-$as_echo_n "checking tclap for CmdLine.h in ${ac_location}... " >&6; }
+							LDFLAGS="-L${ac_lib_location} ${LDFLAGS}"
+
+done
+
+						{ $as_echo "$as_me:${as_lineno-$LINENO}: checking tclap for tclap/CmdLine.h in ${ac_location}" >&5
+$as_echo_n "checking tclap for tclap/CmdLine.h in ${ac_location}... " >&6; }
 						$as_echo
 						$as_echo "$as_me:${as_lineno-$LINENO}: CPPFLAGS=\"${CPPFLAGS}\" and LDFLAGS=\"${LDFLAGS}\"" >&5
 
-						for ac_header in CmdLine.h
+						for ac_header in tclap/CmdLine.h
 do :
-  ac_fn_cxx_check_header_mongrel "$LINENO" "CmdLine.h" "ac_cv_header_CmdLine_h" "$ac_includes_default"
-if test "x$ac_cv_header_CmdLine_h" = x""yes; then :
+  ac_fn_cxx_check_header_mongrel "$LINENO" "tclap/CmdLine.h" "ac_cv_header_tclap_CmdLine_h" "$ac_includes_default"
+if test "x$ac_cv_header_tclap_CmdLine_h" = x""yes; then :
   cat >>confdefs.h <<_ACEOF
-#define HAVE_CMDLINE_H 1
+#define HAVE_TCLAP_CMDLINE_H 1
 _ACEOF
  ac_lib_tclap=yes
 else
@@ -3846,15 +3875,14 @@ fi
 done
 
 
-												if test "${ac_lib_tclap}" = "yes"
-						then
-							break 2;
-						fi
+												if test "${ac_lib_tclap}" = "yes"; then :
+  break 2
+fi
 
 												LDFLAGS=${ax_probe_library_save_LDFLAGS}
 						CPPFLAGS=${ax_probe_library_save_CPPFLAGS}
 
-	for ax_var in CmdLine.h
+	for ax_var in tclap/CmdLine.h
 do :
 
 				as_ax_Var=`$as_echo "ac_cv_header_${ax_var}" | $as_tr_sh`
@@ -3864,24 +3892,28 @@ do :
 
 done
 
-					fi
-				done
-			else
+
+fi
+
+done
+
+else
+
 								ax_probe_library_save_CPPFLAGS=${CPPFLAGS}
 
 				CPPFLAGS="-I${ac_test_location} $CPPFLAGS"
 
-				{ $as_echo "$as_me:${as_lineno-$LINENO}: checking tclap for CmdLine.h in ${ac_test_location}" >&5
-$as_echo_n "checking tclap for CmdLine.h in ${ac_test_location}... " >&6; }
+				{ $as_echo "$as_me:${as_lineno-$LINENO}: checking tclap for tclap/CmdLine.h in ${ac_test_location}" >&5
+$as_echo_n "checking tclap for tclap/CmdLine.h in ${ac_test_location}... " >&6; }
 				$as_echo
 				$as_echo "$as_me:${as_lineno-$LINENO}: CPPFLAGS=\"${CPPFLAGS}\"" >&5
 
-				for ac_header in CmdLine.h
+				for ac_header in tclap/CmdLine.h
 do :
-  ac_fn_cxx_check_header_mongrel "$LINENO" "CmdLine.h" "ac_cv_header_CmdLine_h" "$ac_includes_default"
-if test "x$ac_cv_header_CmdLine_h" = x""yes; then :
+  ac_fn_cxx_check_header_mongrel "$LINENO" "tclap/CmdLine.h" "ac_cv_header_tclap_CmdLine_h" "$ac_includes_default"
+if test "x$ac_cv_header_tclap_CmdLine_h" = x""yes; then :
   cat >>confdefs.h <<_ACEOF
-#define HAVE_CMDLINE_H 1
+#define HAVE_TCLAP_CMDLINE_H 1
 _ACEOF
  ac_lib_tclap=yes
 else
@@ -3891,14 +3923,13 @@ fi
 done
 
 
-								if test "${ac_lib_tclap}" = "yes"
-				then
-					break;
-				fi
+								if test "${ac_lib_tclap}" = "yes"; then :
+  break
+fi
 
 								CPPFLAGS=${ax_probe_library_save_CPPFLAGS}
 
-	for ax_var in CmdLine.h
+	for ax_var in tclap/CmdLine.h
 do :
 
 				as_ax_Var=`$as_echo "ac_cv_header_${ax_var}" | $as_tr_sh`
@@ -3908,14 +3939,17 @@ do :
 
 done
 
-			fi
-		done
-	fi
 
-	if test "${ac_lib_tclap}" != "yes"
-	then
-		as_fn_error "CmdLine.h header(s) is missing. Check the default/listed above headers locations." "$LINENO" 5
-	fi
+fi
+
+done
+
+fi
+
+
+	if test "${ac_lib_tclap}" != "yes"; then :
+  as_fn_error "tclap/CmdLine.h header(s) is missing. Check the default/listed above headers locations." "$LINENO" 5
+fi
 
 
 
@@ -3926,6 +3960,11 @@ if test "${with_potrace+set}" = set; then :
   withval=$with_potrace;
 else
   with_potrace="auto"
+fi
+
+
+	if test "${with_potrace}" == "no"; then :
+  as_fn_error "The library potrace is obligatory. You cannot disable it." "$LINENO" 5
 fi
 
 
@@ -3944,8 +3983,8 @@ fi
 done
 
 
-		if test "${ac_lib_potrace}" != "yes" -a "${with_potrace}" != ""
-	then
+		if test "${ac_lib_potrace}" != "yes" -a "${with_potrace}" != ""; then :
+
 
 	for ax_var in potracelib.h
 do :
@@ -3959,30 +3998,36 @@ done
 
 
 		for ac_test_location in ${with_potrace}
-		do
-						if test "${ac_test_location}" = "auto"
-			then
+do :
+
+						if test "${ac_test_location}" = "auto"; then :
+
 								for ac_location in `ls -1d $HOME/potrace-* 2>/dev/null | tac`
-				do
-					if test -d "${ac_location}"
-					then
+do :
+
+					if test -d "${ac_location}"; then :
+
 												ax_probe_library_save_LDFLAGS=${LDFLAGS}
 						ax_probe_library_save_CPPFLAGS=${CPPFLAGS}
 
 												for ac_inc_location in `find "${ac_location}" -iname '*.h' |
 							while read ac_include_location; do dirname "${ac_include_location}"; done |
 								sort -u`
-						do
+do :
+
 							CPPFLAGS="-I${ac_inc_location} ${CPPFLAGS}"
-						done
+
+done
 
 
 												for ac_lib_location in `find "${ac_location}" -iname '*.so' -o -iname '*.sl' -o -iname '*.dylib' -o -iname '*.a' -o -iname '*.dll' |
 							while read ac_library_location; do dirname "${ac_library_location}"; done |
 								sort -u`
-						do
+do :
+
 							LDFLAGS="-L${ac_lib_location} ${LDFLAGS}"
-						done
+
+done
 
 						{ $as_echo "$as_me:${as_lineno-$LINENO}: checking potrace for potracelib.h in ${ac_location}" >&5
 $as_echo_n "checking potrace for potracelib.h in ${ac_location}... " >&6; }
@@ -4004,10 +4049,9 @@ fi
 done
 
 
-												if test "${ac_lib_potrace}" = "yes"
-						then
-							break 2;
-						fi
+												if test "${ac_lib_potrace}" = "yes"; then :
+  break 2
+fi
 
 												LDFLAGS=${ax_probe_library_save_LDFLAGS}
 						CPPFLAGS=${ax_probe_library_save_CPPFLAGS}
@@ -4022,9 +4066,13 @@ do :
 
 done
 
-					fi
-				done
-			else
+
+fi
+
+done
+
+else
+
 								ax_probe_library_save_CPPFLAGS=${CPPFLAGS}
 
 				CPPFLAGS="-I${ac_test_location} $CPPFLAGS"
@@ -4049,10 +4097,9 @@ fi
 done
 
 
-								if test "${ac_lib_potrace}" = "yes"
-				then
-					break;
-				fi
+								if test "${ac_lib_potrace}" = "yes"; then :
+  break
+fi
 
 								CPPFLAGS=${ax_probe_library_save_CPPFLAGS}
 
@@ -4066,14 +4113,17 @@ do :
 
 done
 
-			fi
-		done
-	fi
 
-	if test "${ac_lib_potrace}" != "yes"
-	then
-		as_fn_error "potracelib.h header(s) is missing. Check the default/listed above headers locations." "$LINENO" 5
-	fi
+fi
+
+done
+
+fi
+
+
+	if test "${ac_lib_potrace}" != "yes"; then :
+  as_fn_error "potracelib.h header(s) is missing. Check the default/listed above headers locations." "$LINENO" 5
+fi
 
 
 
@@ -4083,7 +4133,12 @@ done
 if test "${with_gocr+set}" = set; then :
   withval=$with_gocr;
 else
-  with_gocr="auto /usr/local/include/gocr"
+  with_gocr="auto /usr/include/gocr /usr/local/include/gocr"
+fi
+
+
+	if test "${with_gocr}" == "no"; then :
+  as_fn_error "The library gocr is obligatory. You cannot disable it." "$LINENO" 5
 fi
 
 
@@ -4102,8 +4157,8 @@ fi
 done
 
 
-		if test "${ac_lib_gocr}" != "yes" -a "${with_gocr}" != ""
-	then
+		if test "${ac_lib_gocr}" != "yes" -a "${with_gocr}" != ""; then :
+
 
 	for ax_var in pgm2asc.h
 do :
@@ -4117,30 +4172,36 @@ done
 
 
 		for ac_test_location in ${with_gocr}
-		do
-						if test "${ac_test_location}" = "auto"
-			then
+do :
+
+						if test "${ac_test_location}" = "auto"; then :
+
 								for ac_location in `ls -1d $HOME/gocr-* 2>/dev/null | tac`
-				do
-					if test -d "${ac_location}"
-					then
+do :
+
+					if test -d "${ac_location}"; then :
+
 												ax_probe_library_save_LDFLAGS=${LDFLAGS}
 						ax_probe_library_save_CPPFLAGS=${CPPFLAGS}
 
 												for ac_inc_location in `find "${ac_location}" -iname '*.h' |
 							while read ac_include_location; do dirname "${ac_include_location}"; done |
 								sort -u`
-						do
+do :
+
 							CPPFLAGS="-I${ac_inc_location} ${CPPFLAGS}"
-						done
+
+done
 
 
 												for ac_lib_location in `find "${ac_location}" -iname '*.so' -o -iname '*.sl' -o -iname '*.dylib' -o -iname '*.a' -o -iname '*.dll' |
 							while read ac_library_location; do dirname "${ac_library_location}"; done |
 								sort -u`
-						do
+do :
+
 							LDFLAGS="-L${ac_lib_location} ${LDFLAGS}"
-						done
+
+done
 
 						{ $as_echo "$as_me:${as_lineno-$LINENO}: checking gocr for pgm2asc.h in ${ac_location}" >&5
 $as_echo_n "checking gocr for pgm2asc.h in ${ac_location}... " >&6; }
@@ -4162,10 +4223,9 @@ fi
 done
 
 
-												if test "${ac_lib_gocr}" = "yes"
-						then
-							break 2;
-						fi
+												if test "${ac_lib_gocr}" = "yes"; then :
+  break 2
+fi
 
 												LDFLAGS=${ax_probe_library_save_LDFLAGS}
 						CPPFLAGS=${ax_probe_library_save_CPPFLAGS}
@@ -4180,9 +4240,13 @@ do :
 
 done
 
-					fi
-				done
-			else
+
+fi
+
+done
+
+else
+
 								ax_probe_library_save_CPPFLAGS=${CPPFLAGS}
 
 				CPPFLAGS="-I${ac_test_location} $CPPFLAGS"
@@ -4207,10 +4271,9 @@ fi
 done
 
 
-								if test "${ac_lib_gocr}" = "yes"
-				then
-					break;
-				fi
+								if test "${ac_lib_gocr}" = "yes"; then :
+  break
+fi
 
 								CPPFLAGS=${ax_probe_library_save_CPPFLAGS}
 
@@ -4224,14 +4287,17 @@ do :
 
 done
 
-			fi
-		done
-	fi
 
-	if test "${ac_lib_gocr}" != "yes"
-	then
-		as_fn_error "pgm2asc.h header(s) is missing. Check the default/listed above headers locations." "$LINENO" 5
-	fi
+fi
+
+done
+
+fi
+
+
+	if test "${ac_lib_gocr}" != "yes"; then :
+  as_fn_error "pgm2asc.h header(s) is missing. Check the default/listed above headers locations." "$LINENO" 5
+fi
 
 
 
@@ -4241,7 +4307,12 @@ done
 if test "${with_ocrad+set}" = set; then :
   withval=$with_ocrad;
 else
-  with_ocrad="auto /usr/local/include"
+  with_ocrad="auto /usr/include/ocrad /usr/local/include/ocrad"
+fi
+
+
+	if test "${with_ocrad}" == "no"; then :
+  as_fn_error "The library ocrad is obligatory. You cannot disable it." "$LINENO" 5
 fi
 
 
@@ -4260,8 +4331,8 @@ fi
 done
 
 
-		if test "${ac_lib_ocrad}" != "yes" -a "${with_ocrad}" != ""
-	then
+		if test "${ac_lib_ocrad}" != "yes" -a "${with_ocrad}" != ""; then :
+
 
 	for ax_var in ocradlib.h
 do :
@@ -4275,30 +4346,36 @@ done
 
 
 		for ac_test_location in ${with_ocrad}
-		do
-						if test "${ac_test_location}" = "auto"
-			then
+do :
+
+						if test "${ac_test_location}" = "auto"; then :
+
 								for ac_location in `ls -1d $HOME/ocrad-* 2>/dev/null | tac`
-				do
-					if test -d "${ac_location}"
-					then
+do :
+
+					if test -d "${ac_location}"; then :
+
 												ax_probe_library_save_LDFLAGS=${LDFLAGS}
 						ax_probe_library_save_CPPFLAGS=${CPPFLAGS}
 
 												for ac_inc_location in `find "${ac_location}" -iname '*.h' |
 							while read ac_include_location; do dirname "${ac_include_location}"; done |
 								sort -u`
-						do
+do :
+
 							CPPFLAGS="-I${ac_inc_location} ${CPPFLAGS}"
-						done
+
+done
 
 
 												for ac_lib_location in `find "${ac_location}" -iname '*.so' -o -iname '*.sl' -o -iname '*.dylib' -o -iname '*.a' -o -iname '*.dll' |
 							while read ac_library_location; do dirname "${ac_library_location}"; done |
 								sort -u`
-						do
+do :
+
 							LDFLAGS="-L${ac_lib_location} ${LDFLAGS}"
-						done
+
+done
 
 						{ $as_echo "$as_me:${as_lineno-$LINENO}: checking ocrad for ocradlib.h in ${ac_location}" >&5
 $as_echo_n "checking ocrad for ocradlib.h in ${ac_location}... " >&6; }
@@ -4320,10 +4397,9 @@ fi
 done
 
 
-												if test "${ac_lib_ocrad}" = "yes"
-						then
-							break 2;
-						fi
+												if test "${ac_lib_ocrad}" = "yes"; then :
+  break 2
+fi
 
 												LDFLAGS=${ax_probe_library_save_LDFLAGS}
 						CPPFLAGS=${ax_probe_library_save_CPPFLAGS}
@@ -4338,9 +4414,13 @@ do :
 
 done
 
-					fi
-				done
-			else
+
+fi
+
+done
+
+else
+
 								ax_probe_library_save_CPPFLAGS=${CPPFLAGS}
 
 				CPPFLAGS="-I${ac_test_location} $CPPFLAGS"
@@ -4365,10 +4445,9 @@ fi
 done
 
 
-								if test "${ac_lib_ocrad}" = "yes"
-				then
-					break;
-				fi
+								if test "${ac_lib_ocrad}" = "yes"; then :
+  break
+fi
 
 								CPPFLAGS=${ax_probe_library_save_CPPFLAGS}
 
@@ -4382,15 +4461,368 @@ do :
 
 done
 
-			fi
-		done
-	fi
 
-	if test "${ac_lib_ocrad}" != "yes"
-	then
-		as_fn_error "ocradlib.h header(s) is missing. Check the default/listed above headers locations." "$LINENO" 5
-	fi
+fi
 
+done
+
+fi
+
+
+	if test "${ac_lib_ocrad}" != "yes"; then :
+  as_fn_error "ocradlib.h header(s) is missing. Check the default/listed above headers locations." "$LINENO" 5
+fi
+
+
+
+
+
+# Check whether --with-tesseract was given.
+if test "${with_tesseract+set}" = set; then :
+  withval=$with_tesseract;
+else
+  with_tesseract="no"
+fi
+
+
+	if test "${with_tesseract}" != "no"; then :
+
+		if test "${with_tesseract}" == ""; then :
+
+			with_tesseract=""
+
+fi
+
+
+		for ac_header in tesseract/baseapi.h
+do :
+  ac_fn_cxx_check_header_mongrel "$LINENO" "tesseract/baseapi.h" "ac_cv_header_tesseract_baseapi_h" "$ac_includes_default"
+if test "x$ac_cv_header_tesseract_baseapi_h" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_TESSERACT_BASEAPI_H 1
+_ACEOF
+ ac_lib_tesseract=yes
+else
+  ac_lib_tesseract=no
+fi
+
+done
+
+
+		if test "${ac_lib_tesseract}" != "yes" -a "${with_tesseract}" != ""; then :
+
+
+	for ax_var in tesseract/baseapi.h
+do :
+
+				as_ax_Var=`$as_echo "ac_cv_header_${ax_var}" | $as_tr_sh`
+
+		{ eval $as_ax_Var=; unset $as_ax_Var;}
+
+
+done
+
+
+		for ac_test_location in ${with_tesseract}
+do :
+
+						if test "${ac_test_location}" = "auto"; then :
+
+								for ac_location in `ls -1d $HOME/tesseract-* 2>/dev/null | tac`
+do :
+
+					if test -d "${ac_location}"; then :
+
+												ax_probe_library_save_LDFLAGS=${LDFLAGS}
+						ax_probe_library_save_CPPFLAGS=${CPPFLAGS}
+
+												for ac_inc_location in `find "${ac_location}" -iname '*.h' |
+							while read ac_include_location; do dirname "${ac_include_location}"; done |
+								sort -u`
+do :
+
+							CPPFLAGS="-I${ac_inc_location} ${CPPFLAGS}"
+
+done
+
+
+												for ac_lib_location in `find "${ac_location}" -iname '*.so' -o -iname '*.sl' -o -iname '*.dylib' -o -iname '*.a' -o -iname '*.dll' |
+							while read ac_library_location; do dirname "${ac_library_location}"; done |
+								sort -u`
+do :
+
+							LDFLAGS="-L${ac_lib_location} ${LDFLAGS}"
+
+done
+
+						{ $as_echo "$as_me:${as_lineno-$LINENO}: checking tesseract for tesseract/baseapi.h in ${ac_location}" >&5
+$as_echo_n "checking tesseract for tesseract/baseapi.h in ${ac_location}... " >&6; }
+						$as_echo
+						$as_echo "$as_me:${as_lineno-$LINENO}: CPPFLAGS=\"${CPPFLAGS}\" and LDFLAGS=\"${LDFLAGS}\"" >&5
+
+						for ac_header in tesseract/baseapi.h
+do :
+  ac_fn_cxx_check_header_mongrel "$LINENO" "tesseract/baseapi.h" "ac_cv_header_tesseract_baseapi_h" "$ac_includes_default"
+if test "x$ac_cv_header_tesseract_baseapi_h" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_TESSERACT_BASEAPI_H 1
+_ACEOF
+ ac_lib_tesseract=yes
+else
+  ac_lib_tesseract=no
+fi
+
+done
+
+
+												if test "${ac_lib_tesseract}" = "yes"; then :
+  break 2
+fi
+
+												LDFLAGS=${ax_probe_library_save_LDFLAGS}
+						CPPFLAGS=${ax_probe_library_save_CPPFLAGS}
+
+	for ax_var in tesseract/baseapi.h
+do :
+
+				as_ax_Var=`$as_echo "ac_cv_header_${ax_var}" | $as_tr_sh`
+
+		{ eval $as_ax_Var=; unset $as_ax_Var;}
+
+
+done
+
+
+fi
+
+done
+
+else
+
+								ax_probe_library_save_CPPFLAGS=${CPPFLAGS}
+
+				CPPFLAGS="-I${ac_test_location} $CPPFLAGS"
+
+				{ $as_echo "$as_me:${as_lineno-$LINENO}: checking tesseract for tesseract/baseapi.h in ${ac_test_location}" >&5
+$as_echo_n "checking tesseract for tesseract/baseapi.h in ${ac_test_location}... " >&6; }
+				$as_echo
+				$as_echo "$as_me:${as_lineno-$LINENO}: CPPFLAGS=\"${CPPFLAGS}\"" >&5
+
+				for ac_header in tesseract/baseapi.h
+do :
+  ac_fn_cxx_check_header_mongrel "$LINENO" "tesseract/baseapi.h" "ac_cv_header_tesseract_baseapi_h" "$ac_includes_default"
+if test "x$ac_cv_header_tesseract_baseapi_h" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_TESSERACT_BASEAPI_H 1
+_ACEOF
+ ac_lib_tesseract=yes
+else
+  ac_lib_tesseract=no
+fi
+
+done
+
+
+								if test "${ac_lib_tesseract}" = "yes"; then :
+  break
+fi
+
+								CPPFLAGS=${ax_probe_library_save_CPPFLAGS}
+
+	for ax_var in tesseract/baseapi.h
+do :
+
+				as_ax_Var=`$as_echo "ac_cv_header_${ax_var}" | $as_tr_sh`
+
+		{ eval $as_ax_Var=; unset $as_ax_Var;}
+
+
+done
+
+
+fi
+
+done
+
+fi
+
+
+fi
+
+
+
+
+# Check whether --with-cuneiform was given.
+if test "${with_cuneiform+set}" = set; then :
+  withval=$with_cuneiform;
+else
+  with_cuneiform="no"
+fi
+
+
+	if test "${with_cuneiform}" != "no"; then :
+
+		if test "${with_cuneiform}" == ""; then :
+
+			with_cuneiform=""
+
+fi
+
+
+		for ac_header in cuneiform.h
+do :
+  ac_fn_cxx_check_header_mongrel "$LINENO" "cuneiform.h" "ac_cv_header_cuneiform_h" "$ac_includes_default"
+if test "x$ac_cv_header_cuneiform_h" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_CUNEIFORM_H 1
+_ACEOF
+ ac_lib_cuneiform=yes
+else
+  ac_lib_cuneiform=no
+fi
+
+done
+
+
+		if test "${ac_lib_cuneiform}" != "yes" -a "${with_cuneiform}" != ""; then :
+
+
+	for ax_var in cuneiform.h
+do :
+
+				as_ax_Var=`$as_echo "ac_cv_header_${ax_var}" | $as_tr_sh`
+
+		{ eval $as_ax_Var=; unset $as_ax_Var;}
+
+
+done
+
+
+		for ac_test_location in ${with_cuneiform}
+do :
+
+						if test "${ac_test_location}" = "auto"; then :
+
+								for ac_location in `ls -1d $HOME/cuneiform-* 2>/dev/null | tac`
+do :
+
+					if test -d "${ac_location}"; then :
+
+												ax_probe_library_save_LDFLAGS=${LDFLAGS}
+						ax_probe_library_save_CPPFLAGS=${CPPFLAGS}
+
+												for ac_inc_location in `find "${ac_location}" -iname '*.h' |
+							while read ac_include_location; do dirname "${ac_include_location}"; done |
+								sort -u`
+do :
+
+							CPPFLAGS="-I${ac_inc_location} ${CPPFLAGS}"
+
+done
+
+
+												for ac_lib_location in `find "${ac_location}" -iname '*.so' -o -iname '*.sl' -o -iname '*.dylib' -o -iname '*.a' -o -iname '*.dll' |
+							while read ac_library_location; do dirname "${ac_library_location}"; done |
+								sort -u`
+do :
+
+							LDFLAGS="-L${ac_lib_location} ${LDFLAGS}"
+
+done
+
+						{ $as_echo "$as_me:${as_lineno-$LINENO}: checking cuneiform for cuneiform.h in ${ac_location}" >&5
+$as_echo_n "checking cuneiform for cuneiform.h in ${ac_location}... " >&6; }
+						$as_echo
+						$as_echo "$as_me:${as_lineno-$LINENO}: CPPFLAGS=\"${CPPFLAGS}\" and LDFLAGS=\"${LDFLAGS}\"" >&5
+
+						for ac_header in cuneiform.h
+do :
+  ac_fn_cxx_check_header_mongrel "$LINENO" "cuneiform.h" "ac_cv_header_cuneiform_h" "$ac_includes_default"
+if test "x$ac_cv_header_cuneiform_h" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_CUNEIFORM_H 1
+_ACEOF
+ ac_lib_cuneiform=yes
+else
+  ac_lib_cuneiform=no
+fi
+
+done
+
+
+												if test "${ac_lib_cuneiform}" = "yes"; then :
+  break 2
+fi
+
+												LDFLAGS=${ax_probe_library_save_LDFLAGS}
+						CPPFLAGS=${ax_probe_library_save_CPPFLAGS}
+
+	for ax_var in cuneiform.h
+do :
+
+				as_ax_Var=`$as_echo "ac_cv_header_${ax_var}" | $as_tr_sh`
+
+		{ eval $as_ax_Var=; unset $as_ax_Var;}
+
+
+done
+
+
+fi
+
+done
+
+else
+
+								ax_probe_library_save_CPPFLAGS=${CPPFLAGS}
+
+				CPPFLAGS="-I${ac_test_location} $CPPFLAGS"
+
+				{ $as_echo "$as_me:${as_lineno-$LINENO}: checking cuneiform for cuneiform.h in ${ac_test_location}" >&5
+$as_echo_n "checking cuneiform for cuneiform.h in ${ac_test_location}... " >&6; }
+				$as_echo
+				$as_echo "$as_me:${as_lineno-$LINENO}: CPPFLAGS=\"${CPPFLAGS}\"" >&5
+
+				for ac_header in cuneiform.h
+do :
+  ac_fn_cxx_check_header_mongrel "$LINENO" "cuneiform.h" "ac_cv_header_cuneiform_h" "$ac_includes_default"
+if test "x$ac_cv_header_cuneiform_h" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_CUNEIFORM_H 1
+_ACEOF
+ ac_lib_cuneiform=yes
+else
+  ac_lib_cuneiform=no
+fi
+
+done
+
+
+								if test "${ac_lib_cuneiform}" = "yes"; then :
+  break
+fi
+
+								CPPFLAGS=${ax_probe_library_save_CPPFLAGS}
+
+	for ax_var in cuneiform.h
+do :
+
+				as_ax_Var=`$as_echo "ac_cv_header_${ax_var}" | $as_tr_sh`
+
+		{ eval $as_ax_Var=; unset $as_ax_Var;}
+
+
+done
+
+
+fi
+
+done
+
+fi
+
+
+fi
 
 
 
@@ -4400,6 +4832,11 @@ if test "${with_openbabel+set}" = set; then :
   withval=$with_openbabel;
 else
   with_openbabel="/usr/include/openbabel-2.0 /usr/local/include/openbabel-2.0"
+fi
+
+
+	if test "${with_openbabel}" == "no"; then :
+  as_fn_error "The library openbabel is obligatory. You cannot disable it." "$LINENO" 5
 fi
 
 
@@ -4420,8 +4857,8 @@ fi
 done
 
 
-		if test "${ac_lib_openbabel}" != "yes" -a "${with_openbabel}" != ""
-	then
+		if test "${ac_lib_openbabel}" != "yes" -a "${with_openbabel}" != ""; then :
+
 
 	for ax_var in openbabel/mol.h openbabel/obconversion.h openbabel/builder.h
 do :
@@ -4435,30 +4872,36 @@ done
 
 
 		for ac_test_location in ${with_openbabel}
-		do
-						if test "${ac_test_location}" = "auto"
-			then
+do :
+
+						if test "${ac_test_location}" = "auto"; then :
+
 								for ac_location in `ls -1d $HOME/openbabel-* 2>/dev/null | tac`
-				do
-					if test -d "${ac_location}"
-					then
+do :
+
+					if test -d "${ac_location}"; then :
+
 												ax_probe_library_save_LDFLAGS=${LDFLAGS}
 						ax_probe_library_save_CPPFLAGS=${CPPFLAGS}
 
 												for ac_inc_location in `find "${ac_location}" -iname '*.h' |
 							while read ac_include_location; do dirname "${ac_include_location}"; done |
 								sort -u`
-						do
+do :
+
 							CPPFLAGS="-I${ac_inc_location} ${CPPFLAGS}"
-						done
+
+done
 
 
 												for ac_lib_location in `find "${ac_location}" -iname '*.so' -o -iname '*.sl' -o -iname '*.dylib' -o -iname '*.a' -o -iname '*.dll' |
 							while read ac_library_location; do dirname "${ac_library_location}"; done |
 								sort -u`
-						do
+do :
+
 							LDFLAGS="-L${ac_lib_location} ${LDFLAGS}"
-						done
+
+done
 
 						{ $as_echo "$as_me:${as_lineno-$LINENO}: checking openbabel for openbabel/mol.h openbabel/obconversion.h openbabel/builder.h in ${ac_location}" >&5
 $as_echo_n "checking openbabel for openbabel/mol.h openbabel/obconversion.h openbabel/builder.h in ${ac_location}... " >&6; }
@@ -4482,10 +4925,9 @@ fi
 done
 
 
-												if test "${ac_lib_openbabel}" = "yes"
-						then
-							break 2;
-						fi
+												if test "${ac_lib_openbabel}" = "yes"; then :
+  break 2
+fi
 
 												LDFLAGS=${ax_probe_library_save_LDFLAGS}
 						CPPFLAGS=${ax_probe_library_save_CPPFLAGS}
@@ -4500,9 +4942,13 @@ do :
 
 done
 
-					fi
-				done
-			else
+
+fi
+
+done
+
+else
+
 								ax_probe_library_save_CPPFLAGS=${CPPFLAGS}
 
 				CPPFLAGS="-I${ac_test_location} $CPPFLAGS"
@@ -4529,10 +4975,9 @@ fi
 done
 
 
-								if test "${ac_lib_openbabel}" = "yes"
-				then
-					break;
-				fi
+								if test "${ac_lib_openbabel}" = "yes"; then :
+  break
+fi
 
 								CPPFLAGS=${ax_probe_library_save_CPPFLAGS}
 
@@ -4546,14 +4991,17 @@ do :
 
 done
 
-			fi
-		done
-	fi
 
-	if test "${ac_lib_openbabel}" != "yes"
-	then
-		as_fn_error "openbabel/mol.h openbabel/obconversion.h openbabel/builder.h header(s) is missing. Check the default/listed above headers locations." "$LINENO" 5
-	fi
+fi
+
+done
+
+fi
+
+
+	if test "${ac_lib_openbabel}" != "yes"; then :
+  as_fn_error "openbabel/mol.h openbabel/obconversion.h openbabel/builder.h header(s) is missing. Check the default/listed above headers locations." "$LINENO" 5
+fi
 
 
 
@@ -4586,8 +5034,10 @@ else
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 
-if test "${osra_header_limits}" != "yes"; then
+if test "${osra_header_limits}" != "yes"; then :
+
 	as_fn_error "limits.h was not found, do you have libc-dev installed?" "$LINENO" 5
+
 fi
 
 
@@ -4619,8 +5069,10 @@ else
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 
-if test "${osra_header_float}" != "yes"; then
+if test "${osra_header_float}" != "yes"; then :
+
 	as_fn_error "float.h was not found" "$LINENO" 5
+
 fi
 
 
@@ -4652,8 +5104,10 @@ else
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 
-if test "${osra_header_libgen}" != "yes"; then
+if test "${osra_header_libgen}" != "yes"; then :
+
 	as_fn_error "libgen.h was not found, do you have libc-dev installed?" "$LINENO" 5
+
 fi
 
 
@@ -4670,24 +5124,29 @@ fi
 
 
 
-
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for -lm" >&5
 $as_echo_n "checking for -lm... " >&6; }
-if test "${ac_cv_lib_m__include__math_h_+set}" = set; then :
+if test "${ac_cv_lib_m+set}" = set; then :
   $as_echo_n "(cached) " >&6
 else
 
 
-		ac_ext=cpp
+			ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
-		ax_try_link_save_LIBS=${LIBS}
-		LIBS="-lm ${LIBS}"
+			ax_try_link_save_LIBS=${LIBS}
 
-		cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+			for ax_var in m
+do :
+
+				LIBS="-l${ax_var} ${LIBS}"
+
+done
+
+			cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 #include <math.h>
 int
@@ -4699,15 +5158,15 @@ main ()
 }
 _ACEOF
 if ac_fn_cxx_try_link "$LINENO"; then :
-  ac_cv_lib_m__include__math_h_=yes
+  ac_cv_lib_m=yes
 else
-  ac_cv_lib_m__include__math_h_=no
+  ac_cv_lib_m=no
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
 
-				LIBS=${ax_try_link_save_LIBS}
-		ac_ext=cpp
+						LIBS=${ax_try_link_save_LIBS}
+			ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
@@ -4715,16 +5174,22 @@ ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
 
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_m__include__math_h_" >&5
-$as_echo "$ac_cv_lib_m__include__math_h_" >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_m" >&5
+$as_echo "$ac_cv_lib_m" >&6; }
 
-		if test "x$ac_cv_lib_m__include__math_h_" = x""yes; then :
+		if test "x$ac_cv_lib_m" = x""yes; then :
+
 
 			cat >>confdefs.h <<_ACEOF
 #define HAVE_LIBM 1
 _ACEOF
 
-						(echo "${LIBS}" | grep -q -- "-lm ") || LIBS="-lm ${LIBS}"
+						for ax_var in m
+do :
+
+				(echo "${LIBS}" | grep -q -- "-l${ax_var} ") || LIBS="-l${ax_var} ${LIBS}"
+
+done
 
 else
   osra_lib_math=no
@@ -4733,8 +5198,10 @@ fi
 
 
 
-if test "${osra_lib_math}" != "yes"; then
+if test "${osra_lib_math}" != "yes"; then :
+
 	as_fn_error "math.h or libm was not found, do you have libc-dev installed?" "$LINENO" 5
+
 fi
 
 
@@ -4743,7 +5210,7 @@ osra_lib_tclap=yes
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
-	#include "stdio.h"
+	#include <stddef.h>
 	#include <tclap/CmdLine.h>
 
 int
@@ -4755,7 +5222,7 @@ main ()
 	cmd.add(a1);
 	TCLAP::SwitchArg a2("", "", "", false);
 	cmd.add(a2);
-	cmd.parse(NULL, NULL);
+	cmd.parse(0, NULL);
 
   ;
   return 0;
@@ -4768,8 +5235,10 @@ else
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 
-if test "${osra_lib_tclap}" != "yes"; then
+if test "${osra_lib_tclap}" != "yes"; then :
+
 	as_fn_error "CmdLine.h was not found (use --with-tclap to define custom header location or check config.log)" "$LINENO" 5
+
 fi
 
 
@@ -4778,24 +5247,29 @@ osra_lib_potrace=yes
 
 
 
-
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for -lpotrace" >&5
 $as_echo_n "checking for -lpotrace... " >&6; }
-if test "${ac_cv_lib_potrace___extern__C______include__potracelib_h_____+set}" = set; then :
+if test "${ac_cv_lib_potrace+set}" = set; then :
   $as_echo_n "(cached) " >&6
 else
 
 
-		ac_ext=cpp
+			ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
-		ax_try_link_save_LIBS=${LIBS}
-		LIBS="-lpotrace ${LIBS}"
+			ax_try_link_save_LIBS=${LIBS}
 
-		cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+			for ax_var in potrace
+do :
+
+				LIBS="-l${ax_var} ${LIBS}"
+
+done
+
+			cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
 	extern "C" {
@@ -4821,15 +5295,15 @@ main ()
 }
 _ACEOF
 if ac_fn_cxx_try_link "$LINENO"; then :
-  ac_cv_lib_potrace___extern__C______include__potracelib_h_____=yes
+  ac_cv_lib_potrace=yes
 else
-  ac_cv_lib_potrace___extern__C______include__potracelib_h_____=no
+  ac_cv_lib_potrace=no
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
 
-				LIBS=${ax_try_link_save_LIBS}
-		ac_ext=cpp
+						LIBS=${ax_try_link_save_LIBS}
+			ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
@@ -4837,16 +5311,22 @@ ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
 
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_potrace___extern__C______include__potracelib_h_____" >&5
-$as_echo "$ac_cv_lib_potrace___extern__C______include__potracelib_h_____" >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_potrace" >&5
+$as_echo "$ac_cv_lib_potrace" >&6; }
 
-		if test "x$ac_cv_lib_potrace___extern__C______include__potracelib_h_____" = x""yes; then :
+		if test "x$ac_cv_lib_potrace" = x""yes; then :
+
 
 			cat >>confdefs.h <<_ACEOF
 #define HAVE_LIBPOTRACE 1
 _ACEOF
 
-						(echo "${LIBS}" | grep -q -- "-lpotrace ") || LIBS="-lpotrace ${LIBS}"
+						for ax_var in potrace
+do :
+
+				(echo "${LIBS}" | grep -q -- "-l${ax_var} ") || LIBS="-l${ax_var} ${LIBS}"
+
+done
 
 else
   osra_lib_potrace=no
@@ -4855,152 +5335,10 @@ fi
 
 
 
-if test "${osra_lib_potrace}" != "yes"; then
+if test "${osra_lib_potrace}" != "yes"; then :
+
 	as_fn_error "potracelib.h or libpotrace was not found (use --with-potrace to define custom header location or check config.log)" "$LINENO" 5
-fi
 
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing pnm_readpnminit" >&5
-$as_echo_n "checking for library containing pnm_readpnminit... " >&6; }
-if test "${ac_cv_search_pnm_readpnminit+set}" = set; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_func_search_save_LIBS=$LIBS
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char pnm_readpnminit ();
-int
-main ()
-{
-return pnm_readpnminit ();
-  ;
-  return 0;
-}
-_ACEOF
-for ac_lib in '' netpbm pnm; do
-  if test -z "$ac_lib"; then
-    ac_res="none required"
-  else
-    ac_res=-l$ac_lib
-    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
-  fi
-  if ac_fn_cxx_try_link "$LINENO"; then :
-  ac_cv_search_pnm_readpnminit=$ac_res
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext
-  if test "${ac_cv_search_pnm_readpnminit+set}" = set; then :
-  break
-fi
-done
-if test "${ac_cv_search_pnm_readpnminit+set}" = set; then :
-
-else
-  ac_cv_search_pnm_readpnminit=no
-fi
-rm conftest.$ac_ext
-LIBS=$ac_func_search_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_pnm_readpnminit" >&5
-$as_echo "$ac_cv_search_pnm_readpnminit" >&6; }
-ac_res=$ac_cv_search_pnm_readpnminit
-if test "$ac_res" != no; then :
-  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
-
-fi
-
-
-
-osra_lib_gocr=yes
-
-
-
-
-
-
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for -lPgm2asc" >&5
-$as_echo_n "checking for -lPgm2asc... " >&6; }
-if test "${ac_cv_lib_Pgm2asc___extern__C______include__gocr_pgm2asc_h____include__gocr_gocr_h______job_t_pJOB__+set}" = set; then :
-  $as_echo_n "(cached) " >&6
-else
-
-
-		ac_ext=cpp
-ac_cpp='$CXXCPP $CPPFLAGS'
-ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
-ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
-
-		ax_try_link_save_LIBS=${LIBS}
-		LIBS="-lPgm2asc ${LIBS}"
-
-		cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-	extern "C" {
-	#include <gocr/pgm2asc.h>
-	#include <gocr/gocr.h>
-	}
-	job_t *JOB;
-
-int
-main ()
-{
-
-	job_t job;
-
-	job_init(&job);
-	job_free(&job);
-	pgm2asc(&job);
-
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_cxx_try_link "$LINENO"; then :
-  ac_cv_lib_Pgm2asc___extern__C______include__gocr_pgm2asc_h____include__gocr_gocr_h______job_t_pJOB__=yes
-else
-  ac_cv_lib_Pgm2asc___extern__C______include__gocr_pgm2asc_h____include__gocr_gocr_h______job_t_pJOB__=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-
-				LIBS=${ax_try_link_save_LIBS}
-		ac_ext=cpp
-ac_cpp='$CXXCPP $CPPFLAGS'
-ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
-ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
-
-
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_Pgm2asc___extern__C______include__gocr_pgm2asc_h____include__gocr_gocr_h______job_t_pJOB__" >&5
-$as_echo "$ac_cv_lib_Pgm2asc___extern__C______include__gocr_pgm2asc_h____include__gocr_gocr_h______job_t_pJOB__" >&6; }
-
-		if test "x$ac_cv_lib_Pgm2asc___extern__C______include__gocr_pgm2asc_h____include__gocr_gocr_h______job_t_pJOB__" = x""yes; then :
-
-			cat >>confdefs.h <<_ACEOF
-#define HAVE_LIBPGM2ASC 1
-_ACEOF
-
-						(echo "${LIBS}" | grep -q -- "-lPgm2asc ") || LIBS="-lPgm2asc ${LIBS}"
-
-else
-  osra_lib_gocr=no
-
-fi
-
-
-
-if test "${osra_lib_gocr}" != "yes"; then
-	as_fn_error "pgm2asc.h or pgm2asc.a was not found (use --with-gocr to define custom header location or check config.log)" "$LINENO" 5
 fi
 
 
@@ -5009,32 +5347,32 @@ osra_lib_ocrad=yes
 
 
 
-
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for -locrad" >&5
 $as_echo_n "checking for -locrad... " >&6; }
-if test "${ac_cv_lib_ocrad____include__ocradlib_h___extern__C______include__gocr_pgm2asc_h____include__gocr_gocr_h______job_t_pJOB__+set}" = set; then :
+if test "${ac_cv_lib_ocrad+set}" = set; then :
   $as_echo_n "(cached) " >&6
 else
 
 
-		ac_ext=cpp
+			ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
-		ax_try_link_save_LIBS=${LIBS}
-		LIBS="-locrad ${LIBS}"
+			ax_try_link_save_LIBS=${LIBS}
 
-		cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+			for ax_var in ocrad
+do :
+
+				LIBS="-l${ax_var} ${LIBS}"
+
+done
+
+			cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
 	#include <ocradlib.h>
-	extern "C" {
-	#include <gocr/pgm2asc.h>
-	#include <gocr/gocr.h>
-	}
-	job_t *JOB;
 
 int
 main ()
@@ -5056,15 +5394,15 @@ main ()
 }
 _ACEOF
 if ac_fn_cxx_try_link "$LINENO"; then :
-  ac_cv_lib_ocrad____include__ocradlib_h___extern__C______include__gocr_pgm2asc_h____include__gocr_gocr_h______job_t_pJOB__=yes
+  ac_cv_lib_ocrad=yes
 else
-  ac_cv_lib_ocrad____include__ocradlib_h___extern__C______include__gocr_pgm2asc_h____include__gocr_gocr_h______job_t_pJOB__=no
+  ac_cv_lib_ocrad=no
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
 
-				LIBS=${ax_try_link_save_LIBS}
-		ac_ext=cpp
+						LIBS=${ax_try_link_save_LIBS}
+			ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
@@ -5072,16 +5410,22 @@ ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
 
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_ocrad____include__ocradlib_h___extern__C______include__gocr_pgm2asc_h____include__gocr_gocr_h______job_t_pJOB__" >&5
-$as_echo "$ac_cv_lib_ocrad____include__ocradlib_h___extern__C______include__gocr_pgm2asc_h____include__gocr_gocr_h______job_t_pJOB__" >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_ocrad" >&5
+$as_echo "$ac_cv_lib_ocrad" >&6; }
 
-		if test "x$ac_cv_lib_ocrad____include__ocradlib_h___extern__C______include__gocr_pgm2asc_h____include__gocr_gocr_h______job_t_pJOB__" = x""yes; then :
+		if test "x$ac_cv_lib_ocrad" = x""yes; then :
+
 
 			cat >>confdefs.h <<_ACEOF
 #define HAVE_LIBOCRAD 1
 _ACEOF
 
-						(echo "${LIBS}" | grep -q -- "-locrad ") || LIBS="-locrad ${LIBS}"
+						for ax_var in ocrad
+do :
+
+				(echo "${LIBS}" | grep -q -- "-l${ax_var} ") || LIBS="-l${ax_var} ${LIBS}"
+
+done
 
 else
   osra_lib_ocrad=no
@@ -5090,9 +5434,300 @@ fi
 
 
 
-if test "${osra_lib_ocrad}" != "yes"; then
+if test "${osra_lib_ocrad}" != "yes"; then :
+
 	as_fn_error "ocradlib.h or libocrad.a was not found (use --with-ocrad to define custom header location)" "$LINENO" 5
+
 fi
+
+
+if test "${ac_lib_tesseract}" == "yes"; then :
+
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for sem_init in -lpthread" >&5
+$as_echo_n "checking for sem_init in -lpthread... " >&6; }
+if test "${ac_cv_lib_pthread_sem_init+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lpthread  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char sem_init ();
+int
+main ()
+{
+return sem_init ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_cxx_try_link "$LINENO"; then :
+  ac_cv_lib_pthread_sem_init=yes
+else
+  ac_cv_lib_pthread_sem_init=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_pthread_sem_init" >&5
+$as_echo "$ac_cv_lib_pthread_sem_init" >&6; }
+if test "x$ac_cv_lib_pthread_sem_init" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_LIBPTHREAD 1
+_ACEOF
+
+  LIBS="-lpthread $LIBS"
+
+else
+  ac_lib_tesseract=no
+fi
+
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for TIFFGetField in -ltiff" >&5
+$as_echo_n "checking for TIFFGetField in -ltiff... " >&6; }
+if test "${ac_cv_lib_tiff_TIFFGetField+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-ltiff  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char TIFFGetField ();
+int
+main ()
+{
+return TIFFGetField ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_cxx_try_link "$LINENO"; then :
+  ac_cv_lib_tiff_TIFFGetField=yes
+else
+  ac_cv_lib_tiff_TIFFGetField=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_tiff_TIFFGetField" >&5
+$as_echo "$ac_cv_lib_tiff_TIFFGetField" >&6; }
+if test "x$ac_cv_lib_tiff_TIFFGetField" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_LIBTIFF 1
+_ACEOF
+
+  LIBS="-ltiff $LIBS"
+
+else
+  ac_lib_tesseract=no
+fi
+
+
+
+
+
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for -ltesseract_full" >&5
+$as_echo_n "checking for -ltesseract_full... " >&6; }
+if test "${ac_cv_lib_tesseract_full+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+
+
+			ac_ext=cpp
+ac_cpp='$CXXCPP $CPPFLAGS'
+ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
+
+			ax_try_link_save_LIBS=${LIBS}
+
+			for ax_var in tesseract_full
+do :
+
+				LIBS="-l${ax_var} ${LIBS}"
+
+done
+
+			cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+		#include <stddef.h>
+		#include <tesseract/baseapi.h>
+
+int
+main ()
+{
+
+		TessBaseAPI::InitWithLanguage("", "", "", "", false, 0, NULL);
+		TessBaseAPI::TesseractRect((const unsigned char*) NULL, 1, 0, 0, 0, 0, 0);
+		TessBaseAPI::End();
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_cxx_try_link "$LINENO"; then :
+  ac_cv_lib_tesseract_full=yes
+else
+  ac_cv_lib_tesseract_full=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+
+						LIBS=${ax_try_link_save_LIBS}
+			ac_ext=cpp
+ac_cpp='$CXXCPP $CPPFLAGS'
+ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
+
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_tesseract_full" >&5
+$as_echo "$ac_cv_lib_tesseract_full" >&6; }
+
+		if test "x$ac_cv_lib_tesseract_full" = x""yes; then :
+
+			$as_echo "#define HAVE_TESSERACT_LIB 1" >>confdefs.h
+
+			cat >>confdefs.h <<_ACEOF
+#define HAVE_LIBTESSERACT_FULL 1
+_ACEOF
+
+						for ax_var in tesseract_full
+do :
+
+				(echo "${LIBS}" | grep -q -- "-l${ax_var} ") || LIBS="-l${ax_var} ${LIBS}"
+
+done
+
+else
+  ac_lib_tesseract=no
+
+fi
+
+
+
+fi
+
+if test "${with_tesseract}" != "no" -a "${ac_lib_tesseract}" == "no"; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Tesseract library support was requested, but disbaled (see above messages for the reason)" >&5
+$as_echo "$as_me: WARNING: Tesseract library support was requested, but disbaled (see above messages for the reason)" >&2;}
+fi;
+
+
+if test "${ac_lib_cuneiform}" == "yes"; then :
+
+
+
+
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for libs: cuneiform rcorrkegl rfrmt rmarker rblock rneg rout ced rpic rselstr rstuff rimage rline rshelllines rverline cimage cfio cpage lns32 rdib smetric exc loc32 rreccom rpstr rstr cline rcutp pass2 rbal rsadd leo32 evn32 fon32 ctb32 msk32 dif32 cpu32 r3532 mmx32 rling rlings cstr ccom std32 cfcompat" >&5
+$as_echo_n "checking for libs: cuneiform rcorrkegl rfrmt rmarker rblock rneg rout ced rpic rselstr rstuff rimage rline rshelllines rverline cimage cfio cpage lns32 rdib smetric exc loc32 rreccom rpstr rstr cline rcutp pass2 rbal rsadd leo32 evn32 fon32 ctb32 msk32 dif32 cpu32 r3532 mmx32 rling rlings cstr ccom std32 cfcompat... " >&6; }
+if test "${ac_cv_lib_cuneiform_rcorrkegl_rfrmt_rmarker_rblock_rneg_rout_ced_rpic_rselstr_rstuff_rimage_rline_rshelllines_rverline_cimage_cfio_cpage_lns32_rdib_smetric_exc_loc32_rreccom_rpstr_rstr_cline_rcutp_pass2_rbal_rsadd_leo32_evn32_fon32_ctb32_msk32_dif32_cpu32_r3532_mmx32_rling_rlings_cstr_ccom_std32_cfcompat+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+
+
+			ac_ext=cpp
+ac_cpp='$CXXCPP $CPPFLAGS'
+ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
+
+			ax_try_link_save_LIBS=${LIBS}
+
+			for ax_var in cuneiform rcorrkegl rfrmt rmarker rblock rneg rout ced rpic rselstr rstuff rimage rline rshelllines rverline cimage cfio cpage lns32 rdib smetric exc loc32 rreccom rpstr rstr cline rcutp pass2 rbal rsadd leo32 evn32 fon32 ctb32 msk32 dif32 cpu32 r3532 mmx32 rling rlings cstr ccom std32 cfcompat
+do :
+
+				LIBS="-l${ax_var} ${LIBS}"
+
+done
+
+			cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+		#include <stddef.h>
+		#include <cuneiform.h>
+
+int
+main ()
+{
+
+		PUMA_XOpen(NULL, "");
+		PUMA_XFinalRecognition();
+		PUMA_XClose();
+		PUMA_Init(0, NULL);
+		PUMA_SetImportData(PUMA_Word32_Language, NULL);
+		PUMA_SaveToMemory(NULL, PUMA_TOTEXT, PUMA_CODE_ASCII, NULL, 1);
+		PUMA_Done();
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_cxx_try_link "$LINENO"; then :
+  ac_cv_lib_cuneiform_rcorrkegl_rfrmt_rmarker_rblock_rneg_rout_ced_rpic_rselstr_rstuff_rimage_rline_rshelllines_rverline_cimage_cfio_cpage_lns32_rdib_smetric_exc_loc32_rreccom_rpstr_rstr_cline_rcutp_pass2_rbal_rsadd_leo32_evn32_fon32_ctb32_msk32_dif32_cpu32_r3532_mmx32_rling_rlings_cstr_ccom_std32_cfcompat=yes
+else
+  ac_cv_lib_cuneiform_rcorrkegl_rfrmt_rmarker_rblock_rneg_rout_ced_rpic_rselstr_rstuff_rimage_rline_rshelllines_rverline_cimage_cfio_cpage_lns32_rdib_smetric_exc_loc32_rreccom_rpstr_rstr_cline_rcutp_pass2_rbal_rsadd_leo32_evn32_fon32_ctb32_msk32_dif32_cpu32_r3532_mmx32_rling_rlings_cstr_ccom_std32_cfcompat=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+
+						LIBS=${ax_try_link_save_LIBS}
+			ac_ext=cpp
+ac_cpp='$CXXCPP $CPPFLAGS'
+ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
+
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_cuneiform_rcorrkegl_rfrmt_rmarker_rblock_rneg_rout_ced_rpic_rselstr_rstuff_rimage_rline_rshelllines_rverline_cimage_cfio_cpage_lns32_rdib_smetric_exc_loc32_rreccom_rpstr_rstr_cline_rcutp_pass2_rbal_rsadd_leo32_evn32_fon32_ctb32_msk32_dif32_cpu32_r3532_mmx32_rling_rlings_cstr_ccom_std32_cfcompat" >&5
+$as_echo "$ac_cv_lib_cuneiform_rcorrkegl_rfrmt_rmarker_rblock_rneg_rout_ced_rpic_rselstr_rstuff_rimage_rline_rshelllines_rverline_cimage_cfio_cpage_lns32_rdib_smetric_exc_loc32_rreccom_rpstr_rstr_cline_rcutp_pass2_rbal_rsadd_leo32_evn32_fon32_ctb32_msk32_dif32_cpu32_r3532_mmx32_rling_rlings_cstr_ccom_std32_cfcompat" >&6; }
+
+		if test "x$ac_cv_lib_cuneiform_rcorrkegl_rfrmt_rmarker_rblock_rneg_rout_ced_rpic_rselstr_rstuff_rimage_rline_rshelllines_rverline_cimage_cfio_cpage_lns32_rdib_smetric_exc_loc32_rreccom_rpstr_rstr_cline_rcutp_pass2_rbal_rsadd_leo32_evn32_fon32_ctb32_msk32_dif32_cpu32_r3532_mmx32_rling_rlings_cstr_ccom_std32_cfcompat" = x""yes; then :
+
+			$as_echo "#define HAVE_CUNEIFORM_LIB 1" >>confdefs.h
+
+			cat >>confdefs.h <<_ACEOF
+#define HAVE_LIBCUNEIFORM_RCORRKEGL_RFRMT_RMARKER_RBLOCK_RNEG_ROUT_CED_RPIC_RSELSTR_RSTUFF_RIMAGE_RLINE_RSHELLLINES_RVERLINE_CIMAGE_CFIO_CPAGE_LNS32_RDIB_SMETRIC_EXC_LOC32_RRECCOM_RPSTR_RSTR_CLINE_RCUTP_PASS2_RBAL_RSADD_LEO32_EVN32_FON32_CTB32_MSK32_DIF32_CPU32_R3532_MMX32_RLING_RLINGS_CSTR_CCOM_STD32_CFCOMPAT 1
+_ACEOF
+
+						for ax_var in cuneiform rcorrkegl rfrmt rmarker rblock rneg rout ced rpic rselstr rstuff rimage rline rshelllines rverline cimage cfio cpage lns32 rdib smetric exc loc32 rreccom rpstr rstr cline rcutp pass2 rbal rsadd leo32 evn32 fon32 ctb32 msk32 dif32 cpu32 r3532 mmx32 rling rlings cstr ccom std32 cfcompat
+do :
+
+				(echo "${LIBS}" | grep -q -- "-l${ax_var} ") || LIBS="-l${ax_var} ${LIBS}"
+
+done
+
+else
+  ac_lib_cuneiform=no
+
+fi
+
+
+
+fi
+
+if test "${with_cuneifor}" != "no" -a "${ac_lib_cuneiform}" == "no"; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Cineiform library support was requested, but disbaled (see above messages for the reason)" >&5
+$as_echo "$as_me: WARNING: Cineiform library support was requested, but disbaled (see above messages for the reason)" >&2;}
+fi;
 
 
 osra_lib_openbabel=yes
@@ -5100,34 +5735,34 @@ osra_lib_openbabel=yes
 
 
 
-
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for -lopenbabel" >&5
 $as_echo_n "checking for -lopenbabel... " >&6; }
-if test "${ac_cv_lib_openbabel____include__openbabel_mol_h____include__openbabel_obconversion_h____include__openbabel_builder_h___extern__C______include__gocr_pgm2asc_h____include__gocr_gocr_h______job_t_pJOB__+set}" = set; then :
+if test "${ac_cv_lib_openbabel+set}" = set; then :
   $as_echo_n "(cached) " >&6
 else
 
 
-		ac_ext=cpp
+			ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
-		ax_try_link_save_LIBS=${LIBS}
-		LIBS="-lopenbabel ${LIBS}"
+			ax_try_link_save_LIBS=${LIBS}
 
-		cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+			for ax_var in openbabel
+do :
+
+				LIBS="-l${ax_var} ${LIBS}"
+
+done
+
+			cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
 	#include <openbabel/mol.h>
 	#include <openbabel/obconversion.h>
 	#include <openbabel/builder.h>
-	extern "C" {
-	#include <gocr/pgm2asc.h>
-	#include <gocr/gocr.h>
-	}
-	job_t *JOB;
 
 int
 main ()
@@ -5206,15 +5841,15 @@ main ()
 }
 _ACEOF
 if ac_fn_cxx_try_link "$LINENO"; then :
-  ac_cv_lib_openbabel____include__openbabel_mol_h____include__openbabel_obconversion_h____include__openbabel_builder_h___extern__C______include__gocr_pgm2asc_h____include__gocr_gocr_h______job_t_pJOB__=yes
+  ac_cv_lib_openbabel=yes
 else
-  ac_cv_lib_openbabel____include__openbabel_mol_h____include__openbabel_obconversion_h____include__openbabel_builder_h___extern__C______include__gocr_pgm2asc_h____include__gocr_gocr_h______job_t_pJOB__=no
+  ac_cv_lib_openbabel=no
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
 
-				LIBS=${ax_try_link_save_LIBS}
-		ac_ext=cpp
+						LIBS=${ax_try_link_save_LIBS}
+			ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
@@ -5222,16 +5857,22 @@ ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
 
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_openbabel____include__openbabel_mol_h____include__openbabel_obconversion_h____include__openbabel_builder_h___extern__C______include__gocr_pgm2asc_h____include__gocr_gocr_h______job_t_pJOB__" >&5
-$as_echo "$ac_cv_lib_openbabel____include__openbabel_mol_h____include__openbabel_obconversion_h____include__openbabel_builder_h___extern__C______include__gocr_pgm2asc_h____include__gocr_gocr_h______job_t_pJOB__" >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_openbabel" >&5
+$as_echo "$ac_cv_lib_openbabel" >&6; }
 
-		if test "x$ac_cv_lib_openbabel____include__openbabel_mol_h____include__openbabel_obconversion_h____include__openbabel_builder_h___extern__C______include__gocr_pgm2asc_h____include__gocr_gocr_h______job_t_pJOB__" = x""yes; then :
+		if test "x$ac_cv_lib_openbabel" = x""yes; then :
+
 
 			cat >>confdefs.h <<_ACEOF
 #define HAVE_LIBOPENBABEL 1
 _ACEOF
 
-						(echo "${LIBS}" | grep -q -- "-lopenbabel ") || LIBS="-lopenbabel ${LIBS}"
+						for ax_var in openbabel
+do :
+
+				(echo "${LIBS}" | grep -q -- "-l${ax_var} ") || LIBS="-l${ax_var} ${LIBS}"
+
+done
 
 else
   osra_lib_openbabel=no
@@ -5240,8 +5881,10 @@ fi
 
 
 
-if test "${osra_lib_openbabel}" != "yes"; then
+if test "${osra_lib_openbabel}" != "yes"; then :
+
 	as_fn_error "openbabel headers or library was not found (use --with-openbabel to define custom header location)" "$LINENO" 5
+
 fi
 
 
@@ -5286,18 +5929,20 @@ fi
 
 
 
-if test "${GRAPHICS_MAGICK_CONFIG}" == ""; then
+if test "${GRAPHICS_MAGICK_CONFIG}" == ""; then :
+
 	as_fn_error "GraphicsMagick++-config was not found; make sure you have installed libgraphicsmagick++-dev" "$LINENO" 5
+
 fi
 
 CPPFLAGS="${CPPFLAGS} `${GRAPHICS_MAGICK_CONFIG} --cppflags` -Dcimg_display_type=0"
 LDFLAGS="${LDFLAGS} `${GRAPHICS_MAGICK_CONFIG} --ldflags`"
-# | sed -r 's#-L/usr/lib(\s+|$)##g'`"
-
 LIBS="${LIBS} `${GRAPHICS_MAGICK_CONFIG} --libs`"
 
-if test $build_os == "cygwin"; then
+if test $build_os == "cygwin"; then :
+
 	LIBS="${LIBS} -lX11"
+
 fi
 
 osra_lib_graphicsmagick=yes
@@ -5322,32 +5967,32 @@ done
 
 
 
-
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for -lGraphicsMagick++" >&5
 $as_echo_n "checking for -lGraphicsMagick++... " >&6; }
-if test "${ac_cv_lib_GraphicsMagickpp____include__Magickpp_h___extern__C______include__gocr_pgm2asc_h____include__gocr_gocr_h______job_t_pJOB___+set}" = set; then :
+if test "${ac_cv_lib_GraphicsMagickpp+set}" = set; then :
   $as_echo_n "(cached) " >&6
 else
 
 
-		ac_ext=cpp
+			ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
-		ax_try_link_save_LIBS=${LIBS}
-		LIBS="-lGraphicsMagick++ ${LIBS}"
+			ax_try_link_save_LIBS=${LIBS}
 
-		cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+			for ax_var in GraphicsMagick++
+do :
+
+				LIBS="-l${ax_var} ${LIBS}"
+
+done
+
+			cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
 	#include <Magick++.h>
-	extern "C" {
-	#include <gocr/pgm2asc.h>
-	#include <gocr/gocr.h>
-	}
-	job_t *JOB;
 
 int
 main ()
@@ -5379,15 +6024,15 @@ main ()
 }
 _ACEOF
 if ac_fn_cxx_try_link "$LINENO"; then :
-  ac_cv_lib_GraphicsMagickpp____include__Magickpp_h___extern__C______include__gocr_pgm2asc_h____include__gocr_gocr_h______job_t_pJOB___=yes
+  ac_cv_lib_GraphicsMagickpp=yes
 else
-  ac_cv_lib_GraphicsMagickpp____include__Magickpp_h___extern__C______include__gocr_pgm2asc_h____include__gocr_gocr_h______job_t_pJOB___=no
+  ac_cv_lib_GraphicsMagickpp=no
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
 
-				LIBS=${ax_try_link_save_LIBS}
-		ac_ext=cpp
+						LIBS=${ax_try_link_save_LIBS}
+			ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
@@ -5395,16 +6040,22 @@ ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
 
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_GraphicsMagickpp____include__Magickpp_h___extern__C______include__gocr_pgm2asc_h____include__gocr_gocr_h______job_t_pJOB___" >&5
-$as_echo "$ac_cv_lib_GraphicsMagickpp____include__Magickpp_h___extern__C______include__gocr_pgm2asc_h____include__gocr_gocr_h______job_t_pJOB___" >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_GraphicsMagickpp" >&5
+$as_echo "$ac_cv_lib_GraphicsMagickpp" >&6; }
 
-		if test "x$ac_cv_lib_GraphicsMagickpp____include__Magickpp_h___extern__C______include__gocr_pgm2asc_h____include__gocr_gocr_h______job_t_pJOB___" = x""yes; then :
+		if test "x$ac_cv_lib_GraphicsMagickpp" = x""yes; then :
+
 
 			cat >>confdefs.h <<_ACEOF
 #define HAVE_LIBGRAPHICSMAGICK__ 1
 _ACEOF
 
-						(echo "${LIBS}" | grep -q -- "-lGraphicsMagick++ ") || LIBS="-lGraphicsMagick++ ${LIBS}"
+						for ax_var in GraphicsMagick++
+do :
+
+				(echo "${LIBS}" | grep -q -- "-l${ax_var} ") || LIBS="-l${ax_var} ${LIBS}"
+
+done
 
 else
   osra_lib_graphicsmagick=no
@@ -5413,8 +6064,166 @@ fi
 
 
 
-if test "${osra_lib_graphicsmagick}" != "yes"; then
+if test "${osra_lib_graphicsmagick}" != "yes"; then :
+
 	as_fn_error "magick/api.h was not found; make sure you have installed libgraphicsmagick++-dev and all dependent -dev packages" "$LINENO" 5
+
+fi
+
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing pnm_readpnminit" >&5
+$as_echo_n "checking for library containing pnm_readpnminit... " >&6; }
+if test "${ac_cv_search_pnm_readpnminit+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_func_search_save_LIBS=$LIBS
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char pnm_readpnminit ();
+int
+main ()
+{
+return pnm_readpnminit ();
+  ;
+  return 0;
+}
+_ACEOF
+for ac_lib in '' netpbm pnm; do
+  if test -z "$ac_lib"; then
+    ac_res="none required"
+  else
+    ac_res=-l$ac_lib
+    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
+  fi
+  if ac_fn_cxx_try_link "$LINENO"; then :
+  ac_cv_search_pnm_readpnminit=$ac_res
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext
+  if test "${ac_cv_search_pnm_readpnminit+set}" = set; then :
+  break
+fi
+done
+if test "${ac_cv_search_pnm_readpnminit+set}" = set; then :
+
+else
+  ac_cv_search_pnm_readpnminit=no
+fi
+rm conftest.$ac_ext
+LIBS=$ac_func_search_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_pnm_readpnminit" >&5
+$as_echo "$ac_cv_search_pnm_readpnminit" >&6; }
+ac_res=$ac_cv_search_pnm_readpnminit
+if test "$ac_res" != no; then :
+  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
+
+fi
+
+
+
+osra_lib_gocr=yes
+
+
+
+
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for -lPgm2asc" >&5
+$as_echo_n "checking for -lPgm2asc... " >&6; }
+if test "${ac_cv_lib_Pgm2asc+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+
+
+			ac_ext=cpp
+ac_cpp='$CXXCPP $CPPFLAGS'
+ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
+
+			ax_try_link_save_LIBS=${LIBS}
+
+			for ax_var in Pgm2asc
+do :
+
+				LIBS="-l${ax_var} ${LIBS}"
+
+done
+
+			cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+	extern "C" {
+	#include <gocr/pgm2asc.h>
+	#include <gocr/gocr.h>
+	}
+	job_t *JOB;
+
+int
+main ()
+{
+
+	job_t job;
+
+	job_init(&job);
+	job_free(&job);
+	pgm2asc(&job);
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_cxx_try_link "$LINENO"; then :
+  ac_cv_lib_Pgm2asc=yes
+else
+  ac_cv_lib_Pgm2asc=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+
+						LIBS=${ax_try_link_save_LIBS}
+			ac_ext=cpp
+ac_cpp='$CXXCPP $CPPFLAGS'
+ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
+
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_Pgm2asc" >&5
+$as_echo "$ac_cv_lib_Pgm2asc" >&6; }
+
+		if test "x$ac_cv_lib_Pgm2asc" = x""yes; then :
+
+
+			cat >>confdefs.h <<_ACEOF
+#define HAVE_LIBPGM2ASC 1
+_ACEOF
+
+						for ax_var in Pgm2asc
+do :
+
+				(echo "${LIBS}" | grep -q -- "-l${ax_var} ") || LIBS="-l${ax_var} ${LIBS}"
+
+done
+
+else
+  osra_lib_gocr=no
+
+fi
+
+
+
+if test "${osra_lib_gocr}" != "yes"; then :
+
+	as_fn_error "pgm2asc.h or pgm2asc.a was not found (use --with-gocr to define custom header location or check config.log)" "$LINENO" 5
+
 fi
 
 
@@ -5433,7 +6242,7 @@ resolved_datadir=$resolved_datadir
 
 ac_config_headers="$ac_config_headers src/config.h"
 
-ac_config_files="$ac_config_files Makefile.inc doc/manual.sgml"
+ac_config_files="$ac_config_files Makefile Makefile.inc doc/manual.sgml"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -6119,6 +6928,7 @@ for ac_config_target in $ac_config_targets
 do
   case $ac_config_target in
     "src/config.h") CONFIG_HEADERS="$CONFIG_HEADERS src/config.h" ;;
+    "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
     "Makefile.inc") CONFIG_FILES="$CONFIG_FILES Makefile.inc" ;;
     "doc/manual.sgml") CONFIG_FILES="$CONFIG_FILES doc/manual.sgml" ;;
 
