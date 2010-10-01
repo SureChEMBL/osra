@@ -207,7 +207,7 @@ dnl tclap library
 osra_lib_tclap=yes
 
 AC_TRY_COMPILE([
-	#include <stddef.h>
+	#include <stdio.h>
 	#include <tclap/CmdLine.h>
 ], [
 	TCLAP::CmdLine cmd("");
