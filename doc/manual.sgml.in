@@ -450,7 +450,7 @@
 					<option>--page</option>
 				</term>
 				<listitem>
-					<para>Show page number for structures from multi-page PDF and PostScript documents.</para>
+					<para>Show page number for structures from multi-page PDF, PostScript or TIFF documents.</para>
 				</listitem>
 			</varlistentry>
 			<varlistentry>

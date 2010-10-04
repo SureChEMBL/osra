@@ -5077,7 +5077,7 @@ int main(int argc, char **argv)
   TCLAP::SwitchArg debug("d", "debug", "Print out debug information on spelling corrections", false);
   cmd.add(debug);
 
-  TCLAP::SwitchArg showpage("e", "page", "Show page number for PDF/PS documents", false);
+  TCLAP::SwitchArg showpage("e", "page", "Show page number for PDF/PS/TIFF documents", false);
   cmd.add(showpage);
 
   TCLAP::ValueArg<double> rotate("R", "rotate", "Rotate image clockwise by specified number of degrees", false, 0,
