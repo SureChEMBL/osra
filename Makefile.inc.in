@@ -12,7 +12,6 @@
 name		:= @PACKAGE_NAME@
 version		:= @PACKAGE_VERSION@
 name_version	:= $(name)-$(version)
-cur_dir		:= $(shell basename `pwd`)
 
 prefix		:= @prefix@
 exec_prefix	:= @exec_prefix@
@@ -21,6 +20,9 @@ datarootdir	:= @datarootdir@
 datadir		:= @datadir@
 docdir		:= @docdir@
 mandir		:= @mandir@
+
+TARGET_CPU	:= @build_cpu@
+TARGET_OS	:= @build_os@
 
 CXX		:= @CXX@
 LD		:= @CXX@

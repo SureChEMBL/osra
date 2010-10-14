@@ -53,10 +53,10 @@ AC_DEFUN([AX_PROBE_OPTIONAL_LIBRARY], [
 		[with_$1="no"])
 
 	AS_IF([test "${with_$1}" != "no"], [
-		AS_IF([test "${with_$1}" == ""], [
+		AS_IF([test "${with_$1}" == "" -o "${with_$1}" == "yes"], [
 			with_$1="$3"
 		])
-	
+
 		dnl Here the value of ${with_$1} is:
 		dnl * if option was given in a command-line, it's value (if empty, the defaults ($3) are used)
 		dnl * if option was omitted (or --without-$1 form was used), this block is not executed  
@@ -100,14 +100,13 @@ AC_DEFUN([AX_PROBE_LIBRARY], [
 						dnl Save the current state
 						ax_probe_library_save_LDFLAGS=${LDFLAGS}
 						ax_probe_library_save_CPPFLAGS=${CPPFLAGS}
-						
+
 						dnl Compose the list of unique locations of headers:
 						AS_FOR([], [ac_inc_location], [`find "${ac_location}" -iname '*.h' |
 							while read ac_include_location; do dirname "${ac_include_location}"; done |
 								sort -u`], [
 							CPPFLAGS="-I${ac_inc_location} ${CPPFLAGS}"
 						])
-									
 
 						dnl Compose the list of unique locations of libraries (standard library extensions are taken from autoconf/libs.m4:185):
 						AS_FOR([], [ac_lib_location], [`find "${ac_location}" -iname '*.so' -o -iname '*.sl' -o -iname '*.dylib' -o -iname '*.a' -o -iname '*.dll' |
@@ -115,16 +114,16 @@ AC_DEFUN([AX_PROBE_LIBRARY], [
 								sort -u`], [
 							LDFLAGS="-L${ac_lib_location} ${LDFLAGS}"
 						])
-						
+
 						AC_MSG_CHECKING([$1 for $2 in ${ac_location}])
 						AS_ECHO()
-						_AS_ECHO_LOG([CPPFLAGS="${CPPFLAGS}" and LDFLAGS="${LDFLAGS}"])
-						
+						_AS_ECHO_LOG([CPPFLAGS="${CPPFLAGS}" and LDFLAGS="${LDFLAGS}" for HOME location check])
+
 						AC_CHECK_HEADERS([$2], [ac_lib_$1=yes], [ac_lib_$1=no])
-						
+
 						dnl We have found the location, leave the loop:
 						AS_IF([test "${ac_lib_$1}" = "yes"], [break 2])
-						
+
 						dnl Restore the state to original in case of unsuccessful attempt
 						LDFLAGS=${ax_probe_library_save_LDFLAGS}
 						CPPFLAGS=${ax_probe_library_save_CPPFLAGS}
@@ -136,10 +135,10 @@ AC_DEFUN([AX_PROBE_LIBRARY], [
 				ax_probe_library_save_CPPFLAGS=${CPPFLAGS}
 
 				CPPFLAGS="-I${ac_test_location} $CPPFLAGS"
-				
+
 				AC_MSG_CHECKING([$1 for $2 in ${ac_test_location}])
 				AS_ECHO()
-				_AS_ECHO_LOG([CPPFLAGS="${CPPFLAGS}"])
+				_AS_ECHO_LOG([CPPFLAGS="${CPPFLAGS}" for custom location check])
 
 				AC_CHECK_HEADERS([$2], [ac_lib_$1=yes], [ac_lib_$1=no])
 
@@ -169,35 +168,72 @@ AC_DEFUN([AX_TRY_LINK], [
 	dnl like "+" or "-" (and library names can). See AC_CHECK_LIB source comments for more information.
 	AS_VAR_PUSHDEF([ac_Lib], [ac_cv_lib_$1])
 
+	ax_link_dynamically=no
+
 	AC_CACHE_CHECK(
 		[m4_if(m4_index([$1], [ ]), [-1], [for -l$1], [for libs: $1])],
 		[ac_Lib],
 		[
+			AS_UNSET([LIBS_LIST])
+
+			AS_FOR([], [ax_var], [$1], [
+				LIBS_LIST="-l${ax_var} ${LIBS_LIST}"
+			])
+
 			dnl Save the current state
 			AC_LANG_SAVE
 			AC_LANG_CPLUSPLUS
 			ax_try_link_save_LIBS=${LIBS}
-	
-			AS_FOR([], [ax_var], [$1], [
-				LIBS="-l${ax_var} ${LIBS}"
-			])
-	
+			
+			LIBS="${LIBS_LIST} ${LIBS}"
+
 			AC_TRY_LINK([$2], [$3], [AS_VAR_SET([ac_Lib], [yes])], [AS_VAR_SET([ac_Lib], [no])])
-	
+
 			dnl Restore the state to original regardless to the result
 			LIBS=${ax_try_link_save_LIBS}
+
+			dnl If the linking failed and "--enable-static-linking" was given, try to link against dynamic library in case when library is only available as .so:
+			AS_VAR_IF([ac_Lib], [no], [
+				dnl Try to disable static linking, if it was enabled, just for this very library:
+				AS_IF([test "${enable_static_linking+set}" == "set"], [
+					ax_try_link_save_LIBS=${LIBS}
+
+					dnl Note: "-Wl,-static" affects only libraries ("-l"), following this option, see http://stackoverflow.com/questions/809794/use-both-static-and-dynamically-linked-libraries-in-gcc
+					LIBS="-Wl,-Bdynamic ${LIBS_LIST} -Wl,-static ${LIBS}"
+					
+					_AS_ECHO_LOG([LIBS="${LIBS}" for dynamic library presence check])
+
+					AC_TRY_LINK([$2], [$3], [
+						AS_VAR_SET([ac_Lib], [yes])
+						ax_link_dynamically=yes
+					])
+	
+					dnl Restore the state to original regardless to the result
+					LIBS=${ax_try_link_save_LIBS}
+				])
+			])
+			
+			
 			AC_LANG_RESTORE
-		])
+		]
+	)
 
 	dnl If the variable is set, we define a constant and push library to $LIBS by default or execute $4, otherwise execute $5.
 	AS_VAR_IF([ac_Lib], [yes],
 		[
 			$4
 			AC_DEFINE_UNQUOTED(AS_TR_CPP(HAVE_LIB$1))
+
+			AS_IF([test "${ax_link_dynamically}" == "yes"], [LIBS="-Wl,-static ${LIBS}"])
+
 			dnl Do not prepend a library, if it is already in the list:
 			AS_FOR([], [ax_var], [$1], [
 				(echo "${LIBS}" | grep -q -- "-l${ax_var} ") || LIBS="-l${ax_var} ${LIBS}"
 			])
+
+			AS_IF([test "${ax_link_dynamically}" == "yes"], [LIBS="-Wl,-Bdynamic ${LIBS}"])
+
+			_AS_ECHO_LOG([LIBS="${LIBS}" after linking check succeeded])
 		],
 		[$5]
 	)

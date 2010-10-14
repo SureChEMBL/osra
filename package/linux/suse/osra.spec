@@ -20,7 +20,7 @@
 # %{name} and %{version} should be either defined here or inherited from ~/.rpmmacros
 
 Name:			%{name}
-BuildRequires:	glibc-devel, libstdc++43-devel, tclap >= 1.2, potrace-devel >= 1.8, gocr >= 0.45, ocrad-devel >= 0.17, libopenbabel-devel >= 2.2, libGraphicsMagick++-devel >= 1.2.5
+BuildRequires:	glibc-devel, libstdc++43-devel, tclap >= 1.2, potrace-devel >= 1.8, gocr-devel >= 0.49, ocrad-devel >= 0.20, libopenbabel-devel >= 2.2, libGraphicsMagick++-devel >= 1.2.5, docbook-xsl-stylesheets => 1.74.0, libxslt
 Url:			http://osra.sourceforge.net/
 Summary:		A command line chemical structure recognition tool
 Version:		%{version}
@@ -48,7 +48,7 @@ Authors:
 #%patch0 -p0
 
 %build
-./configure --prefix=/usr --datadir='${datarootdir}/${PACKAGE_NAME}' --docdir='${datarootdir}/doc/packages/${PACKAGE_NAME}'
+./configure --prefix=/usr --enable-docs --datadir='${datarootdir}/${PACKAGE_NAME}' --docdir='${datarootdir}/doc/packages/${PACKAGE_NAME}'
 make CXXFLAGS='${RPM_OPT_FLAGS}'
 
 %install

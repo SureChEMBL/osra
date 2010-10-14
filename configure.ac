@@ -9,13 +9,12 @@ dnl
 
 AC_INIT([osra], [1.3.6])
 AC_PREREQ([2.65])
-dnl AC_CONFIG_MACRO_DIR([m4])
 AC_CANONICAL_BUILD
 AC_LANG([C++])
 AC_CXX_HAVE_STL
 
 AS_IF([test "${ac_cv_cxx_have_stl}" != "yes"], [
-	AC_MSG_ERROR([STL was not found; make sure you have installed libstdc++-dev])
+	AC_MSG_ERROR([STL was not found; make sure you have installed libstdc++-dev package or check config.log])
 ])
 
 dnl
@@ -35,9 +34,9 @@ AC_ARG_ENABLE(
 		AC_PATH_PROG(NATURALDOCS, naturaldocs)
 		AS_IF([test -z "${NATURALDOCS}"], [
 			AC_PATH_PROG(NATURALDOCS, NaturalDocs)
-			AS_IF([test -z "${NATURALDOCS}"], [
-				AC_MSG_ERROR([NaturalDocs executable was not found; make sure you have installed NaturalDocs package])
-			])
+			dnl AS_IF([test -z "${NATURALDOCS}"], [
+			dnl 	AC_MSG_ERROR([NaturalDocs executable was not found; make sure you have installed NaturalDocs package])
+			dnl ])
 		])
 		
 		AC_PATH_PROG(XSLTPROC, xsltproc)
@@ -71,8 +70,6 @@ AC_ARG_ENABLE(
 		CXXFLAGS="${CXXFLAGS} ${OPENMP_CXXFLAGS}";
 	]
 )
-
-dnl Note: "-Wl,-static" affects only libraries ("-l"), following this option.
 
 AC_ARG_ENABLE(
 	[static-linking],
@@ -113,8 +110,8 @@ dnl gocr library
 
 AX_PROBE_OBLIGATORY_LIBRARY(
 	[gocr],
-	[pgm2asc.h],
-	[auto /usr/include/gocr /usr/local/include/gocr],
+	[gocr/pgm2asc.h],
+	[auto],
 	[custom location of pgm2asc.h from GOCR (optical character recognition library), see http://jocr.sourceforge.net/]
 )
 
@@ -123,7 +120,7 @@ dnl ocrad library
 AX_PROBE_OBLIGATORY_LIBRARY(
 	[ocrad],
 	[ocradlib.h],
-	[auto /usr/include/ocrad /usr/local/include/ocrad],
+	[auto],
 	[custom location of ocradlib.h from OCRAD (optical character recognition program), see http://www.gnu.org/software/ocrad/ocrad.html]
 )
 
@@ -132,7 +129,7 @@ dnl tesseract library (optional)
 AX_PROBE_OPTIONAL_LIBRARY(
 	[tesseract],
 	[tesseract/baseapi.h],
-	[],
+	[auto],
 	[custom location of tesseract/baseapi.h from Tesseract (OCR Engine developed at HP Labs), see http://code.google.com/p/tesseract-ocr/]
 )
 
@@ -140,8 +137,8 @@ dnl cuneiform library (optional)
 
 AX_PROBE_OPTIONAL_LIBRARY(
 	[cuneiform],
-	[cuneiform.h],
-	[],
+	[ctiimage.h cttypes.h puma.h lang_def.h mpuma.h compat_defs.h],
+	[auto],
 	[custom location of cuneiform.h from Cuneiform (OCR system developed by Cognitive technologies), see https://launchpad.net/cuneiform-linux]
 )
 
@@ -149,7 +146,7 @@ dnl openbabel library
 
 AX_PROBE_OBLIGATORY_LIBRARY(
 	[openbabel],
-	[openbabel/mol.h openbabel/obconversion.h openbabel/builder.h],
+	[openbabel/mol.h openbabel/obconversion.h openbabel/builder.h openbabel/alias.h],
 	[/usr/include/openbabel-2.0 /usr/local/include/openbabel-2.0],
 	[custom location of openbabel/builder.h from OpenBabel (open source chemistry toolbox), see http://openbabel.sourceforge.net/wiki/Main_Page]
 )
@@ -166,7 +163,7 @@ AC_CHECK_HEADER([limits.h], [], [osra_header_limits=no])
 AC_TRY_COMPILE([#include <limits.h>], [ int a = INT_MAX; ], [], [osra_header_limits=no])
 
 AS_IF([test "${osra_header_limits}" != "yes"], [
-	AC_MSG_ERROR([limits.h was not found, do you have libc-dev installed?])
+	AC_MSG_ERROR([limits.h was not found; make sure you have installed libc-dev package or check config.log])
 ])
 
 dnl float.h header
@@ -177,7 +174,7 @@ AC_CHECK_HEADER([float.h], [], [osra_header_float=no])
 AC_TRY_COMPILE([#include <float.h>], [ float f = FLT_MAX; ], [], [osra_header_float=no])
 
 AS_IF([test "${osra_header_float}" != "yes"], [
-	AC_MSG_ERROR([float.h was not found])
+	AC_MSG_ERROR([float.h was not found; make sure you have installed libc-dev package or check config.log])
 ])
 
 dnl libgen.h header
@@ -188,7 +185,7 @@ AC_CHECK_HEADER([libgen.h], [], [osra_header_libgen=no])
 AC_TRY_COMPILE([#include <libgen.h>], [ char *a = dirname(""); ], [], [osra_header_libgen=no])
 
 AS_IF([test "${osra_header_libgen}" != "yes"], [
-	AC_MSG_ERROR([libgen.h was not found, do you have libc-dev installed?])
+	AC_MSG_ERROR([libgen.h was not found; make sure you have installed libc-dev package or check config.log])
 ])
 
 dnl math library
@@ -199,7 +196,7 @@ AC_CHECK_HEADER([math.h], [], [osra_lib_math=no])
 AX_TRY_LINK([m], [#include <math.h>], [ sqrt(1); fabs(1); ], [], [osra_lib_math=no])
 
 AS_IF([test "${osra_lib_math}" != "yes"], [
-	AC_MSG_ERROR([math.h or libm was not found, do you have libc-dev installed?])
+	AC_MSG_ERROR([math.h or libm was not found; make sure you have installed libc-dev package or check config.log])
 ])
 
 dnl tclap library
@@ -207,7 +204,7 @@ dnl tclap library
 osra_lib_tclap=yes
 
 AC_TRY_COMPILE([
-	#include <stdio.h>
+	#include <stdio.h> // Defines the EOF constant; needed for MinGW
 	#include <tclap/CmdLine.h>
 ], [
 	TCLAP::CmdLine cmd("");
@@ -219,7 +216,7 @@ AC_TRY_COMPILE([
 ], [], [osra_lib_tclap=no])
 
 AS_IF([test "${osra_lib_tclap}" != "yes"], [
-	AC_MSG_ERROR([CmdLine.h was not found (use --with-tclap to define custom header location or check config.log)])
+	AC_MSG_ERROR([TCLAP API check failed; make sure you have installed libtclap-dev package or check config.log])
 ])
 
 dnl potrace library
@@ -243,7 +240,7 @@ AX_TRY_LINK([potrace], [
 ], [], [osra_lib_potrace=no])
 
 AS_IF([test "${osra_lib_potrace}" != "yes"], [
-	AC_MSG_ERROR([potracelib.h or libpotrace was not found (use --with-potrace to define custom header location or check config.log)])
+	AC_MSG_ERROR([POTRACE API check failed; make sure you have installed libpotrace-dev package or check config.log])
 ])
 
 dnl ocrad library
@@ -266,12 +263,14 @@ AX_TRY_LINK([ocrad], [
 ], [], [osra_lib_ocrad=no])
 
 AS_IF([test "${osra_lib_ocrad}" != "yes"], [
-	AC_MSG_ERROR([ocradlib.h or libocrad.a was not found (use --with-ocrad to define custom header location)])
+	AC_MSG_ERROR([OCRAD API check failed; make sure you have installed libocrad-dev package or check config.log])
 ])
 
 dnl tesseract library (optional)
 
 AS_IF([test "${ac_lib_tesseract}" == "yes"], [
+	AS_IF([test "${enable_static_linking+set}" == "set"], [LIBS="-ljpeg -lz ${LIBS}"])
+
 	AC_CHECK_LIB([pthread], [sem_init], [], [ac_lib_tesseract=no])
 	AC_CHECK_LIB([tiff], [TIFFGetField], [], [ac_lib_tesseract=no])
 
@@ -285,14 +284,19 @@ AS_IF([test "${ac_lib_tesseract}" == "yes"], [
 	], [AC_DEFINE([HAVE_TESSERACT_LIB])], [ac_lib_tesseract=no])
 ])
 
-AS_IF([test "${with_tesseract}" != "no" -a "${ac_lib_tesseract}" == "no"], [AC_MSG_WARN([Tesseract library support was requested, but disbaled (see above messages for the reason)])]);
+AS_IF([test "${with_tesseract}" != "no" -a "${ac_lib_tesseract}" == "no"], [AC_MSG_WARN([Tesseract library support was requested, but disbaled due to API check failure (see above messages for the reason or check config.log)])])
 
 dnl cuneiform library (optional)
 
 AS_IF([test "${ac_lib_cuneiform}" == "yes"], [
-	AX_TRY_LINK([cuneiform rcorrkegl rfrmt rmarker rblock rneg rout ced rpic rselstr rstuff rimage rline rshelllines rverline cimage cfio cpage lns32 rdib smetric exc loc32 rreccom rpstr rstr cline rcutp pass2 rbal rsadd leo32 evn32 fon32 ctb32 msk32 dif32 cpu32 r3532 mmx32 rling rlings cstr ccom std32 cfcompat], [
+	AX_TRY_LINK([cuneiform], [
 		#include <stddef.h>
-		#include <cuneiform.h>
+		#include <ctiimage.h>
+		#include <cttypes.h>
+		#include <puma.h>
+		#include <lang_def.h>
+		#include <mpuma.h>
+		#include <compat_defs.h>
 	], [
 		PUMA_XOpen(NULL, "");
 		PUMA_XFinalRecognition();
@@ -304,7 +308,7 @@ AS_IF([test "${ac_lib_cuneiform}" == "yes"], [
 	], [AC_DEFINE([HAVE_CUNEIFORM_LIB])], [ac_lib_cuneiform=no])
 ])
 
-AS_IF([test "${with_cuneifor}" != "no" -a "${ac_lib_cuneiform}" == "no"], [AC_MSG_WARN([Cineiform library support was requested, but disbaled (see above messages for the reason)])]);
+AS_IF([test "${with_cuneiform}" != "no" -a "${ac_lib_cuneiform}" == "no"], [AC_MSG_WARN([Cineiform library support was requested, but disbaled due to API check failure (see above messages for the reason or check config.log)])])
 
 dnl openbabel library
 
@@ -314,8 +318,10 @@ AX_TRY_LINK([openbabel], [
 	#include <openbabel/mol.h>
 	#include <openbabel/obconversion.h>
 	#include <openbabel/builder.h>
+	#include <openbabel/alias.h>
 ], [
 	OpenBabel::OBPairData label;
+	OpenBabel::AliasData aliasData;
 	OpenBabel::OBAtom atom;
 	OpenBabel::OBMol mol;
 	OpenBabel::OBBond bond;
@@ -324,6 +330,10 @@ AX_TRY_LINK([openbabel], [
 
 	label.SetAttribute("");
 	label.SetValue("");
+	
+	aliasData.SetAlias("");
+	aliasData.SetOrigin(OpenBabel::external);
+	aliasData.Expand(mol, 1);
 
 	atom.IsHeteroatom();
 	atom.IsCarbon();
@@ -332,6 +342,7 @@ AX_TRY_LINK([openbabel], [
 	atom.IsSulfur();
 	atom.IsChiral();
 	atom.GetAtomicNum();
+	atom.SetData(&aliasData);
 	atom.GetFormalCharge();
 	atom.SetVector(0, 0, 0);
 	atom.SetAtomicNum(0);
@@ -385,29 +396,52 @@ AX_TRY_LINK([openbabel], [
 ], [], [osra_lib_openbabel=no])
 
 AS_IF([test "${osra_lib_openbabel}" != "yes"], [
-	AC_MSG_ERROR([openbabel headers or library was not found (use --with-openbabel to define custom header location)])
+	AC_MSG_ERROR([OpenBabel API check failed; make sure you have installed libopenbabel-dev package or check config.log])
 ])
+
+AS_IF([test "${enable_static_linking+set}" == "set"], [LIBS="${GCC_ENABLE_DYNAMIC_LINKING_OPTION} ${LIBS}"]) 
 
 dnl GraphicsMagick library
 
 AC_PATH_PROG(GRAPHICS_MAGICK_CONFIG, GraphicsMagick++-config)
 
 AS_IF([test "${GRAPHICS_MAGICK_CONFIG}" == ""], [
-	AC_MSG_ERROR([GraphicsMagick++-config was not found; make sure you have installed libgraphicsmagick++-dev])
+	AC_MSG_ERROR([GraphicsMagick++-config was not found; make sure you have installed libgraphicsmagick++-dev package])
 ])
 
-CPPFLAGS="${CPPFLAGS} `${GRAPHICS_MAGICK_CONFIG} --cppflags` -Dcimg_display_type=0"
+CPPFLAGS="${CPPFLAGS} `${GRAPHICS_MAGICK_CONFIG} --cppflags`"
 LDFLAGS="${LDFLAGS} `${GRAPHICS_MAGICK_CONFIG} --ldflags`"
-LIBS="${LIBS} `${GRAPHICS_MAGICK_CONFIG} --libs`" 
 
-dnl On some reason these libraries are not included into linker search path as transient dependencies of libGraphicsMagick++ under CygWin. 
-AS_IF([test $build_os == "cygwin"], [
-	LIBS="${LIBS} -lX11"
-])
+AS_IF([test "${enable_static_linking+set}" == "set"],
+	dnl Here goes statically linking setup section.
+	dnl Note: linking against GraphicsMagick statically is adventurous...
+	[LIBS="`${GRAPHICS_MAGICK_CONFIG} --libs` -lc -lxcb -lXau -lXdmcp ${LIBS}"],
+	dnl Here goes dynamically linking setup section.
+	[
+		dnl On some reason under CygWin these libraries are not included into linker search path as transient dependencies of libGraphicsMagick++. 
+		AS_IF([test "$build_os" == "cygwin"], [
+			LIBS="-lGraphicsMagick -lX11 ${LIBS}"
+			_AS_ECHO_LOG([LIBS="${LIBS}" for CygWin])
+		])
+		
+		dnl On some reason when OSRA is compiled with MinGW with not all libraries included, some features stop working (e.g. without libjpeg JPEG files are not recognized). 
+		AS_IF([test "$build_os" == "mingw"], [
+			LIBS="`${GRAPHICS_MAGICK_CONFIG} --libs` ${LIBS}"
+			_AS_ECHO_LOG([LIBS="${LIBS}" for MinGW])
+		])
+	]
+)
+
+dnl We cannot move this check to the top, because includes for GraphicsMagick are defined only at this point:
+
+AX_PROBE_OBLIGATORY_LIBRARY(
+	[graphicsmagick],
+	[Magick++.h],
+	[],
+	[custom location of Magick++.h from GraphicsMagick (image manipulation library), see http://www.graphicsmagick.org/]
+)
 
 osra_lib_graphicsmagick=yes
-
-AC_CHECK_HEADERS([magick/api.h Magick++.h], [], [osra_lib_graphicsmagick=no])
 
 AX_TRY_LINK([GraphicsMagick++], [
 	#include <Magick++.h>
@@ -435,7 +469,7 @@ AX_TRY_LINK([GraphicsMagick++], [
 ], [], [osra_lib_graphicsmagick=no])
 
 AS_IF([test "${osra_lib_graphicsmagick}" != "yes"], [
-	AC_MSG_ERROR([magick/api.h was not found; make sure you have installed libgraphicsmagick++-dev and all dependent -dev packages])
+	AC_MSG_ERROR([GraphicsMagick API check failed; make sure you have installed libgraphicsmagick++-dev and all dependent -dev packages or check config.log])
 ])
 
 dnl netpbm library check (which is used by GOCR)
@@ -444,11 +478,14 @@ dnl (copied from GOCR configure.in)
 AC_SEARCH_LIBS([pnm_readpnminit], [netpbm pnm])
 
 dnl gocr library
-dnl TODO: The check goes the last in the row, because of missing global JOB declaration:
-dnl (box.o): In function `cut_box':
-dnl (box.o): In function `merge_boxes':
-dnl (pixel.o): In function `pixel_filter_by_tree':
-dnl (pixel.o): In function `getpixel':
+dnl 
+dnl TODO: The check goes the last in the row, because of missing global OCR_JOB declaration:
+dnl 
+dnl pgm2asc.c:2900: In function `add_line_info':
+dnl pgm2asc.c:1712: In function `count_subboxes'
+dnl pgm2asc.c:2505: In function `divide_vert_glued_boxes'
+dnl pgm2asc.c:1764: In function `glue_holes_inside_chars'
+dnl pgm2asc.c:1146: In function `distance'
 dnl undefined reference to `JOB'
 
 osra_lib_gocr=yes
@@ -468,7 +505,7 @@ AX_TRY_LINK([Pgm2asc], [
 ], [], [osra_lib_gocr=no])
 
 AS_IF([test "${osra_lib_gocr}" != "yes"], [
-	AC_MSG_ERROR([pgm2asc.h or pgm2asc.a was not found (use --with-gocr to define custom header location or check config.log)])
+	AC_MSG_ERROR([GOCR API check failed; make sure you have installed libgocr-dev package or check config.log])
 ])
 
 dnl

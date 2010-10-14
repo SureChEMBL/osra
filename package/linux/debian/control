@@ -2,7 +2,7 @@ Source: osra
 Section: graphics
 Priority: optional
 Maintainer: Dmitry Katsubo <dma_k@mail.ru>
-Build-Depends: debhelper (>= 7.0.50), libc6-dev (>= 2.7), libstdc++6-4.4-dev, libtclap-dev (>= 1.2), libpotrace-dev (>= 1.8), gocr-dev (>= 0.45), ocrad-dev (>= 0.17), libopenbabel-dev (>= 2.2), libgraphicsmagick++1-dev (>= 1.3), docbook-xsl, docbook-xml, xsltproc, naturaldocs 
+Build-Depends: debhelper (>= 7.0.50), libc6-dev (>= 2.7), libstdc++6-4.4-dev, libtclap-dev (>= 1.2), libpotrace-dev (>= 1.8), libgocr-dev (>= 0.49), libocrad-dev (>= 0.20), libopenbabel-dev (>= 2.2), libgraphicsmagick++1-dev (>= 1.3), docbook-xsl (>= 1.74.0), docbook-xml, xsltproc, naturaldocs 
 Standards-Version: 3.8.4
 Homepage: http://osra.sourceforge.net/
 XS-Vcs-Svn: https://osra.svn.sourceforge.net/svnroot/osra/
