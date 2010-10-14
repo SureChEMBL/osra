@@ -27,22 +27,26 @@
 
 using namespace std;
 
-int main(int argc, char **argv) {
-	string fileName = argc > 1 ? argv[1] : "aaaa";
-	string type;
+int main(int argc, char **argv)
+{
+  string fileName = argc > 1 ? argv[1] : "aaaa";
+  string type;
 
-	Magick::InitializeMagick(*argv);
+  Magick::InitializeMagick(*argv);
 
-	try {
-		Magick::Image image;
-		image.ping(fileName);
-		type = image.magick();
-	} catch (...) {
-		cerr << "Cannot open file '" << fileName << "'" << endl;
-		exit(1);
-	}
+  try
+    {
+      Magick::Image image;
+      image.ping(fileName);
+      type = image.magick();
+    }
+  catch (...)
+    {
+      cerr << "Cannot open file '" << fileName << "'" << endl;
+      exit(1);
+    }
 
-	cerr << "File type is '" << type << "'" << endl;
+  cerr << "File type is '" << type << "'" << endl;
 
-	return 0;
+  return 0;
 }
