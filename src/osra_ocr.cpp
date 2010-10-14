@@ -42,7 +42,13 @@ extern "C" {
 #endif
 
 #ifdef HAVE_CUNEIFORM_LIB
-#include <cuneiform.h>
+#include <ctiimage.h>
+#include <cttypes.h>
+#include <puma.h>
+#include <lang_def.h>
+#include <mpuma.h>
+#include <compat_defs.h>
+//#include <cuneiform.h>
 #endif
 
 job_t *JOB;
@@ -256,8 +262,12 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
                     TessBaseAPI::InitWithLanguage(NULL, NULL, "eng", NULL, false, 0, NULL);
                     char* text = TessBaseAPI::TesseractRect(job.src.p.p, 1, x2 - x1 + 1, 0, 0, x2 - x1 + 1, y2 - y1 + 1);
                     TessBaseAPI::End();
-                    if (text != NULL && strlen(text)==3)
-                      c3 = text[0];
+                    if (text != NULL)
+                      {
+                        if (strlen(text) == 3)
+                          c3 = text[0];
+                        free(text);
+                      }
                     //cout<<"c3="<<c3<<endl;
                     if (patern.find(c3, 0) == string::npos)
                       c3 = '_';
