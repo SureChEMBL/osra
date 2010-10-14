@@ -60,7 +60,7 @@ LOCAL_CFLAGS := -DANDROID
 LOCAL_SRC_FILES := atom.cpp alias.cpp base.cpp bitvec.cpp bond.cpp bondtyper.cpp canon.cpp builder.cpp chains.cpp chiral.cpp data.cpp descriptor.cpp fingerprint.cpp forcefield.cpp format.cpp generic.cpp griddata.cpp grid.cpp locale.cpp kekulize.cpp matrix.cpp mol.cpp molchrg.cpp obconversion.cpp oberror.cpp obiter.cpp obmolecformat.cpp obutil.cpp op.cpp ops.cpp parsmart.cpp patty.cpp phmodel.cpp plugin.cpp pointgroup.cpp rand.cpp residue.cpp ring.cpp rotor.cpp rotamer.cpp tokenst.cpp typer.cpp transform.cpp 
 LOCAL_SRC_FILES += formats/smilesformat.cpp formats/getinchi.cpp formats/inchiformat.cpp
 
-LOCAL_C_INCLUDES := $(LOCAL_PATH)/../include $(LOCAL_PATH)/../data
+LOCAL_C_INCLUDES := $(OPENBABEL_DIR)/include $(OPENBABEL_DIR)/data
 
 LOCAL_STATIC_LIBRARIES := math fingerprints inchi forcefields ops descriptors
 
@@ -74,7 +74,7 @@ include $(CLEAR_VARS)
 LOCAL_MODULE := math
 
 LOCAL_SRC_FILES := matrix3x3.cpp spacegroup.cpp transform3d.cpp vector3.cpp
-LOCAL_C_INCLUDES := $(LOCAL_PATH)/../../include
+LOCAL_C_INCLUDES := $(OPENBABEL_DIR)/include
 
 
 include $(BUILD_STATIC_LIBRARY)
@@ -87,7 +87,7 @@ include $(CLEAR_VARS)
 LOCAL_MODULE := fingerprints
 
 LOCAL_SRC_FILES := finger2.cpp finger3.cpp
-LOCAL_C_INCLUDES := $(LOCAL_PATH)/../../include
+LOCAL_C_INCLUDES := $(OPENBABEL_DIR)/include
 
 include $(BUILD_STATIC_LIBRARY)
 
@@ -111,7 +111,7 @@ include $(CLEAR_VARS)
 LOCAL_MODULE := forcefields
 
 LOCAL_SRC_FILES := forcefieldghemical.cpp forcefieldmmff94.cpp forcefielduff.cpp
-LOCAL_C_INCLUDES := $(LOCAL_PATH)/../../include
+LOCAL_C_INCLUDES := $(OPENBABEL_DIR)/include
 
 include $(BUILD_STATIC_LIBRARY)
 
@@ -123,7 +123,7 @@ include $(CLEAR_VARS)
 LOCAL_MODULE := ops
 
 LOCAL_SRC_FILES := addpolarh.cpp fillUC.cpp gen3d.cpp loader.cpp optransform.cpp
-LOCAL_C_INCLUDES := $(LOCAL_PATH)/../../include
+LOCAL_C_INCLUDES := $(OPENBABEL_DIR)/include
 
 include $(BUILD_STATIC_LIBRARY)
 
@@ -135,7 +135,7 @@ include $(CLEAR_VARS)
 LOCAL_MODULE := descriptors
 
 LOCAL_SRC_FILES := cmpdfilter.cpp filters.cpp groupcontrib.cpp smartsdescriptors.cpp
-LOCAL_C_INCLUDES := $(LOCAL_PATH)/../../include
+LOCAL_C_INCLUDES := $(OPENBABEL_DIR)/include
 
 
 include $(BUILD_STATIC_LIBRARY)
@@ -188,7 +188,7 @@ LOCAL_PATH := $(GRAPHICSMAGICK_DIR)/Magick++/lib/
 
 include $(CLEAR_VARS)
 LOCAL_CFLAGS := -DHAVE_CONFIG_H
-LOCAL_C_INCLUDES := $(LOCAL_PATH)/../../
+LOCAL_C_INCLUDES := $(GRAPHICSMAGICK_DIR)
 LOCAL_MODULE    := GraphicsMagick++
 LOCAL_SRC_FILES := Blob.cpp BlobRef.cpp CoderInfo.cpp Color.cpp Drawable.cpp Exception.cpp Functions.cpp Geometry.cpp Image.cpp ImageRef.cpp Montage.cpp Options.cpp Pixels.cpp STL.cpp Thread.cpp TypeMetric.cpp
 
@@ -200,7 +200,7 @@ LOCAL_PATH := $(GRAPHICSMAGICK_DIR)/magick/
 
 include $(CLEAR_VARS)
 LOCAL_CFLAGS := -DHAVE_CONFIG_H
-LOCAL_C_INCLUDES := $(LOCAL_PATH)/../ $(LOCAL_PATH)/../../jpeg-8b/  $(LOCAL_PATH)/../../libpng-1.4.3/
+LOCAL_C_INCLUDES := $(GRAPHICSMAGICK_DIR) $(JPEG_DIR)  $(LIBPNG_DIR)
 LOCAL_MODULE    := GraphicsMagick
 LOCAL_SRC_FILES := analyze.c annotate.c attribute.c average.c bit_stream.c blob.c cdl.c channel.c compare.c confirm_access.c color.c color_lookup.c colormap.c colorspace.c command.c composite.c compress.c constitute.c decorate.c delegate.c deprecate.c describe.c draw.c effect.c enhance.c enum_strings.c error.c fx.c gem.c gradient.c hclut.c image.c list.c locale.c log.c magic.c magick.c magick_endian.c map.c memory.c module.c monitor.c montage.c omp_data_view.c operator.c paint.c pixel_cache.c pixel_iterator.c plasma.c profile.c quantize.c registry.c random.c render.c resize.c resource.c segment.c semaphore.c shear.c signature.c static.c statistics.c tempfile.c texture.c timer.c transform.c tsd.c type.c unix_port.c utility.c version.c ../coders/art.c ../coders/avi.c ../coders/avs.c ../coders/bmp.c ../coders/cals.c ../coders/caption.c ../coders/cineon.c ../coders/cmyk.c ../coders/cut.c ../coders/dcm.c ../coders/dcraw.c ../coders/dib.c ../coders/dpx.c ../coders/fax.c ../coders/fits.c ../coders/gif.c ../coders/gradient.c ../coders/gray.c ../coders/histogram.c ../coders/hrz.c ../coders/html.c ../coders/icon.c ../coders/identity.c ../coders/label.c ../coders/locale.c ../coders/logo.c ../coders/map.c ../coders/mat.c ../coders/matte.c ../coders/meta.c ../coders/miff.c ../coders/mono.c ../coders/mpc.c ../coders/mpeg.c ../coders/mpr.c ../coders/msl.c ../coders/mtv.c ../coders/mvg.c ../coders/null.c ../coders/otb.c ../coders/palm.c ../coders/pcd.c ../coders/pcl.c ../coders/pcx.c ../coders/pdb.c ../coders/pdf.c ../coders/pict.c ../coders/pix.c ../coders/plasma.c ../coders/pnm.c ../coders/preview.c ../coders/ps.c ../coders/ps2.c ../coders/ps3.c ../coders/psd.c ../coders/pwp.c ../coders/rgb.c ../coders/rla.c ../coders/rle.c ../coders/sct.c ../coders/sfw.c ../coders/sgi.c ../coders/stegano.c ../coders/sun.c ../coders/svg.c ../coders/tga.c ../coders/tile.c ../coders/tim.c ../coders/topol.c ../coders/ttf.c ../coders/txt.c ../coders/uil.c ../coders/url.c ../coders/uyvy.c ../coders/vicar.c ../coders/vid.c ../coders/viff.c ../coders/wbmp.c ../coders/wmf.c ../coders/wpg.c ../coders/xbm.c ../coders/xc.c ../coders/xcf.c ../coders/xpm.c ../coders/yuv.c ../coders/jpeg.c ../coders/jp2.c ../coders/png.c ../filters/analyze.c
 
