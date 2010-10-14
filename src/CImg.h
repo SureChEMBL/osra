@@ -61,6 +61,9 @@
 #include <cmath>
 #include <ctime>
 
+// Custom OSRA settings.
+#include "config.h"
+
 /*
  #
  # Set CImg configuration flags.
