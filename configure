@@ -3367,7 +3367,7 @@ fi
 
 # Check whether --enable-static-linking was given.
 if test "${enable_static_linking+set}" = set; then :
-  enableval=$enable_static_linking; LDFLAGS="${LDFLAGS} -static-libgcc -Wl,-static";
+  enableval=$enable_static_linking; LDFLAGS="${LDFLAGS} -Wl,-static";
 
 fi
 
@@ -6421,17 +6421,11 @@ CPPFLAGS="${CPPFLAGS} `${GRAPHICS_MAGICK_CONFIG} --cppflags`"
 LDFLAGS="${LDFLAGS} `${GRAPHICS_MAGICK_CONFIG} --ldflags`"
 
 if test "${enable_static_linking+set}" == "set"; then :
-  		LIBS="`${GRAPHICS_MAGICK_CONFIG} --libs` -lc -lxcb -lXau -lXdmcp ${LIBS}"
+  		LIBS="`${GRAPHICS_MAGICK_CONFIG} --libs` -lxcb -lXau -lXdmcp ${LIBS}"
 else
 
-				if test "$build_os" == "cygwin"; then :
 
-			LIBS="-lGraphicsMagick -lX11 ${LIBS}"
-			$as_echo "$as_me:${as_lineno-$LINENO}: LIBS=\"${LIBS}\" for CygWin" >&5
-
-fi
-
-				if test "$build_os" == "mingw"; then :
+				if test "$build_os" == "mingw32"; then :
 
 			LIBS="`${GRAPHICS_MAGICK_CONFIG} --libs` ${LIBS}"
 			$as_echo "$as_me:${as_lineno-$LINENO}: LIBS=\"${LIBS}\" for MinGW" >&5

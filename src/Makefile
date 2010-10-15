@@ -5,12 +5,13 @@
 OBJ		= osra.o osra_anisotropic.o osra_ocr.o osra_openbabel.o mcdlutil.o unpaper.o
 
 include ../Makefile.inc
-include Makefile.dep
 
 all: osra
 
 osra: $(OBJ)
 	$(LD) $(LDFLAGS) -o $@ $(OBJ) $(LIBS)
+
+include Makefile.dep
 
 Makefile.dep: $(patsubst %.o,%.cpp,$(OBJ))
 	$(CXX) $(CPPFLAGS) -MM $? > Makefile.dep 
