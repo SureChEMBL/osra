@@ -269,6 +269,7 @@ AS_IF([test "${osra_lib_ocrad}" != "yes"], [
 dnl tesseract library (optional)
 
 AS_IF([test "${ac_lib_tesseract}" == "yes"], [
+	dnl Note: This hack to link statically against Tesseract is not portable.
 	AS_IF([test "${enable_static_linking+set}" == "set"], [LIBS="-ljpeg -lz ${LIBS}"])
 
 	AC_CHECK_LIB([pthread], [sem_init], [], [ac_lib_tesseract=no])
@@ -414,18 +415,18 @@ LDFLAGS="${LDFLAGS} `${GRAPHICS_MAGICK_CONFIG} --ldflags`"
 
 AS_IF([test "${enable_static_linking+set}" == "set"],
 	dnl Here goes statically linking setup section.
-	dnl Note: linking against GraphicsMagick statically is adventurous...
-	[LIBS="`${GRAPHICS_MAGICK_CONFIG} --libs` -lc -lxcb -lXau -lXdmcp ${LIBS}"],
+	dnl Note: This hack to link statically against GraphicsMagick is not portable.
+	[LIBS="`${GRAPHICS_MAGICK_CONFIG} --libs` -lxcb -lXau -lXdmcp ${LIBS}"],
 	dnl Here goes dynamically linking setup section.
 	[
-		dnl On some reason under CygWin these libraries are not included into linker search path as transient dependencies of libGraphicsMagick++. 
+		dnl On some reason under CygWin these libraries are not recognized by linker as transient dependencies of libGraphicsMagick++, so they are included into list manually: 
 		AS_IF([test "$build_os" == "cygwin"], [
-			LIBS="-lGraphicsMagick -lX11 ${LIBS}"
+			LIBS="-lGraphicsMagick ${LIBS}"
 			_AS_ECHO_LOG([LIBS="${LIBS}" for CygWin])
 		])
 		
 		dnl On some reason when OSRA is compiled with MinGW with not all libraries included, some features stop working (e.g. without libjpeg JPEG files are not recognized). 
-		AS_IF([test "$build_os" == "mingw"], [
+		AS_IF([test "$build_os" == "mingw32"], [
 			LIBS="`${GRAPHICS_MAGICK_CONFIG} --libs` ${LIBS}"
 			_AS_ECHO_LOG([LIBS="${LIBS}" for MinGW])
 		])
