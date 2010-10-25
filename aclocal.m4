@@ -23,6 +23,11 @@ AC_DEFUN([AX_PROBE_OBLIGATORY_LIBRARY], [
 
 	AS_IF([test "${with_$1}" == "no"], [AC_MSG_ERROR([The library $1 is obligatory. You cannot disable it.])])
 
+	AC_ARG_WITH(
+		[$1-lib],
+		[AC_HELP_STRING([--with-$1-lib], [custom location of the library])],
+		[LDFLAGS="-L${withval} ${LDFLAGS}"])
+
 	dnl Here the value of ${with_$1} is either:
 	dnl * if option was given in a command-line, it's value (if empty, then only system paths are checked)
 	dnl * if option was omitted, the defaults ($3) are used 
@@ -56,6 +61,11 @@ AC_DEFUN([AX_PROBE_OPTIONAL_LIBRARY], [
 		AS_IF([test "${with_$1}" == "" -o "${with_$1}" == "yes"], [
 			with_$1="$3"
 		])
+
+		AC_ARG_WITH(
+			[$1-lib],
+			[AC_HELP_STRING([--with-$1-lib], [custom location of the library])],
+			[LDFLAGS="-L${withval} ${LDFLAGS}"])
 
 		dnl Here the value of ${with_$1} is:
 		dnl * if option was given in a command-line, it's value (if empty, the defaults ($3) are used)

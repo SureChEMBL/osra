@@ -662,13 +662,21 @@ enable_openmp
 enable_static_linking
 enable_profiling
 with_tclap
+with_tclap_lib
 with_potrace
+with_potrace_lib
 with_gocr
+with_gocr_lib
 with_ocrad
+with_ocrad_lib
 with_tesseract
+with_tesseract_lib
 with_cuneiform
+with_cuneiform_lib
 with_openbabel
+with_openbabel_lib
 with_graphicsmagick
+with_graphicsmagick_lib
 '
       ac_precious_vars='build_alias
 host_alias
@@ -1308,32 +1316,41 @@ Optional Packages:
   --with-tclap            custom location of CmdLine.h from TCLAP (Templatized
                           C++ Command Line Parser Library), see
                           http://tclap.sourceforge.net/ (default: "auto")
+  --with-tclap-lib        custom location of the library
   --with-potrace          custom location of potracelib.h from POTRACE (vector
                           tracing library), see
                           http://potrace.sourceforge.net/ (default: "auto")
+  --with-potrace-lib      custom location of the library
   --with-gocr             custom location of pgm2asc.h from GOCR (optical
                           character recognition library), see
                           http://jocr.sourceforge.net/ (default: "auto")
+  --with-gocr-lib         custom location of the library
   --with-ocrad            custom location of ocradlib.h from OCRAD (optical
                           character recognition program), see
                           http://www.gnu.org/software/ocrad/ocrad.html
                           (default: "auto")
+  --with-ocrad-lib        custom location of the library
   --with-tesseract        custom location of tesseract/baseapi.h from
                           Tesseract (OCR Engine developed at HP Labs), see
                           http://code.google.com/p/tesseract-ocr/ (optional)
                           (default: "auto")
+  --with-tesseract-lib    custom location of the library
   --with-cuneiform        custom location of cuneiform.h from Cuneiform (OCR
                           system developed by Cognitive technologies), see
                           https://launchpad.net/cuneiform-linux (optional)
                           (default: "auto")
+  --with-cuneiform-lib    custom location of the library
   --with-openbabel        custom location of openbabel/builder.h from
                           OpenBabel (open source chemistry toolbox), see
                           http://openbabel.sourceforge.net/wiki/Main_Page
                           (default: "/usr/include/openbabel-2.0
                           /usr/local/include/openbabel-2.0")
+  --with-openbabel-lib    custom location of the library
   --with-graphicsmagick   custom location of Magick++.h from GraphicsMagick
                           (image manipulation library), see
                           http://www.graphicsmagick.org/
+  --with-graphicsmagick-lib
+                          custom location of the library
 
 Some influential environment variables:
   CXX         C++ compiler command
@@ -3367,7 +3384,7 @@ fi
 
 # Check whether --enable-static-linking was given.
 if test "${enable_static_linking+set}" = set; then :
-  enableval=$enable_static_linking; LDFLAGS="${LDFLAGS} -Wl,-static";
+  enableval=$enable_static_linking; LDFLAGS="${LDFLAGS} -static-libgcc -Wl,-static";
 
 fi
 
@@ -3792,6 +3809,13 @@ fi
 fi
 
 
+# Check whether --with-tclap-lib was given.
+if test "${with_tclap_lib+set}" = set; then :
+  withval=$with_tclap_lib; LDFLAGS="-L${withval} ${LDFLAGS}"
+fi
+
+
+
 		for ac_header in tclap/CmdLine.h
 do :
   ac_fn_cxx_check_header_mongrel "$LINENO" "tclap/CmdLine.h" "ac_cv_header_tclap_CmdLine_h" "$ac_includes_default"
@@ -3963,6 +3987,13 @@ fi
 	if test "${with_potrace}" == "no"; then :
   as_fn_error "The library potrace is obligatory. You cannot disable it." "$LINENO" 5
 fi
+
+
+# Check whether --with-potrace-lib was given.
+if test "${with_potrace_lib+set}" = set; then :
+  withval=$with_potrace_lib; LDFLAGS="-L${withval} ${LDFLAGS}"
+fi
+
 
 
 		for ac_header in potracelib.h
@@ -4138,6 +4169,13 @@ fi
 fi
 
 
+# Check whether --with-gocr-lib was given.
+if test "${with_gocr_lib+set}" = set; then :
+  withval=$with_gocr_lib; LDFLAGS="-L${withval} ${LDFLAGS}"
+fi
+
+
+
 		for ac_header in gocr/pgm2asc.h
 do :
   ac_fn_cxx_check_header_mongrel "$LINENO" "gocr/pgm2asc.h" "ac_cv_header_gocr_pgm2asc_h" "$ac_includes_default"
@@ -4309,6 +4347,13 @@ fi
 	if test "${with_ocrad}" == "no"; then :
   as_fn_error "The library ocrad is obligatory. You cannot disable it." "$LINENO" 5
 fi
+
+
+# Check whether --with-ocrad-lib was given.
+if test "${with_ocrad_lib+set}" = set; then :
+  withval=$with_ocrad_lib; LDFLAGS="-L${withval} ${LDFLAGS}"
+fi
+
 
 
 		for ac_header in ocradlib.h
@@ -4488,6 +4533,13 @@ fi
 fi
 
 
+# Check whether --with-tesseract-lib was given.
+if test "${with_tesseract_lib+set}" = set; then :
+  withval=$with_tesseract_lib; LDFLAGS="-L${withval} ${LDFLAGS}"
+fi
+
+
+
 		for ac_header in tesseract/baseapi.h
 do :
   ac_fn_cxx_check_header_mongrel "$LINENO" "tesseract/baseapi.h" "ac_cv_header_tesseract_baseapi_h" "$ac_includes_default"
@@ -4662,14 +4714,19 @@ fi
 fi
 
 
-		for ac_header in ctiimage.h cttypes.h puma.h lang_def.h mpuma.h compat_defs.h
+# Check whether --with-cuneiform-lib was given.
+if test "${with_cuneiform_lib+set}" = set; then :
+  withval=$with_cuneiform_lib; LDFLAGS="-L${withval} ${LDFLAGS}"
+fi
+
+
+
+		for ac_header in cuneiform.h
 do :
-  as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
-ac_fn_cxx_check_header_mongrel "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default"
-eval as_val=\$$as_ac_Header
-   if test "x$as_val" = x""yes; then :
+  ac_fn_cxx_check_header_mongrel "$LINENO" "cuneiform.h" "ac_cv_header_cuneiform_h" "$ac_includes_default"
+if test "x$ac_cv_header_cuneiform_h" = x""yes; then :
   cat >>confdefs.h <<_ACEOF
-#define `$as_echo "HAVE_$ac_header" | $as_tr_cpp` 1
+#define HAVE_CUNEIFORM_H 1
 _ACEOF
  ac_lib_cuneiform=yes
 else
@@ -4682,7 +4739,7 @@ done
 		if test "${ac_lib_cuneiform}" != "yes" -a "${with_cuneiform}" != ""; then :
 
 
-	for ax_var in ctiimage.h cttypes.h puma.h lang_def.h mpuma.h compat_defs.h
+	for ax_var in cuneiform.h
 do :
 
 				as_ax_Var=`$as_echo "ac_cv_header_${ax_var}" | $as_tr_sh`
@@ -4724,19 +4781,17 @@ do :
 
 done
 
-						{ $as_echo "$as_me:${as_lineno-$LINENO}: checking cuneiform for ctiimage.h cttypes.h puma.h lang_def.h mpuma.h compat_defs.h in ${ac_location}" >&5
-$as_echo_n "checking cuneiform for ctiimage.h cttypes.h puma.h lang_def.h mpuma.h compat_defs.h in ${ac_location}... " >&6; }
+						{ $as_echo "$as_me:${as_lineno-$LINENO}: checking cuneiform for cuneiform.h in ${ac_location}" >&5
+$as_echo_n "checking cuneiform for cuneiform.h in ${ac_location}... " >&6; }
 						$as_echo
 						$as_echo "$as_me:${as_lineno-$LINENO}: CPPFLAGS=\"${CPPFLAGS}\" and LDFLAGS=\"${LDFLAGS}\" for HOME location check" >&5
 
-						for ac_header in ctiimage.h cttypes.h puma.h lang_def.h mpuma.h compat_defs.h
+						for ac_header in cuneiform.h
 do :
-  as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
-ac_fn_cxx_check_header_mongrel "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default"
-eval as_val=\$$as_ac_Header
-   if test "x$as_val" = x""yes; then :
+  ac_fn_cxx_check_header_mongrel "$LINENO" "cuneiform.h" "ac_cv_header_cuneiform_h" "$ac_includes_default"
+if test "x$ac_cv_header_cuneiform_h" = x""yes; then :
   cat >>confdefs.h <<_ACEOF
-#define `$as_echo "HAVE_$ac_header" | $as_tr_cpp` 1
+#define HAVE_CUNEIFORM_H 1
 _ACEOF
  ac_lib_cuneiform=yes
 else
@@ -4753,7 +4808,7 @@ fi
 												LDFLAGS=${ax_probe_library_save_LDFLAGS}
 						CPPFLAGS=${ax_probe_library_save_CPPFLAGS}
 
-	for ax_var in ctiimage.h cttypes.h puma.h lang_def.h mpuma.h compat_defs.h
+	for ax_var in cuneiform.h
 do :
 
 				as_ax_Var=`$as_echo "ac_cv_header_${ax_var}" | $as_tr_sh`
@@ -4774,19 +4829,17 @@ else
 
 				CPPFLAGS="-I${ac_test_location} $CPPFLAGS"
 
-				{ $as_echo "$as_me:${as_lineno-$LINENO}: checking cuneiform for ctiimage.h cttypes.h puma.h lang_def.h mpuma.h compat_defs.h in ${ac_test_location}" >&5
-$as_echo_n "checking cuneiform for ctiimage.h cttypes.h puma.h lang_def.h mpuma.h compat_defs.h in ${ac_test_location}... " >&6; }
+				{ $as_echo "$as_me:${as_lineno-$LINENO}: checking cuneiform for cuneiform.h in ${ac_test_location}" >&5
+$as_echo_n "checking cuneiform for cuneiform.h in ${ac_test_location}... " >&6; }
 				$as_echo
 				$as_echo "$as_me:${as_lineno-$LINENO}: CPPFLAGS=\"${CPPFLAGS}\" for custom location check" >&5
 
-				for ac_header in ctiimage.h cttypes.h puma.h lang_def.h mpuma.h compat_defs.h
+				for ac_header in cuneiform.h
 do :
-  as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
-ac_fn_cxx_check_header_mongrel "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default"
-eval as_val=\$$as_ac_Header
-   if test "x$as_val" = x""yes; then :
+  ac_fn_cxx_check_header_mongrel "$LINENO" "cuneiform.h" "ac_cv_header_cuneiform_h" "$ac_includes_default"
+if test "x$ac_cv_header_cuneiform_h" = x""yes; then :
   cat >>confdefs.h <<_ACEOF
-#define `$as_echo "HAVE_$ac_header" | $as_tr_cpp` 1
+#define HAVE_CUNEIFORM_H 1
 _ACEOF
  ac_lib_cuneiform=yes
 else
@@ -4802,7 +4855,7 @@ fi
 
 								CPPFLAGS=${ax_probe_library_save_CPPFLAGS}
 
-	for ax_var in ctiimage.h cttypes.h puma.h lang_def.h mpuma.h compat_defs.h
+	for ax_var in cuneiform.h
 do :
 
 				as_ax_Var=`$as_echo "ac_cv_header_${ax_var}" | $as_tr_sh`
@@ -4836,6 +4889,13 @@ fi
 	if test "${with_openbabel}" == "no"; then :
   as_fn_error "The library openbabel is obligatory. You cannot disable it." "$LINENO" 5
 fi
+
+
+# Check whether --with-openbabel-lib was given.
+if test "${with_openbabel_lib+set}" = set; then :
+  withval=$with_openbabel_lib; LDFLAGS="-L${withval} ${LDFLAGS}"
+fi
+
 
 
 		for ac_header in openbabel/mol.h openbabel/obconversion.h openbabel/builder.h openbabel/alias.h
@@ -5635,7 +5695,7 @@ fi
 
 if test "${ac_lib_tesseract}" == "yes"; then :
 
-	if test "${enable_static_linking+set}" == "set"; then :
+		if test "${enable_static_linking+set}" == "set"; then :
   LIBS="-ljpeg -lz ${LIBS}"
 fi
 
@@ -5927,12 +5987,7 @@ ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 /* end confdefs.h.  */
 
 		#include <stddef.h>
-		#include <ctiimage.h>
-		#include <cttypes.h>
-		#include <puma.h>
-		#include <lang_def.h>
-		#include <mpuma.h>
-		#include <compat_defs.h>
+		#include <cuneiform.h>
 
 int
 main ()
@@ -5974,12 +6029,7 @@ rm -f core conftest.err conftest.$ac_objext \
 /* end confdefs.h.  */
 
 		#include <stddef.h>
-		#include <ctiimage.h>
-		#include <cttypes.h>
-		#include <puma.h>
-		#include <lang_def.h>
-		#include <mpuma.h>
-		#include <compat_defs.h>
+		#include <cuneiform.h>
 
 int
 main ()
@@ -6424,6 +6474,12 @@ if test "${enable_static_linking+set}" == "set"; then :
   		LIBS="`${GRAPHICS_MAGICK_CONFIG} --libs` -lxcb -lXau -lXdmcp ${LIBS}"
 else
 
+				if test "$build_os" == "cygwin"; then :
+
+			LIBS="-lGraphicsMagick ${LIBS}"
+			$as_echo "$as_me:${as_lineno-$LINENO}: LIBS=\"${LIBS}\" for CygWin" >&5
+
+fi
 
 				if test "$build_os" == "mingw32"; then :
 
@@ -6449,6 +6505,13 @@ fi
 	if test "${with_graphicsmagick}" == "no"; then :
   as_fn_error "The library graphicsmagick is obligatory. You cannot disable it." "$LINENO" 5
 fi
+
+
+# Check whether --with-graphicsmagick-lib was given.
+if test "${with_graphicsmagick_lib+set}" = set; then :
+  withval=$with_graphicsmagick_lib; LDFLAGS="-L${withval} ${LDFLAGS}"
+fi
+
 
 
 		for ac_header in Magick++.h
@@ -6894,7 +6957,7 @@ ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 	#include <gocr/pgm2asc.h>
 	#include <gocr/gocr.h>
 	}
-	job_t *JOB;
+	job_t *OCR_JOB;
 
 int
 main ()
@@ -6903,7 +6966,8 @@ main ()
 	job_t job;
 
 	job_init(&job);
-	job_free(&job);
+	job_init_image(&job);
+	job_free_image(&job);
 	pgm2asc(&job);
 
   ;
@@ -6937,7 +7001,7 @@ rm -f core conftest.err conftest.$ac_objext \
 	#include <gocr/pgm2asc.h>
 	#include <gocr/gocr.h>
 	}
-	job_t *JOB;
+	job_t *OCR_JOB;
 
 int
 main ()
@@ -6946,7 +7010,8 @@ main ()
 	job_t job;
 
 	job_init(&job);
-	job_free(&job);
+	job_init_image(&job);
+	job_free_image(&job);
 	pgm2asc(&job);
 
   ;
