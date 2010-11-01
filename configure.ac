@@ -323,9 +323,11 @@ osra_lib_openbabel=yes
 AS_IF([test "${osra_lib_openbabel}" == "yes"], [
 	AS_IF([test "${enable_static_linking+set}" == "set"], [LIBS="-lz -lxml2 -linchi ${LIBS}"])
 
-	AC_CHECK_LIB([z], [inflateEnd], [], [osra_lib_openbabel=no])
-	AC_CHECK_LIB([xml2], [xmlParseFile], [], [osra_lib_openbabel=no])
-	AC_CHECK_LIB([inchi], [GetINCHI], [], [osra_lib_openbabel=no])	
+	AS_IF([test "$build_os" != "mingw32"], [
+		AC_CHECK_LIB([z], [inflateEnd], [], [osra_lib_openbabel=no])
+		AC_CHECK_LIB([xml2], [xmlParseFile], [], [osra_lib_openbabel=no])
+		AC_CHECK_LIB([inchi], [GetINCHI], [], [osra_lib_openbabel=no])	
+	])
 
 
 AX_TRY_LINK([openbabel], [
