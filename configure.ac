@@ -84,6 +84,11 @@ AC_ARG_ENABLE(
 	[INSTALL_PROGRAM="${INSTALL_PROGRAM} -s";]
 )
 
+AC_ARG_ENABLE(
+	[graphicsmagick-config],
+	[AC_HELP_STRING([--disable-graphicsmagick-config], [Disable use of GraphicsMagick++-config for library linking])]
+)
+
 dnl
 dnl Define includes paths and libraries paths
 dnl
@@ -412,25 +417,21 @@ AS_IF([test "${GRAPHICS_MAGICK_CONFIG}" == ""], [
 
 CPPFLAGS="${CPPFLAGS} `${GRAPHICS_MAGICK_CONFIG} --cppflags`"
 LDFLAGS="${LDFLAGS} `${GRAPHICS_MAGICK_CONFIG} --ldflags`"
+ 
+
+GRAPHICS_MAGICK_LIBS="`${GRAPHICS_MAGICK_CONFIG} --libs`" 
+
+AS_IF([test "${enable_graphicsmagick_config+set}" == "set"], 
+  [ GRAPHICS_MAGICK_LIBS="" ]
+)
+
+LIBS="${LIBS} ${GRAPHICS_MAGICK_LIBS}" 
 
 AS_IF([test "${enable_static_linking+set}" == "set"],
 	dnl Here goes statically linking setup section.
 	dnl Note: This hack to link statically against GraphicsMagick is not portable.
-	[LIBS="`${GRAPHICS_MAGICK_CONFIG} --libs` -lxcb -lXau -lXdmcp ${LIBS}"],
-	dnl Here goes dynamically linking setup section.
-	[
-		dnl On some reason under CygWin these libraries are not recognized by linker as transient dependencies of libGraphicsMagick++, so they are included into list manually: 
-		AS_IF([test "$build_os" == "cygwin"], [
-			LIBS="-lGraphicsMagick ${LIBS}"
-			_AS_ECHO_LOG([LIBS="${LIBS}" for CygWin])
-		])
-		
-		dnl On some reason when OSRA is compiled with MinGW with not all libraries included, some features stop working (e.g. without libjpeg JPEG files are not recognized). 
-		AS_IF([test "$build_os" == "mingw32"], [
-			LIBS="`${GRAPHICS_MAGICK_CONFIG} --libs` ${LIBS}"
-			_AS_ECHO_LOG([LIBS="${LIBS}" for MinGW])
-		])
-	]
+	[LIBS="${LIBS} -lxcb -lXau -lXdmcp"]
+
 )
 
 dnl We cannot move this check to the top, because includes for GraphicsMagick are defined only at this point:
