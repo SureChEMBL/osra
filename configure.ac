@@ -7,7 +7,7 @@ dnl Follow this link for complete autoconf macro list:
 dnl http://www.gnu.org/software/autoconf/manual/html_node/Autoconf-Macro-Index.html
 dnl
 
-AC_INIT([osra], [1.3.6])
+AC_INIT([osra], [1.3.7])
 AC_PREREQ([2.65])
 AC_CANONICAL_BUILD
 AC_LANG([C++])
@@ -320,6 +320,14 @@ dnl openbabel library
 
 osra_lib_openbabel=yes
 
+AS_IF([test "${osra_lib_openbabel}" == "yes"], [
+	AS_IF([test "${enable_static_linking+set}" == "set"], [LIBS="-lz -lxml2 -linchi ${LIBS}"])
+
+	AC_CHECK_LIB([z], [inflateEnd], [], [osra_lib_openbabel=no])
+	AC_CHECK_LIB([xml2], [xmlParseFile], [], [osra_lib_openbabel=no])
+	AC_CHECK_LIB([inchi], [GetINCHI], [], [osra_lib_openbabel=no])	
+
+
 AX_TRY_LINK([openbabel], [
 	#include <openbabel/mol.h>
 	#include <openbabel/obconversion.h>
@@ -400,6 +408,7 @@ AX_TRY_LINK([openbabel], [
 	conversion.WriteString(&mol, false);
 
 ], [], [osra_lib_openbabel=no])
+])
 
 AS_IF([test "${osra_lib_openbabel}" != "yes"], [
 	AC_MSG_ERROR([OpenBabel API check failed; make sure you have installed libopenbabel-dev package or check config.log])
