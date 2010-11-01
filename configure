@@ -6159,7 +6159,9 @@ if test "${osra_lib_openbabel}" == "yes"; then :
   LIBS="-lz -lxml2 -linchi ${LIBS}"
 fi
 
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for inflateEnd in -lz" >&5
+	if test "$build_os" != "mingw32"; then :
+
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for inflateEnd in -lz" >&5
 $as_echo_n "checking for inflateEnd in -lz... " >&6; }
 if ${ac_cv_lib_z_inflateEnd+:} false; then :
   $as_echo_n "(cached) " >&6
@@ -6206,7 +6208,7 @@ else
   osra_lib_openbabel=no
 fi
 
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for xmlParseFile in -lxml2" >&5
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for xmlParseFile in -lxml2" >&5
 $as_echo_n "checking for xmlParseFile in -lxml2... " >&6; }
 if ${ac_cv_lib_xml2_xmlParseFile+:} false; then :
   $as_echo_n "(cached) " >&6
@@ -6253,7 +6255,7 @@ else
   osra_lib_openbabel=no
 fi
 
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for GetINCHI in -linchi" >&5
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for GetINCHI in -linchi" >&5
 $as_echo_n "checking for GetINCHI in -linchi... " >&6; }
 if ${ac_cv_lib_inchi_GetINCHI+:} false; then :
   $as_echo_n "(cached) " >&6
@@ -6300,6 +6302,8 @@ else
   osra_lib_openbabel=no
 fi
 
+
+fi
 
 
 
