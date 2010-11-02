@@ -5204,6 +5204,9 @@ fi
 
 
 
+if test "$build_os" != "darwin9.8.0"; then :
+
+
 
 
 	ax_link_dynamically=no
@@ -5335,6 +5338,8 @@ else
 fi
 
 
+
+fi
 
 if test "${osra_lib_math}" != "yes"; then :
 

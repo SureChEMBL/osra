@@ -198,7 +198,10 @@ dnl math library
 osra_lib_math=yes
 
 AC_CHECK_HEADER([math.h], [], [osra_lib_math=no])
-AX_TRY_LINK([m], [#include <math.h>], [ sqrt(1); fabs(1); ], [], [osra_lib_math=no])
+
+AS_IF([test "$build_os" != "darwin9.8.0"], [
+	    AX_TRY_LINK([m], [#include <math.h>], [ sqrt(1); fabs(1); ], [], [osra_lib_math=no])
+])
 
 AS_IF([test "${osra_lib_math}" != "yes"], [
 	AC_MSG_ERROR([math.h or libm was not found; make sure you have installed libc-dev package or check config.log])
