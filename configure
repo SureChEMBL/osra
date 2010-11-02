@@ -6610,9 +6610,6 @@ if test "${osra_lib_openbabel}" != "yes"; then :
 
 fi
 
-if test "${enable_static_linking+set}" == "set"; then :
-  LIBS="${GCC_ENABLE_DYNAMIC_LINKING_OPTION} ${LIBS}"
-fi
 
 
 # Extract the first word of "GraphicsMagick++-config", so it can be a program name with args.

@@ -419,7 +419,7 @@ AS_IF([test "${osra_lib_openbabel}" != "yes"], [
 	AC_MSG_ERROR([OpenBabel API check failed; make sure you have installed libopenbabel-dev package or check config.log])
 ])
 
-AS_IF([test "${enable_static_linking+set}" == "set"], [LIBS="${GCC_ENABLE_DYNAMIC_LINKING_OPTION} ${LIBS}"]) 
+dnl AS_IF([test "${enable_static_linking+set}" == "set"], [LIBS="${GCC_ENABLE_DYNAMIC_LINKING_OPTION} ${LIBS}"]) 
 
 dnl GraphicsMagick library
 
