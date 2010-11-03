@@ -203,7 +203,7 @@ const string get_smiles(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, 
                       ad->SetAlias(atom[bond[i].a].label);
                       ad->SetOrigin(external);
                       a->SetData(ad);
-                      ad->Expand(mol, anum);
+//                      ad->Expand(mol, anum);
                     }
                 }
               else
@@ -219,7 +219,7 @@ const string get_smiles(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, 
                       ad->SetAlias(atom[bond[i].a].label);
                       ad->SetOrigin(external);
                       a->SetData(ad);
-                      ad->Expand(mol, anum); //Make chemically meaningful, if possible.
+//                      ad->Expand(mol, anum); //Make chemically meaningful, if possible.
                     }
                   // This operation copies the given atom into new one before addition,
                   // so the caller is still responsible to free the memory:
@@ -250,7 +250,7 @@ const string get_smiles(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, 
                       ad->SetAlias(atom[bond[i].b].label);
                       ad->SetOrigin(external);
                       b->SetData(ad);
-                      ad->Expand(mol, anum);
+//                      ad->Expand(mol, anum);
                     }
                 }
               else
@@ -266,7 +266,7 @@ const string get_smiles(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, 
                       ad->SetAlias(atom[bond[i].b].label);
                       ad->SetOrigin(external);
                       b->SetData(ad);
-                      ad->Expand(mol, anum); // Make chemically meaningful, if possible.
+//                      ad->Expand(mol, anum); // Make chemically meaningful, if possible.
                     }
                   // This operation copies the given atom into new one before addition,
                   // so the caller is still responsible to free the memory:
