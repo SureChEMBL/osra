@@ -46,7 +46,11 @@
 
 extern "C" {
 #include <potracelib.h>
+#ifdef ANDROID
+#include <pgm2asc.h>
+#else
 #include <gocr/pgm2asc.h>
+#endif
 }
 
 #include "osra.h"

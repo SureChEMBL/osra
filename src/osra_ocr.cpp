@@ -29,7 +29,11 @@
 #include <sstream>
 
 extern "C" {
+#ifdef ANDROID
+#include <pgm2asc.h>
+#else
 #include <gocr/pgm2asc.h>
+#endif
 }
 
 #include <ocradlib.h>
