@@ -28,8 +28,8 @@
 using namespace cimg_library;
 using namespace Magick;
 
-Image anisotropic_smoothing(const Image &image, int width, int height, const float amplitude, const float alpha,
-                            const float sigma)
+Image anisotropic_smoothing(const Image &image, int width, int height, const float amplitude, const float sharpness,
+			    const float anisotropy, const float alpha, const float sigma)
 {
 
   CImg<unsigned char> source(width, height, 1, 1, 0);
@@ -49,8 +49,8 @@ Image anisotropic_smoothing(const Image &image, int width, int height, const flo
   CImg<unsigned char> dest(source);
   const float gfact = 1.;
   //const float amplitude = 5.; // 20
-  const float sharpness = 0.3;
-  const float anisotropy = 1.;
+  // const float sharpness = 0.3;
+  //const float anisotropy = 1.;
   //const float alpha = .2; //0.6
   //const float sigma = 1.1; // 2.
   const float dl = 0.8;

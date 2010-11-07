@@ -271,6 +271,8 @@ const string get_smiles(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, 
 // width - width of image
 // height - height of image
 // amplitude - amplitude of smoothing
+// sharpness - sharpness parameter
+// anisotropy - anisotropy parameter
 // alpha - alpha parameter for smoothing
 // sigma - sigma parameter for smoothing'
 //
@@ -281,7 +283,7 @@ const string get_smiles(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, 
 // See also:
 // <anisotropic_scaling()>
 Magick::Image anisotropic_smoothing(const Magick::Image &image, int width, int height, const float amplitude,
-                                    const float alpha, const float sigma);
+                                    const float sharpness, const float anisotropy, const float alpha, const float sigma);
 
 // Function: anisotropic_scaling()
 //
