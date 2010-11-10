@@ -199,9 +199,8 @@ osra_lib_math=yes
 
 AC_CHECK_HEADER([math.h], [], [osra_lib_math=no])
 
-AS_IF([test "$build_os" != "darwin9.8.0"], [
-	    AX_TRY_LINK([m], [#include <math.h>], [ sqrt(1); fabs(1); ], [], [osra_lib_math=no])
-])
+dnl "-lm" should be checked only for non-OSX platforms:
+AS_CASE(["$build_os"], [darwin*], [], [AX_TRY_LINK([m], [#include <math.h>], [ sqrt(1); fabs(1); ], [], [osra_lib_math=no])])
 
 AS_IF([test "${osra_lib_math}" != "yes"], [
 	AC_MSG_ERROR([math.h or libm was not found; make sure you have installed libc-dev package or check config.log])
@@ -278,7 +277,7 @@ dnl tesseract library (optional)
 
 AS_IF([test "${ac_lib_tesseract}" == "yes"], [
 	dnl Note: This hack to link statically against Tesseract is not portable.
-	AS_IF([test "${enable_static_linking+set}" == "set"], [LIBS="-ljpeg -lz ${LIBS}"])
+	AS_IF([test "${enable_static_linking:+set}" == "set"], [LIBS="-ljpeg -lz ${LIBS}"])
 
 	AC_CHECK_LIB([pthread], [sem_init], [], [ac_lib_tesseract=no])
 	AC_CHECK_LIB([tiff], [TIFFGetField], [], [ac_lib_tesseract=no])
@@ -323,15 +322,13 @@ dnl openbabel library
 
 osra_lib_openbabel=yes
 
-AS_IF([test "${osra_lib_openbabel}" == "yes"], [
-	AS_IF([test "${enable_static_linking+set}" == "set"], [LIBS="-lz -lxml2 -linchi ${LIBS}"])
-
-	AS_IF([test "$build_os" != "mingw32"], [
-		AC_CHECK_LIB([z], [inflateEnd], [], [osra_lib_openbabel=no])
-		AC_CHECK_LIB([xml2], [xmlParseFile], [], [osra_lib_openbabel=no])
-		AC_CHECK_LIB([inchi], [GetINCHI], [], [osra_lib_openbabel=no])	
-	])
-
+dnl These libraries are needed for static linking with openbabel:
+dnl AS_IF([test "${enable_static_linking:+set}" == "set" -o "$build_os" != "mingw32"], [
+AS_IF([test "${enable_static_linking:+set}" == "set"], [
+	AC_CHECK_LIB([z], [inflateEnd], [], [osra_lib_openbabel=no])
+	AC_CHECK_LIB([xml2], [xmlParseFile], [], [osra_lib_openbabel=no])
+	AC_CHECK_LIB([inchi], [GetINCHI], [], [osra_lib_openbabel=no])	
+])
 
 AX_TRY_LINK([openbabel], [
 	#include <openbabel/mol.h>
@@ -413,13 +410,10 @@ AX_TRY_LINK([openbabel], [
 	conversion.WriteString(&mol, false);
 
 ], [], [osra_lib_openbabel=no])
-])
 
 AS_IF([test "${osra_lib_openbabel}" != "yes"], [
 	AC_MSG_ERROR([OpenBabel API check failed; make sure you have installed libopenbabel-dev package or check config.log])
 ])
-
-dnl AS_IF([test "${enable_static_linking+set}" == "set"], [LIBS="${GCC_ENABLE_DYNAMIC_LINKING_OPTION} ${LIBS}"]) 
 
 dnl GraphicsMagick library
 
@@ -432,20 +426,14 @@ AS_IF([test "${GRAPHICS_MAGICK_CONFIG}" == ""], [
 CPPFLAGS="${CPPFLAGS} `${GRAPHICS_MAGICK_CONFIG} --cppflags`"
 LDFLAGS="${LDFLAGS} `${GRAPHICS_MAGICK_CONFIG} --ldflags`"
  
-
-GRAPHICS_MAGICK_LIBS="`${GRAPHICS_MAGICK_CONFIG} --libs`" 
-
-AS_IF([test "${enable_graphicsmagick_config+set}" == "set"], 
-  [ GRAPHICS_MAGICK_LIBS="" ]
+AS_IF([test "${enable_graphicsmagick_config:+set}" != "set"], 
+	[LIBS="${LIBS} `${GRAPHICS_MAGICK_CONFIG} --libs`"]
 )
 
-LIBS="${LIBS} ${GRAPHICS_MAGICK_LIBS}" 
-
-AS_IF([test "${enable_static_linking+set}" == "set"],
+AS_IF([test "${enable_static_linking:+set}" == "set"],
 	dnl Here goes statically linking setup section.
 	dnl Note: This hack to link statically against GraphicsMagick is not portable.
 	[LIBS="${LIBS} -lxcb -lXau -lXdmcp"]
-
 )
 
 dnl We cannot move this check to the top, because includes for GraphicsMagick are defined only at this point:
