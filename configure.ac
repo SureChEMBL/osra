@@ -324,7 +324,8 @@ osra_lib_openbabel=yes
 
 dnl These libraries are needed for static linking with openbabel:
 dnl AS_IF([test "${enable_static_linking:+set}" == "set" -o "$build_os" != "mingw32"], [
-AS_IF([test "${enable_static_linking:+set}" == "set"], [
+dnl AS_IF([test "${enable_static_linking:+set}" == "set"], [
+AS_IF([test "$build_os" != "mingw32"], [
 	AC_CHECK_LIB([z], [inflateEnd], [], [osra_lib_openbabel=no])
 	AC_CHECK_LIB([xml2], [xmlParseFile], [], [osra_lib_openbabel=no])
 	AC_CHECK_LIB([inchi], [GetINCHI], [], [osra_lib_openbabel=no])	
