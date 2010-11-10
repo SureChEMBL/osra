@@ -3389,7 +3389,15 @@ fi
 
 # Check whether --enable-static-linking was given.
 if test "${enable_static_linking+set}" = set; then :
-  enableval=$enable_static_linking; LDFLAGS="${LDFLAGS} -static-libgcc -Wl,-static";
+  enableval=$enable_static_linking;
+	 LDFLAGS="${LDFLAGS} -static-libgcc";
+	 case "$build_os" in #(
+  darwin*) :
+     ;; #(
+  *) :
+    LDFLAGS="${LDFLAGS} -Wl,-static"; ;;
+esac
+
 
 fi
 

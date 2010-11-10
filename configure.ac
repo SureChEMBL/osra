@@ -74,7 +74,10 @@ AC_ARG_ENABLE(
 AC_ARG_ENABLE(
 	[static-linking],
 	[AC_HELP_STRING([--enable-static-linking], [Link all libraries statically])],
-	[LDFLAGS="${LDFLAGS} -static-libgcc -Wl,-static";]
+	[
+	 LDFLAGS="${LDFLAGS} -static-libgcc";
+	 AS_CASE(["$build_os"], [darwin*], [], [LDFLAGS="${LDFLAGS} -Wl,-static";])
+	]
 )
 
 AC_ARG_ENABLE(
