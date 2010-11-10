@@ -5196,8 +5196,10 @@ fi
 
 
 
-if test "$build_os" != "darwin9.8.0"; then :
-
+case "$build_os" in #(
+  darwin*) :
+     ;; #(
+  *) :
 
 
 
@@ -5329,9 +5331,8 @@ else
 
 fi
 
-
-
-fi
+ ;;
+esac
 
 if test "${osra_lib_math}" != "yes"; then :
 
@@ -5717,7 +5718,7 @@ fi
 
 if test "${ac_lib_tesseract}" == "yes"; then :
 
-		if test "${enable_static_linking+set}" == "set"; then :
+		if test "${enable_static_linking:+set}" == "set"; then :
   LIBS="-ljpeg -lz ${LIBS}"
 fi
 
@@ -6150,15 +6151,9 @@ fi
 
 osra_lib_openbabel=yes
 
-if test "${osra_lib_openbabel}" == "yes"; then :
+if test "${enable_static_linking:+set}" == "set"; then :
 
-	if test "${enable_static_linking+set}" == "set"; then :
-  LIBS="-lz -lxml2 -linchi ${LIBS}"
-fi
-
-	if test "$build_os" != "mingw32"; then :
-
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for inflateEnd in -lz" >&5
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for inflateEnd in -lz" >&5
 $as_echo_n "checking for inflateEnd in -lz... " >&6; }
 if test "${ac_cv_lib_z_inflateEnd+set}" = set; then :
   $as_echo_n "(cached) " >&6
@@ -6205,7 +6200,7 @@ else
   osra_lib_openbabel=no
 fi
 
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for xmlParseFile in -lxml2" >&5
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for xmlParseFile in -lxml2" >&5
 $as_echo_n "checking for xmlParseFile in -lxml2... " >&6; }
 if test "${ac_cv_lib_xml2_xmlParseFile+set}" = set; then :
   $as_echo_n "(cached) " >&6
@@ -6252,7 +6247,7 @@ else
   osra_lib_openbabel=no
 fi
 
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for GetINCHI in -linchi" >&5
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for GetINCHI in -linchi" >&5
 $as_echo_n "checking for GetINCHI in -linchi... " >&6; }
 if test "${ac_cv_lib_inchi_GetINCHI+set}" = set; then :
   $as_echo_n "(cached) " >&6
@@ -6301,7 +6296,6 @@ fi
 
 
 fi
-
 
 
 
@@ -6594,14 +6588,11 @@ fi
 
 
 
-fi
-
 if test "${osra_lib_openbabel}" != "yes"; then :
 
 	as_fn_error "OpenBabel API check failed; make sure you have installed libopenbabel-dev package or check config.log" "$LINENO" 5
 
 fi
-
 
 
 # Extract the first word of "GraphicsMagick++-config", so it can be a program name with args.
@@ -6654,19 +6645,13 @@ fi
 CPPFLAGS="${CPPFLAGS} `${GRAPHICS_MAGICK_CONFIG} --cppflags`"
 LDFLAGS="${LDFLAGS} `${GRAPHICS_MAGICK_CONFIG} --ldflags`"
 
-
-GRAPHICS_MAGICK_LIBS="`${GRAPHICS_MAGICK_CONFIG} --libs`"
-
-if test "${enable_graphicsmagick_config+set}" == "set"; then :
-   GRAPHICS_MAGICK_LIBS=""
+if test "${enable_graphicsmagick_config:+set}" != "set"; then :
+  LIBS="${LIBS} `${GRAPHICS_MAGICK_CONFIG} --libs`"
 
 fi
 
-LIBS="${LIBS} ${GRAPHICS_MAGICK_LIBS}"
-
-if test "${enable_static_linking+set}" == "set"; then :
+if test "${enable_static_linking:+set}" == "set"; then :
   		LIBS="${LIBS} -lxcb -lXau -lXdmcp"
-
 
 fi
 
