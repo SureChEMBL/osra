@@ -17,6 +17,8 @@ AS_IF([test "${ac_cv_cxx_have_stl}" != "yes"], [
 	AC_MSG_ERROR([STL was not found; make sure you have installed libstdc++-dev package or check config.log])
 ])
 
+AS_CASE(["$build_os"], [darwin*], [ac_build_osx=yes], [])
+
 dnl
 dnl Checks for programs
 dnl
@@ -66,8 +68,8 @@ AC_ARG_ENABLE(
 	[AC_HELP_STRING([--enable-openmp], [Enable OpenMP extensions for compilers that support it])],
 	[
 		AC_OPENMP()
-		CPPFLAGS="${CPPFLAGS} ${OPENMP_CFLAGS}";
-		CXXFLAGS="${CXXFLAGS} ${OPENMP_CXXFLAGS}";
+		CPPFLAGS="${CPPFLAGS} ${OPENMP_CFLAGS}"
+		CXXFLAGS="${CXXFLAGS} ${OPENMP_CXXFLAGS}"
 	]
 )
 
@@ -75,16 +77,19 @@ AC_ARG_ENABLE(
 	[static-linking],
 	[AC_HELP_STRING([--enable-static-linking], [Link all libraries statically])],
 	[
-	 LDFLAGS="${LDFLAGS} -static-libgcc";
-	 AS_CASE(["$build_os"], [darwin*], [], [LDFLAGS="${LDFLAGS} -Wl,-static";])
+		LDFLAGS="${LDFLAGS} -static-libgcc"
+		AS_IF([test "${ac_build_osx}" != "yes"], [LDFLAGS="${LDFLAGS} -Wl,-static"])
 	]
 )
 
 AC_ARG_ENABLE(
 	[profiling],
 	[AC_HELP_STRING([--enable-profiling], [Include verbose profiling/debugging information into the binary])],
-	[LDFLAGS="${LDFLAGS} -pg"; CXXFLAGS="${CXXFLAGS} -Wall -g3 -pg";],
-	[INSTALL_PROGRAM="${INSTALL_PROGRAM} -s";]
+	[
+		LDFLAGS="${LDFLAGS} -pg"
+		CXXFLAGS="${CXXFLAGS} -Wall -g3 -pg"
+	],
+	[INSTALL_PROGRAM="${INSTALL_PROGRAM} -s"]
 )
 
 AC_ARG_ENABLE(
@@ -203,7 +208,9 @@ osra_lib_math=yes
 AC_CHECK_HEADER([math.h], [], [osra_lib_math=no])
 
 dnl "-lm" should be checked only for non-OSX platforms:
-AS_CASE(["$build_os"], [darwin*], [], [AX_TRY_LINK([m], [#include <math.h>], [ sqrt(1); fabs(1); ], [], [osra_lib_math=no])])
+AS_IF([test "${ac_build_osx}" != "yes"], [
+	AX_TRY_LINK([m], [#include <math.h>], [ sqrt(1); fabs(1); ], [], [osra_lib_math=no])
+])
 
 AS_IF([test "${osra_lib_math}" != "yes"], [
 	AC_MSG_ERROR([math.h or libm was not found; make sure you have installed libc-dev package or check config.log])
@@ -326,9 +333,7 @@ dnl openbabel library
 osra_lib_openbabel=yes
 
 dnl These libraries are needed for static linking with openbabel:
-dnl AS_IF([test "${enable_static_linking:+set}" == "set" -o "$build_os" != "mingw32"], [
-dnl AS_IF([test "${enable_static_linking:+set}" == "set"], [
-AS_IF([test "$build_os" != "mingw32"], [
+AS_IF([test "${enable_static_linking:+set}" == "set" -a test "$build_os" != "mingw32"], [
 	AC_CHECK_LIB([z], [inflateEnd], [], [osra_lib_openbabel=no])
 	AC_CHECK_LIB([xml2], [xmlParseFile], [], [osra_lib_openbabel=no])
 	AC_CHECK_LIB([inchi], [GetINCHI], [], [osra_lib_openbabel=no])	

@@ -202,10 +202,10 @@ AC_DEFUN([AX_TRY_LINK], [
 			dnl Restore the state to original regardless to the result
 			LIBS=${ax_try_link_save_LIBS}
 
-			dnl If the linking failed and "--enable-static-linking" was given, try to link against dynamic library in case when library is only available as .so:
+			dnl If the linking failed and "--enable-static-linking" was given, try to link against dynamic library (for the case when library is only available as .so:
 			AS_VAR_IF([ac_Lib], [no], [
-				dnl Try to disable static linking, if it was enabled, just for this very library:
-				AS_IF([test "${enable_static_linking+set}" == "set"], [
+				dnl Try to disable static linking (if it was enabled) just for this very library. This trick can only work for non-OSX platforms:
+				AS_IF([test "${enable_static_linking+set}" == "set" -a "${ac_build_osx}" != "yes"], [
 					ax_try_link_save_LIBS=${LIBS}
 
 					dnl Note: "-Wl,-static" affects only libraries ("-l"), following this option, see http://stackoverflow.com/questions/809794/use-both-static-and-dynamically-linked-libraries-in-gcc
@@ -222,8 +222,7 @@ AC_DEFUN([AX_TRY_LINK], [
 					LIBS=${ax_try_link_save_LIBS}
 				])
 			])
-			
-			
+
 			AC_LANG_RESTORE
 		]
 	)

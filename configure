@@ -2758,6 +2758,13 @@ if test "${ac_cv_cxx_have_stl}" != "yes"; then :
 
 fi
 
+case "$build_os" in #(
+  darwin*) :
+    ac_build_osx=yes ;; #(
+  *) :
+     ;;
+esac
+
 
 ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
@@ -3380,8 +3387,8 @@ $as_echo "$ac_cv_prog_cxx_openmp" >&6; }
   fi
 
 
-		CPPFLAGS="${CPPFLAGS} ${OPENMP_CFLAGS}";
-		CXXFLAGS="${CXXFLAGS} ${OPENMP_CXXFLAGS}";
+		CPPFLAGS="${CPPFLAGS} ${OPENMP_CFLAGS}"
+		CXXFLAGS="${CXXFLAGS} ${OPENMP_CXXFLAGS}"
 
 
 fi
@@ -3390,13 +3397,10 @@ fi
 # Check whether --enable-static-linking was given.
 if test "${enable_static_linking+set}" = set; then :
   enableval=$enable_static_linking;
-	 LDFLAGS="${LDFLAGS} -static-libgcc";
-	 case "$build_os" in #(
-  darwin*) :
-     ;; #(
-  *) :
-    LDFLAGS="${LDFLAGS} -Wl,-static"; ;;
-esac
+		LDFLAGS="${LDFLAGS} -static-libgcc"
+		if test "${ac_build_osx}" != "yes"; then :
+  LDFLAGS="${LDFLAGS} -Wl,-static"
+fi
 
 
 fi
@@ -3404,9 +3408,12 @@ fi
 
 # Check whether --enable-profiling was given.
 if test "${enable_profiling+set}" = set; then :
-  enableval=$enable_profiling; LDFLAGS="${LDFLAGS} -pg"; CXXFLAGS="${CXXFLAGS} -Wall -g3 -pg";
+  enableval=$enable_profiling;
+		LDFLAGS="${LDFLAGS} -pg"
+		CXXFLAGS="${CXXFLAGS} -Wall -g3 -pg"
+
 else
-  INSTALL_PROGRAM="${INSTALL_PROGRAM} -s";
+  INSTALL_PROGRAM="${INSTALL_PROGRAM} -s"
 
 fi
 
@@ -5204,10 +5211,8 @@ fi
 
 
 
-case "$build_os" in #(
-  darwin*) :
-     ;; #(
-  *) :
+if test "${ac_build_osx}" != "yes"; then :
+
 
 
 
@@ -5262,7 +5267,7 @@ rm -f core conftest.err conftest.$ac_objext \
 
 						if test "x$ac_cv_lib_m" = x""no; then :
 
-								if test "${enable_static_linking+set}" == "set"; then :
+								if test "${enable_static_linking+set}" == "set" -a "${ac_build_osx}" != "yes"; then :
 
 					ax_try_link_save_LIBS=${LIBS}
 
@@ -5295,7 +5300,6 @@ rm -f core conftest.err conftest.$ac_objext \
 fi
 
 fi
-
 
 			ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
@@ -5339,8 +5343,9 @@ else
 
 fi
 
- ;;
-esac
+
+
+fi
 
 if test "${osra_lib_math}" != "yes"; then :
 
@@ -5456,7 +5461,7 @@ rm -f core conftest.err conftest.$ac_objext \
 
 						if test "x$ac_cv_lib_potrace" = x""no; then :
 
-								if test "${enable_static_linking+set}" == "set"; then :
+								if test "${enable_static_linking+set}" == "set" -a "${ac_build_osx}" != "yes"; then :
 
 					ax_try_link_save_LIBS=${LIBS}
 
@@ -5503,7 +5508,6 @@ rm -f core conftest.err conftest.$ac_objext \
 fi
 
 fi
-
 
 			ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
@@ -5625,7 +5629,7 @@ rm -f core conftest.err conftest.$ac_objext \
 
 						if test "x$ac_cv_lib_ocrad" = x""no; then :
 
-								if test "${enable_static_linking+set}" == "set"; then :
+								if test "${enable_static_linking+set}" == "set" -a "${ac_build_osx}" != "yes"; then :
 
 					ax_try_link_save_LIBS=${LIBS}
 
@@ -5671,7 +5675,6 @@ rm -f core conftest.err conftest.$ac_objext \
 fi
 
 fi
-
 
 			ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
@@ -5886,7 +5889,7 @@ rm -f core conftest.err conftest.$ac_objext \
 
 						if test "x$ac_cv_lib_tesseract_full" = x""no; then :
 
-								if test "${enable_static_linking+set}" == "set"; then :
+								if test "${enable_static_linking+set}" == "set" -a "${ac_build_osx}" != "yes"; then :
 
 					ax_try_link_save_LIBS=${LIBS}
 
@@ -5926,7 +5929,6 @@ rm -f core conftest.err conftest.$ac_objext \
 fi
 
 fi
-
 
 			ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
@@ -6053,7 +6055,7 @@ rm -f core conftest.err conftest.$ac_objext \
 
 						if test "x$ac_cv_lib_cuneiform" = x""no; then :
 
-								if test "${enable_static_linking+set}" == "set"; then :
+								if test "${enable_static_linking+set}" == "set" -a "${ac_build_osx}" != "yes"; then :
 
 					ax_try_link_save_LIBS=${LIBS}
 
@@ -6102,7 +6104,6 @@ rm -f core conftest.err conftest.$ac_objext \
 fi
 
 fi
-
 
 			ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
@@ -6159,7 +6160,7 @@ fi
 
 osra_lib_openbabel=yes
 
-if test "$build_os" != "mingw32"; then :
+if test "${enable_static_linking:+set}" == "set" -a test "$build_os" != "mingw32"; then :
 
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for inflateEnd in -lz" >&5
 $as_echo_n "checking for inflateEnd in -lz... " >&6; }
@@ -6438,7 +6439,7 @@ rm -f core conftest.err conftest.$ac_objext \
 
 						if test "x$ac_cv_lib_openbabel" = x""no; then :
 
-								if test "${enable_static_linking+set}" == "set"; then :
+								if test "${enable_static_linking+set}" == "set" -a "${ac_build_osx}" != "yes"; then :
 
 					ax_try_link_save_LIBS=${LIBS}
 
@@ -6550,7 +6551,6 @@ rm -f core conftest.err conftest.$ac_objext \
 fi
 
 fi
-
 
 			ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
@@ -6922,7 +6922,7 @@ rm -f core conftest.err conftest.$ac_objext \
 
 						if test "x$ac_cv_lib_GraphicsMagickpp" = x""no; then :
 
-								if test "${enable_static_linking+set}" == "set"; then :
+								if test "${enable_static_linking+set}" == "set" -a "${ac_build_osx}" != "yes"; then :
 
 					ax_try_link_save_LIBS=${LIBS}
 
@@ -6978,7 +6978,6 @@ rm -f core conftest.err conftest.$ac_objext \
 fi
 
 fi
-
 
 			ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
@@ -7157,7 +7156,7 @@ rm -f core conftest.err conftest.$ac_objext \
 
 						if test "x$ac_cv_lib_Pgm2asc" = x""no; then :
 
-								if test "${enable_static_linking+set}" == "set"; then :
+								if test "${enable_static_linking+set}" == "set" -a "${ac_build_osx}" != "yes"; then :
 
 					ax_try_link_save_LIBS=${LIBS}
 
@@ -7202,7 +7201,6 @@ rm -f core conftest.err conftest.$ac_objext \
 fi
 
 fi
-
 
 			ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
