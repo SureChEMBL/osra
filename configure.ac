@@ -11,13 +11,12 @@ AC_INIT([osra], [1.3.7])
 AC_PREREQ([2.65])
 AC_CANONICAL_BUILD
 AC_LANG([C++])
+AX_GNU_LD
 AC_CXX_HAVE_STL
 
 AS_IF([test "${ac_cv_cxx_have_stl}" != "yes"], [
 	AC_MSG_ERROR([STL was not found; make sure you have installed libstdc++-dev package or check config.log])
 ])
-
-AS_CASE(["$build_os"], [darwin*], [ac_build_osx=yes], [])
 
 dnl
 dnl Checks for programs
@@ -73,12 +72,16 @@ AC_ARG_ENABLE(
 	]
 )
 
+dnl GNU LD-specific option:
+AS_IF([test "${ac_gnu_ld}" == "yes"], [LDFLAGS="${LDFLAGS} -Wl,--as-needed"])
+
 AC_ARG_ENABLE(
 	[static-linking],
 	[AC_HELP_STRING([--enable-static-linking], [Link all libraries statically])],
 	[
 		LDFLAGS="${LDFLAGS} -static-libgcc"
-		AS_IF([test "${ac_build_osx}" != "yes"], [LDFLAGS="${LDFLAGS} -Wl,-static"])
+		dnl GNU LD-specific option:
+		AS_IF([test "${ac_gnu_ld}" == "yes"], [LDFLAGS="${LDFLAGS} -Wl,-static"])
 	]
 )
 
@@ -208,7 +211,7 @@ osra_lib_math=yes
 AC_CHECK_HEADER([math.h], [], [osra_lib_math=no])
 
 dnl "-lm" should be checked only for non-OSX platforms:
-AS_IF([test "${ac_build_osx}" != "yes"], [
+AS_CASE(["$build_os"], [darwin*], [], [
 	AX_TRY_LINK([m], [#include <math.h>], [ sqrt(1); fabs(1); ], [], [osra_lib_math=no])
 ])
 
@@ -333,7 +336,7 @@ dnl openbabel library
 osra_lib_openbabel=yes
 
 dnl These libraries are needed for static linking with openbabel:
-AS_IF([test "${enable_static_linking:+set}" == "set" -a test "$build_os" != "mingw32"], [
+AS_IF([test "${enable_static_linking:+set}" == "set" -a "$build_os" != "mingw32"], [
 	AC_CHECK_LIB([z], [inflateEnd], [], [osra_lib_openbabel=no])
 	AC_CHECK_LIB([xml2], [xmlParseFile], [], [osra_lib_openbabel=no])
 	AC_CHECK_LIB([inchi], [GetINCHI], [], [osra_lib_openbabel=no])	

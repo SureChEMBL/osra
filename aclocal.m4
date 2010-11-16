@@ -3,6 +3,27 @@ m4_include([m4/ac_cxx_have_stl.m4])
 
 # SYNOPSIS
 #
+# AX_GNU_LD()
+#
+# DESCRIPTION
+#
+# This macro sets the variable "ac_gnu_ld" to "yes" if GNU linker is present in the system.
+# Taken from http://fink.sourceforge.net/files/ltconfig
+#
+AC_DEFUN([AX_GNU_LD], [
+	AC_PATH_PROG(LD, ld)
+	AC_MSG_CHECKING([if ld ($LD) is GNU ld])
+	AS_IF(["$LD" -v 2>&1 < /dev/null | egrep '(GNU|with BFD)' > /dev/null], [
+		AS_ECHO(yes)
+		ac_gnu_ld=yes
+	], [
+		AS_ECHO(no)
+		ac_gnu_ld=no
+	])
+])
+
+# SYNOPSIS
+#
 # AX_PROBE_OBLIGATORY_LIBRARY(lib-name, headers ..., default-paths-to-check ..., help-string)
 #
 # DESCRIPTION
@@ -204,8 +225,8 @@ AC_DEFUN([AX_TRY_LINK], [
 
 			dnl If the linking failed and "--enable-static-linking" was given, try to link against dynamic library (for the case when library is only available as .so:
 			AS_VAR_IF([ac_Lib], [no], [
-				dnl Try to disable static linking (if it was enabled) just for this very library. This trick can only work for non-OSX platforms:
-				AS_IF([test "${enable_static_linking+set}" == "set" -a "${ac_build_osx}" != "yes"], [
+				dnl Try to disable static linking (if it was enabled) just for this very library. This trick can only work for GNU LD:
+				AS_IF([test "${enable_static_linking+set}" == "set" -a "${ac_gnu_ld}" == "yes"], [
 					ax_try_link_save_LIBS=${LIBS}
 
 					dnl Note: "-Wl,-static" affects only libraries ("-l"), following this option, see http://stackoverflow.com/questions/809794/use-both-static-and-dynamically-linked-libraries-in-gcc
