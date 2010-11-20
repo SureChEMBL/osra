@@ -6216,6 +6216,10 @@ fi
 
 osra_lib_openbabel=yes
 
+if "$build_os" == "mingw32"; then :
+  LIBS="${LIBS} -lws2_32"
+fi
+
 if test "${enable_static_linking:+set}" == "set" -o "$build_os" == "mingw32"; then :
 
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for inflateEnd in -lz" >&5
