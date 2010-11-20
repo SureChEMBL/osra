@@ -335,7 +335,7 @@ dnl openbabel library
 
 osra_lib_openbabel=yes
 
-AS_IF(["$build_os" == "mingw32"],[LIBS="${LIBS} -lws2_32"])
+AS_IF([test "$build_os" == "mingw32"],[LIBS="${LIBS} -lws2_32"])
 
 dnl These libraries are needed for static linking with openbabel:
 AS_IF([test "${enable_static_linking:+set}" == "set" -o "$build_os" == "mingw32"], [

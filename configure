@@ -6216,7 +6216,7 @@ fi
 
 osra_lib_openbabel=yes
 
-if "$build_os" == "mingw32"; then :
+if test "$build_os" == "mingw32"; then :
   LIBS="${LIBS} -lws2_32"
 fi
 
