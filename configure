@@ -6216,7 +6216,7 @@ fi
 
 osra_lib_openbabel=yes
 
-if test "${enable_static_linking:+set}" == "set" -a "$build_os" != "mingw32"; then :
+if test "${enable_static_linking:+set}" == "set" -o "$build_os" == "mingw32"; then :
 
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for inflateEnd in -lz" >&5
 $as_echo_n "checking for inflateEnd in -lz... " >&6; }
