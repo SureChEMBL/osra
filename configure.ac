@@ -444,7 +444,7 @@ AS_IF([test "${enable_graphicsmagick_config:+set}" != "set"],
 	[LIBS="${LIBS} `${GRAPHICS_MAGICK_CONFIG} --libs`"]
 )
 
-AS_IF([test "${enable_static_linking:+set}" == "set"],
+AS_IF([test "${enable_static_linking:+set}" == "set" -a "$build_os" == "cygwin"],
 	dnl Here goes statically linking setup section.
 	dnl Note: This hack to link statically against GraphicsMagick is not portable.
 	[LIBS="${LIBS} -lxcb -lXau -lXdmcp"]
