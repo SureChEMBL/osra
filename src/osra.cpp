@@ -3060,7 +3060,7 @@ bool comp_boxes(const box_t &aa, const box_t &bb)
 }
 
 double noise_factor(const Image &image, int width, int height, const ColorGray &bgColor, double THRESHOLD_BOND,
-                    int resolution, int &max, double &nf43)
+                    int resolution, int &max, double &nf45)
 {
   int max_thick = 20;
   vector<double> n(max_thick, 0);
@@ -3117,8 +3117,8 @@ double noise_factor(const Image &image, int width, int height, const ColorGray &
     nf = n[1] / n[2];
   else
     nf = n[2] / n[1];
-  if (n[3]!=0) nf43=n[4]/n[3];
-  else nf43=0;
+  if (n[5]!=0) nf45=n[4]/n[5];
+  else nf45=0;
   return (nf);
 }
 
@@ -5418,9 +5418,9 @@ int main(int argc, char **argv)
                 if (resolution >= 300)
                   {
                     int max_hist;
-		    double nf43;
+		    double nf45;
                     double nf =
-                      noise_factor(orig_box, width, height, bgColor, THRESHOLD_BOND, resolution, max_hist, nf43);
+                      noise_factor(orig_box, width, height, bgColor, THRESHOLD_BOND, resolution, max_hist, nf45);
 
                     //if (max_hist < 5) thick = false;
                     if (res_iter == 3)
@@ -5438,7 +5438,7 @@ int main(int argc, char **argv)
                             width = thick_box.columns();
                             height = thick_box.rows();
                             nf = noise_factor(orig_box, width, height, bgColor, THRESHOLD_BOND, resolution,
-                                              max_hist, nf43);
+                                              max_hist, nf45);
                           }
                         else
                           {
@@ -5453,7 +5453,7 @@ int main(int argc, char **argv)
                             height = thick_box.rows();
                             thick = false;
                             nf = noise_factor(orig_box, width, height, bgColor, THRESHOLD_BOND, resolution,
-                                              max_hist, nf43);
+                                              max_hist, nf45);
                           }
                       }
 
@@ -5466,7 +5466,7 @@ int main(int argc, char **argv)
                         {
                           thick_box = orig_box;
                         }
-		    else if (nf43 > 0.4 && nf43 < 1. && max_hist == 3)
+		    else if (nf45 > 0.7 && nf45 < 2.0 && max_hist == 3)
 		      thick_box = anisotropic_smoothing(orig_box, width, height, 60, 0.3, 0.6, 4., 2.);
                     else
                       thick_box = orig_box;
