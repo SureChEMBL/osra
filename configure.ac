@@ -462,7 +462,7 @@ AS_IF([test "${enable_graphicsmagick_config:+set}" != "set"],
 	[LIBS="${LIBS} `${GRAPHICS_MAGICK_CONFIG} --libs`"], [
 		AS_CASE(["$build_os"], [darwin*], [
 			AS_IF([test "${enable_static_linking:+set}" == "set"], [
-				LIBS="${LIBS} -lGraphicsMagick++ -lGraphicsMagick ${MACPORTSLIBS}/liblcms.a ${MACPORTSLIBS}/libtiff.a ${MACPORTSLIBS}/libfreetype.a ${MACPORTSLIBS}/libjasper.a ${MACPORTSLIBS}/libjpeg.a ${MACPORTSLIBS}/libpng.a ${MACPORTSLIBS}/libbz2.a ${MACPORTSLIBS}/libz.a"
+				LIBS="${LIBS} -lGraphicsMagick++ -lGraphicsMagick -ljpeg ${MACPORTSLIBS}/liblcms.a ${MACPORTSLIBS}/libtiff.a ${MACPORTSLIBS}/libfreetype.a ${MACPORTSLIBS}/libjasper.a ${MACPORTSLIBS}/libpng.a ${MACPORTSLIBS}/libbz2.a ${MACPORTSLIBS}/libz.a"
 			])
 		])
 ])

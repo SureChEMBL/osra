@@ -113,9 +113,11 @@ Running make should then generate the executable - osra.
 Mac OS X:
 To have static libraries install through MacPorts the following:
 libxml2, libiconv, zlib, bzip2, freetype, libpng, tiff, lcms, 
-jasper, jpeg.
+jasper.
 
-Compile POTRACE, GOCR, OCRAD and TCALP as follows: 
+Download and compile JPEG.
+
+Compile POTRACE, GOCR, OCRAD and TCALP as follows (libpotrace.a does not get installed by default in v1.8): 
 ./configure;make;sudo make install
 OpenBabel:
 export LDFLAGS=/usr/local/lib/libiconv.a
@@ -123,7 +125,7 @@ mkdir build
 cd build
 cmake -DBUILD_SHARED=OFF ../
 
-GraphicsMagick:
+GraphicsMagick (make sure GraphicsMagick++-config script is in your PATH):
 ./configure --disable-shared --with-x=no --disable-openmp --without-threads --prefix=/Users/igor/build LDFLAGS=-L/Users/igor/build/lib CPPFLAGS=-I/Users/igor/build/include
 make
 make install
@@ -151,7 +153,7 @@ Whenever "configure" script was available I used the following options:
 To configure GraphicsMagick I used the following options:
 ./configure --disable-shared --without-threads --disable-openmp LDFLAGS=-L/usr/local/lib/ CPPFLAGS=-I/usr/local/include/
 
-Compile and install GraphicsMagick, GOCR, Potrace, TCLAP, OCRAD.
+Compile and install GraphicsMagick, GOCR, Potrace (libpotrace.a does not get install by default), TCLAP, OCRAD.
 
 Compiling OpenBabel version 2.3.0:
 First make sure zlib, eigen2, and libxml2 are installed. For libxml2 I used the following
