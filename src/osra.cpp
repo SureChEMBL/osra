@@ -5466,7 +5466,7 @@ int main(int argc, char **argv)
                         {
                           thick_box = orig_box;
                         }
-		    else if (nf45 > 0.7 && nf45 < 2.0 && max_hist == 3)
+		    else if (nf45 > 0.9 && nf45 < 1.2 && max_hist == 3)
 		      thick_box = anisotropic_smoothing(orig_box, width, height, 60, 0.3, 0.6, 4., 2.);
                     else
                       thick_box = orig_box;
