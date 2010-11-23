@@ -1,5 +1,5 @@
-!define DOT_VERSION  "1.3.6"
-!define DASH_VERSION "1-3-6"
+!define DOT_VERSION  "1.3.7"
+!define DASH_VERSION "1-3-7"
 
 !define PIL_EXE "PIL-1.1.6.win32-py2.5.exe"
 !define PIL_URL "http://effbot.org/media/downloads/${PIL_EXE}"
@@ -68,11 +68,6 @@ Section "osra (required)"
   File "magic.mgk"
   File "modules.mgk"
   File "README.txt"
-  File "libopenbabel-3.dll"
-  File "pthreadGC2.dll"
-  File "mingwm10.dll"
-  File "libgomp-1.dll"
-  File "libgcc_s_dw2-1.dll"
   File "spelling.txt"
   File "superatom.txt"
   strcpy $3 "GPL Ghostscript"
@@ -169,11 +164,6 @@ Section "Uninstall"
   Delete $INSTDIR\modules.mgk
   Delete $INSTDIR\README.txt
   Delete $INSTDIR\osra.bat
-  Delete $INSTDIR\libopenbabel-3.dll
-  Delete $INSTDIR\pthreadGC2.dll
-  Delete $INSTDIR\mingwm10.dll
-  Delete $INSTDIR\libgomp-1.dll
-  Delete $INSTDIR\libgcc_s_dw2-1.dll
   Delete $INSTDIR\superatom.txt
   Delete $INSTDIR\spelling.txt
   Delete $INSTDIR\uninstall.exe
