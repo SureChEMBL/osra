@@ -89,7 +89,7 @@ http://unpaper.berlios.de/
 =============================================================================
 Compilation:
 
-On Linux/Unix systems:
+Linux/Unix systems:
 Compile and/or install all the necessary dependencies. Note - starting with ocrad-0.19
 OCRAD compilation generates libocrad.a library used by OSRA. You need to run
 ./configure;make to compile OCRAD.
@@ -110,31 +110,29 @@ Set ARCH variable to one of the following: unix - for linux,unix,osx;
 win32 - for building on Windows MinGW environment.
 Running make should then generate the executable - osra.
 
-Mac OS X (courtesy of Emilio Esposito):
-I recommend using GraphicsMagick as  it is much faster than ImageMagick.
-Note - the older version of imagemagick, available from fink seems 
-to compile fine but does not work. The version from macports works fine.
-Download OSRA, POTRACE, GOCR OCRAD, TCLAP, and OpenBabel. Unzipped and
-untarred the downloaded files into ~/software.
-Compile POTRACE and GOCR as follows: 
-./configure;make
-Install TCLAP  as follows: 
+Mac OS X:
+To have static libraries install through MacPorts the following:
+libxml2, libiconv, zlib, bzip2, freetype, libpng, tiff, lcms, 
+jasper, jpeg.
+
+Compile POTRACE, GOCR, OCRAD and TCALP as follows: 
 ./configure;make;sudo make install
 OpenBabel:
 export LDFLAGS=/usr/local/lib/libiconv.a
+mkdir build
+cd build
+cmake -DBUILD_SHARED=OFF ../
 
 GraphicsMagick:
 ./configure --disable-shared --with-x=no --disable-openmp --without-threads --prefix=/Users/igor/build LDFLAGS=-L/Users/igor/build/lib CPPFLAGS=-I/Users/igor/build/include
 make
 make install
 
-Then, modify the OSRA Makefile:
-ARCH=osx-static
-STATIC_LIB_DIR=/Users/igor/build/lib
+OSRA:
+./configure --enable-static-linking --disable-graphicsmagick-config
+make
 
-Running make should then generate the executable - osra.
-
-Compiling OSRA on Windows systems:
+Windows:
 It is possible to compile OSRA using either Cygwin or MinGW environment,
 however it appears that Cygwin-compiled executable runs about two orders of
 magnitude slower than a Linux version running on an equivalent class CPU.

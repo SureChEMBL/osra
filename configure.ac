@@ -58,6 +58,12 @@ AS_IF([test -d "/usr/local/lib"], [
 	LDFLAGS="-L/usr/local/lib ${LDFLAGS}"
 ])
 
+AS_IF([test -d "/opt/local/lib"], [
+	MACPORTSLIBS="/opt/local/lib"
+])
+
+
+
 dnl
 dnl Compilation/linking configuration options
 dnl
@@ -100,6 +106,11 @@ AC_ARG_ENABLE(
 	[AC_HELP_STRING([--disable-graphicsmagick-config], [Disable use of GraphicsMagick++-config for library linking])]
 )
 
+AC_ARG_WITH(
+	[macports],
+	[AC_HELP_STRING([--with-macports], [Alternative location for MacPorts libraries on OS X (default: /opt/local/lib)])],
+	[MACPORTSLIBS="$withval"]
+)	
 dnl
 dnl Define includes paths and libraries paths
 dnl
@@ -338,10 +349,17 @@ osra_lib_openbabel=yes
 AS_IF([test "$build_os" == "mingw32"],[LIBS="${LIBS} -lws2_32"])
 
 dnl These libraries are needed for static linking with openbabel:
-AS_IF([test "${enable_static_linking:+set}" == "set" -o "$build_os" == "mingw32"], [
-	AC_CHECK_LIB([z], [inflateEnd], [], [osra_lib_openbabel=no])
-	AC_CHECK_LIB([xml2], [xmlParseFile], [], [osra_lib_openbabel=no])
-	AC_CHECK_LIB([inchi], [GetINCHI], [], [osra_lib_openbabel=no])	
+AS_CASE(["$build_os"], [darwin*], [
+	AS_IF([test "${enable_static_linking:+set}" == "set"], [
+		AC_CHECK_LIB([inchi], [GetINCHI], [], [osra_lib_openbabel=no])
+		LIBS="${LIBS} ${MACPORTSLIBS}/libxml2.a ${MACPORTSLIBS}/libiconv.a ${MACPORTSLIBS}/libz.a"
+	])
+], [
+	AS_IF([test "${enable_static_linking:+set}" == "set" -o "$build_os" == "mingw32"], [
+		AC_CHECK_LIB([z], [inflateEnd], [], [osra_lib_openbabel=no])
+		AC_CHECK_LIB([xml2], [xmlParseFile], [], [osra_lib_openbabel=no])
+		AC_CHECK_LIB([inchi], [GetINCHI], [], [osra_lib_openbabel=no])	
+	])
 ])
 
 AX_TRY_LINK([openbabel], [
@@ -441,8 +459,13 @@ CPPFLAGS="${CPPFLAGS} `${GRAPHICS_MAGICK_CONFIG} --cppflags`"
 LDFLAGS="${LDFLAGS} `${GRAPHICS_MAGICK_CONFIG} --ldflags`"
  
 AS_IF([test "${enable_graphicsmagick_config:+set}" != "set"], 
-	[LIBS="${LIBS} `${GRAPHICS_MAGICK_CONFIG} --libs`"]
-)
+	[LIBS="${LIBS} `${GRAPHICS_MAGICK_CONFIG} --libs`"], [
+		AS_CASE(["$build_os"], [darwin*], [
+			AS_IF([test "${enable_static_linking:+set}" == "set"], [
+				LIBS="${LIBS} -lGraphicsMagick++ -lGraphicsMagick ${MACPORTSLIBS}/liblcms.a ${MACPORTSLIBS}/libtiff.a ${MACPORTSLIBS}/libfreetype.a ${MACPORTSLIBS}/libjasper.a ${MACPORTSLIBS}/libjpeg.a ${MACPORTSLIBS}/libpng.a ${MACPORTSLIBS}/libbz2.a ${MACPORTSLIBS}/libz.a"
+			])
+		])
+])
 
 AS_IF([test "${enable_static_linking:+set}" == "set" -a "$build_os" == "cygwin"],
 	dnl Here goes statically linking setup section.

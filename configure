@@ -663,6 +663,7 @@ enable_openmp
 enable_static_linking
 enable_profiling
 enable_graphicsmagick_config
+with_macports
 with_tclap
 with_tclap_lib
 with_potrace
@@ -1319,6 +1320,8 @@ Optional Features:
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
+  --with-macports         Alternative location for MacPorts libraries on OS X
+                          (default: /opt/local/lib)
   --with-tclap            custom location of CmdLine.h from TCLAP (Templatized
                           C++ Command Line Parser Library), see
                           http://tclap.sourceforge.net/ (default: "auto")
@@ -3367,6 +3370,14 @@ if test -d "/usr/local/lib"; then :
 
 fi
 
+if test -d "/opt/local/lib"; then :
+
+	MACPORTSLIBS="/opt/local/lib"
+
+fi
+
+
+
 
 # Check whether --enable-openmp was given.
 if test "${enable_openmp+set}" = set; then :
@@ -3476,6 +3487,13 @@ if test "${enable_graphicsmagick_config+set}" = set; then :
   enableval=$enable_graphicsmagick_config;
 fi
 
+
+
+# Check whether --with-macports was given.
+if test "${with_macports+set}" = set; then :
+  withval=$with_macports; MACPORTSLIBS="$withval"
+
+fi
 
 
 
@@ -6220,9 +6238,67 @@ if test "$build_os" == "mingw32"; then :
   LIBS="${LIBS} -lws2_32"
 fi
 
-if test "${enable_static_linking:+set}" == "set" -o "$build_os" == "mingw32"; then :
+case "$build_os" in #(
+  darwin*) :
 
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for inflateEnd in -lz" >&5
+	if test "${enable_static_linking:+set}" == "set"; then :
+
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for GetINCHI in -linchi" >&5
+$as_echo_n "checking for GetINCHI in -linchi... " >&6; }
+if test "${ac_cv_lib_inchi_GetINCHI+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-linchi  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char GetINCHI ();
+int
+main ()
+{
+return GetINCHI ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_cxx_try_link "$LINENO"; then :
+  ac_cv_lib_inchi_GetINCHI=yes
+else
+  ac_cv_lib_inchi_GetINCHI=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_inchi_GetINCHI" >&5
+$as_echo "$ac_cv_lib_inchi_GetINCHI" >&6; }
+if test "x$ac_cv_lib_inchi_GetINCHI" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_LIBINCHI 1
+_ACEOF
+
+  LIBS="-linchi $LIBS"
+
+else
+  osra_lib_openbabel=no
+fi
+
+		LIBS="${LIBS} ${MACPORTSLIBS}/libxml2.a ${MACPORTSLIBS}/libiconv.a ${MACPORTSLIBS}/libz.a"
+
+fi
+ ;; #(
+  *) :
+
+	if test "${enable_static_linking:+set}" == "set" -o "$build_os" == "mingw32"; then :
+
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for inflateEnd in -lz" >&5
 $as_echo_n "checking for inflateEnd in -lz... " >&6; }
 if test "${ac_cv_lib_z_inflateEnd+set}" = set; then :
   $as_echo_n "(cached) " >&6
@@ -6269,7 +6345,7 @@ else
   osra_lib_openbabel=no
 fi
 
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for xmlParseFile in -lxml2" >&5
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for xmlParseFile in -lxml2" >&5
 $as_echo_n "checking for xmlParseFile in -lxml2... " >&6; }
 if test "${ac_cv_lib_xml2_xmlParseFile+set}" = set; then :
   $as_echo_n "(cached) " >&6
@@ -6316,7 +6392,7 @@ else
   osra_lib_openbabel=no
 fi
 
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for GetINCHI in -linchi" >&5
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for GetINCHI in -linchi" >&5
 $as_echo_n "checking for GetINCHI in -linchi... " >&6; }
 if test "${ac_cv_lib_inchi_GetINCHI+set}" = set; then :
   $as_echo_n "(cached) " >&6
@@ -6365,6 +6441,8 @@ fi
 
 
 fi
+ ;;
+esac
 
 
 
@@ -6715,6 +6793,20 @@ LDFLAGS="${LDFLAGS} `${GRAPHICS_MAGICK_CONFIG} --ldflags`"
 
 if test "${enable_graphicsmagick_config:+set}" != "set"; then :
   LIBS="${LIBS} `${GRAPHICS_MAGICK_CONFIG} --libs`"
+else
+
+		case "$build_os" in #(
+  darwin*) :
+
+			if test "${enable_static_linking:+set}" == "set"; then :
+
+				LIBS="${LIBS} -lGraphicsMagick++ -lGraphicsMagick ${MACPORTSLIBS}/liblcms.a ${MACPORTSLIBS}/libtiff.a ${MACPORTSLIBS}/libfreetype.a ${MACPORTSLIBS}/libjasper.a ${MACPORTSLIBS}/libjpeg.a ${MACPORTSLIBS}/libpng.a ${MACPORTSLIBS}/libbz2.a ${MACPORTSLIBS}/libz.a"
+
+fi
+		 ;; #(
+  *) :
+     ;;
+esac
 
 fi
 
