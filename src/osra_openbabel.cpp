@@ -449,21 +449,21 @@ const string get_smiles(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, 
       }
 
     mol.AddHydrogens(true, false); // polarOnly, correctForPh
-    /*    mol.FindChiralCenters();
-/*
+	mol.FindChiralCenters();
+
     for (unsigned int j = 0; j <= mol.NumBonds(); j++)
       {
         OBBond *b = mol.GetBond(j);
         if (b != NULL)
           {
-            if (!b->GetBeginAtom()->IsChiral())
+            if (!b->GetBeginAtom()->IsChiral() && !b->GetEndAtom()->IsChiral())
               {
                 b->UnsetHash();
                 b->UnsetWedge();
               }
           }
       }
-    */
+    
     mol.ConnectTheDots();
     //mol.Separate();
     mol.StripSalts(MIN_A_COUNT);
