@@ -458,7 +458,7 @@ const string get_smiles(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, 
           {
             if (!b->GetBeginAtom()->IsChiral() && !b->GetEndAtom()->IsChiral())
               {
-                b->UnsetHash();
+                //b->UnsetHash();
                 b->UnsetWedge();
               }
           }
