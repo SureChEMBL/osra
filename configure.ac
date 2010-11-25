@@ -68,15 +68,20 @@ dnl
 dnl Compilation/linking configuration options
 dnl
 
+dnl OpenMP support:
 AC_ARG_ENABLE(
 	[openmp],
-	[AC_HELP_STRING([--enable-openmp], [Enable OpenMP extensions for compilers that support it])],
-	[
-		AC_OPENMP()
-		CPPFLAGS="${CPPFLAGS} ${OPENMP_CFLAGS}"
-		CXXFLAGS="${CXXFLAGS} ${OPENMP_CXXFLAGS}"
-	]
+	[AC_HELP_STRING([--enable-openmp], [Enable OpenMP extensions for compilers that support it])]
 )
+
+dnl Enable OpenMP on Linux by default (unless it is disabled):
+AS_IF([test -z "${enable_openmp}"], [AS_CASE(["$build_os"], [linux*], [enable_openmp=yes])])
+
+AS_IF([test "${enable_openmp}" == "yes"], [
+	AC_OPENMP()
+	CPPFLAGS="${CPPFLAGS} ${OPENMP_CFLAGS}"
+	CXXFLAGS="${CXXFLAGS} ${OPENMP_CXXFLAGS}"
+])
 
 dnl GNU LD-specific option:
 AS_IF([test "${ac_gnu_ld}" == "yes"], [LDFLAGS="${LDFLAGS} -Wl,--as-needed"])
@@ -316,7 +321,7 @@ AS_IF([test "${ac_lib_tesseract}" == "yes"], [
 	], [AC_DEFINE([HAVE_TESSERACT_LIB])], [ac_lib_tesseract=no])
 ])
 
-AS_IF([test "${with_tesseract}" != "no" -a "${ac_lib_tesseract}" == "no"], [AC_MSG_WARN([Tesseract library support was requested, but disbaled due to API check failure (see above messages for the reason or check config.log)])])
+AS_IF([test "${with_tesseract}" != "no" -a "${ac_lib_tesseract}" == "no"], [AC_MSG_WARN([Tesseract library support was requested, but disabled due to API check failure (see above messages for the reason or check config.log)])])
 
 dnl cuneiform library (optional)
 
@@ -340,7 +345,7 @@ AS_IF([test "${ac_lib_cuneiform}" == "yes"], [
 	], [AC_DEFINE([HAVE_CUNEIFORM_LIB])], [ac_lib_cuneiform=no])
 ])
 
-AS_IF([test "${with_cuneiform}" != "no" -a "${ac_lib_cuneiform}" == "no"], [AC_MSG_WARN([Cineiform library support was requested, but disbaled due to API check failure (see above messages for the reason or check config.log)])])
+AS_IF([test "${with_cuneiform}" != "no" -a "${ac_lib_cuneiform}" == "no"], [AC_MSG_WARN([Cineiform library support was requested, but disabled due to API check failure (see above messages for the reason or check config.log)])])
 
 dnl openbabel library
 
@@ -457,7 +462,7 @@ AS_IF([test "${GRAPHICS_MAGICK_CONFIG}" == ""], [
 
 CPPFLAGS="${CPPFLAGS} `${GRAPHICS_MAGICK_CONFIG} --cppflags`"
 LDFLAGS="${LDFLAGS} `${GRAPHICS_MAGICK_CONFIG} --ldflags`"
- 
+
 AS_IF([test "${enable_graphicsmagick_config:+set}" != "set"], 
 	[LIBS="${LIBS} `${GRAPHICS_MAGICK_CONFIG} --libs`"], [
 		AS_CASE(["$build_os"], [darwin*], [

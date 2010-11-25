@@ -1308,6 +1308,7 @@ Optional Features:
                           reference, etc)
   --enable-openmp         Enable OpenMP extensions for compilers that support
                           it
+
   --disable-openmp        do not use OpenMP
   --enable-static-linking Link all libraries statically
   --enable-profiling      Include verbose profiling/debugging information into
@@ -3382,6 +3383,20 @@ fi
 # Check whether --enable-openmp was given.
 if test "${enable_openmp+set}" = set; then :
   enableval=$enable_openmp;
+fi
+
+
+if test -z "${enable_openmp}"; then :
+  case "$build_os" in #(
+  linux*) :
+    enable_openmp=yes ;; #(
+  *) :
+     ;;
+esac
+fi
+
+if test "${enable_openmp}" == "yes"; then :
+
 
   OPENMP_CXXFLAGS=
   # Check whether --enable-openmp was given.
@@ -3447,12 +3462,10 @@ $as_echo "$ac_cv_prog_cxx_openmp" >&6; }
   fi
 
 
-		CPPFLAGS="${CPPFLAGS} ${OPENMP_CFLAGS}"
-		CXXFLAGS="${CXXFLAGS} ${OPENMP_CXXFLAGS}"
-
+	CPPFLAGS="${CPPFLAGS} ${OPENMP_CFLAGS}"
+	CXXFLAGS="${CXXFLAGS} ${OPENMP_CXXFLAGS}"
 
 fi
-
 
 if test "${ac_gnu_ld}" == "yes"; then :
   LDFLAGS="${LDFLAGS} -Wl,--as-needed"
@@ -6052,8 +6065,8 @@ fi
 fi
 
 if test "${with_tesseract}" != "no" -a "${ac_lib_tesseract}" == "no"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Tesseract library support was requested, but disbaled due to API check failure (see above messages for the reason or check config.log)" >&5
-$as_echo "$as_me: WARNING: Tesseract library support was requested, but disbaled due to API check failure (see above messages for the reason or check config.log)" >&2;}
+  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Tesseract library support was requested, but disabled due to API check failure (see above messages for the reason or check config.log)" >&5
+$as_echo "$as_me: WARNING: Tesseract library support was requested, but disabled due to API check failure (see above messages for the reason or check config.log)" >&2;}
 fi
 
 
@@ -6227,8 +6240,8 @@ fi
 fi
 
 if test "${with_cuneiform}" != "no" -a "${ac_lib_cuneiform}" == "no"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Cineiform library support was requested, but disbaled due to API check failure (see above messages for the reason or check config.log)" >&5
-$as_echo "$as_me: WARNING: Cineiform library support was requested, but disbaled due to API check failure (see above messages for the reason or check config.log)" >&2;}
+  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Cineiform library support was requested, but disabled due to API check failure (see above messages for the reason or check config.log)" >&5
+$as_echo "$as_me: WARNING: Cineiform library support was requested, but disabled due to API check failure (see above messages for the reason or check config.log)" >&2;}
 fi
 
 
