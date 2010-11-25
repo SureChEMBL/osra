@@ -10,6 +10,9 @@ dnl
 AC_INIT([osra], [1.3.7])
 AC_PREREQ([2.65])
 AC_CANONICAL_BUILD
+
+AS_CASE(["$build_os"], [linux*], [build_os="linux"], [darwin*], [build_os="darwin"]);
+
 AC_LANG([C++])
 AX_GNU_LD
 AC_CXX_HAVE_STL
@@ -54,6 +57,7 @@ dnl
 AS_IF([test -d "/usr/local/include"], [
 	CPPFLAGS="-I/usr/local/include ${CPPFLAGS}"
 ])
+
 AS_IF([test -d "/usr/local/lib"], [
 	LDFLAGS="-L/usr/local/lib ${LDFLAGS}"
 ])
@@ -61,8 +65,6 @@ AS_IF([test -d "/usr/local/lib"], [
 AS_IF([test -d "/opt/local/lib"], [
 	MACPORTSLIBS="/opt/local/lib"
 ])
-
-
 
 dnl
 dnl Compilation/linking configuration options
@@ -75,7 +77,7 @@ AC_ARG_ENABLE(
 )
 
 dnl Enable OpenMP on Linux by default (unless it is disabled):
-AS_IF([test -z "${enable_openmp}"], [AS_CASE(["$build_os"], [linux*], [enable_openmp=yes])])
+AS_IF([test -z "${enable_openmp}" -a "$build_os" == "linux"], [enable_openmp=yes])
 
 AS_IF([test "${enable_openmp}" == "yes"], [
 	AC_OPENMP()
@@ -227,7 +229,7 @@ osra_lib_math=yes
 AC_CHECK_HEADER([math.h], [], [osra_lib_math=no])
 
 dnl "-lm" should be checked only for non-OSX platforms:
-AS_CASE(["$build_os"], [darwin*], [], [
+AS_IF([test "$build_os" != "darwin"],
 	AX_TRY_LINK([m], [#include <math.h>], [ sqrt(1); fabs(1); ], [], [osra_lib_math=no])
 ])
 
@@ -354,7 +356,7 @@ osra_lib_openbabel=yes
 AS_IF([test "$build_os" == "mingw32"],[LIBS="${LIBS} -lws2_32"])
 
 dnl These libraries are needed for static linking with openbabel:
-AS_CASE(["$build_os"], [darwin*], [
+AS_IF(["$build_os" == "darwin"], [
 	AS_IF([test "${enable_static_linking:+set}" == "set"], [
 		AC_CHECK_LIB([inchi], [GetINCHI], [], [osra_lib_openbabel=no])
 		LIBS="${LIBS} ${MACPORTSLIBS}/libxml2.a ${MACPORTSLIBS}/libiconv.a ${MACPORTSLIBS}/libz.a"
@@ -465,10 +467,8 @@ LDFLAGS="${LDFLAGS} `${GRAPHICS_MAGICK_CONFIG} --ldflags`"
 
 AS_IF([test "${enable_graphicsmagick_config:+set}" != "set"], 
 	[LIBS="${LIBS} `${GRAPHICS_MAGICK_CONFIG} --libs`"], [
-		AS_CASE(["$build_os"], [darwin*], [
-			AS_IF([test "${enable_static_linking:+set}" == "set"], [
-				LIBS="${LIBS} -lGraphicsMagick++ -lGraphicsMagick -ljpeg ${MACPORTSLIBS}/liblcms.a ${MACPORTSLIBS}/libtiff.a ${MACPORTSLIBS}/libfreetype.a ${MACPORTSLIBS}/libjasper.a ${MACPORTSLIBS}/libpng.a ${MACPORTSLIBS}/libbz2.a ${MACPORTSLIBS}/libz.a"
-			])
+		AS_IF([test "${enable_static_linking:+set}" == "set" -a "$build_os" == "darwin"], [
+			LIBS="${LIBS} -lGraphicsMagick++ -lGraphicsMagick -ljpeg ${MACPORTSLIBS}/liblcms.a ${MACPORTSLIBS}/libtiff.a ${MACPORTSLIBS}/libfreetype.a ${MACPORTSLIBS}/libjasper.a ${MACPORTSLIBS}/libpng.a ${MACPORTSLIBS}/libbz2.a ${MACPORTSLIBS}/libz.a"
 		])
 ])
 

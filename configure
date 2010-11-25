@@ -2145,6 +2145,16 @@ IFS=$ac_save_IFS
 case $build_os in *\ *) build_os=`echo "$build_os" | sed 's/ /-/g'`;; esac
 
 
+
+case "$build_os" in #(
+  linux*) :
+    build_os="linux" ;; #(
+  darwin*) :
+    build_os="darwin" ;; #(
+  *) :
+     ;;
+esac;
+
 ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
@@ -3365,6 +3375,7 @@ if test -d "/usr/local/include"; then :
 	CPPFLAGS="-I/usr/local/include ${CPPFLAGS}"
 
 fi
+
 if test -d "/usr/local/lib"; then :
 
 	LDFLAGS="-L/usr/local/lib ${LDFLAGS}"
@@ -3378,21 +3389,14 @@ if test -d "/opt/local/lib"; then :
 fi
 
 
-
-
 # Check whether --enable-openmp was given.
 if test "${enable_openmp+set}" = set; then :
   enableval=$enable_openmp;
 fi
 
 
-if test -z "${enable_openmp}"; then :
-  case "$build_os" in #(
-  linux*) :
-    enable_openmp=yes ;; #(
-  *) :
-     ;;
-esac
+if test -z "${enable_openmp}" -a "$build_os" == "linux"; then :
+  enable_openmp=yes
 fi
 
 if test "${enable_openmp}" == "yes"; then :
@@ -5295,11 +5299,7 @@ fi
 
 
 
-case "$build_os" in #(
-  darwin*) :
-     ;; #(
-  *) :
-
+if test "$build_os" != "darwin"; then :
 
 
 
@@ -5358,7 +5358,9 @@ rm -f core conftest.err conftest.$ac_objext \
 
 					ax_try_link_save_LIBS=${LIBS}
 
-										LIBS="-Wl,-Bdynamic ${LIBS_LIST} -Wl,-static ${LIBS}"
+										LIBS="-Wl
+elif -Bdynamic ${LIBS_LIST} -Wl; then :
+  -static ${LIBS}"
 
 					$as_echo "$as_me:${as_lineno-$LINENO}: LIBS=\"${LIBS}\" for dynamic library presence check" >&5
 
@@ -5409,7 +5411,8 @@ _ACEOF
 
 
 			if test "${ax_link_dynamically}" == "yes"; then :
-  LIBS="-Wl,-static ${LIBS}"
+  LIBS="-Wl
+elif -static ${LIBS}"
 fi
 
 						for ax_var in m
@@ -5420,7 +5423,8 @@ do :
 done
 
 			if test "${ax_link_dynamically}" == "yes"; then :
-  LIBS="-Wl,-Bdynamic ${LIBS}"
+  LIBS="-Wl; then :
+  -Bdynamic ${LIBS}"
 fi
 
 			$as_echo "$as_me:${as_lineno-$LINENO}: LIBS=\"${LIBS}\" after linking check succeeded" >&5
@@ -5431,8 +5435,8 @@ else
 fi
 
 
- ;;
-esac
+]
+fi
 
 if test "${osra_lib_math}" != "yes"; then :
 
@@ -6251,8 +6255,7 @@ if test "$build_os" == "mingw32"; then :
   LIBS="${LIBS} -lws2_32"
 fi
 
-case "$build_os" in #(
-  darwin*) :
+if "$build_os" == "darwin"; then :
 
 	if test "${enable_static_linking:+set}" == "set"; then :
 
@@ -6306,8 +6309,8 @@ fi
 		LIBS="${LIBS} ${MACPORTSLIBS}/libxml2.a ${MACPORTSLIBS}/libiconv.a ${MACPORTSLIBS}/libz.a"
 
 fi
- ;; #(
-  *) :
+
+else
 
 	if test "${enable_static_linking:+set}" == "set" -o "$build_os" == "mingw32"; then :
 
@@ -6454,8 +6457,8 @@ fi
 
 
 fi
- ;;
-esac
+
+fi
 
 
 
@@ -6808,18 +6811,11 @@ if test "${enable_graphicsmagick_config:+set}" != "set"; then :
   LIBS="${LIBS} `${GRAPHICS_MAGICK_CONFIG} --libs`"
 else
 
-		case "$build_os" in #(
-  darwin*) :
+		if test "${enable_static_linking:+set}" == "set" -a "$build_os" == "darwin"; then :
 
-			if test "${enable_static_linking:+set}" == "set"; then :
-
-				LIBS="${LIBS} -lGraphicsMagick++ -lGraphicsMagick -ljpeg ${MACPORTSLIBS}/liblcms.a ${MACPORTSLIBS}/libtiff.a ${MACPORTSLIBS}/libfreetype.a ${MACPORTSLIBS}/libjasper.a ${MACPORTSLIBS}/libpng.a ${MACPORTSLIBS}/libbz2.a ${MACPORTSLIBS}/libz.a"
+			LIBS="${LIBS} -lGraphicsMagick++ -lGraphicsMagick -ljpeg ${MACPORTSLIBS}/liblcms.a ${MACPORTSLIBS}/libtiff.a ${MACPORTSLIBS}/libfreetype.a ${MACPORTSLIBS}/libjasper.a ${MACPORTSLIBS}/libpng.a ${MACPORTSLIBS}/libbz2.a ${MACPORTSLIBS}/libz.a"
 
 fi
-		 ;; #(
-  *) :
-     ;;
-esac
 
 fi
 
