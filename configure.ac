@@ -229,7 +229,7 @@ osra_lib_math=yes
 AC_CHECK_HEADER([math.h], [], [osra_lib_math=no])
 
 dnl "-lm" should be checked only for non-OSX platforms:
-AS_IF([test "$build_os" != "darwin"],
+AS_IF([test "$build_os" != "darwin"], [
 	AX_TRY_LINK([m], [#include <math.h>], [ sqrt(1); fabs(1); ], [], [osra_lib_math=no])
 ])
 
@@ -356,7 +356,7 @@ osra_lib_openbabel=yes
 AS_IF([test "$build_os" == "mingw32"],[LIBS="${LIBS} -lws2_32"])
 
 dnl These libraries are needed for static linking with openbabel:
-AS_IF(["$build_os" == "darwin"], [
+AS_IF([test "$build_os" == "darwin"], [
 	AS_IF([test "${enable_static_linking:+set}" == "set"], [
 		AC_CHECK_LIB([inchi], [GetINCHI], [], [osra_lib_openbabel=no])
 		LIBS="${LIBS} ${MACPORTSLIBS}/libxml2.a ${MACPORTSLIBS}/libiconv.a ${MACPORTSLIBS}/libz.a"

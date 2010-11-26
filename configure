@@ -5303,6 +5303,7 @@ if test "$build_os" != "darwin"; then :
 
 
 
+
 	ax_link_dynamically=no
 
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for -lm" >&5
@@ -5358,9 +5359,7 @@ rm -f core conftest.err conftest.$ac_objext \
 
 					ax_try_link_save_LIBS=${LIBS}
 
-										LIBS="-Wl
-elif -Bdynamic ${LIBS_LIST} -Wl; then :
-  -static ${LIBS}"
+										LIBS="-Wl,-Bdynamic ${LIBS_LIST} -Wl,-static ${LIBS}"
 
 					$as_echo "$as_me:${as_lineno-$LINENO}: LIBS=\"${LIBS}\" for dynamic library presence check" >&5
 
@@ -5411,8 +5410,7 @@ _ACEOF
 
 
 			if test "${ax_link_dynamically}" == "yes"; then :
-  LIBS="-Wl
-elif -static ${LIBS}"
+  LIBS="-Wl,-static ${LIBS}"
 fi
 
 						for ax_var in m
@@ -5423,8 +5421,7 @@ do :
 done
 
 			if test "${ax_link_dynamically}" == "yes"; then :
-  LIBS="-Wl; then :
-  -Bdynamic ${LIBS}"
+  LIBS="-Wl,-Bdynamic ${LIBS}"
 fi
 
 			$as_echo "$as_me:${as_lineno-$LINENO}: LIBS=\"${LIBS}\" after linking check succeeded" >&5
@@ -5435,7 +5432,7 @@ else
 fi
 
 
-]
+
 fi
 
 if test "${osra_lib_math}" != "yes"; then :
@@ -6255,7 +6252,7 @@ if test "$build_os" == "mingw32"; then :
   LIBS="${LIBS} -lws2_32"
 fi
 
-if "$build_os" == "darwin"; then :
+if test "$build_os" == "darwin"; then :
 
 	if test "${enable_static_linking:+set}" == "set"; then :
 
