@@ -89,26 +89,24 @@ http://unpaper.berlios.de/
 =============================================================================
 Compilation:
 
+General notes: 
+Potrace (as of version 1.8) does not install libpotrace.a and potracelib.h files
+when "make install" is run so you have to either copy those files by hand into a commonly used location (/usr/local/lib and /usr/local/include for example)
+or set --with-potrace and --with-potrace-lib flags for configure accordingly.
+GraphicsMagick++-config should be in the PATH.
+Depending on your installation you might also have to set up LD_LIBRARY_PATH to include /usr/local/lib.
+
 Linux/Unix systems:
 Compile and/or install all the necessary dependencies. Note - starting with ocrad-0.19
 OCRAD compilation generates libocrad.a library used by OSRA. You need to run
 ./configure;make to compile OCRAD.
-Special note for GOCR - do not use version 0.46; I recommend using 0.45
-for the moment - it seems to give the best results. If using version 0.47 or
-later compile the library libPgm2asc.a the following way:
-cd gocr-0.47
- ./configure CPPFLAGS=-fPIC LDFLAGS=-fPIC
-make libs
+Special note for GOCR - use the patched version from OSRA website.
 
-Unpack OSRA package.
-Edit the included Makefile to make sure you have the correct locations
-for potrace, gocr, ocrad, openbabel (or rdkit), and tclap.
-Check that Magick++-config  location (it's a script that
-comes from ImageMagick installation) is in your PATH. You might have to set 
-LD_LIBRARY_PATH to /usr/local/bin.
-Set ARCH variable to one of the following: unix - for linux,unix,osx;
-win32 - for building on Windows MinGW environment.
-Running make should then generate the executable - osra.
+Unpack OSRA package. Starting with 1.3.7 the build process is simplified to the common procedure:
+./configure
+make
+make install
+
 
 Mac OS X:
 To have static libraries install through MacPorts the following:
@@ -242,6 +240,8 @@ Other options:
 -w <filename>, --write <filename> Write output to a file instead of stdout
 
 -b, --bond: Print out average bond length in pixels
+
+-j, --jaggy: Additional thinning/scaling down of low quality documents
 
 ============================================================================
 LICENSE:

@@ -5101,6 +5101,9 @@ int main(int argc, char **argv)
   TCLAP::SwitchArg showbond("b", "bond", "Show average bond length in pixels", false);
   cmd.add(showbond);
 
+  TCLAP::SwitchArg jaggy("j", "jaggy", "Additional thinning/scaling down of low quality documents", false);
+  cmd.add(jaggy);
+
   cmd.parse(argc, argv);
 
   // Necessary for GraphicsMagick-1.3.8 according to http://www.graphicsmagick.org/1.3/NEWS.html#january-21-2010:
@@ -5379,8 +5382,10 @@ int main(int argc, char **argv)
           int max_font_height = MAX_FONT_HEIGHT * working_resolution / 150;
           int max_font_width = MAX_FONT_WIDTH * working_resolution / 150;
           bool thick = true;
-          //if (resolution <= 150)
-          //  thick = false;
+          if (resolution < 150)
+            thick = false;
+		  else if (resolution == 150 && !jaggy.getValue())
+			thick = false;
 
           //Image dbg = image;
           //dbg.modifyImage();
@@ -5457,7 +5462,15 @@ int main(int argc, char **argv)
                                               max_hist, nf45);
                           }
                       }
-                    if (nf > 0.5 && nf < 1. && max_hist <= 6)// && res_iter != 3 && max_hist <= 6)
+					if (jaggy.getValue())
+					  {
+						 orig_box.scale("50%");
+                        thick_box = orig_box;
+                        //working_resolution = 150;
+                        width = thick_box.columns();
+                        height = thick_box.rows();
+					  }
+                    else if (nf > 0.5 && nf < 1. && max_hist <= 6)// && res_iter != 3 && max_hist <= 6)
                       try
                         {
                           thick_box = anisotropic_smoothing(orig_box, width, height, 20, 0.3, 1.0, 0.6, 2);
@@ -5466,18 +5479,19 @@ int main(int argc, char **argv)
                         {
                           thick_box = orig_box;
                         }
-                    else if (nf45 > 0.9 && nf45 < 1.2 && max_hist == 3)
+                    /*else if (nf45 > 0.9 && nf45 < 1.2 && max_hist == 3)
                       {
                         //orig_box = anisotropic_smoothing(thick_box, width, height, 60, 0.3, 0.6, 4., 2.);
                         orig_box.scale("50%");
                         thick_box = orig_box;
-                        working_resolution = 150;
+                        //working_resolution = 150;
                         width = thick_box.columns();
                         height = thick_box.rows();
                         //thick = false;
-                      }
+						}*/
                     else
                       thick_box = orig_box;
+					  
                   }
                 else if (resolution < 300 && resolution > 150)
                   {
