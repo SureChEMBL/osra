@@ -2189,7 +2189,8 @@ Image thin_image(const Image &box, double THRESHOLD_BOND, const ColorGray &bgCol
     for (unsigned int j = 0; j < ysize; j++)
       ptr[i + j * xsize] = getPixel(box, bgColor, i, j, THRESHOLD_BOND);
 
-  thin1(ptr, xsize, ysize);
+  if (xsize>1 && ysize>1)
+    thin1(ptr, xsize, ysize);
 
   for (unsigned int i = 0; i < xsize; i++)
     for (unsigned int j = 0; j < ysize; j++)
@@ -5378,8 +5379,8 @@ int main(int argc, char **argv)
           int max_font_height = MAX_FONT_HEIGHT * working_resolution / 150;
           int max_font_width = MAX_FONT_WIDTH * working_resolution / 150;
           bool thick = true;
-          if (resolution <= 150)
-            thick = false;
+          //if (resolution <= 150)
+          //  thick = false;
 
           //Image dbg = image;
           //dbg.modifyImage();
@@ -5466,7 +5467,15 @@ int main(int argc, char **argv)
                           thick_box = orig_box;
                         }
                     else if (nf45 > 0.9 && nf45 < 1.2 && max_hist == 3)
-                      thick_box = anisotropic_smoothing(orig_box, width, height, 60, 0.3, 0.6, 4., 2.);
+                      {
+                        //orig_box = anisotropic_smoothing(thick_box, width, height, 60, 0.3, 0.6, 4., 2.);
+                        orig_box.scale("50%");
+                        thick_box = orig_box;
+                        working_resolution = 150;
+                        width = thick_box.columns();
+                        height = thick_box.rows();
+                        //thick = false;
+                      }
                     else
                       thick_box = orig_box;
                   }
