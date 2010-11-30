@@ -171,7 +171,7 @@ make install
 
 Compiling osra:
 
-./configure --with-potrace=/home/igor/potrace-1.8/src/ --with-potrace-lib=/home/igor/potrace-1.8/src/ --with-openbabel-lib=/usr/local/bin --enable-static-linking
+./configure --with-potrace-include=/home/igor/potrace-1.8/src/ --with-potrace-lib=/home/igor/potrace-1.8/src/ --with-openbabel-lib=/usr/local/bin --enable-static-linking
 make
 
 Make sure you take a look at osra.bat to see that the environment is set
