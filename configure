@@ -4093,7 +4093,7 @@ fi
 
 # Check whether --with-potrace-include was given.
 if test "${with_potrace_include+set}" = set; then :
-  withval=$with_potrace_include;
+  withval=$with_potrace_include; with_potrace="${with_potrace_include}"
 else
   with_potrace="auto"
 fi
@@ -4273,7 +4273,7 @@ fi
 
 # Check whether --with-gocr-include was given.
 if test "${with_gocr_include+set}" = set; then :
-  withval=$with_gocr_include;
+  withval=$with_gocr_include; with_gocr="${with_gocr_include}"
 else
   with_gocr="auto"
 fi
@@ -4453,7 +4453,7 @@ fi
 
 # Check whether --with-ocrad-include was given.
 if test "${with_ocrad_include+set}" = set; then :
-  withval=$with_ocrad_include;
+  withval=$with_ocrad_include; with_ocrad="${with_ocrad_include}"
 else
   with_ocrad="auto"
 fi
@@ -5027,7 +5027,7 @@ fi
 
 # Check whether --with-openbabel-include was given.
 if test "${with_openbabel_include+set}" = set; then :
-  withval=$with_openbabel_include;
+  withval=$with_openbabel_include; with_openbabel="${with_openbabel_include}"
 else
   with_openbabel="/usr/include/openbabel-2.0 /usr/local/include/openbabel-2.0"
 fi
@@ -6853,7 +6853,7 @@ fi
 
 # Check whether --with-graphicsmagick-include was given.
 if test "${with_graphicsmagick_include+set}" = set; then :
-  withval=$with_graphicsmagick_include;
+  withval=$with_graphicsmagick_include; with_graphicsmagick="${with_graphicsmagick_include}"
 else
   with_graphicsmagick=""
 fi

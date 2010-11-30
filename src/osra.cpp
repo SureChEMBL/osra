@@ -1633,33 +1633,34 @@ int find_bonds(vector<atom_t> &atom, vector<bond_t> &bond, int b_atom, int n_ato
 }
 
 char get_atom_label_unpaper(const Magick::Image &orig, const Magick::ColorGray &bgColor, int left, int top, int right, int bottom,
-                    double THRESHOLD, int dropx, int dropy)
+                            double THRESHOLD, int dropx, int dropy)
 {
   char label = 0;
   ColorGray g;
   Image tmp(Geometry(right-left+1,bottom-top+1), bgColor);
   tmp.type(GrayscaleType);
- 
-  for (int x=left;x<=right;x++)
-	for (int y=top;y<=bottom;y++)
-	  {
+
+  for (int x=left; x<=right; x++)
+    for (int y=top; y<=bottom; y++)
+      {
         g = orig.pixelColor(x,y);
         tmp.pixelColor(x-left, y-top,g);
-	  }
-   right=tmp.columns();
-   bottom=tmp.rows();
-   left=0; top=0;			  
+      }
+  right=tmp.columns();
+  bottom=tmp.rows();
+  left=0;
+  top=0;
   label = get_atom_label(tmp, bgColor, left, top, right, bottom, THRESHOLD, (right + left) / 2, top);
-   if (label == 0)
-	{
-	  unpaper(tmp);
-	  label = get_atom_label(tmp, bgColor, left, top, right, bottom, THRESHOLD, (right + left) / 2, top);
+  if (label == 0)
+    {
+      unpaper(tmp);
+      label = get_atom_label(tmp, bgColor, left, top, right, bottom, THRESHOLD, (right + left) / 2, top);
     }
   if (label == 0)
-   {
-   	unpaper(tmp);
-	label = get_atom_label(tmp, bgColor, left, top, right, bottom, THRESHOLD, (right + left) / 2, top);
-	}
+    {
+      unpaper(tmp);
+      label = get_atom_label(tmp, bgColor, left, top, right, bottom, THRESHOLD, (right + left) / 2, top);
+    }
   return(label);
 }
 
