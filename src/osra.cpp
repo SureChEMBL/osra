@@ -5384,8 +5384,8 @@ int main(int argc, char **argv)
           bool thick = true;
           if (resolution < 150)
             thick = false;
-		  else if (resolution == 150 && !jaggy.getValue())
-			thick = false;
+          else if (resolution == 150 && !jaggy.getValue())
+            thick = false;
 
           //Image dbg = image;
           //dbg.modifyImage();
@@ -5462,14 +5462,14 @@ int main(int argc, char **argv)
                                               max_hist, nf45);
                           }
                       }
-					if (jaggy.getValue())
-					  {
-						 orig_box.scale("50%");
+                    if (jaggy.getValue())
+                      {
+                        orig_box.scale("50%");
                         thick_box = orig_box;
-                        //working_resolution = 150;
+                        working_resolution = 150;
                         width = thick_box.columns();
                         height = thick_box.rows();
-					  }
+                      }
                     else if (nf > 0.5 && nf < 1. && max_hist <= 6)// && res_iter != 3 && max_hist <= 6)
                       try
                         {
@@ -5488,10 +5488,10 @@ int main(int argc, char **argv)
                         width = thick_box.columns();
                         height = thick_box.rows();
                         //thick = false;
-						}*/
+                    						}*/
                     else
                       thick_box = orig_box;
-					  
+
                   }
                 else if (resolution < 300 && resolution > 150)
                   {
