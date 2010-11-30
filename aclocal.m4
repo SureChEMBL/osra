@@ -22,6 +22,34 @@ AC_DEFUN([AX_GNU_LD], [
 	])
 ])
 
+# AX_PROBE_OBLIGATORY_HEADER(lib-name, headers ..., default-paths-to-check ..., help-string)
+#
+# DESCRIPTION
+#
+# This macro defines the helper argument "--with-${lib-name}" using AC_ARG_WITH and
+# probes the given (as 2nd argument) headers first in system-wide locations and
+# then for the specified space-separated locations (given as 3rd argument).
+# If probing fails, the error is reported.
+# See AX_PROBE_LIBRARY for more details about the probing itself.
+#
+AC_DEFUN([AX_PROBE_OBLIGATORY_HEADER], [
+	dnl m4_if() macro on some reason does not work inside AC_HELP_STRING(): 
+	AC_ARG_WITH(
+		[$1-include],
+		[m4_if([$3], [], [AC_HELP_STRING([--with-$1-include], [$4])], [AC_HELP_STRING([--with-$1-include], [$4 (default: "$3")])])],
+		[],
+		[with_$1_include="$3"])
+
+	AS_IF([test "${with_$1_include}" == "no"], [AC_MSG_ERROR([The library $1 is obligatory. You cannot disable it.])])
+
+	dnl Here the value of ${with_$1} is either:
+	dnl * if option was given in a command-line, it's value (if empty, then only system paths are checked)
+	dnl * if option was omitted, the defaults ($3) are used 
+	AX_PROBE_LIBRARY([$1], [$2])
+
+	AS_IF([test "${ac_lib_$1}" != "yes"], [AC_MSG_ERROR([$2 header(s) is missing. Check the default/listed above headers locations.])])
+]) # AX_PROBE_OBLIGATORY_HEADER
+
 # SYNOPSIS
 #
 # AX_PROBE_OBLIGATORY_LIBRARY(lib-name, headers ..., default-paths-to-check ..., help-string)
@@ -37,8 +65,8 @@ AC_DEFUN([AX_GNU_LD], [
 AC_DEFUN([AX_PROBE_OBLIGATORY_LIBRARY], [
 	dnl m4_if() macro on some reason does not work inside AC_HELP_STRING(): 
 	AC_ARG_WITH(
-		[$1],
-		[m4_if([$3], [], [AC_HELP_STRING([--with-$1], [$4])], [AC_HELP_STRING([--with-$1], [$4 (default: "$3")])])],
+		[$1-include],
+		[m4_if([$3], [], [AC_HELP_STRING([--with-$1-include], [$4])], [AC_HELP_STRING([--with-$1-include], [$4 (default: "$3")])])],
 		[],
 		[with_$1="$3"])
 
@@ -82,6 +110,7 @@ AC_DEFUN([AX_PROBE_OPTIONAL_LIBRARY], [
 		AS_IF([test "${with_$1}" == "" -o "${with_$1}" == "yes"], [
 			with_$1="$3"
 		])
+
 
 		AC_ARG_WITH(
 			[$1-lib],

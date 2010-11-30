@@ -124,11 +124,11 @@ dnl
 
 dnl tclap library
 
-AX_PROBE_OBLIGATORY_LIBRARY(
+AX_PROBE_OBLIGATORY_HEADER(
 	[tclap],
 	[tclap/CmdLine.h],
 	[auto],
-	[custom location of CmdLine.h from TCLAP (Templatized C++ Command Line Parser Library), see http://tclap.sourceforge.net/]
+	[custom location of tclap/CmdLine.h from TCLAP (Templatized C++ Command Line Parser Library), see http://tclap.sourceforge.net/]
 )
 
 dnl potrace library
@@ -146,7 +146,7 @@ AX_PROBE_OBLIGATORY_LIBRARY(
 	[gocr],
 	[gocr/pgm2asc.h],
 	[auto],
-	[custom location of pgm2asc.h from GOCR (optical character recognition library), see http://jocr.sourceforge.net/]
+	[custom location of gocr/pgm2asc.h from GOCR (optical character recognition library), see http://jocr.sourceforge.net/]
 )
 
 dnl ocrad library
@@ -160,20 +160,38 @@ AX_PROBE_OBLIGATORY_LIBRARY(
 
 dnl tesseract library (optional)
 
+AC_ARG_WITH(
+	[tesseract-include],
+	[AC_HELP_STRING([--with-tesseract-include], [Location of tesseract/baseapi.h header file])],
+	[CPPFLAGS=" ${CPPFLAGS} -I${withval}"]
+)
+
 AX_PROBE_OPTIONAL_LIBRARY(
 	[tesseract],
 	[tesseract/baseapi.h],
 	[auto],
-	[custom location of tesseract/baseapi.h from Tesseract (OCR Engine developed at HP Labs), see http://code.google.com/p/tesseract-ocr/]
+	[Enable optional support for Tesseract (OCR Engine developed at HP Labs), see http://code.google.com/p/tesseract-ocr/]
 )
 
 dnl cuneiform library (optional)
+
+AC_ARG_WITH(
+	[cuneiform-source],
+	[AC_HELP_STRING([--with-cuneiform-source], [Location of cuneiform library source files])],
+	[CPPFLAGS=" ${CPPFLAGS} -I${withval}/cuneiform_src/Kern/hhh/ -I${withval}/cuneiform_src/Kern/h/  -I${withval}/cuneiform_src/Kern/hrk/  -I${withval}/cuneiform_src/Kern/puma/h/    -I${withval}/cuneiform_src/Kern/include/  -I${withval}/cuneiform_src/Kern/hdebug/"]
+)	
+
+AC_ARG_WITH(
+	[cuneiform-include],
+	[AC_HELP_STRING([--with-cuneiform-include], [Location of cuneiform.h header file])],
+	[CPPFLAGS=" ${CPPFLAGS} -I${withval}"]
+)
 
 AX_PROBE_OPTIONAL_LIBRARY(
 	[cuneiform],
 	[ctiimage.h cttypes.h puma.h lang_def.h mpuma.h compat_defs.h],
 	[auto],
-	[custom location of cuneiform.h from Cuneiform (OCR system developed by Cognitive technologies), see https://launchpad.net/cuneiform-linux]
+	[Enable optional support for Cuneiform (OCR system developed by Cognitive technologies), see https://launchpad.net/cuneiform-linux]
 )
 
 dnl openbabel library
@@ -328,6 +346,7 @@ AS_IF([test "${with_tesseract}" != "no" -a "${ac_lib_tesseract}" == "no"], [AC_M
 dnl cuneiform library (optional)
 
 AS_IF([test "${ac_lib_cuneiform}" == "yes"], [
+dnl	LIBS="${LIBS} -lcuneiform -lrcorrkegl -lrfrmt -lrmarker -lrblock -lrneg -lrout -lced -lrpic -lrselstr -lrstuff -lrimage  -lrline -lrshelllines -lrverline -lcimage -lcfio -lcpage -llns32 -lrdib -lsmetric -lexc -lloc32 -lrreccom -lrpstr -lrstr -lcline -lrcutp -lpass2 -lrbal -lrsadd -lleo32 -levn32 -lfon32 -lctb32 -lmsk32 -ldif32 -lcpu32 -lr3532 -lmmx32 -lrling -lrlings -lcstr -lccom -lstd32 -lcfcompat"
 	AX_TRY_LINK([cuneiform], [
 		#include <stddef.h>
 		#include <ctiimage.h>

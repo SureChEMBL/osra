@@ -30,10 +30,11 @@
 			</author>
 		</authorgroup>
 		<!-- Should go to package/linux/debian/copyright#Copyright -->
-		<copyright>
+<!--		<copyright>
 			<year>2007-2010</year>
 			<holder><![CDATA[Igor Filippov <igorf@helix.nih.gov>]]></holder>
 		</copyright>
+-->
 		<!-- Should go to package/linux/debian/control#Description: -->
 		<legalnotice>
             <para>This manual page was written for the Debian system (and may be used by others).</para>
@@ -248,6 +249,16 @@
 					</arg>
 					<arg choice="plain">
 						<option>--bond</option>
+					</arg>
+				</group>
+			</arg>
+		<arg choice="opt">
+				<group choice="req">
+					<arg choice="plain">
+						<option>-j</option>
+					</arg>
+					<arg choice="plain">
+						<option>--jaggy</option>
 					</arg>
 				</group>
 			</arg>
@@ -498,6 +509,17 @@
 				</term>
 				<listitem>
 					<para>Show average bond length in pixels</para>
+				</listitem>
+			</varlistentry>
+		<varlistentry>
+				<term>
+					<option>-j</option>
+				</term>
+				<term>
+					<option>--jaggy</option>
+				</term>
+				<listitem>
+					<para>Additional thinning/scaling down of low quality documents</para>
 				</listitem>
 			</varlistentry>
 			<varlistentry>

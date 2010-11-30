@@ -664,21 +664,23 @@ enable_static_linking
 enable_profiling
 enable_graphicsmagick_config
 with_macports
-with_tclap
-with_tclap_lib
-with_potrace
+with_tclap_include
+with_potrace_include
 with_potrace_lib
-with_gocr
+with_gocr_include
 with_gocr_lib
-with_ocrad
+with_ocrad_include
 with_ocrad_lib
+with_tesseract_include
 with_tesseract
 with_tesseract_lib
+with_cuneiform_source
+with_cuneiform_include
 with_cuneiform
 with_cuneiform_lib
-with_openbabel
+with_openbabel_include
 with_openbabel_lib
-with_graphicsmagick
+with_graphicsmagick_include
 with_graphicsmagick_lib
 '
       ac_precious_vars='build_alias
@@ -1323,40 +1325,46 @@ Optional Packages:
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
   --with-macports         Alternative location for MacPorts libraries on OS X
                           (default: /opt/local/lib)
-  --with-tclap            custom location of CmdLine.h from TCLAP (Templatized
-                          C++ Command Line Parser Library), see
+  --with-tclap-include    custom location of tclap/CmdLine.h from TCLAP
+                          (Templatized C++ Command Line Parser Library), see
                           http://tclap.sourceforge.net/ (default: "auto")
-  --with-tclap-lib        custom location of the library
-  --with-potrace          custom location of potracelib.h from POTRACE (vector
+  --with-potrace-include  custom location of potracelib.h from POTRACE (vector
                           tracing library), see
                           http://potrace.sourceforge.net/ (default: "auto")
   --with-potrace-lib      custom location of the library
-  --with-gocr             custom location of pgm2asc.h from GOCR (optical
+  --with-gocr-include     custom location of gocr/pgm2asc.h from GOCR (optical
                           character recognition library), see
                           http://jocr.sourceforge.net/ (default: "auto")
   --with-gocr-lib         custom location of the library
-  --with-ocrad            custom location of ocradlib.h from OCRAD (optical
+  --with-ocrad-include    custom location of ocradlib.h from OCRAD (optical
                           character recognition program), see
                           http://www.gnu.org/software/ocrad/ocrad.html
                           (default: "auto")
   --with-ocrad-lib        custom location of the library
-  --with-tesseract        custom location of tesseract/baseapi.h from
-                          Tesseract (OCR Engine developed at HP Labs), see
+  --with-tesseract-include
+                          Location of tesseract/baseapi.h header file
+  --with-tesseract        Enable optional support for Tesseract (OCR Engine
+                          developed at HP Labs), see
                           http://code.google.com/p/tesseract-ocr/ (optional)
                           (default: "auto")
   --with-tesseract-lib    custom location of the library
-  --with-cuneiform        custom location of cuneiform.h from Cuneiform (OCR
-                          system developed by Cognitive technologies), see
+  --with-cuneiform-source Location of cuneiform library source files
+  --with-cuneiform-include
+                          Location of cuneiform.h header file
+  --with-cuneiform        Enable optional support for Cuneiform (OCR system
+                          developed by Cognitive technologies), see
                           https://launchpad.net/cuneiform-linux (optional)
                           (default: "auto")
   --with-cuneiform-lib    custom location of the library
-  --with-openbabel        custom location of openbabel/builder.h from
+  --with-openbabel-include
+                          custom location of openbabel/builder.h from
                           OpenBabel (open source chemistry toolbox), see
                           http://openbabel.sourceforge.net/wiki/Main_Page
                           (default: "/usr/include/openbabel-2.0
                           /usr/local/include/openbabel-2.0")
   --with-openbabel-lib    custom location of the library
-  --with-graphicsmagick   custom location of Magick++.h from GraphicsMagick
+  --with-graphicsmagick-include
+                          custom location of Magick++.h from GraphicsMagick
                           (image manipulation library), see
                           http://www.graphicsmagick.org/
   --with-graphicsmagick-lib
@@ -3910,24 +3918,17 @@ done
 
 
 
-# Check whether --with-tclap was given.
-if test "${with_tclap+set}" = set; then :
-  withval=$with_tclap;
+# Check whether --with-tclap-include was given.
+if test "${with_tclap_include+set}" = set; then :
+  withval=$with_tclap_include;
 else
-  with_tclap="auto"
+  with_tclap_include="auto"
 fi
 
 
-	if test "${with_tclap}" == "no"; then :
+	if test "${with_tclap_include}" == "no"; then :
   as_fn_error "The library tclap is obligatory. You cannot disable it." "$LINENO" 5
 fi
-
-
-# Check whether --with-tclap-lib was given.
-if test "${with_tclap_lib+set}" = set; then :
-  withval=$with_tclap_lib; LDFLAGS="-L${withval} ${LDFLAGS}"
-fi
-
 
 
 		for ac_header in tclap/CmdLine.h
@@ -4090,9 +4091,9 @@ fi
 
 
 
-# Check whether --with-potrace was given.
-if test "${with_potrace+set}" = set; then :
-  withval=$with_potrace;
+# Check whether --with-potrace-include was given.
+if test "${with_potrace_include+set}" = set; then :
+  withval=$with_potrace_include;
 else
   with_potrace="auto"
 fi
@@ -4270,9 +4271,9 @@ fi
 
 
 
-# Check whether --with-gocr was given.
-if test "${with_gocr+set}" = set; then :
-  withval=$with_gocr;
+# Check whether --with-gocr-include was given.
+if test "${with_gocr_include+set}" = set; then :
+  withval=$with_gocr_include;
 else
   with_gocr="auto"
 fi
@@ -4450,9 +4451,9 @@ fi
 
 
 
-# Check whether --with-ocrad was given.
-if test "${with_ocrad+set}" = set; then :
-  withval=$with_ocrad;
+# Check whether --with-ocrad-include was given.
+if test "${with_ocrad_include+set}" = set; then :
+  withval=$with_ocrad_include;
 else
   with_ocrad="auto"
 fi
@@ -4629,6 +4630,14 @@ fi
 
 
 
+# Check whether --with-tesseract-include was given.
+if test "${with_tesseract_include+set}" = set; then :
+  withval=$with_tesseract_include; CPPFLAGS=" ${CPPFLAGS} -I${withval}"
+
+fi
+
+
+
 
 # Check whether --with-tesseract was given.
 if test "${with_tesseract+set}" = set; then :
@@ -4645,6 +4654,7 @@ fi
 			with_tesseract="auto"
 
 fi
+
 
 
 # Check whether --with-tesseract-lib was given.
@@ -4810,6 +4820,22 @@ fi
 
 
 
+# Check whether --with-cuneiform-source was given.
+if test "${with_cuneiform_source+set}" = set; then :
+  withval=$with_cuneiform_source; CPPFLAGS=" ${CPPFLAGS} -I${withval}/cuneiform_src/Kern/hhh/ -I${withval}/cuneiform_src/Kern/h/  -I${withval}/cuneiform_src/Kern/hrk/  -I${withval}/cuneiform_src/Kern/puma/h/    -I${withval}/cuneiform_src/Kern/include/  -I${withval}/cuneiform_src/Kern/hdebug/"
+
+fi
+
+
+
+# Check whether --with-cuneiform-include was given.
+if test "${with_cuneiform_include+set}" = set; then :
+  withval=$with_cuneiform_include; CPPFLAGS=" ${CPPFLAGS} -I${withval}"
+
+fi
+
+
+
 
 # Check whether --with-cuneiform was given.
 if test "${with_cuneiform+set}" = set; then :
@@ -4826,6 +4852,7 @@ fi
 			with_cuneiform="auto"
 
 fi
+
 
 
 # Check whether --with-cuneiform-lib was given.
@@ -4998,9 +5025,9 @@ fi
 
 
 
-# Check whether --with-openbabel was given.
-if test "${with_openbabel+set}" = set; then :
-  withval=$with_openbabel;
+# Check whether --with-openbabel-include was given.
+if test "${with_openbabel_include+set}" = set; then :
+  withval=$with_openbabel_include;
 else
   with_openbabel="/usr/include/openbabel-2.0 /usr/local/include/openbabel-2.0"
 fi
@@ -6824,9 +6851,9 @@ fi
 
 
 
-# Check whether --with-graphicsmagick was given.
-if test "${with_graphicsmagick+set}" = set; then :
-  withval=$with_graphicsmagick;
+# Check whether --with-graphicsmagick-include was given.
+if test "${with_graphicsmagick_include+set}" = set; then :
+  withval=$with_graphicsmagick_include;
 else
   with_graphicsmagick=""
 fi

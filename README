@@ -107,6 +107,13 @@ Unpack OSRA package. Starting with 1.3.7 the build process is simplified to the 
 make
 make install
 
+You can now optionally add Tesseract and Cuneiform OCR engines to OSRA. For Tesseract simply run configure with
+--with-tesseract 
+assuming it's installed in a common location. For Cuneiform I used the following options:
+./configure --with-cuneiform --with-cuneiform-source=/home/igor/cuneiform-linux-1.0.0/ --with-cuneiform-include=/home/igor/cuneiform-linux-1.0.0/install/include/ --with-cuneiform-lib=/home/igor/cuneiform-linux-1.0.0/install/lib64/ 
+(the binary libraries and header files have been installed in /home/igor/cuneiform-linux-1.0.0/install/). The location of the source code is necessary because
+not all necessary headers are getting installed, unfortunately.
+You might have to add the path to the libraries to LD_LIBRARY_PATH.
 
 Mac OS X:
 To have static libraries install through MacPorts the following:
