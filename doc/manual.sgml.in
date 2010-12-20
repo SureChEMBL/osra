@@ -52,14 +52,7 @@
 		<refentrytitle>&package_name;</refentrytitle>
 		<manvolnum>1</manvolnum>
 		<refmiscinfo class="version">&package_version;</refmiscinfo>
-		<refmiscinfo class="download">https://sourceforge.net/projects/osra/files/osra/</refmiscinfo>
-		<!-- Should go to package/linux/debian/control#XS-Vcs-Svn -->
-		<refmiscinfo class="source">https://osra.svn.sourceforge.net/svnroot/osra/</refmiscinfo>
-		<!-- Should go to package/linux/debian/control#Vcs-browser -->
-		<!-- Should go to package/linux/debian/copyright#Source -->
-		<refmiscinfo class="source-browser">https://osra.svn.sourceforge.net/svnroot/osra/</refmiscinfo>
-		<!-- Should go to package/linux/debian/control#Homepage -->
-		<refmiscinfo class="manual">http://osra.sourceforge.net/</refmiscinfo>
+		<refmiscinfo class="manual">&package_name; recognition tool</refmiscinfo>
 	</refmeta>
 
 	<refnamediv>
