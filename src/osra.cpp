@@ -5086,59 +5086,83 @@ int main(int argc, char **argv)
 
   TCLAP::CmdLine cmd("OSRA: Optical Structure Recognition Application, created by Igor Filippov, 2007-2010", ' ',
                      PACKAGE_VERSION);
-#ifndef ANDROID
-  TCLAP::UnlabeledValueArg<string> input("in", "input file", true, "", "filename");
-  cmd.add(input);
-#endif
 
-  TCLAP::ValueArg<double> threshold("t", "threshold", "Gray level threshold", false, 0, "0.2..0.8");
-  cmd.add(threshold);
-  TCLAP::ValueArg<string> output("o", "output", "Write out images to files", false, "", "filename prefix");
-  cmd.add(output);
-  TCLAP::ValueArg<int> resolution_param("r", "resolution", "Resolution in dots per inch", false, 0, "default: auto");
-  cmd.add(resolution_param);
-  TCLAP::SwitchArg inv("n", "negate", "Invert color (white on black)", false);
-  cmd.add(inv);
-  TCLAP::ValueArg<string> resize("s", "size", "Resize image on output", false, "", "dimensions, 300x400");
-  cmd.add(resize);
-  TCLAP::SwitchArg conf("p", "print", "Print out confidence estimate", false);
-  cmd.add(conf);
-  TCLAP::SwitchArg guess("g", "guess", "Print out resolution guess", false);
-  cmd.add(guess);
-  TCLAP::ValueArg<string> format("f", "format", "Output format", false, "can", "can/smi/sdf");
-  cmd.add(format);
+ //
+  // Image pre-processing options
+  //
+  TCLAP::ValueArg<double> rotate_option("R", "rotate", "Rotate image clockwise by specified number of degrees", false, 0,
+                                 "0..360");
+  cmd.add(rotate_option);
 
-  TCLAP::ValueArg<string> spelling("l", "spelling", "Spelling correction dictionary", false, "", "configfile");
-  cmd.add(spelling);
+  TCLAP::SwitchArg invert_option("n", "negate", "Invert color (white on black)", false);
+  cmd.add(invert_option);
 
-  TCLAP::ValueArg<string> abbr("a", "superatom", "Superatom label map to SMILES", false, "", "configfile");
-  cmd.add(abbr);
+  TCLAP::ValueArg<int> resolution_option("r", "resolution", "Resolution in dots per inch", false, 0, "default: auto");
+  cmd.add(resolution_option);
 
-  TCLAP::SwitchArg debug("d", "debug", "Print out debug information on spelling corrections", false);
-  cmd.add(debug);
+  TCLAP::ValueArg<double> threshold_option("t", "threshold", "Gray level threshold", false, 0, "0.2..0.8");
+  cmd.add(threshold_option);
 
-  TCLAP::SwitchArg showpage("e", "page", "Show page number for PDF/PS/TIFF documents", false);
-  cmd.add(showpage);
+  TCLAP::ValueArg<int> do_unpaper_option("u", "unpaper", "Pre-process image with unpaper algorithm, rounds", false, 0,
+                                 "default: 0 rounds");
+  cmd.add(do_unpaper_option);
 
-  TCLAP::SwitchArg show_coordinates_option("c", "coordinates", "Show surrounding box coordinates (only for SDF/SMI/CAN formats)", false);
+  TCLAP::SwitchArg jaggy_option("j", "jaggy", "Additional thinning/scaling down of low quality documents", false);
+  cmd.add(jaggy_option);
+
+  //
+  // Output format options
+  //
+  TCLAP::ValueArg<string> output_format_option("f", "format", "Output format", false, "can", "can/smi/sdf");
+  cmd.add(output_format_option);
+
+  TCLAP::SwitchArg show_confidence_option("p", "print", "Print out confidence estimate", false);
+  cmd.add(show_confidence_option);
+
+  TCLAP::SwitchArg show_resolution_guess_option("g", "guess", "Print out resolution guess", false);
+  cmd.add(show_resolution_guess_option);
+
+  TCLAP::SwitchArg show_page_option("e", "page", "Show page number for PDF/PS/TIFF documents (only for SDF/SMI/CAN output format)", false);
+  cmd.add(show_page_option);
+
+  TCLAP::SwitchArg show_coordinates_option("c", "coordinates", "Show surrounding box coordinates (only for SDF/SMI/CAN output format)", false);
   cmd.add(show_coordinates_option);
 
-  TCLAP::ValueArg<double> rotate("R", "rotate", "Rotate image clockwise by specified number of degrees", false, 0,
-                                 "0..360");
-  cmd.add(rotate);
+  TCLAP::SwitchArg show_avg_bond_length_option("b", "bond", "Show average bond length in pixels (only for SDF/SMI/CAN output format)", false);
+  cmd.add(show_avg_bond_length_option);
 
-  TCLAP::ValueArg<int> dounpaper("u", "unpaper", "Pre-process image with unpaper algorithm, rounds", false, 0,
-                                 "default: 0 rounds");
-  cmd.add(dounpaper);
+  //
+  // Dictionaries options
+  //
+  TCLAP::ValueArg<string> spelling_file_option("l", "spelling", "Spelling correction dictionary", false, "", "configfile");
+  cmd.add(spelling_file_option);
 
-  TCLAP::ValueArg<string> writeout("w", "write", "Write output to file", false, "", "filename");
-  cmd.add(writeout);
+  TCLAP::ValueArg<string> superatom_file_option("a", "superatom", "Superatom label map to SMILES", false, "", "configfile");
+  cmd.add(superatom_file_option);
 
-  TCLAP::SwitchArg showbond("b", "bond", "Show average bond length in pixels", false);
-  cmd.add(showbond);
+  //
+  // Debugging options
+  //
+  TCLAP::SwitchArg debug_option("d", "debug", "Print out debug information on spelling corrections", false);
+  cmd.add(debug_option);
 
-  TCLAP::SwitchArg jaggy("j", "jaggy", "Additional thinning/scaling down of low quality documents", false);
-  cmd.add(jaggy);
+  TCLAP::ValueArg<string> output_image_file_prefix_option("o", "output", "Write recognized structures to image files with given prefix", false, "", "filename prefix");
+  cmd.add(output_image_file_prefix_option);
+
+  TCLAP::ValueArg<string> resize_option("s", "size", "Resize image on output", false, "", "dimensions, 300x400");
+  cmd.add(resize_option);
+
+  //
+  // Input-output options
+  //
+#ifndef ANDROID
+  TCLAP::UnlabeledValueArg<string> input_file_option("in", "input file", true, "", "filename");
+  cmd.add(input_file_option);
+#endif
+
+  TCLAP::ValueArg<string> output_file_option("w", "write", "Write recognized structures to text file", false, "", "filename");
+  cmd.add(output_file_option);
+
 
   cmd.parse(argc, argv);
 
@@ -5167,7 +5191,7 @@ int main(int argc, char **argv)
 
   map<string, string> fix;
 
-  if (!((spelling.getValue().length() != 0 && load_config_map(spelling.getValue(), fix))
+  if (!((spelling_file_option.getValue().length() != 0 && load_config_map(spelling_file_option.getValue(), fix))
         || load_config_map(string(DATA_DIR) + "/" + SPELLING_TXT, fix) || load_config_map(osra_dir + "/" + SPELLING_TXT, fix)))
     {
 #ifdef ANDROID
@@ -5181,7 +5205,7 @@ int main(int argc, char **argv)
 
   map<string, string> superatom;
 
-  if (!((abbr.getValue().length() != 0 && load_config_map(abbr.getValue(), superatom))
+  if (!((superatom_file_option.getValue().length() != 0 && load_config_map(superatom_file_option.getValue(), superatom))
         || load_config_map(string(DATA_DIR) + "/" + SUPERATOM_TXT, superatom) || load_config_map(osra_dir + "/"
             + SUPERATOM_TXT, superatom)))
     {
@@ -5208,7 +5232,7 @@ int main(int argc, char **argv)
       image_typer.ping(blob);
       type = image_typer.magick();
 #else
-      type = image_type(input.getValue());
+      type = image_type(input_file_option.getValue());
 #endif
     }
   catch (...)
@@ -5222,14 +5246,14 @@ int main(int argc, char **argv)
 #ifdef ANDROID
       return j_env->NewStringUTF("");
 #else
-      cerr << "Cannot open file \"" << input.getValue() << '"' << endl;
+      cerr << "Cannot open file \"" << input_file_option.getValue() << '"' << endl;
       exit(1);
 #endif
     }
 
-  if (!writeout.getValue().empty())
+  if (!output_file_option.getValue().empty())
     {
-      string filename = writeout.getValue();
+      string filename = output_file_option.getValue();
       ofstream outfile;
       outfile.open(filename.c_str(), ios::out | ios::trunc);
       if (outfile.bad() || !outfile.is_open())
@@ -5244,16 +5268,16 @@ int main(int argc, char **argv)
       outfile.close();
     }
 
-  bool invert = inv.getValue();
+  bool invert = invert_option.getValue();
 
-  int input_resolution = resolution_param.getValue();
+  int input_resolution = resolution_option.getValue();
 
   if (input_resolution == 0 && (type == "PDF" || type == "PS"))
     input_resolution = 150;
 
   bool show_coordinates = show_coordinates_option.getValue();
 
-  if (show_coordinates && rotate.getValue() != 0)
+  if (show_coordinates && rotate_option.getValue() != 0)
     {
       cerr << "Showing the box coordinates is currently not supported together with image rotation and is therefore disabled." << endl;
       show_coordinates = false;
@@ -5262,7 +5286,7 @@ int main(int argc, char **argv)
 #ifdef ANDROID
   int page = 1;
 #else
-  int page = count_pages(input.getValue());
+  int page = count_pages(input_file_option.getValue());
 #endif
 
 
@@ -5290,7 +5314,7 @@ int main(int argc, char **argv)
       image.read(blob);
 #else
       stringstream pname;
-      pname << input.getValue() << "[" << l << "]";
+      pname << input_file_option.getValue() << "[" << l << "]";
       image.read(pname.str());
 #endif
       image.modifyImage();
@@ -5381,13 +5405,13 @@ int main(int argc, char **argv)
 
       ColorGray bgColor = getBgColor(image, invert);
 
-      if (rotate.getValue() != 0)
+      if (rotate_option.getValue() != 0)
         {
           image.backgroundColor(bgColor);
-          image.rotate(rotate.getValue());
+          image.rotate(rotate_option.getValue());
         }
 
-      for (int i = 0; i < dounpaper.getValue(); i++)
+      for (int i = 0; i < do_unpaper_option.getValue(); i++)
         unpaper(image);
 
       list<list<list<point_t> > > clusters = find_segments(image, 0.1, bgColor);
@@ -5415,7 +5439,7 @@ int main(int argc, char **argv)
             working_resolution = 300;
 
           double THRESHOLD_BOND, THRESHOLD_CHAR;
-          THRESHOLD_BOND = threshold.getValue();
+          THRESHOLD_BOND = threshold_option.getValue();
           if (THRESHOLD_BOND < 0.0001)
             {
               if (resolution >= 150)
@@ -5434,7 +5458,7 @@ int main(int argc, char **argv)
           bool thick = true;
           if (resolution < 150)
             thick = false;
-          else if (resolution == 150 && !jaggy.getValue())
+          else if (resolution == 150 && !jaggy_option.getValue())
             thick = false;
 
           //Image dbg = image;
@@ -5514,7 +5538,7 @@ int main(int argc, char **argv)
                                               max_hist, nf45);
                           }
                       }
-                    if (jaggy.getValue())
+                    if (jaggy_option.getValue())
                       {
                         orig_box.scale("50%");
 			box_scale *= 2;
@@ -5685,7 +5709,7 @@ int main(int argc, char **argv)
                 n_letters = clean_unrecognized_characters(bond, n_bond, atom, real_font_height, real_font_width, 0,
                             letters, n_letters);
 
-                assign_charge(atom, bond, n_atom, n_bond, fix, superatom, debug.getValue());
+                assign_charge(atom, bond, n_atom, n_bond, fix, superatom, debug_option.getValue());
                 find_up_down_bonds(bond, n_bond, atom, thickness);
                 int real_atoms = count_atoms(atom, n_atom);
                 int real_bonds = count_bonds(bond, n_bond);
@@ -5738,8 +5762,8 @@ int main(int argc, char **argv)
 			  coordinate_box.y2=(int)((double)page_scale*boxes[k].y1 + (double)page_scale*box_scale*fragments[i].y2);
 			  
                           string smiles = get_smiles(frag_atom, frag_bond, n_bond, rotors, confidence, f, rings,
-                                                     avg_bond, page_scale*box_scale*avg_bond, format.getValue(), resolution, conf.getValue(), guess.getValue(),
-                                                     showpage.getValue(), l + 1, show_coordinates ? &coordinate_box : NULL, superatom, showbond.getValue());
+                                                     avg_bond, page_scale*box_scale*avg_bond, output_format_option.getValue(), resolution, show_confidence_option.getValue(), show_resolution_guess_option.getValue(),
+                                                     show_page_option.getValue(), l + 1, show_coordinates ? &coordinate_box : NULL, superatom, show_avg_bond_length_option.getValue());
 
                           if (f < MAX_FRAGMENTS && f > 0 && !smiles.empty())
                             {
@@ -5839,9 +5863,9 @@ int main(int argc, char **argv)
 #else
   ofstream outfile;
 
-  if (!writeout.getValue().empty())
+  if (!output_file_option.getValue().empty())
     {
-      string filename = writeout.getValue();
+      string filename = output_file_option.getValue();
       outfile.open(filename.c_str(), ios::out);
     }
 
@@ -5865,15 +5889,15 @@ int main(int argc, char **argv)
         if (pages_of_avg_bonds[l][i] > min_bond && pages_of_avg_bonds[l][i] < max_bond)
           {
             stringstream fname;
-            if (output.getValue() != "")
-              fname << output.getValue() << image_count << ".png";
+            if (output_image_file_prefix_option.getValue() != "")
+              fname << output_image_file_prefix_option.getValue() << image_count << ".png";
             image_count++;
             if (fname.str() != "")
               {
                 Image tmp = pages_of_images[l][i];
-                if (resize.getValue() != "")
+                if (resize_option.getValue() != "")
                   {
-                    tmp.scale(resize.getValue());
+                    tmp.scale(resize_option.getValue());
                   }
                 tmp.write(fname.str());
               }

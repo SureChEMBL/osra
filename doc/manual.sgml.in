@@ -65,27 +65,30 @@
 	<refsynopsisdiv>
 		<cmdsynopsis>
 			<command>&command_name;</command>
+
+			<!--
+				Image pre-processing options
+			-->
 			<arg choice="opt">
 				<group choice="req">
 					<arg choice="plain">
-						<option>-t</option>
+						<option>-R</option>
 					</arg>
 					<arg choice="plain">
-						<option>--threshold</option>
+						<option>--rotate</option>
 					</arg>
 				</group>
-				<replaceable class="option">number</replaceable>
+				<replaceable class="option">degree</replaceable>
 			</arg>
 			<arg choice="opt">
 				<group choice="req">
 					<arg choice="plain">
-						<option>-o</option>
+						<option>-n</option>
 					</arg>
 					<arg choice="plain">
-						<option>--output</option>
+						<option>--negate</option>
 					</arg>
 				</group>
-				<replaceable class="option">prefix</replaceable>
 			</arg>
 			<arg choice="opt">
 				<group choice="req">
@@ -101,44 +104,39 @@
 			<arg choice="opt">
 				<group choice="req">
 					<arg choice="plain">
-						<option>-n</option>
+						<option>-t</option>
 					</arg>
 					<arg choice="plain">
-						<option>--negate</option>
+						<option>--threshold</option>
 					</arg>
 				</group>
+				<replaceable class="option">number</replaceable>
 			</arg>
 			<arg choice="opt">
 				<group choice="req">
 					<arg choice="plain">
-						<option>-s</option>
+						<option>-u</option>
 					</arg>
 					<arg choice="plain">
-						<option>--size</option>
+						<option>--unpaper</option>
 					</arg>
 				</group>
-				<replaceable class="option">dimensions</replaceable>
+				<replaceable class="option">rounds</replaceable>
 			</arg>
 			<arg choice="opt">
 				<group choice="req">
 					<arg choice="plain">
-						<option>-p</option>
+						<option>-j</option>
 					</arg>
 					<arg choice="plain">
-						<option>--print</option>
+						<option>--jaggy</option>
 					</arg>
 				</group>
 			</arg>
-			<arg choice="opt">
-				<group choice="req">
-					<arg choice="plain">
-						<option>-g</option>
-					</arg>
-					<arg choice="plain">
-						<option>--guess</option>
-					</arg>
-				</group>
-			</arg>
+			
+			<!--
+				Output format options
+			-->
 			<arg choice="opt">
 				<group choice="req">
 					<arg choice="plain">
@@ -163,6 +161,60 @@
 			<arg choice="opt">
 				<group choice="req">
 					<arg choice="plain">
+						<option>-p</option>
+					</arg>
+					<arg choice="plain">
+						<option>--print</option>
+					</arg>
+				</group>
+			</arg>
+			<arg choice="opt">
+				<group choice="req">
+					<arg choice="plain">
+						<option>-g</option>
+					</arg>
+					<arg choice="plain">
+						<option>--guess</option>
+					</arg>
+				</group>
+			</arg>
+			<arg choice="opt">
+				<group choice="req">
+					<arg choice="plain">
+						<option>-e</option>
+					</arg>
+					<arg choice="plain">
+						<option>--page</option>
+					</arg>
+				</group>
+			</arg>
+			<arg choice="opt">
+				<group choice="req">
+					<arg choice="plain">
+						<option>-c</option>
+					</arg>
+					<arg choice="plain">
+						<option>--coordinates</option>
+					</arg>
+				</group>
+			</arg>
+			<arg choice="opt">
+				<group choice="req">
+					<arg choice="plain">
+						<option>-b</option>
+					</arg>
+					<arg choice="plain">
+						<option>--bond</option>
+					</arg>
+				</group>
+			</arg>
+			
+			<!--
+				Dictionaries options
+			-->
+			<arg choice="opt">
+				<group choice="req">
+					<arg choice="plain">
 						<option>-l</option>
 					</arg>
 					<arg choice="plain">
@@ -182,6 +234,10 @@
 				</group>
 				<replaceable class="option">filename</replaceable>
 			</arg>
+			
+			<!--
+				Debugging options
+			-->
 			<arg choice="opt">
 				<group choice="req">
 					<arg choice="plain">
@@ -195,35 +251,29 @@
 			<arg choice="opt">
 				<group choice="req">
 					<arg choice="plain">
-						<option>-e</option>
+						<option>-o</option>
 					</arg>
 					<arg choice="plain">
-						<option>--page</option>
+						<option>--output</option>
 					</arg>
 				</group>
+				<replaceable class="option">prefix</replaceable>
 			</arg>
 			<arg choice="opt">
 				<group choice="req">
 					<arg choice="plain">
-						<option>-R</option>
+						<option>-s</option>
 					</arg>
 					<arg choice="plain">
-						<option>--rotate</option>
+						<option>--size</option>
 					</arg>
 				</group>
-				<replaceable class="option">degree</replaceable>
+				<replaceable class="option">dimensions</replaceable>
 			</arg>
-			<arg choice="opt">
-				<group choice="req">
-					<arg choice="plain">
-						<option>-u</option>
-					</arg>
-					<arg choice="plain">
-						<option>--unpaper</option>
-					</arg>
-				</group>
-				<replaceable class="option">rounds</replaceable>
-			</arg>
+			
+			<!--
+				Input-output options
+			-->
 			<arg choice="opt">
 				<group choice="req">
 					<arg choice="plain">
@@ -235,26 +285,7 @@
 				</group>
 				<replaceable class="option">filename</replaceable>
 			</arg>
-			<arg choice="opt">
-				<group choice="req">
-					<arg choice="plain">
-						<option>-b</option>
-					</arg>
-					<arg choice="plain">
-						<option>--bond</option>
-					</arg>
-				</group>
-			</arg>
-		<arg choice="opt">
-				<group choice="req">
-					<arg choice="plain">
-						<option>-j</option>
-					</arg>
-					<arg choice="plain">
-						<option>--jaggy</option>
-					</arg>
-				</group>
-			</arg>
+
 			<arg choice="opt">
 				<option>--</option>
 			</arg>
@@ -306,29 +337,30 @@
 		</para>
 		<variablelist>
 			<!-- Use the variablelist.term.separator and the variablelist.term.break.after parameters to control the term elements. -->
+
+			<!--
+				Image pre-processing options
+			-->
 			<varlistentry>
 				<term>
-					<option>-t <replaceable>value</replaceable></option>
+					<option>-R</option>
 				</term>
 				<term>
-					<option>--threshold <replaceable>value</replaceable></option>
+					<option>--rotate <replaceable>degree</replaceable></option>
 				</term>
 				<listitem>
-					<para>Gray level threshold. Default is 0.2 for black-and-white images.</para>
+					<para>Rotate image clockwise by the number of degrees, i.e. <parameter>-R 90</parameter>.</para>
 				</listitem>
 			</varlistentry>
 			<varlistentry>
 				<term>
-					<option>-o <replaceable>prefix</replaceable></option>
+					<option>-n</option>
 				</term>
 				<term>
-					<option>--output</option>
+					<option>--negate</option>
 				</term>
 				<listitem>
-					<para>
-						Sets a prefix for writing recognized images to files - i.e. <parameter>-o tmp</parameter> will create files
-						<filename>tmp0.png</filename>, <filename>tmp1.png</filename>... for each of the structures.
-					</para>
+					<para>Inverts colors (for white on black images).</para>
 				</listitem>
 			</varlistentry>
 			<varlistentry>
@@ -347,51 +379,44 @@
 			</varlistentry>
 			<varlistentry>
 				<term>
-					<option>-n</option>
+					<option>-t <replaceable>value</replaceable></option>
 				</term>
 				<term>
-					<option>--negate</option>
+					<option>--threshold <replaceable>value</replaceable></option>
 				</term>
 				<listitem>
-					<para>Inverts colors (for white on black images).</para>
+					<para>Gray level threshold. Default is 0.2 for black-and-white images.</para>
 				</listitem>
 			</varlistentry>
 			<varlistentry>
 				<term>
-					<option>-s <replaceable>dimensions</replaceable></option>
+					<option>-u</option>
 				</term>
 				<term>
-					<option>--size <replaceable>dimensions</replaceable></option>
+					<option>--unpaper <replaceable>rounds</replaceable></option>
 				</term>
 				<listitem>
 					<para>
-						Resize images on output – can be useful for running OSRA as a backend for a webservice. Example: <parameter>-s 300x400</parameter>.
+						Pre-process image with unpaper algorithm, rounds (e.g. <parameter>-u 2</parameter> to run 2 rounds). Default is 0, or no
+						pre-processing.
 					</para>
 				</listitem>
 			</varlistentry>
 			<varlistentry>
 				<term>
-					<option>-p</option>
+					<option>-j</option>
 				</term>
 				<term>
-					<option>--print</option>
+					<option>--jaggy</option>
 				</term>
 				<listitem>
-					<para>Prints out the value of confidence function estimate.</para>
+					<para>Additional thinning/scaling down of low quality documents.</para>
 				</listitem>
 			</varlistentry>
 
-			<varlistentry>
-				<term>
-					<option>-g</option>
-				</term>
-				<term>
-					<option>--guess</option>
-				</term>
-				<listitem>
-					<para>Prints out resolution guess when you chose to have automatic resolution estimate.</para>
-				</listitem>
-			</varlistentry>
+			<!--
+				Output format options
+			-->
 			<varlistentry>
 				<term>
 					<option>-f <replaceable>format</replaceable></option>
@@ -406,6 +431,65 @@
 					</para>
 				</listitem>
 			</varlistentry>
+			<varlistentry>
+				<term>
+					<option>-p</option>
+				</term>
+				<term>
+					<option>--print</option>
+				</term>
+				<listitem>
+					<para>Prints out the value of confidence function estimate.</para>
+				</listitem>
+			</varlistentry>
+			<varlistentry>
+				<term>
+					<option>-g</option>
+				</term>
+				<term>
+					<option>--guess</option>
+				</term>
+				<listitem>
+					<para>Prints out resolution guess when you chose to have automatic resolution estimate.</para>
+				</listitem>
+			</varlistentry>
+			<varlistentry>
+				<term>
+					<option>-e</option>
+				</term>
+				<term>
+					<option>--page</option>
+				</term>
+				<listitem>
+					<para>Show page number for structures from multi-page PDF, PostScript or TIFF documents (only for SDF/SMI/CAN output format).</para>
+				</listitem>
+			</varlistentry>
+			<varlistentry>
+				<term>
+					<option>-c</option>
+				</term>
+				<term>
+					<option>--coordinates</option>
+				</term>
+				<listitem>
+					<para>Show surrounding box coordinates (only for SDF/SMI/CAN output format).</para>
+				</listitem>
+			</varlistentry>
+			<varlistentry>
+				<term>
+					<option>-b</option>
+				</term>
+				<term>
+					<option>--bond</option>
+				</term>
+				<listitem>
+					<para>Show average bond length in pixels (only for SDF/SMI/CAN output format).</para>
+				</listitem>
+			</varlistentry>
+
+			<!--
+				Dictionaries options
+			-->
 			<varlistentry>
 				<term>
 					<option>-l <replaceable>filename</replaceable></option>
@@ -432,6 +516,10 @@
 					</para>
 				</listitem>
 			</varlistentry>
+
+			<!--
+				Debugging options
+			-->
 			<varlistentry>
 				<term>
 					<option>-d</option>
@@ -448,40 +536,35 @@
 			</varlistentry>
 			<varlistentry>
 				<term>
-					<option>-e</option>
+					<option>-o <replaceable>prefix</replaceable></option>
 				</term>
 				<term>
-					<option>--page</option>
-				</term>
-				<listitem>
-					<para>Show page number for structures from multi-page PDF, PostScript or TIFF documents.</para>
-				</listitem>
-			</varlistentry>
-			<varlistentry>
-				<term>
-					<option>-R</option>
-				</term>
-				<term>
-					<option>--rotate <replaceable>degree</replaceable></option>
-				</term>
-				<listitem>
-					<para>Rotate image clockwise by the number of degrees, i.e. <parameter>-R 90</parameter>.</para>
-				</listitem>
-			</varlistentry>
-			<varlistentry>
-				<term>
-					<option>-u</option>
-				</term>
-				<term>
-					<option>--unpaper <replaceable>rounds</replaceable></option>
+					<option>--output</option>
 				</term>
 				<listitem>
 					<para>
-						Pre-process image with unpaper algorithm, rounds (e.g. <parameter>-u 2</parameter> to run 2 rounds). Default is 0, or no
-						pre-processing.
+						Sets a prefix for writing recognized images to files - i.e. <parameter>-o tmp</parameter> will create files
+						<filename>tmp0.png</filename>, <filename>tmp1.png</filename>... for each of the structures.
 					</para>
 				</listitem>
 			</varlistentry>
+			<varlistentry>
+				<term>
+					<option>-s <replaceable>dimensions</replaceable></option>
+				</term>
+				<term>
+					<option>--size <replaceable>dimensions</replaceable></option>
+				</term>
+				<listitem>
+					<para>
+						Resize images on output – can be useful for running OSRA as a backend for a webservice. Example: <parameter>-s 300x400</parameter>.
+					</para>
+				</listitem>
+			</varlistentry>
+
+			<!--
+				Input-output options
+			-->
 			<varlistentry>
 				<term>
 					<option>-w <replaceable>filename</replaceable></option>
@@ -493,28 +576,10 @@
 					<para>Write output to file</para>
 				</listitem>
 			</varlistentry>
-			<varlistentry>
-				<term>
-					<option>-b</option>
-				</term>
-				<term>
-					<option>--bond</option>
-				</term>
-				<listitem>
-					<para>Show average bond length in pixels</para>
-				</listitem>
-			</varlistentry>
-		<varlistentry>
-				<term>
-					<option>-j</option>
-				</term>
-				<term>
-					<option>--jaggy</option>
-				</term>
-				<listitem>
-					<para>Additional thinning/scaling down of low quality documents</para>
-				</listitem>
-			</varlistentry>
+
+			<!--
+				Other options
+			-->
 			<varlistentry>
 				<term>
 					<option>--version</option>
