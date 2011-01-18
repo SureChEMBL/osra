@@ -2696,8 +2696,8 @@ int resolve_bridge_bonds(vector<atom_t> &atom, int n_atom, vector<bond_t> &bond,
 {
   int rotors1, rotors2, f1, f2, rings1, rings2;
   double confidence;
-  string smiles1 = get_smiles(atom, bond, n_bond, rotors1, confidence, f1, rings1, avg, "empty", 0, false, false,
-                              false, 0, superatom, false);
+  string smiles1 = get_smiles(atom, bond, n_bond, rotors1, confidence, f1, rings1, avg, avg,"empty", 0, false, false,
+                              false, 0, NULL, superatom, false);
 
   for (int i = 0; i < n_atom; i++)
     if ((atom[i].exists) && (atom[i].label == " "))
@@ -2768,8 +2768,8 @@ int resolve_bridge_bonds(vector<atom_t> &atom, int n_atom, vector<bond_t> &bond,
                       bond[c].b = bond[d].b;
                     else if (bond[c].b == bond[d].b)
                       bond[c].b = bond[d].a;
-                    string smiles2 = get_smiles(atom, bond, n_bond, rotors2, confidence, f2, rings2, avg, "empty",
-                                                0, false, false, false, 0, superatom, false);
+                    string smiles2 = get_smiles(atom, bond, n_bond, rotors2, confidence, f2, rings2, avg, avg, "empty",
+                                                0, false, false, false, 0, NULL, superatom, false);
                     if (f1 != f2 || rotors1 != rotors2 || rings1 - rings2 == 2)
                       {
                         bond[b].exists = true;
@@ -5120,6 +5120,9 @@ int main(int argc, char **argv)
   TCLAP::SwitchArg showpage("e", "page", "Show page number for PDF/PS/TIFF documents", false);
   cmd.add(showpage);
 
+  TCLAP::SwitchArg show_coordinates_option("c", "coordinates", "Show surrounding box coordinates (only for SDF/SMI/CAN formats)", false);
+  cmd.add(show_coordinates_option);
+
   TCLAP::ValueArg<double> rotate("R", "rotate", "Rotate image clockwise by specified number of degrees", false, 0,
                                  "0..360");
   cmd.add(rotate);
@@ -5248,6 +5251,14 @@ int main(int argc, char **argv)
   if (input_resolution == 0 && (type == "PDF" || type == "PS"))
     input_resolution = 150;
 
+  bool show_coordinates = show_coordinates_option.getValue();
+
+  if (show_coordinates && rotate.getValue() != 0)
+    {
+      cerr << "Showing the box coordinates is currently not supported together with image rotation and is therefore disabled." << endl;
+      show_coordinates = false;
+    }
+
 #ifdef ANDROID
   int page = 1;
 #else
@@ -5266,10 +5277,14 @@ int main(int argc, char **argv)
   for (int l = 0; l < page; l++)
     {
       Image image;
+      double page_scale=1;
 
       stringstream density;
       density << input_resolution << "x" << input_resolution;
       image.density(density.str());
+
+      if (type == "PDF" || type == "PS") page_scale*=300/input_resolution;
+	
 
 #ifdef ANDROID
       image.read(blob);
@@ -5360,6 +5375,8 @@ int main(int argc, char **argv)
           stringstream scale;
           scale << percent << "%";
           image.scale(scale.str());
+	  if (type == "PDF" || type == "PS") page_scale *= (double) percent/100;
+	  else page_scale /= (double) percent/100;
         }
 
       ColorGray bgColor = getBgColor(image, invert);
@@ -5437,7 +5454,7 @@ int main(int argc, char **argv)
                 vector<bond_t> frag_bond;
                 vector<letters_t> letters;
                 vector<label_t> label;
-
+		double box_scale = 1;
                 Image orig_box(Geometry(boxes[k].x2 - boxes[k].x1 + 2 * FRAME, boxes[k].y2 - boxes[k].y1 + 2
                                         * FRAME), bgColor);
 
@@ -5472,6 +5489,7 @@ int main(int argc, char **argv)
                             stringstream scale;
                             scale << percent << "%";
                             orig_box.scale(scale.str());
+			    box_scale /= (double) percent/100;
                             working_resolution = 300;
                             thick_box = orig_box;
                             width = thick_box.columns();
@@ -5486,6 +5504,7 @@ int main(int argc, char **argv)
                             stringstream scale;
                             scale << percent << "%";
                             orig_box.scale(scale.str());
+			    box_scale /= (double) percent/100;
                             working_resolution = 300;
                             thick_box = orig_box;
                             width = thick_box.columns();
@@ -5498,6 +5517,7 @@ int main(int argc, char **argv)
                     if (jaggy.getValue())
                       {
                         orig_box.scale("50%");
+			box_scale *= 2;
                         thick_box = orig_box;
                         working_resolution = 150;
                         width = thick_box.columns();
@@ -5537,6 +5557,7 @@ int main(int argc, char **argv)
                     stringstream scale;
                     scale << percent << "%";
                     orig_box.scale(scale.str());
+		    box_scale /= (double) percent/100;
                     working_resolution = 300;
                   }
                 else
@@ -5669,8 +5690,6 @@ int main(int argc, char **argv)
                 int real_atoms = count_atoms(atom, n_atom);
                 int real_bonds = count_bonds(bond, n_bond);
 
-
-
                 if (real_atoms > MIN_A_COUNT && real_atoms < MAX_A_COUNT && real_bonds < MAX_A_COUNT)
                   {
                     int f;
@@ -5712,13 +5731,20 @@ int main(int argc, char **argv)
 
                           int rotors, rings;
                           double confidence = 0;
+			  box_t coordinate_box;
+			  coordinate_box.x1=(int)((double)page_scale*boxes[k].x1 + (double)page_scale*box_scale*fragments[i].x1);
+			  coordinate_box.y1=(int)((double)page_scale*boxes[k].y1 + (double)page_scale*box_scale*fragments[i].y1);
+			  coordinate_box.x2=(int)((double)page_scale*boxes[k].x1 + (double)page_scale*box_scale*fragments[i].x2);
+			  coordinate_box.y2=(int)((double)page_scale*boxes[k].y1 + (double)page_scale*box_scale*fragments[i].y2);
+			  
                           string smiles = get_smiles(frag_atom, frag_bond, n_bond, rotors, confidence, f, rings,
-                                                     avg_bond, format.getValue(), resolution, conf.getValue(), guess.getValue(),
-                                                     showpage.getValue(), l + 1, superatom, showbond.getValue());
+                                                     avg_bond, page_scale*box_scale*avg_bond, format.getValue(), resolution, conf.getValue(), guess.getValue(),
+                                                     showpage.getValue(), l + 1, show_coordinates ? &coordinate_box : NULL, superatom, showbond.getValue());
+
                           if (f < MAX_FRAGMENTS && f > 0 && !smiles.empty())
                             {
                               array_of_smiles[res_iter].push_back(smiles);
-                              array_of_avg_bonds[res_iter].push_back(avg_bond);
+                              array_of_avg_bonds[res_iter].push_back(page_scale*box_scale*avg_bond);
                               array_of_ind_conf[res_iter].push_back(confidence);
                               total_boxes++;
                               total_confidence += confidence;
@@ -5727,10 +5753,10 @@ int main(int argc, char **argv)
                                 {
                                   try
                                     {
-                                      tmp.crop(Geometry(fragments[i].x2 - fragments[i].x1 + 4 * real_font_width,
-                                                        fragments[i].y2 - fragments[i].y1 + 4 * real_font_height,
-                                                        boxes[k].x1 + fragments[i].x1 - FRAME - 2 * real_font_width,
-                                                        boxes[k].y1 + fragments[i].y1 - FRAME - 2 * real_font_height));
+                                      tmp.crop(Geometry(box_scale*fragments[i].x2 - box_scale*fragments[i].x1 + 4 * real_font_width,
+                                                        box_scale*fragments[i].y2 - box_scale*fragments[i].y1 + 4 * real_font_height,
+                                                        boxes[k].x1 + box_scale*fragments[i].x1 - FRAME - 2 * real_font_width,
+                                                        boxes[k].y1 + box_scale*fragments[i].y1 - FRAME - 2 * real_font_height));
                                     }
                                   catch (...)
                                     {

@@ -159,8 +159,8 @@ int getAnum(const string &s, OBMol &mol, int &n, int &bondn, const map<string, s
 }
 
 const string get_smiles(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, int &rotors, double &confidence,
-                        int &num_fragments, int &r56, double avg, const string &format, int resolution, bool conf, bool guess,
-                        bool showpage, int page, const map<string, string> &superatom, bool showbond)
+                        int &num_fragments, int &r56, double avg, double scaled_avg,const string &format, int resolution, bool conf, bool guess,
+                        bool showpage, int page, const box_t * const surrounding_box, const map<string, string> &superatom, bool showbond)
 {
   stringstream strstr;
 
@@ -429,12 +429,22 @@ const string get_smiles(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, 
         mol.SetData(label);
       }
 
+    if (surrounding_box)
+      {
+        OBPairData *label = new OBPairData;
+        label->SetAttribute("Surrounding_box");
+        stringstream cs;
+        cs << surrounding_box->x1 << 'x' << surrounding_box->y1 << '-' << surrounding_box->x2 << 'x' << surrounding_box->y2;
+        label->SetValue(cs.str());
+        mol.SetData(label);
+      }
+
     if (showbond)
       {
         OBPairData *label = new OBPairData;
         label->SetAttribute("Average_bond_length");
         stringstream cs;
-        cs << avg;
+        cs << scaled_avg;
         label->SetValue(cs.str());
         //label->SetOrigin(userInput); // set by user, not by Open Babel
         mol.SetData(label);
@@ -490,7 +500,9 @@ const string get_smiles(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, 
         if (showpage)
           strstr << " " << page;
         if (showbond)
-          strstr << " " << avg;
+          strstr << " " << scaled_avg;
+	if (surrounding_box)
+	  strstr <<" " << surrounding_box->x1 << 'x' << surrounding_box->y1 << '-' << surrounding_box->x2 << 'x' << surrounding_box->y2;
       }
     strstr << endl;
 

@@ -258,8 +258,8 @@ const string fix_atom_name(const string &s, int n, const map<string, string> &fi
 //
 //    string containing SMILES, SDF or other representation of the molecule
 const string get_smiles(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, int &rotors, double &confidence,
-                        int &num_fragments, int &r56, double avg, const string &format, int resolution, bool conf, bool guess,
-                        bool showpage, int page, const map<string, string> &superatom, bool showbond);
+                        int &num_fragments, int &r56, double avg, double scaled_avg, const string &format, int resolution, bool conf, bool guess,
+                        bool showpage, int page, const box_t * const surrounding_box, const map<string, string> &superatom, bool showbond);
 
 // Function: anisotropic_smoothing()
 //
