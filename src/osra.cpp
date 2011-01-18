@@ -5189,10 +5189,10 @@ int main(int argc, char **argv)
   progname[sizeof(progname) - 1] = '\0';
   string osra_dir = dirname(progname);
 
-  map<string, string> fix;
+  map<string, string> spelling;
 
-  if (!((spelling_file_option.getValue().length() != 0 && load_config_map(spelling_file_option.getValue(), fix))
-        || load_config_map(string(DATA_DIR) + "/" + SPELLING_TXT, fix) || load_config_map(osra_dir + "/" + SPELLING_TXT, fix)))
+  if (!((spelling_file_option.getValue().length() != 0 && load_config_map(spelling_file_option.getValue(), spelling))
+        || load_config_map(string(DATA_DIR) + "/" + SPELLING_TXT, spelling) || load_config_map(osra_dir + "/" + SPELLING_TXT, spelling)))
     {
 #ifdef ANDROID
       return j_env->NewStringUTF("");
@@ -5380,7 +5380,7 @@ int main(int argc, char **argv)
       if (input_resolution != 0)
         num_resolutions = 1;
       vector<int> select_resolution(num_resolutions, input_resolution);
-      vector<vector<string> > array_of_smiles(num_resolutions);
+      vector<vector<string> > array_of_structures(num_resolutions);
       vector<vector<double> > array_of_avg_bonds(num_resolutions), array_of_ind_conf(num_resolutions);
       vector<double> array_of_confidence(num_resolutions, -FLT_MAX);
       vector<vector<Image> > array_of_images(num_resolutions);
@@ -5613,24 +5613,24 @@ int main(int argc, char **argv)
                 n_letters = find_chars(p, orig_box, letters, atom, bond, n_atom, n_bond, height, width, bgColor,
                                        THRESHOLD_CHAR, max_font_width, max_font_height, real_font_width, real_font_height);
 
-                double avg_bond = percentile75(bond, n_bond, atom);
+                double avg_bond_length = percentile75(bond, n_bond, atom);
 
-                double max_area = avg_bond * 5;
+                double max_area = avg_bond_length * 5;
                 if (thick)
-                  max_area = avg_bond;
+                  max_area = avg_bond_length;
 
                 n_letters = find_plus_minus(p, letters, atom, bond, n_atom, n_bond, height, width,
                                             real_font_height, real_font_width, n_letters);
 
-                n_atom = find_small_bonds(p, atom, bond, n_atom, &n_bond, max_area, avg_bond / 2, 5);
+                n_atom = find_small_bonds(p, atom, bond, n_atom, &n_bond, max_area, avg_bond_length / 2, 5);
 
-                find_old_aromatic_bonds(p, bond, n_bond, atom, n_atom, avg_bond);
+                find_old_aromatic_bonds(p, bond, n_bond, atom, n_atom, avg_bond_length);
 
                 double dist = 3.;
                 if (working_resolution < 150)
                   dist = 2;
 
-                double thickness = skeletize(atom, bond, n_bond, box, THRESHOLD_BOND, bgColor, dist, avg_bond);
+                double thickness = skeletize(atom, bond, n_bond, box, THRESHOLD_BOND, bgColor, dist, avg_bond_length);
 
                 remove_disconnected_atoms(atom, bond, n_atom, n_bond);
                 collapse_atoms(atom, bond, n_atom, n_bond, 3);
@@ -5644,33 +5644,33 @@ int main(int argc, char **argv)
 
                 flatten_bonds(bond, n_bond, atom, 3);
                 remove_zero_bonds(bond, n_bond, atom);
-                avg_bond = percentile75(bond, n_bond, atom);
+                avg_bond_length = percentile75(bond, n_bond, atom);
 
-                double max_dist_double_bond = dist_double_bonds(atom, bond, n_bond, avg_bond);
-                n_bond = double_triple_bonds(atom, bond, n_bond, avg_bond, n_atom, max_dist_double_bond);
+                double max_dist_double_bond = dist_double_bonds(atom, bond, n_bond, avg_bond_length);
+                n_bond = double_triple_bonds(atom, bond, n_bond, avg_bond_length, n_atom, max_dist_double_bond);
 
                 //if (ttt++ == 9) {
                 //	debug_img(orig_box, atom, n_atom, bond, n_bond, "tmp.png");
                 //}
 
-                n_atom = find_dashed_bonds(p, atom, bond, n_atom, &n_bond, max(MAX_DASH, int(avg_bond / 3)),
-                                           avg_bond, orig_box, bgColor, THRESHOLD_BOND, thick, avg_bond);
+                n_atom = find_dashed_bonds(p, atom, bond, n_atom, &n_bond, max(MAX_DASH, int(avg_bond_length / 3)),
+                                           avg_bond_length, orig_box, bgColor, THRESHOLD_BOND, thick, avg_bond_length);
 
                 n_letters = remove_small_bonds(bond, n_bond, atom, letters, n_letters, real_font_height,
-                                               MIN_FONT_HEIGHT, avg_bond);
+                                               MIN_FONT_HEIGHT, avg_bond_length);
 
                 dist = 4.;
                 if (working_resolution < 300)
                   dist = 3;
                 if (working_resolution < 150)
                   dist = 2;
-                n_bond = fix_one_sided_bonds(bond, n_bond, atom, dist, avg_bond);
+                n_bond = fix_one_sided_bonds(bond, n_bond, atom, dist, avg_bond_length);
 
                 n_letters = clean_unrecognized_characters(bond, n_bond, atom, real_font_height, real_font_width, 4,
                             letters, n_letters);
 
                 thickness = find_wedge_bonds(thick_box, atom, n_atom, bond, n_bond, bgColor, THRESHOLD_BOND,
-                                             max_dist_double_bond, avg_bond, 3, 1);
+                                             max_dist_double_bond, avg_bond_length, 3, 1);
 
                 n_label = assemble_labels(letters, n_letters, label);
 
@@ -5684,11 +5684,11 @@ int main(int argc, char **argv)
 
                 remove_zero_bonds(bond, n_bond, atom);
 
-                avg_bond = percentile75(bond, n_bond, atom);
+                avg_bond_length = percentile75(bond, n_bond, atom);
 
                 collapse_double_bonds(bond, n_bond, atom, max_dist_double_bond);
 
-                extend_terminal_bond_to_label(atom, letters, n_letters, bond, n_bond, label, n_label, avg_bond / 2,
+                extend_terminal_bond_to_label(atom, letters, n_letters, bond, n_bond, label, n_label, avg_bond_length / 2,
                                               thickness, max_dist_double_bond);
 
                 remove_disconnected_atoms(atom, bond, n_atom, n_bond);
@@ -5700,7 +5700,7 @@ int main(int argc, char **argv)
                 remove_zero_bonds(bond, n_bond, atom);
                 remove_disconnected_atoms(atom, bond, n_atom, n_bond);
 
-                extend_terminal_bond_to_bonds(atom, bond, n_bond, avg_bond, 2 * thickness, max_dist_double_bond);
+                extend_terminal_bond_to_bonds(atom, bond, n_bond, avg_bond_length, 2 * thickness, max_dist_double_bond);
 
                 collapse_atoms(atom, bond, n_atom, n_bond, 3);
                 remove_zero_bonds(bond, n_bond, atom);
@@ -5709,23 +5709,23 @@ int main(int argc, char **argv)
                 n_letters = clean_unrecognized_characters(bond, n_bond, atom, real_font_height, real_font_width, 0,
                             letters, n_letters);
 
-                assign_charge(atom, bond, n_atom, n_bond, fix, superatom, debug_option.getValue());
+                assign_charge(atom, bond, n_atom, n_bond, spelling, superatom, debug_option.getValue());
                 find_up_down_bonds(bond, n_bond, atom, thickness);
                 int real_atoms = count_atoms(atom, n_atom);
                 int real_bonds = count_bonds(bond, n_bond);
 
                 if (real_atoms > MIN_A_COUNT && real_atoms < MAX_A_COUNT && real_bonds < MAX_A_COUNT)
                   {
-                    int f;
+                    int num_frag;
 
-                    f = resolve_bridge_bonds(atom, n_atom, bond, n_bond, 2 * thickness, avg_bond, superatom);
-                    collapse_bonds(atom, bond, n_bond, avg_bond / 4);
+                    num_frag = resolve_bridge_bonds(atom, n_atom, bond, n_bond, 2 * thickness, avg_bond_length, superatom);
+                    collapse_bonds(atom, bond, n_bond, avg_bond_length / 4);
                     collapse_atoms(atom, bond, n_atom, n_bond, 3);
                     remove_zero_bonds(bond, n_bond, atom);
-                    extend_terminal_bond_to_bonds(atom, bond, n_bond, avg_bond, 7, 0);
+                    extend_terminal_bond_to_bonds(atom, bond, n_bond, avg_bond_length, 7, 0);
 
-                    remove_small_terminal_bonds(bond, n_bond, atom, avg_bond);
-                    n_bond = reconnect_fragments(bond, n_bond, atom, avg_bond);
+                    remove_small_terminal_bonds(bond, n_bond, atom, avg_bond_length);
+                    n_bond = reconnect_fragments(bond, n_bond, atom, avg_bond_length);
                     collapse_atoms(atom, bond, n_atom, n_bond, 1);
                     mark_terminal_atoms(bond, n_bond, atom, n_atom);
                     const vector<vector<int> > &frags = find_fragments(bond, n_bond, atom);
@@ -5761,14 +5761,14 @@ int main(int argc, char **argv)
 			  coordinate_box.x2=(int)((double)page_scale*boxes[k].x1 + (double)page_scale*box_scale*fragments[i].x2);
 			  coordinate_box.y2=(int)((double)page_scale*boxes[k].y1 + (double)page_scale*box_scale*fragments[i].y2);
 			  
-                          string smiles = get_smiles(frag_atom, frag_bond, n_bond, rotors, confidence, f, rings,
-                                                     avg_bond, page_scale*box_scale*avg_bond, output_format_option.getValue(), resolution, show_confidence_option.getValue(), show_resolution_guess_option.getValue(),
+                          string structure = get_smiles(frag_atom, frag_bond, n_bond, rotors, confidence, num_frag, rings,
+                                                     avg_bond_length, page_scale*box_scale*avg_bond_length, output_format_option.getValue(), resolution, show_confidence_option.getValue(), show_resolution_guess_option.getValue(),
                                                      show_page_option.getValue(), l + 1, show_coordinates ? &coordinate_box : NULL, superatom, show_avg_bond_length_option.getValue());
 
-                          if (f < MAX_FRAGMENTS && f > 0 && !smiles.empty())
+                          if (num_frag < MAX_FRAGMENTS && num_frag > 0 && !structure.empty())
                             {
-                              array_of_smiles[res_iter].push_back(smiles);
-                              array_of_avg_bonds[res_iter].push_back(page_scale*box_scale*avg_bond);
+                              array_of_structures[res_iter].push_back(structure);
+                              array_of_avg_bonds[res_iter].push_back(page_scale*box_scale*avg_bond_length);
                               array_of_ind_conf[res_iter].push_back(confidence);
                               total_boxes++;
                               total_confidence += confidence;
@@ -5823,16 +5823,16 @@ int main(int argc, char **argv)
       int max_res = 0;
       for (int i = 0; i < num_resolutions; i++)
         {
-          if (array_of_confidence[i] > max_conf && array_of_smiles[i].size() > 0)
+          if (array_of_confidence[i] > max_conf && array_of_structures[i].size() > 0)
             {
               max_conf = array_of_confidence[i];
               max_res = i;
             }
         }
 
-      for (unsigned int i = 0; i < array_of_smiles[max_res].size(); i++)
+      for (unsigned int i = 0; i < array_of_structures[max_res].size(); i++)
         {
-          pages_of_structures[l].push_back(array_of_smiles[max_res][i]);
+          pages_of_structures[l].push_back(array_of_structures[max_res][i]);
           pages_of_images[l].push_back(array_of_images[max_res][i]);
           pages_of_avg_bonds[l].push_back(array_of_avg_bonds[max_res][i]);
           pages_of_ind_conf[l].push_back(array_of_ind_conf[max_res][i]);
