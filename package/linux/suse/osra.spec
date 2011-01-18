@@ -48,7 +48,7 @@ Authors:
 #%patch0 -p0
 
 %build
-./configure --prefix=/usr --enable-docs --datadir='${datarootdir}/${PACKAGE_NAME}' --docdir='${datarootdir}/doc/packages/${PACKAGE_NAME}'
+./configure --prefix=/usr --enable-docs --disable-graphicsmagick-config --datadir='${datarootdir}/${PACKAGE_NAME}' --docdir='${datarootdir}/doc/packages/${PACKAGE_NAME}'
 make CXXFLAGS='${RPM_OPT_FLAGS}'
 
 %install
