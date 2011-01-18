@@ -112,7 +112,7 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
 
     for (int i = y1; i <= y2; i++)
       for (int j = x1; j <= x2; j++)
-        tmp[(i - y1) * (x2 - x1 + 1) + j - x1] = (unsigned char) (255 - 255 * getPixel(image, bg, j, i,
+        tmp[(i - y1) * (x2 - x1 + 1) + j - x1] = (unsigned char) (255 - 255 * get_pixel(image, bg, j, i,
             THRESHOLD));
 
     int t = 1;

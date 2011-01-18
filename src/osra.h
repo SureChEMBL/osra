@@ -338,7 +338,7 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
 // Returns:
 //
 // 1 for set pixel, 0 for background
-int getPixel(const Magick::Image &image, const Magick::ColorGray &bg, unsigned int x, unsigned int y, double THRESHOLD);
+int get_pixel(const Magick::Image &image, const Magick::ColorGray &bg, unsigned int x, unsigned int y, double THRESHOLD);
 
 // Function: confidence_function()
 //

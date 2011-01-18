@@ -169,7 +169,7 @@ void collapse_doubleup_bonds(vector<bond_t> &bond, int n_bond)
           }
 }
 
-int getPixel(const Image &image, const ColorGray &bg, unsigned int x, unsigned int y, double THRESHOLD)
+int get_pixel(const Image &image, const ColorGray &bg, unsigned int x, unsigned int y, double THRESHOLD)
 {
   if ((x < image.columns()) && (y < image.rows()))
     {
@@ -384,7 +384,7 @@ bool no_white_space(int ai, int bi, int aj, int bj, const vector<atom_t> &atom, 
             for (int y = int(p1) + dp; y != int(p2); y += dp)
               {
                 s++;
-                if (getPixel(image, bgColor, x, y, threshold) == 0)
+                if (get_pixel(image, bgColor, x, y, threshold) == 0)
                   {
                     w++;
                     white = true;
@@ -418,7 +418,7 @@ bool no_white_space(int ai, int bi, int aj, int bj, const vector<atom_t> &atom, 
             for (int x = int(p1) + dp; x != int(p2); x += dp)
               {
                 s++;
-                if (getPixel(image, bgColor, x, y, threshold) == 0)
+                if (get_pixel(image, bgColor, x, y, threshold) == 0)
                   {
                     w++;
                     white = true;
@@ -1786,7 +1786,7 @@ int find_chars(const potrace_path_t * p, const Image &orig, vector<letters_t> &l
               while ((top > 0) && (s > 0))
                 {
                   s = 0;
-                  s = getPixel(orig, bgColor, x1, top, THRESHOLD);
+                  s = get_pixel(orig, bgColor, x1, top, THRESHOLD);
                   if (s > 0)
                     top--;
                 }
@@ -1794,7 +1794,7 @@ int find_chars(const potrace_path_t * p, const Image &orig, vector<letters_t> &l
               while ((bottom < height) && (s > 0))
                 {
                   s = 0;
-                  s = getPixel(orig, bgColor, x2, bottom, THRESHOLD);
+                  s = get_pixel(orig, bgColor, x2, bottom, THRESHOLD);
                   if (s > 0)
                     bottom++;
                 }
@@ -1802,7 +1802,7 @@ int find_chars(const potrace_path_t * p, const Image &orig, vector<letters_t> &l
               while ((left > 0) && (s > 0))
                 {
                   s = 0;
-                  s = getPixel(orig, bgColor, left, y1, THRESHOLD);
+                  s = get_pixel(orig, bgColor, left, y1, THRESHOLD);
                   if (s > 0)
                     left--;
                 }
@@ -1810,7 +1810,7 @@ int find_chars(const potrace_path_t * p, const Image &orig, vector<letters_t> &l
               while ((right < width) && (s > 0))
                 {
                   s = 0;
-                  s = getPixel(orig, bgColor, right, y2, THRESHOLD);
+                  s = get_pixel(orig, bgColor, right, y2, THRESHOLD);
                   if (s > 0)
                     right++;
                 }
@@ -2220,7 +2220,7 @@ Image thin_image(const Image &box, double THRESHOLD_BOND, const ColorGray &bgCol
 
   for (unsigned int i = 0; i < xsize; i++)
     for (unsigned int j = 0; j < ysize; j++)
-      ptr[i + j * xsize] = getPixel(box, bgColor, i, j, THRESHOLD_BOND);
+      ptr[i + j * xsize] = get_pixel(box, bgColor, i, j, THRESHOLD_BOND);
 
   if (xsize>1 && ysize>1)
     thin1(ptr, xsize, ysize);
@@ -2330,7 +2330,7 @@ int find_dashed_bonds(const potrace_path_t *p, vector<atom_t> &atom, vector<bond
 
   for (unsigned int i = 0; i < img.columns(); i++)
     for (unsigned int j = 0; j < img.rows(); j++)
-      box[i].push_back(getPixel(img, bg, i, j, THRESHOLD));
+      box[i].push_back(get_pixel(img, bg, i, j, THRESHOLD));
 
   while (p != NULL)
     {
@@ -3105,10 +3105,10 @@ double noise_factor(const Image &image, int width, int height, const ColorGray &
       int j = 0;
       while (j < height)
         {
-          while (!getPixel(image, bgColor, i, j, THRESHOLD_BOND) && j < height)
+          while (!get_pixel(image, bgColor, i, j, THRESHOLD_BOND) && j < height)
             j++;
           int l = 0;
-          while (getPixel(image, bgColor, i, j, THRESHOLD_BOND) && j < height)
+          while (get_pixel(image, bgColor, i, j, THRESHOLD_BOND) && j < height)
             {
               l++;
               j++;
@@ -3122,10 +3122,10 @@ double noise_factor(const Image &image, int width, int height, const ColorGray &
       int j = 0;
       while (j < width)
         {
-          while (!getPixel(image, bgColor, j, i, THRESHOLD_BOND) && j < width)
+          while (!get_pixel(image, bgColor, j, i, THRESHOLD_BOND) && j < width)
             j++;
           int l = 0;
-          while (getPixel(image, bgColor, j, i, THRESHOLD_BOND) && j < width)
+          while (get_pixel(image, bgColor, j, i, THRESHOLD_BOND) && j < width)
             {
               l++;
               j++;
@@ -3160,27 +3160,27 @@ int thickness_hor(const Image &image, int x1, int y1, const ColorGray &bgColor, 
 {
   int i = 0, s = 0, w = 0;
   int width = image.columns();
-  s = getPixel(image, bgColor, x1, y1, THRESHOLD_BOND);
+  s = get_pixel(image, bgColor, x1, y1, THRESHOLD_BOND);
 
   if (s == 0 && x1 + 1 < width)
     {
       x1++;
-      s = getPixel(image, bgColor, x1, y1, THRESHOLD_BOND);
+      s = get_pixel(image, bgColor, x1, y1, THRESHOLD_BOND);
     }
   if (s == 0 && x1 - 2 >= 0)
     {
       x1 -= 2;
-      s = getPixel(image, bgColor, x1, y1, THRESHOLD_BOND);
+      s = get_pixel(image, bgColor, x1, y1, THRESHOLD_BOND);
     }
   if (s == 1)
     {
       while (x1 + i < width && s == 1)
-        s = getPixel(image, bgColor, x1 + i++, y1, THRESHOLD_BOND);
+        s = get_pixel(image, bgColor, x1 + i++, y1, THRESHOLD_BOND);
       w = i - 1;
       i = 1;
       s = 1;
       while (x1 - i >= 0 && s == 1)
-        s = getPixel(image, bgColor, x1 - i++, y1, THRESHOLD_BOND);
+        s = get_pixel(image, bgColor, x1 - i++, y1, THRESHOLD_BOND);
       w += i - 1;
     }
   return (w);
@@ -3190,27 +3190,27 @@ int thickness_ver(const Image &image, int x1, int y1, const ColorGray &bgColor, 
 {
   int i = 0, s = 0, w = 0;
   int height = image.rows();
-  s = getPixel(image, bgColor, x1, y1, THRESHOLD_BOND);
+  s = get_pixel(image, bgColor, x1, y1, THRESHOLD_BOND);
 
   if (s == 0 && y1 + 1 < height)
     {
       y1++;
-      s = getPixel(image, bgColor, x1, y1, THRESHOLD_BOND);
+      s = get_pixel(image, bgColor, x1, y1, THRESHOLD_BOND);
     }
   if (s == 0 && y1 - 2 >= 0)
     {
       y1 -= 2;
-      s = getPixel(image, bgColor, x1, y1, THRESHOLD_BOND);
+      s = get_pixel(image, bgColor, x1, y1, THRESHOLD_BOND);
     }
   if (s == 1)
     {
       while (y1 + i < height && s == 1)
-        s = getPixel(image, bgColor, x1, y1 + i++, THRESHOLD_BOND);
+        s = get_pixel(image, bgColor, x1, y1 + i++, THRESHOLD_BOND);
       w = i - 1;
       i = 1;
       s = 1;
       while (y1 - i >= 0 && s == 1)
-        s = getPixel(image, bgColor, x1, y1 - i++, THRESHOLD_BOND);
+        s = get_pixel(image, bgColor, x1, y1 - i++, THRESHOLD_BOND);
       w += i - 1;
     }
   return (w);
@@ -4283,7 +4283,7 @@ void find_connected_components(const Image &image, double threshold, const Color
 
   for (unsigned int i = 0; i < image.columns(); i++)
     for (unsigned int j = 0; j < image.rows(); j++)
-      if (getPixel(image, bgColor, i, j, threshold) == 1) // populate with low threshold for future anisotropic smoothing
+      if (get_pixel(image, bgColor, i, j, threshold) == 1) // populate with low threshold for future anisotropic smoothing
         tmp[i][j] = 1;
 
   for (unsigned int i = 0; i < image.columns(); i++)
@@ -5578,7 +5578,7 @@ int main(int argc, char **argv)
                 potrace_bitmap_t * const bm = bm_new(width, height);
                 for (int i = 0; i < width; i++)
                   for (int j = 0; j < height; j++)
-                    BM_PUT(bm, i, j, getPixel(box, bgColor, i, j, THRESHOLD_BOND));
+                    BM_PUT(bm, i, j, get_pixel(box, bgColor, i, j, THRESHOLD_BOND));
 
                 potrace_state_t * const st = potrace_trace(param, bm);
                 potrace_path_t const * const p = st->plist;
