@@ -7453,7 +7453,7 @@ resolved_datadir=$resolved_datadir
 
 ac_config_headers="$ac_config_headers src/config.h"
 
-ac_config_files="$ac_config_files Makefile Makefile.inc doc/manual.sgml"
+ac_config_files="$ac_config_files Makefile Makefile.inc doc/manual.sgml package/maven/pom.xml"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -8142,6 +8142,7 @@ do
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
     "Makefile.inc") CONFIG_FILES="$CONFIG_FILES Makefile.inc" ;;
     "doc/manual.sgml") CONFIG_FILES="$CONFIG_FILES doc/manual.sgml" ;;
+    "package/maven/pom.xml") CONFIG_FILES="$CONFIG_FILES package/maven/pom.xml" ;;
 
   *) as_fn_error "invalid argument: \`$ac_config_target'" "$LINENO" 5;;
   esac

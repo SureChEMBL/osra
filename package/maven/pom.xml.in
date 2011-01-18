@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+<!--
+
+This POM file can be used to simplify uploading of the binary packages to Maven repositories. 
+Usage:
+REPOSITORY_URL=http://dev.repo.internal.epo.org/nexus/content/repositories/rpm-releases REPOSITORY_ID=EPO_Releases make package_rpm deploy_rpm
+
+-->
+
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>net.sourceforge</groupId>
+	<artifactId>osra</artifactId>
+	<packaging>pom</packaging>
+	<version>@PACKAGE_VERSION@</version>
+
+	<name>OSRA</name>
+
+	<scm>
+		<connection>https://osra.svn.sourceforge.net/svnroot/osra/trunk</connection>
+	</scm>
+
+	<issueManagement>
+		<system>SourceForge</system>
+		<url>https://sourceforge.net/tracker/?group_id=203833&amp;atid=987182</url>
+	</issueManagement>
+
+	<licenses>
+		<license>
+			<name>GPLv2 License</name>
+			<url>http://www.gnu.org/licenses/gpl-2.0.txt</url>
+		</license>
+	</licenses>
+</project>
