@@ -5399,8 +5399,7 @@ int main(int argc, char **argv)
           stringstream scale;
           scale << percent << "%";
           image.scale(scale.str());
-	  if (type == "PDF" || type == "PS") page_scale *= (double) percent/100;
-	  else page_scale /= (double) percent/100;
+	  page_scale /= (double) percent/100;
         }
 
       ColorGray bgColor = getBgColor(image, invert);
