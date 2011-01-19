@@ -475,19 +475,21 @@ AS_IF([test "${osra_lib_openbabel}" != "yes"], [
 
 dnl GraphicsMagick library
 
-AC_PATH_PROG(GRAPHICS_MAGICK_CONFIG, GraphicsMagick++-config)
-
-AS_IF([test "${GRAPHICS_MAGICK_CONFIG}" == ""], [
-	AC_MSG_ERROR([GraphicsMagick++-config was not found; make sure you have installed libgraphicsmagick++-dev package])
-])
-
-CPPFLAGS="${CPPFLAGS} `${GRAPHICS_MAGICK_CONFIG} --cppflags`"
-LDFLAGS="${LDFLAGS} `${GRAPHICS_MAGICK_CONFIG} --ldflags`"
-
-AS_IF([test "${enable_graphicsmagick_config:+set}" != "set"], 
-	[LIBS="${LIBS} `${GRAPHICS_MAGICK_CONFIG} --libs`"], [
-		AS_IF([test "${enable_static_linking:+set}" == "set" -a "$build_os" == "darwin"], [
-			LIBS="${LIBS} -lGraphicsMagick++ -lGraphicsMagick -ljpeg ${MACPORTSLIBS}/liblcms.a ${MACPORTSLIBS}/libtiff.a ${MACPORTSLIBS}/libfreetype.a ${MACPORTSLIBS}/libjasper.a ${MACPORTSLIBS}/libpng.a ${MACPORTSLIBS}/libbz2.a ${MACPORTSLIBS}/libz.a"
+AS_IF([test "${enable_graphicsmagick_config:+set}" != "set"], [
+	    AC_PATH_PROG(GRAPHICS_MAGICK_CONFIG, GraphicsMagick++-config)
+	    AS_IF([test "${GRAPHICS_MAGICK_CONFIG}" == ""], [
+	    		AC_MSG_ERROR([GraphicsMagick++-config was not found; make sure you have installed libgraphicsmagick++-dev package])
+	    ])	
+	    LIBS="${LIBS} `${GRAPHICS_MAGICK_CONFIG} --libs`"
+	    CPPFLAGS="${CPPFLAGS} `${GRAPHICS_MAGICK_CONFIG} --cppflags`"
+	    LDFLAGS="${LDFLAGS} `${GRAPHICS_MAGICK_CONFIG} --ldflags`"
+	], [
+		AS_IF([test "${enable_static_linking:+set}" == "set"], [
+			    dnl CPPFLAGS="${CPPFLAGS} "
+			    dnl LDFLAGS="${LDFLAGS} "
+			    AS_IF(["$build_os" == "darwin"], [
+			    		       LIBS="${LIBS} -lGraphicsMagick++ -lGraphicsMagick -ljpeg ${MACPORTSLIBS}/liblcms.a ${MACPORTSLIBS}/libtiff.a ${MACPORTSLIBS}/libfreetype.a ${MACPORTSLIBS}/libjasper.a ${MACPORTSLIBS}/libpng.a ${MACPORTSLIBS}/libbz2.a ${MACPORTSLIBS}/libz.a"
+			    ]) 
 		])
 ])
 
