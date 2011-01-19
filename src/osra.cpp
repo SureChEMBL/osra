@@ -2062,13 +2062,6 @@ int count_pages(const string &input)
   return (imageList.size());
 }
 
-string image_type(const string &input)
-{
-  Image image;
-  image.ping(input);
-  return (image.magick());
-}
-
 int count_atoms(const vector<atom_t> &atom, int n_atom)
 {
   int r = 0;
@@ -5227,13 +5220,13 @@ int main(int argc, char **argv)
 
   try
     {
-#ifdef ANDROID
       Image image_typer;
+#ifdef ANDROID
       image_typer.ping(blob);
-      type = image_typer.magick();
 #else
-      type = image_type(input_file_option.getValue());
+      image_typer.ping(input_file_option.getValue());
 #endif
+      type = image_typer.magick();
     }
   catch (...)
     {
