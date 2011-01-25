@@ -46,7 +46,7 @@ struct atom_s
 // atomic label
   string label;
 // int: n
-// counter of created OBAtom objects in <get_smiles()>
+// counter of created OBAtom objects in <create_molecule()>
   int n;
 // int: anum
 // atomic number
@@ -362,7 +362,7 @@ Magick::Image anisotropic_scaling(const Magick::Image &image, int width, int hei
 char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int x1, int y1, int x2, int y2,
                     double THRESHOLD, int dropx, int dropy);
 
-// Function: getPixel()
+// Function: get_pixel()
 //
 // Returns a binarized pixel value from a gray-level image
 //
@@ -377,29 +377,6 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
 //
 // 1 for set pixel, 0 for background
 int get_pixel(const Magick::Image &image, const Magick::ColorGray &bg, unsigned int x, unsigned int y, double THRESHOLD);
-
-// Function: confidence_function()
-//
-// Calculates confidence estimate based on molecular counts provided by <get_smiles()>
-//
-// Parameters:
-//
-// C_Count, N_Count, O_Count, F_Count, S_Count, Cl_Count, Br_Count - number of carbon, nitrogen, oxygen, fluorine, sulfur, chlorine, and bromine atoms
-// R_Count - number of recognized Markush atomic labels, such as R1, R2....
-// Xx_Count - number of unrecognized atomic labels from <osra.cpp::remove_small_terminal_bonds()>
-// num_rings - number of rings
-// num_aromatic - number of aromatic rings
-// num_fragments - number of fragments
-// Num_Rings - vector of counts for number of 3,4,5,6,7-member rings
-// num_double - number of double bonds
-// num_triple - number of triple bonds
-//
-// Returns:
-//
-// confidence estimate
-double confidence_function(int C_Count, int N_Count, int O_Count, int F_Count, int S_Count, int Cl_Count, int Br_Count,
-                           int R_Count, int Xx_Count, int num_rings, int num_aromatic, int num_fragments, const vector<int> &Num_Rings,
-                           int num_double, int num_triple);
 
 //bool detect_bracket(int x, int y, unsigned char *pic);
 

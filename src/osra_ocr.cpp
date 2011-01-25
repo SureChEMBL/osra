@@ -65,12 +65,8 @@ job_t *OCR_JOB;
  * are luckily single connected components) and leave the extra bits out.
  */
 
-/**
- * The Tesseract code is supposed to be called only if both GOCR and OCRAD did't detect any alphanumeric character.
- * It is commented out because Tesseract seems to get a lot of false positives.
- */
 char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int x1, int y1, int x2, int y2,
-                    double THRESHOLD, int dropx, int dropy)
+                    double THRESHOLD, int dropx, int dropy, bool verbose)
 {
   char c = 0;
 #pragma omp critical
@@ -204,15 +200,15 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
         memcpy(dib, blob.data(), data_size);
 #endif
 
-        /*
-        cout << x2 - x1 << " " << y2 - y1 << endl;
-        cout << x1 << " " << y1 << " " << x2 << " " << y2 << endl;
-        for (int i = 0; i < job.src.p.y; i++) {
-        	for (int j = 0; j < job.src.p.x; j++)
-        		cout << job.src.p.p[i * job.src.p.x + j] / 255;
-        	cout << endl;
-        }
-        */
+	if (verbose)
+          {
+            cout << "Box to OCR: " << x1 << "x" << y1 << "-" << x2 << "x" << y2 << " w/h:" << x2 - x1 << "/" << y2 - y1 << endl;
+            for (int i = 0; i < job.src.p.y; i++) {
+	      for (int j = 0; j < job.src.p.x; j++)
+		cout << job.src.p.p[i * job.src.p.x + j] / 255;
+	      cout << endl;
+            }
+          }
 
         string patern = job.cfg.cfilter;
 
@@ -231,7 +227,8 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
             l = (char *) job.res.linelist.start.next->data;
             if (l != NULL && strlen(l)==1)
               c1 = l[0];
-            //cout << "c1=" << c1 << endl;
+	    if (verbose)
+	      cout << "GOCR: c1=" << c1 << endl;
             //c1='_';
             if (isalnum(c1)) // Character recognition succeeded for GOCR:
               c = c1;
@@ -250,7 +247,8 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
                           ocrdes, 0, 0) != 0)
                       line = OCRAD_result_line(ocrdes, 0, 0);
                   }
-                //cout << "c2=" << c2 << endl;
+		if (verbose)
+                  cout << "OCRAD: c2=" << c2 << endl;
 
                 if (line.length() > 2)
                   c2 = '_';
@@ -273,7 +271,9 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
                           c3 = text[0];
                         free(text);
                       }
-                    //cout<<"c3="<<c3<<endl;
+		    if (verbose)
+                      cout << "Tesseract: c3=" << c3 << endl;
+
                     if (patern.find(c3, 0) == string::npos)
                       c3 = '_';
                     if (isalnum(c3))
@@ -284,7 +284,6 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
                       {
                         char c4=0;
                         char str[256];
-                        //cout<<x2-x1<<" "<<y2-y1<<endl;
                         if (x2-x1>7)
                           {
                             PUMA_XOpen(dib, NULL);
@@ -293,8 +292,9 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
                             PUMA_XClose();
                             if ((str[0]==str[1] && isspace(str[2])) || (str[0]==str[2] && str[1]==' '))
                               c4=str[0];
-                            //cout<<str[0]<<"|"<<str[1]<<"|"<<str[2]<<"|"<<str[3]<<"|"<<endl;
-                            //cout<<c4<<endl;
+			    if (verbose)
+                              cout << "Cuneiform: " << str[0] << "|" << str[1] << "|" << str[2] << "|" << str[3] << "|" << " c4=" << c4 << endl;
+
                             if (patern.find(c4, 0) == string::npos)
                               c4 = '_';
                           }
@@ -319,18 +319,12 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
     free(tmp);
     delete opix;
     free(bitmap_data);
+    // This check was introduced in r527
     if (c == '7' && (x2 - x1 <= 10 || y2 - y1 <= 20))
       c = 0;
   } //#pragma omp critical
 
-  if (isalnum(c))
-    {
-      return (c);
-    }
-  else
-    {
-      return (0);
-    }
+  return (isalnum(c) ? c : 0);
 }
 
 /*

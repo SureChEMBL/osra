@@ -158,7 +158,23 @@ int get_atomic_num(const string &s, OBMol &mol, int &n, int &bondn, const map<st
   return (6);
 }
 
-
+// Function: confidence_function()
+//
+// Calculates confidence estimate based on molecular counts provided by <create_molecule()>
+//
+// Parameters:
+//
+// C_Count, N_Count, O_Count, F_Count, S_Count, Cl_Count, Br_Count - number of carbon, nitrogen, oxygen, fluorine, sulfur, chlorine, and bromine atoms
+// R_Count - number of recognized Markush atomic labels, such as R1, R2....
+// Xx_Count - number of unrecognized atomic labels from <osra.cpp::remove_small_terminal_bonds()>
+// num_rings - number of rings
+// num_aromatic - number of aromatic rings
+// num_fragments - number of fragments
+// Num_Rings - vector of counts for number of 3,4,5,6,7-member rings
+//
+// Returns:
+//
+// confidence estimate
 double confidence_function(int C_Count, int N_Count, int O_Count, int F_Count, int S_Count, int Cl_Count, int Br_Count,
                            int R_Count, int Xx_Count, int num_rings, int num_aromatic, int num_fragments, const vector<int> &Num_Rings)
 {

@@ -1633,7 +1633,7 @@ int find_bonds(vector<atom_t> &atom, vector<bond_t> &bond, int b_atom, int n_ato
 }
 
 char get_atom_label_unpaper(const Magick::Image &orig, const Magick::ColorGray &bgColor, int left, int top, int right, int bottom,
-                            double THRESHOLD, int dropx, int dropy)
+                            double THRESHOLD, int dropx, int dropy, bool verbose)
 {
   char label = 0;
   ColorGray g;
@@ -1650,23 +1650,23 @@ char get_atom_label_unpaper(const Magick::Image &orig, const Magick::ColorGray &
   bottom=tmp.rows();
   left=0;
   top=0;
-  label = get_atom_label(tmp, bgColor, left, top, right, bottom, THRESHOLD, (right + left) / 2, top);
+  label = get_atom_label(tmp, bgColor, left, top, right, bottom, THRESHOLD, (right + left) / 2, top, verbose);
   if (label == 0)
     {
       unpaper(tmp);
-      label = get_atom_label(tmp, bgColor, left, top, right, bottom, THRESHOLD, (right + left) / 2, top);
+      label = get_atom_label(tmp, bgColor, left, top, right, bottom, THRESHOLD, (right + left) / 2, top, verbose);
     }
   if (label == 0)
     {
       unpaper(tmp);
-      label = get_atom_label(tmp, bgColor, left, top, right, bottom, THRESHOLD, (right + left) / 2, top);
+      label = get_atom_label(tmp, bgColor, left, top, right, bottom, THRESHOLD, (right + left) / 2, top, verbose);
     }
   return(label);
 }
 
 int find_chars(const potrace_path_t * p, const Image &orig, vector<letters_t> &letters, vector<atom_t> &atom, vector<
                bond_t> &bond, int n_atom, int n_bond, int height, int width, ColorGray &bgColor, double THRESHOLD,
-               int max_font_width, int max_font_height, int &real_font_width, int &real_font_height)
+               int max_font_width, int max_font_height, int &real_font_width, int &real_font_height, bool verbose)
 {
   int n, *tag, n_letters = 0;
   potrace_dpoint_t (*c)[3];
@@ -1822,7 +1822,7 @@ int find_chars(const potrace_path_t * p, const Image &orig, vector<letters_t> &l
             {
 
               char label = 0;
-              label = get_atom_label(orig, bgColor, left, top, right, bottom, THRESHOLD, (right + left) / 2, top);
+              label = get_atom_label(orig, bgColor, left, top, right, bottom, THRESHOLD, (right + left) / 2, top, verbose);
 
               if (label != 0)
                 {
@@ -1852,10 +1852,10 @@ int find_chars(const potrace_path_t * p, const Image &orig, vector<letters_t> &l
               char label1 = 0;
               int newtop = (top + bottom) / 2;
               label1 = get_atom_label(orig, bgColor, left, newtop, right, bottom, THRESHOLD, (right + left) / 2,
-                                      newtop);
+                                      newtop, verbose);
               char label2 = 0;
               int newbottom = (top + bottom) / 2;
-              label2 = get_atom_label(orig, bgColor, left, top, right, newbottom, THRESHOLD, (right + left) / 2, top);
+              label2 = get_atom_label(orig, bgColor, left, top, right, newbottom, THRESHOLD, (right + left) / 2, top, verbose);
               if ((label1 != 0) && (label2 != 0))
                 {
                   //cout << label1 << label2 << endl;
@@ -1897,11 +1897,11 @@ int find_chars(const potrace_path_t * p, const Image &orig, vector<letters_t> &l
               char label1 = 0;
               int newright = (left + right) / 2;
               label1 = get_atom_label(orig, bgColor, left, top, newright, bottom, THRESHOLD, (left + newright) / 2,
-                                      top);
+                                      top, verbose);
               char label2 = 0;
               int newleft = (left + right) / 2;
               label2 = get_atom_label(orig, bgColor, newleft, top, right, bottom, THRESHOLD, (newleft + right) / 2,
-                                      top);
+                                      top, verbose);
               if ((label1 != 0) && (label2 != 0))
                 {
                   //cout << label1 << label2 << endl;
@@ -2944,7 +2944,7 @@ int fix_one_sided_bonds(vector<bond_t> &bond, int n_bond, const vector<atom_t> &
 
 int find_fused_chars(vector<bond_t> &bond, int n_bond, vector<atom_t> &atom, vector<letters_t> &letters, int n_letters,
                      int max_font_height, int max_font_width, char dummy, const Image &orig, const ColorGray &bgColor,
-                     double THRESHOLD, unsigned int size)
+                     double THRESHOLD, unsigned int size, bool verbose)
 {
   double dist = max(max_font_width, max_font_height);
 
@@ -3036,7 +3036,7 @@ int find_fused_chars(vector<bond_t> &bond, int n_bond, vector<atom_t> &atom, vec
                 else
                   {
                     label = get_atom_label(orig, bgColor, left, top, right, bottom, THRESHOLD, (left + right) / 2,
-                                           top);
+                                           top, verbose);
                   }
                 if ((label != 0 && label != 'P' && label != 'p' && label != 'F' && label != 'X' && label != 'Y'
                      && label != 'n' && label != 'F' && label != 'U' && label != 'u' && label != 'h') || dummy
@@ -4005,7 +4005,7 @@ int clean_unrecognized_characters(vector<bond_t> &bond, int n_bond, const vector
               }
             letters_t lt;
             letters.push_back(lt);
-            letters[n_letters].a = 'X';
+            letters[n_letters].a = "Xx";
             letters[n_letters].x = (l + r) / 2;
             letters[n_letters].y = (t + b) / 2;
             letters[n_letters].r = distance(l, t, r, b) / 2;
@@ -5618,7 +5618,7 @@ int main(int argc, char **argv)
 
                 int real_font_width, real_font_height;
                 n_letters = find_chars(p, orig_box, letters, atom, bond, n_atom, n_bond, height, width, bgColor,
-                                       THRESHOLD_CHAR, max_font_width, max_font_height, real_font_width, real_font_height);
+                                       THRESHOLD_CHAR, max_font_width, max_font_height, real_font_width, real_font_height,verbose);
 
                 double avg_bond_length = percentile75(bond, n_bond, atom);
 
@@ -5644,10 +5644,10 @@ int main(int argc, char **argv)
                 remove_zero_bonds(bond, n_bond, atom);
 
                 n_letters = find_fused_chars(bond, n_bond, atom, letters, n_letters, real_font_height,
-                                             real_font_width, 0, orig_box, bgColor, THRESHOLD_CHAR, 3);
+                                             real_font_width, 0, orig_box, bgColor, THRESHOLD_CHAR, 3, verbose);
 
                 n_letters = find_fused_chars(bond, n_bond, atom, letters, n_letters, real_font_height,
-                                             real_font_width, 'R', orig_box, bgColor, THRESHOLD_CHAR, 5);
+                                             real_font_width, "Xx", orig_box, bgColor, THRESHOLD_CHAR, 5, verbose);
 
                 flatten_bonds(bond, n_bond, atom, 3);
                 remove_zero_bonds(bond, n_bond, atom);
