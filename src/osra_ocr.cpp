@@ -55,7 +55,7 @@ extern "C" {
 //#include <cuneiform.h>
 #endif
 
-job_t *JOB;
+job_t *OCR_JOB;
 
 /**
  * THRESHOLD is the graylevel binarization threshold.
@@ -80,6 +80,7 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
     double f = 1.;
 
     job_init(&job);
+    job_init_image(&job);
     job.cfg.cfilter = (char *) "oOcCnNHFsSBuUgMeEXYZRPp23456789";
 
     //job.cfg.cs = 160;
@@ -218,7 +219,7 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
         if (count > MIN_CHAR_POINTS && zeros > MIN_CHAR_POINTS)
           {
             char c1 = 0;
-            JOB = &job;
+            OCR_JOB = &job;
             try
               {
                 pgm2asc(&job);
@@ -313,8 +314,8 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
         delete []dib;
 #endif
       }
-    job_free(&job);
-    JOB = NULL;
+    job_free_image(&job);
+    OCR_JOB = NULL;
     free(tmp);
     delete opix;
     free(bitmap_data);

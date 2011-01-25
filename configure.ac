@@ -562,12 +562,13 @@ AX_TRY_LINK([Pgm2asc], [
 	#include <gocr/pgm2asc.h>
 	#include <gocr/gocr.h>
 	}
-	job_t *JOB;
+	job_t *OCR_JOB;
 ], [
 	job_t job;
 
 	job_init(&job);
-	job_free(&job);
+	job_init_image(&job);
+	job_free_image(&job);
 	pgm2asc(&job);
 ], [], [osra_lib_gocr=no])
 

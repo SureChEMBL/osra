@@ -5277,7 +5277,7 @@ int main(int argc, char **argv)
 
   int total_structure_count = 0;
 
-#pragma omp parallel for default(shared) private(JOB)
+#pragma omp parallel for default(shared) private(OCR_JOB)
   for (int l = 0; l < page; l++)
     {
       Image image;

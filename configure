@@ -7316,7 +7316,7 @@ ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 	#include <gocr/pgm2asc.h>
 	#include <gocr/gocr.h>
 	}
-	job_t *JOB;
+	job_t *OCR_JOB;
 
 int
 main ()
@@ -7325,7 +7325,8 @@ main ()
 	job_t job;
 
 	job_init(&job);
-	job_free(&job);
+	job_init_image(&job);
+	job_free_image(&job);
 	pgm2asc(&job);
 
   ;
@@ -7359,7 +7360,7 @@ rm -f core conftest.err conftest.$ac_objext \
 	#include <gocr/pgm2asc.h>
 	#include <gocr/gocr.h>
 	}
-	job_t *JOB;
+	job_t *OCR_JOB;
 
 int
 main ()
@@ -7368,7 +7369,8 @@ main ()
 	job_t job;
 
 	job_init(&job);
-	job_free(&job);
+	job_init_image(&job);
+	job_free_image(&job);
 	pgm2asc(&job);
 
   ;
