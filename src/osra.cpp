@@ -4634,7 +4634,7 @@ int locate_max_entropy(const vector<vector<int> > &features, unsigned int max_ar
   return (start_b);
 }
 
-list<list<list<point_t> > > find_segments(const Image &image, double threshold, const ColorGray &bgColor)
+list<list<list<point_t> > > find_segments(const Image &image, double threshold, const ColorGray &bgColor, bool verbose)
 {
   vector<list<point_t> > segments;
   vector<vector<point_t> > margins;
@@ -4643,6 +4643,9 @@ list<list<list<point_t> > > find_segments(const Image &image, double threshold, 
   // 1m34s
 
   find_connected_components(image, threshold, bgColor, segments, margins);
+
+  if (verbose)
+    cout << "Number of segments is " << segments.size() << '.' << endl;
 
   if (segments.size() > MAX_SEGMENTS)
     {
@@ -5138,6 +5141,9 @@ int main(int argc, char **argv)
   //
   TCLAP::SwitchArg debug_option("d", "debug", "Print out debug information on spelling corrections", false);
   cmd.add(debug_option);
+ 
+  TCLAP::SwitchArg verbose_option("v", "verbose", "Be verbose and print the program flow", false);
+  cmd.add(verbose_option);
 
   TCLAP::ValueArg<string> output_image_file_prefix_option("o", "output", "Write recognized structures to image files with given prefix", false, "", "filename prefix");
   cmd.add(output_image_file_prefix_option);
@@ -5175,6 +5181,8 @@ int main(int argc, char **argv)
 #endif
 
   srand(1);
+  
+  bool verbose = verbose_option.getValue();
 
   // Loading the program data files into maps:
   char progname[1024];
@@ -5211,6 +5219,8 @@ int main(int argc, char **argv)
 #endif
     }
 
+  if (verbose)
+    cout << "spelling (size: " << spelling.size() << ") and superatom (size: " << superatom.size() << ") dictionaries are loaded." << endl;
 
   string type;
 
@@ -5243,6 +5253,9 @@ int main(int argc, char **argv)
       exit(1);
 #endif
     }
+
+  if (verbose)
+    cout << "Image type is " << type << '.' << endl;
 
   if (!output_file_option.getValue().empty())
     {
@@ -5295,6 +5308,10 @@ int main(int argc, char **argv)
     {
       Image image;
       double page_scale=1;
+
+      if (verbose)
+	cout << "Processing page " << (l+1) << " out of " << page << "..." << endl;
+
 
       stringstream density;
       density << input_resolution << "x" << input_resolution;
@@ -5395,6 +5412,21 @@ int main(int argc, char **argv)
 	  page_scale /= (double) percent/100;
         }
 
+      if (verbose)
+        {
+          cout << "Input resolutions are ";
+          for (vector<int>::iterator it = select_resolution.begin();;)
+            {
+              cout << *it;
+ 
+              if (++it < select_resolution.end())
+                cout << ", ";
+              else
+                break;
+            }
+          cout << '.' << endl;
+        }
+
       ColorGray bgColor = getBgColor(image, invert);
 
       if (rotate_option.getValue() != 0)
@@ -5406,11 +5438,17 @@ int main(int argc, char **argv)
       for (int i = 0; i < do_unpaper_option.getValue(); i++)
         unpaper(image);
 
-      list<list<list<point_t> > > clusters = find_segments(image, 0.1, bgColor);
+      list<list<list<point_t> > > clusters = find_segments(image, 0.1, bgColor,verbose);
+
+      if (verbose)
+	cout << "Number of clusters is " << clusters.size() << '.' << endl;
 
       vector<box_t> boxes;
       int n_boxes = prune_clusters(clusters, boxes);
       std::sort(boxes.begin(), boxes.end(), comp_boxes);
+
+      if (verbose)
+	cout << "Number of boxes is " << boxes.size() << '.' << endl;
 
       // This will hide the output "Warning: non-positive median line gap" from GOCR. Remove after this is fixed:
       fclose(stderr);
@@ -5578,6 +5616,9 @@ int main(int argc, char **argv)
                   }
                 else
                   thick_box = orig_box;
+
+		if (verbose)
+                  cout << "Analysing box " << boxes[k].x1 << "x" << boxes[k].y1 << "-" << boxes[k].x2 << "x" << boxes[k].y2 << " using working resolution " << working_resolution << '.' << endl;
 
                 param->turnpolicy = POTRACE_TURNPOLICY_MINORITY;
                 double c_width = 1. * width * 72 / working_resolution;

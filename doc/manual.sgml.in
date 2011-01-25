@@ -251,6 +251,16 @@
 			<arg choice="opt">
 				<group choice="req">
 					<arg choice="plain">
+						<option>-v</option>
+					</arg>
+					<arg choice="plain">
+						<option>--verbose</option>
+					</arg>
+				</group>
+			</arg>
+			<arg choice="opt">
+				<group choice="req">
+					<arg choice="plain">
 						<option>-o</option>
 					</arg>
 					<arg choice="plain">
@@ -531,6 +541,19 @@
 					<para>
 						Print out debug information on spelling corrections. First column – output from the OCR engine, second – result
 						of spelling correction, last – SMILES from the superatom dictionary, if any.
+					</para>
+				</listitem>
+			</varlistentry>
+			<varlistentry>
+				<term>
+					<option>-v</option>
+				</term>
+				<term>
+					<option>--verbose</option>
+				</term>
+				<listitem>
+					<para>
+						Be verbose and print the program flow.
 					</para>
 				</listitem>
 			</varlistentry>
