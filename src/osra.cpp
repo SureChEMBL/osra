@@ -2685,12 +2685,9 @@ int find_small_bonds(const potrace_path_t *p, vector<atom_t> &atom, vector<bond_
 }
 
 int resolve_bridge_bonds(vector<atom_t> &atom, int n_atom, vector<bond_t> &bond, int n_bond, double thickness,
-                         double avg, const map<string, string> &superatom)
+                         double avg_bond_length, const map<string, string> &superatom)
 {
-  int rotors1, rotors2, f1, f2, rings1, rings2;
-  double confidence;
-  string smiles1 = get_smiles(atom, bond, n_bond, rotors1, confidence, f1, rings1, avg, avg,"empty", 0, false, false,
-                              false, 0, NULL, superatom, false);
+  molecule_statistics_t molecule_statistics1 = caclulate_molecule_statistics(atom, bond, n_bond, avg_bond_length, superatom);
 
   for (int i = 0; i < n_atom; i++)
     if ((atom[i].exists) && (atom[i].label == " "))
@@ -2761,9 +2758,11 @@ int resolve_bridge_bonds(vector<atom_t> &atom, int n_atom, vector<bond_t> &bond,
                       bond[c].b = bond[d].b;
                     else if (bond[c].b == bond[d].b)
                       bond[c].b = bond[d].a;
-                    string smiles2 = get_smiles(atom, bond, n_bond, rotors2, confidence, f2, rings2, avg, avg, "empty",
-                                                0, false, false, false, 0, NULL, superatom, false);
-                    if (f1 != f2 || rotors1 != rotors2 || rings1 - rings2 == 2)
+
+		    molecule_statistics_t molecule_statistics2 = caclulate_molecule_statistics(atom, bond, n_bond, avg_bond_length, superatom);
+                    if (molecule_statistics1.fragments != molecule_statistics2.fragments ||
+                        molecule_statistics1.rotors != molecule_statistics2.rotors ||
+                        molecule_statistics1.rings56 - molecule_statistics2.rings56 == 2)
                       {
                         bond[b].exists = true;
                         bond[d].exists = true;
@@ -2789,7 +2788,7 @@ int resolve_bridge_bonds(vector<atom_t> &atom, int n_atom, vector<bond_t> &bond,
               }
           }
       }
-  return (f1);
+  return (molecule_statistics1.fragments);
 }
 
 void collapse_atoms(vector<atom_t> &atom, vector<bond_t> &bond, int n_atom, int n_bond, double dist)
@@ -5021,31 +5020,6 @@ void find_limits_on_avg_bond(double &min_bond, double &max_bond, const vector<ve
   max_bond++;
 }
 
-double confidence_function(int C_Count, int N_Count, int O_Count, int F_Count, int S_Count, int Cl_Count, int Br_Count,
-                           int R_Count, int Xx_Count, int num_rings, int num_aromatic, int num_fragments, const vector<int> &Num_Rings,
-                           int num_double, int num_triple)
-{
-  double confidence = 0.316030 //
-                      - 0.016315 * C_Count //
-                      + 0.034336 * N_Count //
-                      + 0.066810 * O_Count //
-                      + 0.035674 * F_Count //
-                      + 0.065504 * S_Count //
-                      + 0.04 * Cl_Count //
-                      + 0.066811 * Br_Count //
-                      + 0.01 * R_Count //
-                      - 0.02 * Xx_Count //
-                      - 0.212739 * num_rings //
-                      + 0.071300 * num_aromatic //
-                      + 0.329922 * Num_Rings[5] //
-                      + 0.342865 * Num_Rings[6] //
-                      - 0.037796 * num_fragments;
-
-  return (confidence);
-}
-
-
-
 
 #ifdef ANDROID
 extern "C" {
@@ -5786,19 +5760,28 @@ int main(int argc, char **argv)
 
                           remove_zero_bonds(frag_bond, n_bond, frag_atom);
 
-                          int rotors, rings;
                           double confidence = 0;
+                          molecule_statistics_t molecule_statistics;
+                          int page_number = l + 1;
 			  box_t coordinate_box;
 			  coordinate_box.x1=(int)((double)page_scale*boxes[k].x1 + (double)page_scale*box_scale*fragments[i].x1);
 			  coordinate_box.y1=(int)((double)page_scale*boxes[k].y1 + (double)page_scale*box_scale*fragments[i].y1);
 			  coordinate_box.x2=(int)((double)page_scale*boxes[k].x1 + (double)page_scale*box_scale*fragments[i].x2);
 			  coordinate_box.y2=(int)((double)page_scale*boxes[k].y1 + (double)page_scale*box_scale*fragments[i].y2);
-			  
-                          string structure = get_smiles(frag_atom, frag_bond, n_bond, rotors, confidence, num_frag, rings,
-                                                     avg_bond_length, page_scale*box_scale*avg_bond_length, output_format_option.getValue(), resolution, show_confidence_option.getValue(), show_resolution_guess_option.getValue(),
-                                                     show_page_option.getValue(), l + 1, show_coordinates ? &coordinate_box : NULL, superatom, show_avg_bond_length_option.getValue());
 
-                          if (num_frag < MAX_FRAGMENTS && num_frag > 0 && !structure.empty())
+			  string structure =
+			    get_formatted_structure(frag_atom, frag_bond, n_bond, output_format_option.getValue(),
+						    molecule_statistics, confidence,
+						    show_confidence_option.getValue(), avg_bond_length, page_scale*box_scale*avg_bond_length,
+						    show_avg_bond_length_option.getValue(),
+						    show_resolution_guess_option.getValue() ? &resolution : NULL,
+						    show_page_option.getValue() ? &page_number : NULL,
+						    show_coordinates ? &coordinate_box : NULL, superatom);
+
+			  if (verbose)
+                            cout << "Structure length " << structure.length() << ", fragments: " << molecule_statistics.fragments << '.' << endl;
+
+                          if (molecule_statistics.fragments > 0 && molecule_statistics.fragments < MAX_FRAGMENTS && !structure.empty())
                             {
                               array_of_structures[res_iter].push_back(structure);
                               array_of_avg_bonds[res_iter].push_back(page_scale*box_scale*avg_bond_length);

@@ -209,6 +209,26 @@ struct fragment_s
 //defines fragment_t type based on fragment_s struct
 typedef struct fragment_s fragment_t;
 
+//struct: molecule_statistics_s
+// contains the statistical information about molecule used for analysis of recognition accuracy
+struct molecule_statistics_s
+{
+  // int: rotors
+  // number of rotors in molecule
+  int rotors;
+  // int: num_fragments
+  // number of fragments in molecule
+  int fragments;
+  // int: rings56
+  // accumulated number of 5- and 6- rings in molecule
+  int rings56;
+};
+
+//typedef: molecule_statistics_t
+//defines molecule_statistics_t type based on molecule_statistics_s struct
+typedef struct molecule_statistics_s molecule_statistics_t;
+
+
 
 // Section: Functions
 //
@@ -230,36 +250,54 @@ typedef struct fragment_s fragment_t;
 const string fix_atom_name(const string &s, int n, const map<string, string> &fix,
                            const map<string, string> &superatom, bool debug);
 
-//  Function: get_smiles()
+
+//  Function: caclulate_molecule_statistics()
 //
-//  Converts vectors of atoms and bonds into a molecular object and returns SMILES, MOL file or other
-//  molecular representation
+//  Converts vectors of atoms and bonds into a molecular object and calculates the molecule statistics.
+//  Note: this function changes the atoms!
 //
 //  Parameters:
 //
 //   atom - vector of <atom_s> atoms
 //   bond - vector of <bond_s> bonds
 //   n_bond - total number of bonds
-//   rotors - number of rotatable bonds (returned)
-//   confidence - confidence score (returned)
-//   num_fragments - number of fragments (returned)
-//   r56 - number of 5- and 6-member rings
-//   avg - average bond length as measured from the image
-//   format - format for molecular representation - i.e. SMI, SDF
-//   resolution - resolution at which image is being processed, dpi
-//   conf - toggles confidence score inclusion into output
-//   guess - toggles inclusion of estimates resoltuion into output
-//   showpage - toggles page number inclusion into output
-//   page - page number
+//   avg_bond_length - average bond length as measured from the image (to be included into output if provided)
 //   superatom - dictionary of superatom labels mapped to SMILES
-//   showbond - toggles average bond length inclusion into output
 //
-//   Returns:
+//  Returns:
 //
-//    string containing SMILES, SDF or other representation of the molecule
-const string get_smiles(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, int &rotors, double &confidence,
-                        int &num_fragments, int &r56, double avg, double scaled_avg, const string &format, int resolution, bool conf, bool guess,
-                        bool showpage, int page, const box_t * const surrounding_box, const map<string, string> &superatom, bool showbond);
+//   calculated molecule statistics
+molecule_statistics_t caclulate_molecule_statistics(vector<atom_t> &atom, const vector<bond_t> &bond, int n_bond,
+                                                    double avg_bond_length, const map<string, string> &superatom);
+
+//  Function: get_formatted_structure()
+//
+//  Converts vectors of atoms and bonds into a molecular object and encodes the molecular into a text presentation (SMILES, MOL file, ...),
+//  specified by given format.
+//  Parameters:
+//
+//   atom - vector of <atom_s> atoms
+//   bond - vector of <bond_s> bonds
+//   n_bond - total number of bonds
+//   format - format for molecular representation - i.e. SMI, SDF
+//   molecule_statistics - the molecule statistics (returned to the caller)
+//   confidence - confidence score (returned to the caller)
+//   show_confidence - toggles confidence score inclusion into output
+//   avg_bond_length - average bond length as measured from the image
+//   scaled_avg_bond_length - average bond length scaled to the original resolution of the image
+//   show_avg_bond_length - toggles average bond length inclusion into output
+//   resolution - resolution at which image is being processed in DPI (to be included into output if provided)
+//   page - page number (to be included into output if provided)
+//   surrounding_box - the coordinates of surrounding image box that contains the structure (to be included into output if provided)
+//   superatom - dictionary of superatom labels mapped to SMILES
+//
+//  Returns:
+//
+//   string containing SMILES, SDF or other representation of the molecule
+const string get_formatted_structure(vector<atom_t> &atom, const vector<bond_t> &bond, int n_bond, const string &format, molecule_statistics_t &molecule_statistics,
+                                     double &confidence, bool show_confidence, double avg_bond_length, double scaled_avg_bond_length, bool show_avg_bond_length, const int * const resolution,
+                                     const int * const page, const box_t * const surrounding_box, const map<string, string> &superatom);
+
 
 // Function: anisotropic_smoothing()
 //

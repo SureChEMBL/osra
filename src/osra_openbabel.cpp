@@ -136,7 +136,7 @@ void mol_to_abbr() {
 }
 */
 
-int getAnum(const string &s, OBMol &mol, int &n, int &bondn, const map<string, string> &superatom)
+int get_atomic_num(const string &s, OBMol &mol, int &n, int &bondn, const map<string, string> &superatom)
 {
   //mol_to_abbr();
   /*	if (s == "Xx" || s == "X" || s == "R" || s == "Y" || s == "Z" || s == "R1" || s == "R2" || s == "R3" || s == "R4"
@@ -158,25 +158,58 @@ int getAnum(const string &s, OBMol &mol, int &n, int &bondn, const map<string, s
   return (6);
 }
 
-const string get_smiles(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, int &rotors, double &confidence,
-                        int &num_fragments, int &r56, double avg, double scaled_avg,const string &format, int resolution, bool conf, bool guess,
-                        bool showpage, int page, const box_t * const surrounding_box, const map<string, string> &superatom, bool showbond)
-{
-  stringstream strstr;
 
-#pragma omp critical
-  {
-    OBMol mol;
+double confidence_function(int C_Count, int N_Count, int O_Count, int F_Count, int S_Count, int Cl_Count, int Br_Count,
+                           int R_Count, int Xx_Count, int num_rings, int num_aromatic, int num_fragments, const vector<int> &Num_Rings)
+{
+  double confidence = 0.316030 //
+                      - 0.016315 * C_Count //
+                      + 0.034336 * N_Count //
+                      + 0.066810 * O_Count //
+                      + 0.035674 * F_Count //
+                      + 0.065504 * S_Count //
+                      + 0.04 * Cl_Count //
+                      + 0.066811 * Br_Count //
+                      + 0.01 * R_Count //
+                      - 0.02 * Xx_Count //
+                      - 0.212739 * num_rings //
+                      + 0.071300 * num_aromatic //
+                      + 0.329922 * Num_Rings[5] //
+                      + 0.342865 * Num_Rings[6] //
+                      - 0.037796 * num_fragments;
+
+  return (confidence);
+}
+
+//  Function: create_molecule()
+//
+//  Converts vectors of atoms and bonds into a molecular object and calculates the molecule statistics.
+//  Note: this function changes the atoms!
+//
+//  Parameters:
+//
+//   atom - vector of <atom_s> atoms
+//   bond - vector of <bond_s> bonds
+//   n_bond - total number of bonds
+//   avg_bond_length - average bond length as measured from the image (to be included into output if provided)
+//   molecule_statistics - the molecule statistics (returned to the caller)
+//   generate_2D_coordinates - generate 2D coordinates for chemical groups
+//   confidence - confidence score (returned to the caller if provided)
+//   superatom - dictionary of superatom labels mapped to SMILES
+//
+//  Returns:
+//
+//   calculated molecule statistics
+void create_molecule(OBMol &mol, vector<atom_t> &atom, const vector<bond_t> &bond, int n_bond, double avg_bond_length, molecule_statistics_t &molecule_statistics,
+                     bool generate_2D_coordinates, double * const confidence, const map<string, string> &superatom)
+{
     string str;
-    OBConversion conv;
     int n = 1;
-    double scale = CC_BOND_LENGTH / avg;
+    double scale = CC_BOND_LENGTH / avg_bond_length;
     vector<int> atomN, bondN;
     int bondn = 0;
     int anum;
 
-    conv.SetOutFormat(format.c_str());
-    conv.Read(&mol);
     mol.SetDimension(2);
 
     mol.BeginModify();
@@ -186,7 +219,7 @@ const string get_smiles(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, 
           if (atom[bond[i].a].n == 0)
             {
               int oldn = n;
-              anum = getAnum(atom[bond[i].a].label, mol, n, bondn, superatom);
+              anum = get_atomic_num(atom[bond[i].a].label, mol, n, bondn, superatom);
               if (oldn != n)
                 {
                   if (n != oldn+1)
@@ -233,7 +266,7 @@ const string get_smiles(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, 
           if (atom[bond[i].b].n == 0)
             {
               int oldn = n;
-              anum = getAnum(atom[bond[i].b].label, mol, n, bondn, superatom);
+              anum = get_atomic_num(atom[bond[i].b].label, mol, n, bondn, superatom);
               if (oldn != n)
                 {
                   if (n != oldn+1)
@@ -317,172 +350,8 @@ const string get_smiles(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, 
     mol.EndModify();
 
     mol.FindRingAtomsAndBonds();
-    int num_double = 0;
-    int num_triple = 0;
-    for (unsigned int j = 0; j <= mol.NumBonds(); j++)
-      {
-        OBBond *b = mol.GetBond(j);
-        if (b != NULL)
-          {
-            if (b->IsInRing())
-              {
-                b->UnsetUp();
-                b->UnsetDown();
-              }
-            else
-              b->UnsetAromatic();
-            if (b->IsDouble())
-              num_double++;
-            if (b->IsTriple())
-              num_triple++;
-          }
-      }
-    int C_Count = 0;
-    int N_Count = 0;
-    int O_Count = 0;
-    int F_Count = 0;
-    int S_Count = 0;
-    int Cl_Count = 0;
-    int Br_Count = 0;
-    int R_Count = 0;
-    int Xx_Count = 0;
-    for (unsigned int i = 1; i <= mol.NumAtoms(); i++)
-      {
-        OBAtom *a = mol.GetAtom(i);
-        if (a->IsCarbon())
-          C_Count++;
-        else if (a->IsNitrogen())
-          N_Count++;
-        else if (a->IsOxygen())
-          O_Count++;
-        else if (a->IsSulfur())
-          S_Count++;
-        else if (a->GetAtomicNum() == 9)
-          F_Count++;
-        else if (a->GetAtomicNum() == 17)
-          Cl_Count++;
-        else if (a->GetAtomicNum() == 35)
-          Br_Count++;
-        else if (a->GetAtomicNum() == 0)
-          {
-            AliasData *ad;
-            ad = (AliasData *) a->GetData(OBGenericDataType::SetData);
-            if (ad != NULL && ad->GetAlias() != "Xx")
-              R_Count++;
-            else
-              Xx_Count++;
-          }
-      }
 
-    vector<OBRing*> vr = mol.GetSSSR();
-    vector<OBRing*>::iterator iter;
-    vector<int> Num_Rings(8, 0);
-    int num_rings = 0, num_aromatic = 0;
-    for (iter = vr.begin(); iter != vr.end(); iter++)
-      {
-        num_rings++;
-        if ((*iter)->IsAromatic())
-          num_aromatic++;
-        if ((*iter)->Size() < 8)
-          Num_Rings[(*iter)->Size()]++;
-      }
-    rotors = mol.NumRotors();
-
-    std::vector<std::vector<int> > cfl;
-    mol.ContigFragList(cfl);
-    num_fragments = cfl.size();
-
-    confidence = confidence_function(C_Count, N_Count, O_Count, F_Count, S_Count, Cl_Count, Br_Count, R_Count,
-                                     Xx_Count, num_rings, num_aromatic, num_fragments, Num_Rings, num_double, num_triple);
-
-    r56 = Num_Rings[5] + Num_Rings[6];
-
-    if (conf)
-      {
-        OBPairData *label = new OBPairData;
-        label->SetAttribute("Confidence_Estimate");
-        stringstream cs;
-        cs << confidence;
-        label->SetValue(cs.str());
-        //label->SetOrigin(userInput); // set by user, not by Open Babel
-        mol.SetData(label);
-      }
-    if (guess)
-      {
-        OBPairData *label = new OBPairData;
-        label->SetAttribute("Resolution");
-        stringstream cs;
-        cs << resolution;
-        label->SetValue(cs.str());
-        //label->SetOrigin(userInput); // set by user, not by Open Babel
-        mol.SetData(label);
-      }
-
-    if (showpage)
-      {
-        OBPairData *label = new OBPairData;
-        label->SetAttribute("Page");
-        stringstream cs;
-        cs << page;
-        label->SetValue(cs.str());
-        //label->SetOrigin(userInput); // set by user, not by Open Babel
-        mol.SetData(label);
-      }
-
-    if (surrounding_box)
-      {
-        OBPairData *label = new OBPairData;
-        label->SetAttribute("Surrounding_box");
-        stringstream cs;
-        cs << surrounding_box->x1 << 'x' << surrounding_box->y1 << '-' << surrounding_box->x2 << 'x' << surrounding_box->y2;
-        label->SetValue(cs.str());
-        mol.SetData(label);
-      }
-
-    if (showbond)
-      {
-        OBPairData *label = new OBPairData;
-        label->SetAttribute("Average_bond_length");
-        stringstream cs;
-        cs << scaled_avg;
-        label->SetValue(cs.str());
-        //label->SetOrigin(userInput); // set by user, not by Open Babel
-        mol.SetData(label);
-      }
-
-    if (format == "sdf")
-      {
-        for (unsigned int i = 0; i < atomN.size(); i++)
-          {
-            groupRedraw(&mol, bondN[i], atomN[i], true);
-          }
-      }
-
-    mol.AddHydrogens(true, false); // polarOnly, correctForPh
-    mol.FindChiralCenters();
-
-    for (unsigned int j = 0; j <= mol.NumBonds(); j++)
-      {
-        OBBond *b = mol.GetBond(j);
-        if (b != NULL)
-          {
-            if (!b->GetBeginAtom()->IsChiral() && !b->GetEndAtom()->IsChiral())
-              {
-                //b->UnsetHash();
-                b->UnsetWedge();
-              }
-          }
-      }
-
-    mol.ConnectTheDots();
-    //mol.Separate();
-    mol.StripSalts(MIN_A_COUNT);
-
-    if (format != "empty")
-      str = conv.WriteString(&mol, true);
-    else
-      str = "";
-
+    // Clear the counters of created OBAtom objects:
     for (int i = 0; i < n_bond; i++)
       if (bond[i].exists)
         {
@@ -490,24 +359,222 @@ const string get_smiles(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, 
           atom[bond[i].b].n = 0;
         }
 
-    strstr << str;
-    if (format == "smi" || format == "can")
-      {
-        if (guess)
-          strstr << " " << resolution;
-        if (conf)
-          strstr << " " << confidence;
-        if (showpage)
-          strstr << " " << page;
-        if (showbond)
-          strstr << " " << scaled_avg;
-	if (surrounding_box)
-	  strstr <<" " << surrounding_box->x1 << 'x' << surrounding_box->y1 << '-' << surrounding_box->x2 << 'x' << surrounding_box->y2;
-      }
-    strstr << endl;
+    // The logic below calculates the information both for molecule statistics and for confidence function:
 
+    // This block modifies the molecule:
+    for (unsigned int j = 0; j <= mol.NumBonds(); j++)
+      {
+        OBBond *b = mol.GetBond(j);
+        if (b != NULL)
+          {
+            if (b->IsInRing())
+              {
+                // Clear any indication of "/" and "\" double bond stereochemistry:
+                b->UnsetUp();
+                b->UnsetDown();
+              }
+            else
+              // Clear all aromaticity information for the bond (affects "num_aromatic" variable below):
+              b->UnsetAromatic();
+          }
+      }
+
+    vector<int> Num_Rings(8, 0); // number of rings of the given size (e.g. "Num_Rings[2]" = number of rings of size 2)
+    int num_rings = 0, // total number of rings
+        num_aromatic = 0; // total number of aromatic rings
+
+    // Get the Smallest Set of Smallest Rings:
+    vector<OBRing*> vr = mol.GetSSSR();
+
+    for (vector<OBRing*>::iterator iter = vr.begin(); iter != vr.end(); iter++)
+      {
+        num_rings++;
+        if ((*iter)->IsAromatic())
+          num_aromatic++;
+        if ((*iter)->Size() < 8)
+          Num_Rings[(*iter)->Size()]++;
+      }
+
+    std::vector<std::vector<int> > cfl;
+    mol.ContigFragList(cfl);
+
+    molecule_statistics.rotors = mol.NumRotors();
+    molecule_statistics.fragments = cfl.size();
+    molecule_statistics.rings56 = Num_Rings[5] + Num_Rings[6];
+
+    if (confidence)
+        {
+          int C_Count = 0;
+          int N_Count = 0;
+          int O_Count = 0;
+          int F_Count = 0;
+          int S_Count = 0;
+          int Cl_Count = 0;
+          int Br_Count = 0;
+          int R_Count = 0;
+          int Xx_Count = 0;
+
+          for (unsigned int i = 1; i <= mol.NumAtoms(); i++)
+            {
+              OBAtom *a = mol.GetAtom(i);
+              if (a->IsCarbon())
+                C_Count++;
+              else if (a->IsNitrogen())
+                N_Count++;
+              else if (a->IsOxygen())
+                O_Count++;
+              else if (a->IsSulfur())
+                S_Count++;
+              else if (a->GetAtomicNum() == 9)
+                F_Count++;
+              else if (a->GetAtomicNum() == 17)
+                Cl_Count++;
+              else if (a->GetAtomicNum() == 35)
+                Br_Count++;
+              else if (a->GetAtomicNum() == 0)
+                {
+                  AliasData *ad;
+                  ad = (AliasData *) a->GetData(OBGenericDataType::SetData);
+                  if (ad != NULL && ad->GetAlias() != "Xx")
+                    R_Count++;
+                  else
+                    Xx_Count++;
+                }
+            }
+
+          *confidence = confidence_function(C_Count, N_Count, O_Count, F_Count, S_Count, Cl_Count, Br_Count, R_Count,
+                                            Xx_Count, num_rings, num_aromatic, molecule_statistics.fragments, Num_Rings);
+        }
+
+    if (generate_2D_coordinates)
+      {
+        for (unsigned int i = 0; i < atomN.size(); i++)
+          {
+            groupRedraw(&mol, bondN[i], atomN[i], true);
+          }
+      }
+}
+
+molecule_statistics_t caclulate_molecule_statistics(vector<atom_t> &atom, const vector<bond_t> &bond, int n_bond, double avg_bond_length, const map<string, string> &superatom)
+{
+  molecule_statistics_t molecule_statistics;
+#pragma omp critical
+  {
+    OBMol mol;
+    create_molecule(mol, atom, bond, n_bond, avg_bond_length, molecule_statistics, false, NULL, superatom);    
     mol.Clear();
   }
+  return molecule_statistics;
+}
 
+const string get_formatted_structure(vector<atom_t> &atom, const vector<bond_t> &bond, int n_bond, const string &format, molecule_statistics_t &molecule_statistics,
+                                     double &confidence, bool show_confidence, double avg_bond_length, double scaled_avg_bond_length, bool show_avg_bond_length, const int * const resolution,
+                                     const int * const page, const box_t * const surrounding_box,
+                                     const map<string, string> &superatom)
+{
+  stringstream strstr;
+#pragma omp critical
+  {
+    OBMol mol;
+    create_molecule(mol, atom, bond, n_bond, avg_bond_length, molecule_statistics, format == "sdf", &confidence, superatom);
+    
+    // Add hydrogens to the entire molecule to fill out implicit valence spots:
+    mol.AddHydrogens(true, false); // polarOnly, correctForPh
+    // Find all chiral atom centers:
+    mol.FindChiralCenters();
+    
+    // Clear any indication of 2D "wedge" notation:
+    for (unsigned int j = 0; j <= mol.NumBonds(); j++)
+      {
+	OBBond *b = mol.GetBond(j);
+	if (b != NULL && !b->GetBeginAtom()->IsChiral() && !b->GetEndAtom()->IsChiral())
+	  {
+	    //b->UnsetHash();
+	    b->UnsetWedge();
+	  }
+      }
+    
+    // Add single bonds based on atom proximity:
+    mol.ConnectTheDots();
+    // Copies each disconnected fragment as a separate OBMol:
+    //mol.Separate();
+    // Deletes all atoms except for the largest contiguous fragment:
+    mol.StripSalts(MIN_A_COUNT);
+    
+    if (show_confidence)
+      {
+	OBPairData *label = new OBPairData;
+	label->SetAttribute("Confidence_estimate");
+	stringstream cs;
+	cs << confidence;
+	label->SetValue(cs.str());
+	mol.SetData(label);
+      }
+    
+    if (show_avg_bond_length)
+      {
+	OBPairData *label = new OBPairData;
+	label->SetAttribute("Average_bond_length");
+	stringstream cs;
+	cs << scaled_avg_bond_length;
+	label->SetValue(cs.str());
+	mol.SetData(label);
+      }
+    
+    if (resolution)
+      {
+	OBPairData *label = new OBPairData;
+	label->SetAttribute("Resolution");
+	stringstream cs;
+	cs << *resolution;
+	label->SetValue(cs.str());
+	mol.SetData(label);
+      }
+    
+    if (page)
+    {
+      OBPairData *label = new OBPairData;
+      label->SetAttribute("Page");
+      stringstream cs;
+      cs << *page;
+      label->SetValue(cs.str());
+      mol.SetData(label);
+    }
+
+    if (surrounding_box)
+      {
+	OBPairData *label = new OBPairData;
+	label->SetAttribute("Surrounding_box");
+	stringstream cs;
+	cs << surrounding_box->x1 << 'x' << surrounding_box->y1 << '-' << surrounding_box->x2 << 'x' << surrounding_box->y2;
+	label->SetValue(cs.str());
+	mol.SetData(label);
+      }
+    
+    OBConversion conv;
+
+    conv.SetOutFormat(format.c_str());
+    conv.Read(&mol);
+
+    strstr << conv.WriteString(&mol, true);
+
+    if (format == "smi" || format == "can")
+      {
+	if (show_avg_bond_length)
+	  strstr << " " << scaled_avg_bond_length;
+	if (resolution)
+	  strstr << " " << *resolution;
+	if (show_confidence)
+	  strstr << " " << confidence;
+	if (page)
+	  strstr << " " << *page;
+	if (surrounding_box)
+	  strstr << surrounding_box->x1 << 'x' << surrounding_box->y1 << '-' << surrounding_box->x2 << 'x' << surrounding_box->y2;
+      }
+
+    strstr << endl;
+    
+    mol.Clear();
+  }
   return (strstr.str());
 }
