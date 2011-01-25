@@ -229,7 +229,6 @@ struct molecule_statistics_s
 typedef struct molecule_statistics_s molecule_statistics_t;
 
 
-
 // Section: Functions
 //
 //  Function: fix_atom_name()
@@ -360,7 +359,7 @@ Magick::Image anisotropic_scaling(const Magick::Image &image, int width, int hei
 //
 // recognized character or 0
 char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int x1, int y1, int x2, int y2,
-                    double THRESHOLD, int dropx, int dropy);
+                    double THRESHOLD, int dropx, int dropy, bool verbose);
 
 // Function: get_pixel()
 //

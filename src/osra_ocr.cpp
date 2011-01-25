@@ -52,9 +52,10 @@ extern "C" {
 #include <lang_def.h>
 #include <mpuma.h>
 #include <compat_defs.h>
-//#include <cuneiform.h>
 #endif
 
+// Global GOCR variable (omg):
+job_t *JOB;
 job_t *OCR_JOB;
 
 /**
@@ -216,6 +217,7 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
           {
             char c1 = 0;
             OCR_JOB = &job;
+	    JOB = &job;
             try
               {
                 pgm2asc(&job);
@@ -316,6 +318,7 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
       }
     job_free_image(&job);
     OCR_JOB = NULL;
+    JOB = NULL;
     free(tmp);
     delete opix;
     free(bitmap_data);

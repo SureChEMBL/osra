@@ -562,7 +562,7 @@ AX_TRY_LINK([Pgm2asc], [
 	#include <gocr/pgm2asc.h>
 	#include <gocr/gocr.h>
 	}
-	job_t *OCR_JOB;
+	job_t *OCR_JOB, *JOB;
 ], [
 	job_t job;
 

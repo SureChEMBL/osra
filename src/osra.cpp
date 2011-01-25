@@ -4005,7 +4005,7 @@ int clean_unrecognized_characters(vector<bond_t> &bond, int n_bond, const vector
               }
             letters_t lt;
             letters.push_back(lt);
-            letters[n_letters].a = "Xx";
+            letters[n_letters].a = '*';
             letters[n_letters].x = (l + r) / 2;
             letters[n_letters].y = (t + b) / 2;
             letters[n_letters].r = distance(l, t, r, b) / 2;
@@ -5021,6 +5021,9 @@ void find_limits_on_avg_bond(double &min_bond, double &max_bond, const vector<ve
 }
 
 
+extern job_t *OCR_JOB; 
+extern job_t *JOB;
+
 #ifdef ANDROID
 extern "C" {
   JNIEXPORT jstring JNICALL Java_cadd_osra_main_runosra_nativeosra(JNIEnv * j_env, jobject j_this, jobjectArray jarr,
@@ -5277,7 +5280,7 @@ int main(int argc, char **argv)
 
   int total_structure_count = 0;
 
-#pragma omp parallel for default(shared) private(OCR_JOB)
+#pragma omp parallel for default(shared) private(OCR_JOB,JOB)
   for (int l = 0; l < page; l++)
     {
       Image image;
@@ -5647,7 +5650,7 @@ int main(int argc, char **argv)
                                              real_font_width, 0, orig_box, bgColor, THRESHOLD_CHAR, 3, verbose);
 
                 n_letters = find_fused_chars(bond, n_bond, atom, letters, n_letters, real_font_height,
-                                             real_font_width, "Xx", orig_box, bgColor, THRESHOLD_CHAR, 5, verbose);
+                                             real_font_width, '*', orig_box, bgColor, THRESHOLD_CHAR, 5, verbose);
 
                 flatten_bonds(bond, n_bond, atom, 3);
                 remove_zero_bonds(bond, n_bond, atom);
