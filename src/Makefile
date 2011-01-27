@@ -2,7 +2,7 @@
 # This makefile is responsible for building the executable.
 #
 
-OBJ		= osra.o osra_anisotropic.o osra_ocr.o osra_openbabel.o mcdlutil.o unpaper.o
+OBJ		= osra.o osra_anisotropic.o osra_ocr.o osra_openbabel.o mcdlutil.o unpaper.o osra_ocr_tesseract.o
 
 include ../Makefile.inc
 include Makefile.dep

@@ -5948,15 +5948,15 @@ fi
 
 	ax_link_dynamically=no
 
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for -ltesseract_full" >&5
-$as_echo_n "checking for -ltesseract_full... " >&6; }
-if test "${ac_cv_lib_tesseract_full+set}" = set; then :
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for -ltesseract_api" >&5
+$as_echo_n "checking for -ltesseract_api... " >&6; }
+if test "${ac_cv_lib_tesseract_api+set}" = set; then :
   $as_echo_n "(cached) " >&6
 else
 
 			{ LIBS_LIST=; unset LIBS_LIST;}
 
-			for ax_var in tesseract_full
+			for ax_var in tesseract_api
 do :
 
 				LIBS_LIST="-l${ax_var} ${LIBS_LIST}"
@@ -5979,30 +5979,32 @@ ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
 		#include <stddef.h>
 		#include <tesseract/baseapi.h>
+		using namespace tesseract;
 
 int
 main ()
 {
 
-		TessBaseAPI::InitWithLanguage("", "", "", "", false, 0, NULL);
-		TessBaseAPI::TesseractRect((const unsigned char*) NULL, 1, 0, 0, 0, 0, 0);
-		TessBaseAPI::End();
+		TessBaseAPI tess;
+		tess.Init(NULL, "");
+		char* text = tess.TesseractRect((const unsigned char*) NULL, 1, 0, 0, 0, 0, 0);
+		tess.End();
 
   ;
   return 0;
 }
 _ACEOF
 if ac_fn_cxx_try_link "$LINENO"; then :
-  ac_cv_lib_tesseract_full=yes
+  ac_cv_lib_tesseract_api=yes
 else
-  ac_cv_lib_tesseract_full=no
+  ac_cv_lib_tesseract_api=no
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
 
 						LIBS=${ax_try_link_save_LIBS}
 
-						if test "x$ac_cv_lib_tesseract_full" = x""no; then :
+						if test "x$ac_cv_lib_tesseract_api" = x""no; then :
 
 								if test "${enable_static_linking+set}" == "set" -a "${ac_gnu_ld}" == "yes"; then :
 
@@ -6017,14 +6019,16 @@ rm -f core conftest.err conftest.$ac_objext \
 
 		#include <stddef.h>
 		#include <tesseract/baseapi.h>
+		using namespace tesseract;
 
 int
 main ()
 {
 
-		TessBaseAPI::InitWithLanguage("", "", "", "", false, 0, NULL);
-		TessBaseAPI::TesseractRect((const unsigned char*) NULL, 1, 0, 0, 0, 0, 0);
-		TessBaseAPI::End();
+		TessBaseAPI tess;
+		tess.Init(NULL, "");
+		char* text = tess.TesseractRect((const unsigned char*) NULL, 1, 0, 0, 0, 0, 0);
+		tess.End();
 
   ;
   return 0;
@@ -6032,7 +6036,7 @@ main ()
 _ACEOF
 if ac_fn_cxx_try_link "$LINENO"; then :
 
-						ac_cv_lib_tesseract_full=yes
+						ac_cv_lib_tesseract_api=yes
 						ax_link_dynamically=yes
 
 fi
@@ -6054,15 +6058,15 @@ ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
 
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_tesseract_full" >&5
-$as_echo "$ac_cv_lib_tesseract_full" >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_tesseract_api" >&5
+$as_echo "$ac_cv_lib_tesseract_api" >&6; }
 
-		if test "x$ac_cv_lib_tesseract_full" = x""yes; then :
+		if test "x$ac_cv_lib_tesseract_api" = x""yes; then :
 
 			$as_echo "#define HAVE_TESSERACT_LIB 1" >>confdefs.h
 
 			cat >>confdefs.h <<_ACEOF
-#define HAVE_LIBTESSERACT_FULL 1
+#define HAVE_LIBTESSERACT_API 1
 _ACEOF
 
 
@@ -6070,7 +6074,7 @@ _ACEOF
   LIBS="-Wl,-static ${LIBS}"
 fi
 
-						for ax_var in tesseract_full
+						for ax_var in tesseract_api
 do :
 
 				(echo "${LIBS}" | grep -q -- "-l${ax_var} ") || LIBS="-l${ax_var} ${LIBS}"

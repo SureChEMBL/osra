@@ -331,13 +331,15 @@ AS_IF([test "${ac_lib_tesseract}" == "yes"], [
 	AC_CHECK_LIB([pthread], [sem_init], [], [ac_lib_tesseract=no])
 	AC_CHECK_LIB([tiff], [TIFFGetField], [], [ac_lib_tesseract=no])
 
-	AX_TRY_LINK([tesseract_full], [
+	AX_TRY_LINK([tesseract_api], [
 		#include <stddef.h>
 		#include <tesseract/baseapi.h>
+		using namespace tesseract;
 	], [
-		TessBaseAPI::InitWithLanguage("", "", "", "", false, 0, NULL);
-		TessBaseAPI::TesseractRect((const unsigned char*) NULL, 1, 0, 0, 0, 0, 0);
-		TessBaseAPI::End();
+		TessBaseAPI tess;
+		tess.Init(NULL, "");
+		char* text = tess.TesseractRect((const unsigned char*) NULL, 1, 0, 0, 0, 0, 0);
+		tess.End();
 	], [AC_DEFINE([HAVE_TESSERACT_LIB])], [ac_lib_tesseract=no])
 ])
 

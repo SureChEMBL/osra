@@ -28,6 +28,8 @@
 #include <string>
 #include <sstream>
 
+#include "config.h"
+
 extern "C" {
 #ifdef ANDROID
 #include <pgm2asc.h>
@@ -38,13 +40,6 @@ extern "C" {
 
 #include <ocradlib.h>
 
-#include "osra.h"
-#include "config.h"
-
-#ifdef HAVE_TESSERACT_LIB
-#include <tesseract/baseapi.h>
-#endif
-
 #ifdef HAVE_CUNEIFORM_LIB
 #include <ctiimage.h>
 #include <cttypes.h>
@@ -54,7 +49,13 @@ extern "C" {
 #include <compat_defs.h>
 #endif
 
-// Global GOCR variable (omg):
+#include "osra.h"
+
+#ifdef HAVE_TESSERACT_LIB
+char *tesseract_backend(unsigned char *p, int x1, int y1, int x2, int y2);
+#endif
+
+// Global GOCR variable (omg) both for 0.48-0.49 and 0.50 versions:
 job_t *JOB;
 job_t *OCR_JOB;
 
@@ -264,9 +265,8 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
                 else
                   {
                     char c3 = 0;
-                    TessBaseAPI::InitWithLanguage(NULL, NULL, "eng", NULL, false, 0, NULL);
-                    char* text = TessBaseAPI::TesseractRect(job.src.p.p, 1, x2 - x1 + 1, 0, 0, x2 - x1 + 1, y2 - y1 + 1);
-                    TessBaseAPI::End();
+		    char *text = NULL;
+		    text = tesseract_backend(job.src.p.p,x1,y1,x2,y2);
                     if (text != NULL)
                       {
                         if (strlen(text) == 3)
