@@ -267,7 +267,7 @@ const string fix_atom_name(const string &s, int n, const map<string, string> &fi
 //
 //   calculated molecule statistics
 molecule_statistics_t caclulate_molecule_statistics(vector<atom_t> &atom, const vector<bond_t> &bond, int n_bond,
-                                                    double avg_bond_length, const map<string, string> &superatom);
+    double avg_bond_length, const map<string, string> &superatom);
 
 //  Function: get_formatted_structure()
 //

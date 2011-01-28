@@ -2759,7 +2759,7 @@ int resolve_bridge_bonds(vector<atom_t> &atom, int n_atom, vector<bond_t> &bond,
                     else if (bond[c].b == bond[d].b)
                       bond[c].b = bond[d].a;
 
-		    molecule_statistics_t molecule_statistics2 = caclulate_molecule_statistics(atom, bond, n_bond, avg_bond_length, superatom);
+                    molecule_statistics_t molecule_statistics2 = caclulate_molecule_statistics(atom, bond, n_bond, avg_bond_length, superatom);
                     if (molecule_statistics1.fragments != molecule_statistics2.fragments ||
                         molecule_statistics1.rotors != molecule_statistics2.rotors ||
                         molecule_statistics1.rings56 - molecule_statistics2.rings56 == 2)
@@ -5021,7 +5021,7 @@ void find_limits_on_avg_bond(double &min_bond, double &max_bond, const vector<ve
 }
 
 
-extern job_t *OCR_JOB; 
+extern job_t *OCR_JOB;
 extern job_t *JOB;
 
 #ifdef ANDROID
@@ -5060,11 +5060,11 @@ int main(int argc, char **argv)
   TCLAP::CmdLine cmd("OSRA: Optical Structure Recognition Application, created by Igor Filippov, 2007-2010", ' ',
                      PACKAGE_VERSION);
 
- //
+//
   // Image pre-processing options
   //
   TCLAP::ValueArg<double> rotate_option("R", "rotate", "Rotate image clockwise by specified number of degrees", false, 0,
-                                 "0..360");
+                                        "0..360");
   cmd.add(rotate_option);
 
   TCLAP::SwitchArg invert_option("n", "negate", "Invert color (white on black)", false);
@@ -5077,7 +5077,7 @@ int main(int argc, char **argv)
   cmd.add(threshold_option);
 
   TCLAP::ValueArg<int> do_unpaper_option("u", "unpaper", "Pre-process image with unpaper algorithm, rounds", false, 0,
-                                 "default: 0 rounds");
+                                         "default: 0 rounds");
   cmd.add(do_unpaper_option);
 
   TCLAP::SwitchArg jaggy_option("j", "jaggy", "Additional thinning/scaling down of low quality documents", false);
@@ -5118,7 +5118,7 @@ int main(int argc, char **argv)
   //
   TCLAP::SwitchArg debug_option("d", "debug", "Print out debug information on spelling corrections", false);
   cmd.add(debug_option);
- 
+
   TCLAP::SwitchArg verbose_option("v", "verbose", "Be verbose and print the program flow", false);
   cmd.add(verbose_option);
 
@@ -5158,7 +5158,7 @@ int main(int argc, char **argv)
 #endif
 
   srand(1);
-  
+
   bool verbose = verbose_option.getValue();
 
   // Loading the program data files into maps:
@@ -5280,22 +5280,22 @@ int main(int argc, char **argv)
 
   int total_structure_count = 0;
 
-#pragma omp parallel for default(shared) private(OCR_JOB,JOB)
+  #pragma omp parallel for default(shared) private(OCR_JOB,JOB)
   for (int l = 0; l < page; l++)
     {
       Image image;
       double page_scale=1;
 
       if (verbose)
-	cout << "Processing page " << (l+1) << " out of " << page << "..." << endl;
+        cout << "Processing page " << (l+1) << " out of " << page << "..." << endl;
 
 
       stringstream density;
       density << input_resolution << "x" << input_resolution;
       image.density(density.str());
 
-      if (type == "PDF" || type == "PS") page_scale*=300/input_resolution;
-	
+      if (type == "PDF" || type == "PS") page_scale*=72/input_resolution;
+
 
 #ifdef ANDROID
       image.read(blob);
@@ -5386,7 +5386,7 @@ int main(int argc, char **argv)
           stringstream scale;
           scale << percent << "%";
           image.scale(scale.str());
-	  page_scale /= (double) percent/100;
+          page_scale /= (double) percent/100;
         }
 
       if (verbose)
@@ -5395,7 +5395,7 @@ int main(int argc, char **argv)
           for (vector<int>::iterator it = select_resolution.begin();;)
             {
               cout << *it;
- 
+
               if (++it < select_resolution.end())
                 cout << ", ";
               else
@@ -5418,14 +5418,14 @@ int main(int argc, char **argv)
       list<list<list<point_t> > > clusters = find_segments(image, 0.1, bgColor,verbose);
 
       if (verbose)
-	cout << "Number of clusters is " << clusters.size() << '.' << endl;
+        cout << "Number of clusters is " << clusters.size() << '.' << endl;
 
       vector<box_t> boxes;
       int n_boxes = prune_clusters(clusters, boxes);
       std::sort(boxes.begin(), boxes.end(), comp_boxes);
 
       if (verbose)
-	cout << "Number of boxes is " << boxes.size() << '.' << endl;
+        cout << "Number of boxes is " << boxes.size() << '.' << endl;
 
       // This will hide the output "Warning: non-positive median line gap" from GOCR. Remove after this is fixed:
       fclose(stderr);
@@ -5485,7 +5485,7 @@ int main(int argc, char **argv)
                 vector<bond_t> frag_bond;
                 vector<letters_t> letters;
                 vector<label_t> label;
-		double box_scale = 1;
+                double box_scale = 1;
                 Image orig_box(Geometry(boxes[k].x2 - boxes[k].x1 + 2 * FRAME, boxes[k].y2 - boxes[k].y1 + 2
                                         * FRAME), bgColor);
 
@@ -5520,7 +5520,7 @@ int main(int argc, char **argv)
                             stringstream scale;
                             scale << percent << "%";
                             orig_box.scale(scale.str());
-			    box_scale /= (double) percent/100;
+                            box_scale /= (double) percent/100;
                             working_resolution = 300;
                             thick_box = orig_box;
                             width = thick_box.columns();
@@ -5535,7 +5535,7 @@ int main(int argc, char **argv)
                             stringstream scale;
                             scale << percent << "%";
                             orig_box.scale(scale.str());
-			    box_scale /= (double) percent/100;
+                            box_scale /= (double) percent/100;
                             working_resolution = 300;
                             thick_box = orig_box;
                             width = thick_box.columns();
@@ -5548,7 +5548,7 @@ int main(int argc, char **argv)
                     if (jaggy_option.getValue())
                       {
                         orig_box.scale("50%");
-			box_scale *= 2;
+                        box_scale *= 2;
                         thick_box = orig_box;
                         working_resolution = 150;
                         width = thick_box.columns();
@@ -5588,13 +5588,13 @@ int main(int argc, char **argv)
                     stringstream scale;
                     scale << percent << "%";
                     orig_box.scale(scale.str());
-		    box_scale /= (double) percent/100;
+                    box_scale /= (double) percent/100;
                     working_resolution = 300;
                   }
                 else
                   thick_box = orig_box;
 
-		if (verbose)
+                if (verbose)
                   cout << "Analysing box " << boxes[k].x1 << "x" << boxes[k].y1 << "-" << boxes[k].x2 << "x" << boxes[k].y2 << " using working resolution " << working_resolution << '.' << endl;
 
                 param->turnpolicy = POTRACE_TURNPOLICY_MINORITY;
@@ -5766,22 +5766,22 @@ int main(int argc, char **argv)
                           double confidence = 0;
                           molecule_statistics_t molecule_statistics;
                           int page_number = l + 1;
-			  box_t coordinate_box;
-			  coordinate_box.x1=(int)((double)page_scale*boxes[k].x1 + (double)page_scale*box_scale*fragments[i].x1);
-			  coordinate_box.y1=(int)((double)page_scale*boxes[k].y1 + (double)page_scale*box_scale*fragments[i].y1);
-			  coordinate_box.x2=(int)((double)page_scale*boxes[k].x1 + (double)page_scale*box_scale*fragments[i].x2);
-			  coordinate_box.y2=(int)((double)page_scale*boxes[k].y1 + (double)page_scale*box_scale*fragments[i].y2);
+                          box_t coordinate_box;
+                          coordinate_box.x1=(int)((double)page_scale*boxes[k].x1 + (double)page_scale*box_scale*fragments[i].x1);
+                          coordinate_box.y1=(int)((double)page_scale*boxes[k].y1 + (double)page_scale*box_scale*fragments[i].y1);
+                          coordinate_box.x2=(int)((double)page_scale*boxes[k].x1 + (double)page_scale*box_scale*fragments[i].x2);
+                          coordinate_box.y2=(int)((double)page_scale*boxes[k].y1 + (double)page_scale*box_scale*fragments[i].y2);
 
-			  string structure =
-			    get_formatted_structure(frag_atom, frag_bond, n_bond, output_format_option.getValue(),
-						    molecule_statistics, confidence,
-						    show_confidence_option.getValue(), avg_bond_length, page_scale*box_scale*avg_bond_length,
-						    show_avg_bond_length_option.getValue(),
-						    show_resolution_guess_option.getValue() ? &resolution : NULL,
-						    show_page_option.getValue() ? &page_number : NULL,
-						    show_coordinates ? &coordinate_box : NULL, superatom);
+                          string structure =
+                            get_formatted_structure(frag_atom, frag_bond, n_bond, output_format_option.getValue(),
+                                                    molecule_statistics, confidence,
+                                                    show_confidence_option.getValue(), avg_bond_length, page_scale*box_scale*avg_bond_length,
+                                                    show_avg_bond_length_option.getValue(),
+                                                    show_resolution_guess_option.getValue() ? &resolution : NULL,
+                                                    show_page_option.getValue() ? &page_number : NULL,
+                                                    show_coordinates ? &coordinate_box : NULL, superatom);
 
-			  if (verbose)
+                          if (verbose)
                             cout << "Structure length " << structure.length() << ", fragments: " << molecule_statistics.fragments << '.' << endl;
 
                           if (molecule_statistics.fragments > 0 && molecule_statistics.fragments < MAX_FRAGMENTS && !structure.empty())
@@ -5791,38 +5791,38 @@ int main(int argc, char **argv)
                               array_of_ind_conf[res_iter].push_back(confidence);
                               total_boxes++;
                               total_confidence += confidence;
-			      if (output_image_file_prefix_option.getValue() != "")
-				{
-				  Image tmp = image;
-				  if (fragments.size() > 1)
-				    {
-				      try
-					{
-					  tmp.crop(Geometry(box_scale*fragments[i].x2 - box_scale*fragments[i].x1 + 4 * real_font_width,
-							    box_scale*fragments[i].y2 - box_scale*fragments[i].y1 + 4 * real_font_height,
-							    boxes[k].x1 + box_scale*fragments[i].x1 - FRAME - 2 * real_font_width,
-							    boxes[k].y1 + box_scale*fragments[i].y1 - FRAME - 2 * real_font_height));
-					}
-				      catch (...)
-					{
-					  tmp = orig_box;
-					}
-				    }
-				  else
-				    {
-				      try
-					{
-					  tmp.crop(Geometry(boxes[k].x2 - boxes[k].x1, boxes[k].y2 - boxes[k].y1,
-							    boxes[k].x1, boxes[k].y1));
-					}
-				      catch (...)
-					{
-					  tmp = orig_box;
-					}
-				    }
-				  
-				  array_of_images[res_iter].push_back(tmp);
-				}
+                              if (output_image_file_prefix_option.getValue() != "")
+                                {
+                                  Image tmp = image;
+                                  if (fragments.size() > 1)
+                                    {
+                                      try
+                                        {
+                                          tmp.crop(Geometry(box_scale*fragments[i].x2 - box_scale*fragments[i].x1 + 4 * real_font_width,
+                                                            box_scale*fragments[i].y2 - box_scale*fragments[i].y1 + 4 * real_font_height,
+                                                            boxes[k].x1 + box_scale*fragments[i].x1 - FRAME - 2 * real_font_width,
+                                                            boxes[k].y1 + box_scale*fragments[i].y1 - FRAME - 2 * real_font_height));
+                                        }
+                                      catch (...)
+                                        {
+                                          tmp = orig_box;
+                                        }
+                                    }
+                                  else
+                                    {
+                                      try
+                                        {
+                                          tmp.crop(Geometry(boxes[k].x2 - boxes[k].x1, boxes[k].y2 - boxes[k].y1,
+                                                            boxes[k].x1, boxes[k].y1));
+                                        }
+                                      catch (...)
+                                        {
+                                          tmp = orig_box;
+                                        }
+                                    }
+
+                                  array_of_images[res_iter].push_back(tmp);
+                                }
                             }
                         }
                   }
@@ -5855,8 +5855,8 @@ int main(int argc, char **argv)
       for (unsigned int i = 0; i < array_of_structures[max_res].size(); i++)
         {
           pages_of_structures[l].push_back(array_of_structures[max_res][i]);
-	  if (output_image_file_prefix_option.getValue() != "")
-	    pages_of_images[l].push_back(array_of_images[max_res][i]);
+          if (output_image_file_prefix_option.getValue() != "")
+            pages_of_images[l].push_back(array_of_images[max_res][i]);
           pages_of_avg_bonds[l].push_back(array_of_avg_bonds[max_res][i]);
           pages_of_ind_conf[l].push_back(array_of_ind_conf[max_res][i]);
           total_structure_count++;
@@ -5909,22 +5909,22 @@ int main(int argc, char **argv)
               cout << pages_of_structures[l][i];
           }
       if (output_image_file_prefix_option.getValue() != "")
-	for (unsigned int i = 0; i < pages_of_images[l].size(); i++)
-	  if (pages_of_avg_bonds[l][i] > min_bond && pages_of_avg_bonds[l][i] < max_bond)
-	    {
-	      stringstream fname;
+        for (unsigned int i = 0; i < pages_of_images[l].size(); i++)
+          if (pages_of_avg_bonds[l][i] > min_bond && pages_of_avg_bonds[l][i] < max_bond)
+            {
+              stringstream fname;
               fname << output_image_file_prefix_option.getValue() << image_count << ".png";
-	      image_count++;
-	      if (fname.str() != "")
-		{
-		  Image tmp = pages_of_images[l][i];
-		  if (resize_option.getValue() != "")
-		    {
-		      tmp.scale(resize_option.getValue());
-		    }
-		  tmp.write(fname.str());
-		}
-	    }
+              image_count++;
+              if (fname.str() != "")
+                {
+                  Image tmp = pages_of_images[l][i];
+                  if (resize_option.getValue() != "")
+                    {
+                      tmp.scale(resize_option.getValue());
+                    }
+                  tmp.write(fname.str());
+                }
+            }
     }
 
   if (outfile.is_open())

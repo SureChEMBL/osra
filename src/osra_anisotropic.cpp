@@ -34,7 +34,7 @@ Image anisotropic_smoothing(const Image &image, int width, int height, const flo
 
   Image res(Geometry(width, height), "white");
   res.type(GrayscaleType);
-#pragma omp critical
+  #pragma omp critical
   {
     CImg<unsigned char> source(width, height, 1, 1, 0);
     unsigned char color[1] = { 0 };
@@ -88,7 +88,7 @@ Image anisotropic_scaling(const Image &image, int width, int height, int nw, int
 
   Image res(Geometry(nw, nh), "white");
   res.type(GrayscaleType);
-#pragma omp critical
+  #pragma omp critical
   {
     CImg<unsigned char> source(width, height, 1, 1, 0);
     unsigned char color[1] = { 0 };

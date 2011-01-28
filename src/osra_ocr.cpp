@@ -71,7 +71,7 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
                     double THRESHOLD, int dropx, int dropy, bool verbose)
 {
   char c = 0;
-#pragma omp critical
+  #pragma omp critical
   {
     unsigned char *tmp;
     job_t job;
@@ -79,7 +79,7 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
 
     job_init(&job);
     job_init_image(&job);
-    job.cfg.cfilter = (char *) "oOcCnNHFsSBuUgMeEXYZRPp23456789";
+    job.cfg.cfilter = (char *) "oOcCnNHFsSBuUgMeEXYZRPp23456789AmTh";
 
     //job.cfg.cs = 160;
     //job.cfg.certainty = 80;
@@ -114,6 +114,7 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
         tmp[(i - y1) * (x2 - x1 + 1) + j - x1] = (unsigned char) (255 - 255 * get_pixel(image, bg, j, i,
             THRESHOLD));
 
+    // Here we drop down from the top of the box, middle of x coordinate and extract connected component
     int t = 1;
     int y = dropy - y1 + 1;
     int x = dropx - x1;
@@ -138,10 +139,11 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
             cx.pop_front();
             cy.pop_front();
             tmp[y * (x2 - x1 + 1) + x] = 1;
+
+            // this goes around 3x3 square touching the chosen pixel
             for (int i = x - 1; i < x + 2; i++)
               for (int j = y - 1; j < y + 2; j++)
-                if ((i < (x2 - x1 + 1)) && (j < (y2 - y1 + 1)) && (i >= 0) && (j >= 0) && (tmp[j
-                    * (x2 - x1 + 1) + i] == 0))
+                if ((i < (x2 - x1 + 1)) && (j < (y2 - y1 + 1)) && (i >= 0) && (j >= 0) && (tmp[j* (x2 - x1 + 1) + i] == 0))
                   {
                     cx.push_back(i);
                     cy.push_back(j);
@@ -202,14 +204,15 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
         memcpy(dib, blob.data(), data_size);
 #endif
 
-	if (verbose)
+        if (verbose)
           {
             cout << "Box to OCR: " << x1 << "x" << y1 << "-" << x2 << "x" << y2 << " w/h:" << x2 - x1 << "/" << y2 - y1 << endl;
-            for (int i = 0; i < job.src.p.y; i++) {
-	      for (int j = 0; j < job.src.p.x; j++)
-		cout << job.src.p.p[i * job.src.p.x + j] / 255;
-	      cout << endl;
-            }
+            for (int i = 0; i < job.src.p.y; i++)
+              {
+                for (int j = 0; j < job.src.p.x; j++)
+                  cout << job.src.p.p[i * job.src.p.x + j] / 255;
+                cout << endl;
+              }
           }
 
         string patern = job.cfg.cfilter;
@@ -218,7 +221,7 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
           {
             char c1 = 0;
             OCR_JOB = &job;
-	    JOB = &job;
+            JOB = &job;
             try
               {
                 pgm2asc(&job);
@@ -230,8 +233,8 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
             l = (char *) job.res.linelist.start.next->data;
             if (l != NULL && strlen(l)==1)
               c1 = l[0];
-	    if (verbose)
-	      cout << "GOCR: c1=" << c1 << endl;
+            if (verbose)
+              cout << "GOCR: c1=" << c1 << endl;
             //c1='_';
             if (isalnum(c1)) // Character recognition succeeded for GOCR:
               c = c1;
@@ -250,7 +253,7 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
                           ocrdes, 0, 0) != 0)
                       line = OCRAD_result_line(ocrdes, 0, 0);
                   }
-		if (verbose)
+                if (verbose)
                   cout << "OCRAD: c2=" << c2 << endl;
 
                 if (line.length() > 2)
@@ -265,15 +268,15 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
                 else
                   {
                     char c3 = 0;
-		    char *text = NULL;
-		    text = tesseract_backend(job.src.p.p,x1,y1,x2,y2);
+                    char *text = NULL;
+                    text = tesseract_backend(job.src.p.p,x1,y1,x2,y2);
                     if (text != NULL)
                       {
                         if (strlen(text) == 3)
                           c3 = text[0];
                         free(text);
                       }
-		    if (verbose)
+                    if (verbose)
                       cout << "Tesseract: c3=" << c3 << endl;
 
                     if (patern.find(c3, 0) == string::npos)
@@ -294,7 +297,7 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
                             PUMA_XClose();
                             if ((str[0]==str[1] && isspace(str[2])) || (str[0]==str[2] && str[1]==' '))
                               c4=str[0];
-			    if (verbose)
+                            if (verbose)
                               cout << "Cuneiform: " << str[0] << "|" << str[1] << "|" << str[2] << "|" << str[3] << "|" << " c4=" << c4 << endl;
 
                             if (patern.find(c4, 0) == string::npos)

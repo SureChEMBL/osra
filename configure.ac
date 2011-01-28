@@ -7,7 +7,7 @@ dnl Follow this link for complete autoconf macro list:
 dnl http://www.gnu.org/software/autoconf/manual/html_node/Autoconf-Macro-Index.html
 dnl
 
-AC_INIT([osra], [1.3.7])
+AC_INIT([osra], [1.3.8])
 AC_PREREQ([2.65])
 AC_CANONICAL_BUILD
 

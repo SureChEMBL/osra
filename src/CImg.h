@@ -9532,7 +9532,7 @@ struct CImgDisplay
 #ifdef _WIN64
     CImgDisplay* disp = (CImgDisplay*)GetWindowLongPtr(window,GWLP_USERDATA);
 #else
-  CImgDisplay* disp = (CImgDisplay*)GetWindowLong(window,GWL_USERDATA);
+    CImgDisplay* disp = (CImgDisplay*)GetWindowLong(window,GWL_USERDATA);
 #endif
     MSG st_msg;
 
@@ -9746,8 +9746,8 @@ struct CImgDisplay
         SetWindowLongPtr(disp->window,GWLP_USERDATA,(LONG_PTR)disp);
         SetWindowLongPtr(disp->window,GWLP_WNDPROC,(LONG_PTR)_handle_events);
 #else
-  SetWindowLong(disp->window,GWL_USERDATA,(LONG)disp);
-  SetWindowLong(disp->window,GWL_WNDPROC,(LONG)_handle_events);
+        SetWindowLong(disp->window,GWL_USERDATA,(LONG)disp);
+        SetWindowLong(disp->window,GWL_WNDPROC,(LONG)_handle_events);
 #endif
         SetEvent(disp->created);
         while( GetMessage(&msg,0,0,0) ) DispatchMessage( &msg );

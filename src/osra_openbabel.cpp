@@ -219,265 +219,265 @@ double confidence_function(int C_Count, int N_Count, int O_Count, int F_Count, i
 void create_molecule(OBMol &mol, vector<atom_t> &atom, const vector<bond_t> &bond, int n_bond, double avg_bond_length, molecule_statistics_t &molecule_statistics,
                      bool generate_2D_coordinates, double * const confidence, const map<string, string> &superatom)
 {
-    string str;
-    int n = 1;
-    double scale = CC_BOND_LENGTH / avg_bond_length;
-    vector<int> atomN, bondN;
-    int bondn = 0;
-    int anum;
+  string str;
+  int n = 1;
+  double scale = CC_BOND_LENGTH / avg_bond_length;
+  vector<int> atomN, bondN;
+  int bondn = 0;
+  int anum;
 
-    mol.SetDimension(2);
+  mol.SetDimension(2);
 
-    mol.BeginModify();
-    for (int i = 0; i < n_bond; i++)
-      if (bond[i].exists && i < MAX_ATOMS - 1 && bond[i].a < MAX_ATOMS - 1 && bond[i].b < MAX_ATOMS - 1)
-        {
-          if (atom[bond[i].a].n == 0)
-            {
-              int oldn = n;
-              anum = get_atomic_num(atom[bond[i].a].label, mol, n, bondn, superatom);
-              if (oldn != n)
-                {
-                  if (n != oldn+1)
-                    {
-                      atomN.push_back(n - 1);
-                      bondN.push_back(bondn);
-                    }
-                  atom[bond[i].a].n = n - 1;
-                  OBAtom *a = mol.GetAtom(n - 1);
-                  a->SetVector(atom[bond[i].a].x * scale, -atom[bond[i].a].y * scale, 0);
-                  if (anum == 0)
-                    {
-                      AliasData* ad = new AliasData();
-                      ad->SetAlias(atom[bond[i].a].label);
-                      ad->SetOrigin(external);
-                      a->SetData(ad);
-//                      ad->Expand(mol, anum);
-                    }
-                }
-              else
-                {
-                  OBAtom *a = mol.CreateAtom();
-                  a->SetAtomicNum(anum);
-                  if (atom[bond[i].a].charge != 0)
-                    a->SetFormalCharge(atom[bond[i].a].charge);
-                  a->SetVector(atom[bond[i].a].x * scale, -atom[bond[i].a].y * scale, 0);
-                  if (anum == 0)
-                    {
-                      AliasData* ad = new AliasData();
-                      ad->SetAlias(atom[bond[i].a].label);
-                      ad->SetOrigin(external);
-                      a->SetData(ad);
-//                      ad->Expand(mol, anum); //Make chemically meaningful, if possible.
-                    }
-                  // This operation copies the given atom into new one before addition,
-                  // so the caller is still responsible to free the memory:
-                  mol.AddAtom(*a);
-                  delete a;
-                  atom[bond[i].a].n = n;
-                  n++;
-                }
-              atom[bond[i].a].anum = anum;
-            }
-          if (atom[bond[i].b].n == 0)
-            {
-              int oldn = n;
-              anum = get_atomic_num(atom[bond[i].b].label, mol, n, bondn, superatom);
-              if (oldn != n)
-                {
-                  if (n != oldn+1)
-                    {
-                      atomN.push_back(n - 1);
-                      bondN.push_back(bondn);
-                    }
-                  atom[bond[i].b].n = n - 1;
-                  OBAtom *b = mol.GetAtom(n - 1);
-                  b->SetVector(atom[bond[i].b].x * scale, -atom[bond[i].b].y * scale, 0);
-                  if (anum == 0)
-                    {
-                      AliasData* ad = new AliasData();
-                      ad->SetAlias(atom[bond[i].b].label);
-                      ad->SetOrigin(external);
-                      b->SetData(ad);
-//                      ad->Expand(mol, anum);
-                    }
-                }
-              else
-                {
-                  OBAtom *b = mol.CreateAtom();
-                  b->SetAtomicNum(anum);
-                  if (atom[bond[i].b].charge != 0)
-                    b->SetFormalCharge(atom[bond[i].b].charge);
-                  b->SetVector(atom[bond[i].b].x * scale, -atom[bond[i].b].y * scale, 0);
-                  if (anum == 0)
-                    {
-                      AliasData* ad = new AliasData();
-                      ad->SetAlias(atom[bond[i].b].label);
-                      ad->SetOrigin(external);
-                      b->SetData(ad);
-//                      ad->Expand(mol, anum); // Make chemically meaningful, if possible.
-                    }
-                  // This operation copies the given atom into new one before addition,
-                  // so the caller is still responsible to free the memory:
-                  mol.AddAtom(*b);
-                  delete b;
-                  atom[bond[i].b].n = n;
-                  n++;
-                }
-              atom[bond[i].b].anum = anum;
-            }
-
-          if (bond[i].arom)
-            {
-              mol.AddBond(atom[bond[i].a].n, atom[bond[i].b].n, 5);
-              bondn++;
-            }
-          else if (bond[i].hash)
-            {
-              if (atom[bond[i].a].anum == 8 || atom[bond[i].a].anum == 1 || atom[bond[i].a].anum == 9
-                  || atom[bond[i].a].anum == 53 || atom[bond[i].a].anum == 17 || atom[bond[i].a].anum == 35
-                  || atom[bond[i].a].anum == 18 || atom[bond[i].a].terminal)
-                mol.AddBond(atom[bond[i].b].n, atom[bond[i].a].n, bond[i].type, OB_HASH_BOND);
-              else
-                mol.AddBond(atom[bond[i].a].n, atom[bond[i].b].n, bond[i].type, OB_HASH_BOND);
-              bondn++;
-            }
-          else if (bond[i].wedge)
-            {
-              mol.AddBond(atom[bond[i].a].n, atom[bond[i].b].n, bond[i].type, OB_WEDGE_BOND);
-              bondn++;
-            }
-          else if (bond[i].up)
-            {
-              mol.AddBond(atom[bond[i].a].n, atom[bond[i].b].n, bond[i].type, OB_TORUP_BOND);
-              bondn++;
-            }
-          else if (bond[i].down)
-            {
-              mol.AddBond(atom[bond[i].a].n, atom[bond[i].b].n, bond[i].type, OB_TORDOWN_BOND);
-              bondn++;
-            }
-          else
-            {
-              mol.AddBond(atom[bond[i].a].n, atom[bond[i].b].n, bond[i].type);
-              bondn++;
-            }
-        }
-    mol.EndModify();
-
-    mol.FindRingAtomsAndBonds();
-
-    // Clear the counters of created OBAtom objects:
-    for (int i = 0; i < n_bond; i++)
-      if (bond[i].exists)
-        {
-          atom[bond[i].a].n = 0;
-          atom[bond[i].b].n = 0;
-        }
-
-    // The logic below calculates the information both for molecule statistics and for confidence function:
-
-    // This block modifies the molecule:
-    for (unsigned int j = 0; j <= mol.NumBonds(); j++)
+  mol.BeginModify();
+  for (int i = 0; i < n_bond; i++)
+    if (bond[i].exists && i < MAX_ATOMS - 1 && bond[i].a < MAX_ATOMS - 1 && bond[i].b < MAX_ATOMS - 1)
       {
-        OBBond *b = mol.GetBond(j);
-        if (b != NULL)
+        if (atom[bond[i].a].n == 0)
           {
-            if (b->IsInRing())
+            int oldn = n;
+            anum = get_atomic_num(atom[bond[i].a].label, mol, n, bondn, superatom);
+            if (oldn != n)
               {
-                // Clear any indication of "/" and "\" double bond stereochemistry:
-                b->UnsetUp();
-                b->UnsetDown();
+                if (n != oldn+1)
+                  {
+                    atomN.push_back(n - 1);
+                    bondN.push_back(bondn);
+                  }
+                atom[bond[i].a].n = n - 1;
+                OBAtom *a = mol.GetAtom(n - 1);
+                a->SetVector(atom[bond[i].a].x * scale, -atom[bond[i].a].y * scale, 0);
+                if (anum == 0)
+                  {
+                    AliasData* ad = new AliasData();
+                    ad->SetAlias(atom[bond[i].a].label);
+                    ad->SetOrigin(external);
+                    a->SetData(ad);
+//                      ad->Expand(mol, anum);
+                  }
               }
             else
-              // Clear all aromaticity information for the bond (affects "num_aromatic" variable below):
-              b->UnsetAromatic();
+              {
+                OBAtom *a = mol.CreateAtom();
+                a->SetAtomicNum(anum);
+                if (atom[bond[i].a].charge != 0)
+                  a->SetFormalCharge(atom[bond[i].a].charge);
+                a->SetVector(atom[bond[i].a].x * scale, -atom[bond[i].a].y * scale, 0);
+                if (anum == 0)
+                  {
+                    AliasData* ad = new AliasData();
+                    ad->SetAlias(atom[bond[i].a].label);
+                    ad->SetOrigin(external);
+                    a->SetData(ad);
+//                      ad->Expand(mol, anum); //Make chemically meaningful, if possible.
+                  }
+                // This operation copies the given atom into new one before addition,
+                // so the caller is still responsible to free the memory:
+                mol.AddAtom(*a);
+                delete a;
+                atom[bond[i].a].n = n;
+                n++;
+              }
+            atom[bond[i].a].anum = anum;
+          }
+        if (atom[bond[i].b].n == 0)
+          {
+            int oldn = n;
+            anum = get_atomic_num(atom[bond[i].b].label, mol, n, bondn, superatom);
+            if (oldn != n)
+              {
+                if (n != oldn+1)
+                  {
+                    atomN.push_back(n - 1);
+                    bondN.push_back(bondn);
+                  }
+                atom[bond[i].b].n = n - 1;
+                OBAtom *b = mol.GetAtom(n - 1);
+                b->SetVector(atom[bond[i].b].x * scale, -atom[bond[i].b].y * scale, 0);
+                if (anum == 0)
+                  {
+                    AliasData* ad = new AliasData();
+                    ad->SetAlias(atom[bond[i].b].label);
+                    ad->SetOrigin(external);
+                    b->SetData(ad);
+//                      ad->Expand(mol, anum);
+                  }
+              }
+            else
+              {
+                OBAtom *b = mol.CreateAtom();
+                b->SetAtomicNum(anum);
+                if (atom[bond[i].b].charge != 0)
+                  b->SetFormalCharge(atom[bond[i].b].charge);
+                b->SetVector(atom[bond[i].b].x * scale, -atom[bond[i].b].y * scale, 0);
+                if (anum == 0)
+                  {
+                    AliasData* ad = new AliasData();
+                    ad->SetAlias(atom[bond[i].b].label);
+                    ad->SetOrigin(external);
+                    b->SetData(ad);
+//                      ad->Expand(mol, anum); // Make chemically meaningful, if possible.
+                  }
+                // This operation copies the given atom into new one before addition,
+                // so the caller is still responsible to free the memory:
+                mol.AddAtom(*b);
+                delete b;
+                atom[bond[i].b].n = n;
+                n++;
+              }
+            atom[bond[i].b].anum = anum;
+          }
+
+        if (bond[i].arom)
+          {
+            mol.AddBond(atom[bond[i].a].n, atom[bond[i].b].n, 5);
+            bondn++;
+          }
+        else if (bond[i].hash)
+          {
+            if (atom[bond[i].a].anum == 8 || atom[bond[i].a].anum == 1 || atom[bond[i].a].anum == 9
+                || atom[bond[i].a].anum == 53 || atom[bond[i].a].anum == 17 || atom[bond[i].a].anum == 35
+                || atom[bond[i].a].anum == 18 || atom[bond[i].a].terminal)
+              mol.AddBond(atom[bond[i].b].n, atom[bond[i].a].n, bond[i].type, OB_HASH_BOND);
+            else
+              mol.AddBond(atom[bond[i].a].n, atom[bond[i].b].n, bond[i].type, OB_HASH_BOND);
+            bondn++;
+          }
+        else if (bond[i].wedge)
+          {
+            mol.AddBond(atom[bond[i].a].n, atom[bond[i].b].n, bond[i].type, OB_WEDGE_BOND);
+            bondn++;
+          }
+        else if (bond[i].up)
+          {
+            mol.AddBond(atom[bond[i].a].n, atom[bond[i].b].n, bond[i].type, OB_TORUP_BOND);
+            bondn++;
+          }
+        else if (bond[i].down)
+          {
+            mol.AddBond(atom[bond[i].a].n, atom[bond[i].b].n, bond[i].type, OB_TORDOWN_BOND);
+            bondn++;
+          }
+        else
+          {
+            mol.AddBond(atom[bond[i].a].n, atom[bond[i].b].n, bond[i].type);
+            bondn++;
           }
       }
+  mol.EndModify();
 
-    vector<int> Num_Rings(8, 0); // number of rings of the given size (e.g. "Num_Rings[2]" = number of rings of size 2)
-    int num_rings = 0, // total number of rings
-        num_aromatic = 0; // total number of aromatic rings
+  mol.FindRingAtomsAndBonds();
 
-    // Get the Smallest Set of Smallest Rings:
-    vector<OBRing*> vr = mol.GetSSSR();
-
-    for (vector<OBRing*>::iterator iter = vr.begin(); iter != vr.end(); iter++)
+  // Clear the counters of created OBAtom objects:
+  for (int i = 0; i < n_bond; i++)
+    if (bond[i].exists)
       {
-        num_rings++;
-        if ((*iter)->IsAromatic())
-          num_aromatic++;
-        if ((*iter)->Size() < 8)
-          Num_Rings[(*iter)->Size()]++;
+        atom[bond[i].a].n = 0;
+        atom[bond[i].b].n = 0;
       }
 
-    std::vector<std::vector<int> > cfl;
-    mol.ContigFragList(cfl);
+  // The logic below calculates the information both for molecule statistics and for confidence function:
 
-    molecule_statistics.rotors = mol.NumRotors();
-    molecule_statistics.fragments = cfl.size();
-    molecule_statistics.rings56 = Num_Rings[5] + Num_Rings[6];
-
-    if (confidence)
+  // This block modifies the molecule:
+  for (unsigned int j = 0; j <= mol.NumBonds(); j++)
+    {
+      OBBond *b = mol.GetBond(j);
+      if (b != NULL)
         {
-          int C_Count = 0;
-          int N_Count = 0;
-          int O_Count = 0;
-          int F_Count = 0;
-          int S_Count = 0;
-          int Cl_Count = 0;
-          int Br_Count = 0;
-          int R_Count = 0;
-          int Xx_Count = 0;
-
-          for (unsigned int i = 1; i <= mol.NumAtoms(); i++)
+          if (b->IsInRing())
             {
-              OBAtom *a = mol.GetAtom(i);
-              if (a->IsCarbon())
-                C_Count++;
-              else if (a->IsNitrogen())
-                N_Count++;
-              else if (a->IsOxygen())
-                O_Count++;
-              else if (a->IsSulfur())
-                S_Count++;
-              else if (a->GetAtomicNum() == 9)
-                F_Count++;
-              else if (a->GetAtomicNum() == 17)
-                Cl_Count++;
-              else if (a->GetAtomicNum() == 35)
-                Br_Count++;
-              else if (a->GetAtomicNum() == 0)
-                {
-                  AliasData *ad;
-                  ad = (AliasData *) a->GetData(OBGenericDataType::SetData);
-                  if (ad != NULL && ad->GetAlias() != "Xx")
-                    R_Count++;
-                  else
-                    Xx_Count++;
-                }
+              // Clear any indication of "/" and "\" double bond stereochemistry:
+              b->UnsetUp();
+              b->UnsetDown();
             }
+          else
+            // Clear all aromaticity information for the bond (affects "num_aromatic" variable below):
+            b->UnsetAromatic();
+        }
+    }
 
-          *confidence = confidence_function(C_Count, N_Count, O_Count, F_Count, S_Count, Cl_Count, Br_Count, R_Count,
-                                            Xx_Count, num_rings, num_aromatic, molecule_statistics.fragments, Num_Rings);
+  vector<int> Num_Rings(8, 0); // number of rings of the given size (e.g. "Num_Rings[2]" = number of rings of size 2)
+  int num_rings = 0, // total number of rings
+      num_aromatic = 0; // total number of aromatic rings
+
+  // Get the Smallest Set of Smallest Rings:
+  vector<OBRing*> vr = mol.GetSSSR();
+
+  for (vector<OBRing*>::iterator iter = vr.begin(); iter != vr.end(); iter++)
+    {
+      num_rings++;
+      if ((*iter)->IsAromatic())
+        num_aromatic++;
+      if ((*iter)->Size() < 8)
+        Num_Rings[(*iter)->Size()]++;
+    }
+
+  std::vector<std::vector<int> > cfl;
+  mol.ContigFragList(cfl);
+
+  molecule_statistics.rotors = mol.NumRotors();
+  molecule_statistics.fragments = cfl.size();
+  molecule_statistics.rings56 = Num_Rings[5] + Num_Rings[6];
+
+  if (confidence)
+    {
+      int C_Count = 0;
+      int N_Count = 0;
+      int O_Count = 0;
+      int F_Count = 0;
+      int S_Count = 0;
+      int Cl_Count = 0;
+      int Br_Count = 0;
+      int R_Count = 0;
+      int Xx_Count = 0;
+
+      for (unsigned int i = 1; i <= mol.NumAtoms(); i++)
+        {
+          OBAtom *a = mol.GetAtom(i);
+          if (a->IsCarbon())
+            C_Count++;
+          else if (a->IsNitrogen())
+            N_Count++;
+          else if (a->IsOxygen())
+            O_Count++;
+          else if (a->IsSulfur())
+            S_Count++;
+          else if (a->GetAtomicNum() == 9)
+            F_Count++;
+          else if (a->GetAtomicNum() == 17)
+            Cl_Count++;
+          else if (a->GetAtomicNum() == 35)
+            Br_Count++;
+          else if (a->GetAtomicNum() == 0)
+            {
+              AliasData *ad;
+              ad = (AliasData *) a->GetData(OBGenericDataType::SetData);
+              if (ad != NULL && ad->GetAlias() != "Xx")
+                R_Count++;
+              else
+                Xx_Count++;
+            }
         }
 
-    if (generate_2D_coordinates)
-      {
-        for (unsigned int i = 0; i < atomN.size(); i++)
-          {
-            groupRedraw(&mol, bondN[i], atomN[i], true);
-          }
-      }
+      *confidence = confidence_function(C_Count, N_Count, O_Count, F_Count, S_Count, Cl_Count, Br_Count, R_Count,
+                                        Xx_Count, num_rings, num_aromatic, molecule_statistics.fragments, Num_Rings);
+    }
+
+  if (generate_2D_coordinates)
+    {
+      for (unsigned int i = 0; i < atomN.size(); i++)
+        {
+          groupRedraw(&mol, bondN[i], atomN[i], true);
+        }
+    }
 }
 
 molecule_statistics_t caclulate_molecule_statistics(vector<atom_t> &atom, const vector<bond_t> &bond, int n_bond, double avg_bond_length, const map<string, string> &superatom)
 {
   molecule_statistics_t molecule_statistics;
-#pragma omp critical
+  #pragma omp critical
   {
     OBMol mol;
-    create_molecule(mol, atom, bond, n_bond, avg_bond_length, molecule_statistics, false, NULL, superatom);    
+    create_molecule(mol, atom, bond, n_bond, avg_bond_length, molecule_statistics, false, NULL, superatom);
     mol.Clear();
   }
   return molecule_statistics;
@@ -489,84 +489,84 @@ const string get_formatted_structure(vector<atom_t> &atom, const vector<bond_t> 
                                      const map<string, string> &superatom)
 {
   stringstream strstr;
-#pragma omp critical
+  #pragma omp critical
   {
     OBMol mol;
     create_molecule(mol, atom, bond, n_bond, avg_bond_length, molecule_statistics, format == "sdf", &confidence, superatom);
-    
+
     // Add hydrogens to the entire molecule to fill out implicit valence spots:
     mol.AddHydrogens(true, false); // polarOnly, correctForPh
     // Find all chiral atom centers:
     mol.FindChiralCenters();
-    
+
     // Clear any indication of 2D "wedge" notation:
     for (unsigned int j = 0; j <= mol.NumBonds(); j++)
       {
-	OBBond *b = mol.GetBond(j);
-	if (b != NULL && !b->GetBeginAtom()->IsChiral() && !b->GetEndAtom()->IsChiral())
-	  {
-	    //b->UnsetHash();
-	    b->UnsetWedge();
-	  }
+        OBBond *b = mol.GetBond(j);
+        if (b != NULL && !b->GetBeginAtom()->IsChiral() && !b->GetEndAtom()->IsChiral())
+          {
+            //b->UnsetHash();
+            b->UnsetWedge();
+          }
       }
-    
+
     // Add single bonds based on atom proximity:
     mol.ConnectTheDots();
     // Copies each disconnected fragment as a separate OBMol:
     //mol.Separate();
     // Deletes all atoms except for the largest contiguous fragment:
     mol.StripSalts(MIN_A_COUNT);
-    
+
     if (show_confidence)
       {
-	OBPairData *label = new OBPairData;
-	label->SetAttribute("Confidence_estimate");
-	stringstream cs;
-	cs << confidence;
-	label->SetValue(cs.str());
-	mol.SetData(label);
+        OBPairData *label = new OBPairData;
+        label->SetAttribute("Confidence_estimate");
+        stringstream cs;
+        cs << confidence;
+        label->SetValue(cs.str());
+        mol.SetData(label);
       }
-    
+
     if (show_avg_bond_length)
       {
-	OBPairData *label = new OBPairData;
-	label->SetAttribute("Average_bond_length");
-	stringstream cs;
-	cs << scaled_avg_bond_length;
-	label->SetValue(cs.str());
-	mol.SetData(label);
+        OBPairData *label = new OBPairData;
+        label->SetAttribute("Average_bond_length");
+        stringstream cs;
+        cs << scaled_avg_bond_length;
+        label->SetValue(cs.str());
+        mol.SetData(label);
       }
-    
+
     if (resolution)
       {
-	OBPairData *label = new OBPairData;
-	label->SetAttribute("Resolution");
-	stringstream cs;
-	cs << *resolution;
-	label->SetValue(cs.str());
-	mol.SetData(label);
+        OBPairData *label = new OBPairData;
+        label->SetAttribute("Resolution");
+        stringstream cs;
+        cs << *resolution;
+        label->SetValue(cs.str());
+        mol.SetData(label);
       }
-    
+
     if (page)
-    {
-      OBPairData *label = new OBPairData;
-      label->SetAttribute("Page");
-      stringstream cs;
-      cs << *page;
-      label->SetValue(cs.str());
-      mol.SetData(label);
-    }
+      {
+        OBPairData *label = new OBPairData;
+        label->SetAttribute("Page");
+        stringstream cs;
+        cs << *page;
+        label->SetValue(cs.str());
+        mol.SetData(label);
+      }
 
     if (surrounding_box)
       {
-	OBPairData *label = new OBPairData;
-	label->SetAttribute("Surrounding_box");
-	stringstream cs;
-	cs << surrounding_box->x1 << 'x' << surrounding_box->y1 << '-' << surrounding_box->x2 << 'x' << surrounding_box->y2;
-	label->SetValue(cs.str());
-	mol.SetData(label);
+        OBPairData *label = new OBPairData;
+        label->SetAttribute("Surrounding_box");
+        stringstream cs;
+        cs << surrounding_box->x1 << 'x' << surrounding_box->y1 << '-' << surrounding_box->x2 << 'x' << surrounding_box->y2;
+        label->SetValue(cs.str());
+        mol.SetData(label);
       }
-    
+
     OBConversion conv;
 
     conv.SetOutFormat(format.c_str());
@@ -576,20 +576,20 @@ const string get_formatted_structure(vector<atom_t> &atom, const vector<bond_t> 
 
     if (format == "smi" || format == "can")
       {
-	if (show_avg_bond_length)
-	  strstr << " " << scaled_avg_bond_length;
-	if (resolution)
-	  strstr << " " << *resolution;
-	if (show_confidence)
-	  strstr << " " << confidence;
-	if (page)
-	  strstr << " " << *page;
-	if (surrounding_box)
-	  strstr << surrounding_box->x1 << 'x' << surrounding_box->y1 << '-' << surrounding_box->x2 << 'x' << surrounding_box->y2;
+        if (show_avg_bond_length)
+          strstr << " " << scaled_avg_bond_length;
+        if (resolution)
+          strstr << " " << *resolution;
+        if (show_confidence)
+          strstr << " " << confidence;
+        if (page)
+          strstr << " " << *page;
+        if (surrounding_box)
+          strstr << surrounding_box->x1 << 'x' << surrounding_box->y1 << '-' << surrounding_box->x2 << 'x' << surrounding_box->y2;
       }
 
     strstr << endl;
-    
+
     mol.Clear();
   }
   return (strstr.str());
