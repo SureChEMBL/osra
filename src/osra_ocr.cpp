@@ -31,11 +31,7 @@
 #include "config.h"
 
 extern "C" {
-#ifdef ANDROID
 #include <pgm2asc.h>
-#else
-#include <gocr/pgm2asc.h>
-#endif
 }
 
 #include <ocradlib.h>
@@ -235,7 +231,7 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
               c1 = l[0];
             if (verbose)
               cout << "GOCR: c1=" << c1 << endl;
-            //c1='_';
+            //c1='_';  // Switch off GOCR recognition
             if (isalnum(c1)) // Character recognition succeeded for GOCR:
               c = c1;
             else
@@ -261,7 +257,7 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
                 OCRAD_close(ocrdes);
                 if (patern.find(c2, 0) == string::npos)
                   c2 = '_';
-                //c2='_';
+                //c2='_';  // Switch off OCRAD recogntion
                 if (isalnum(c2))
                   c = c2;
 #ifdef HAVE_TESSERACT_LIB
@@ -281,6 +277,7 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
 
                     if (patern.find(c3, 0) == string::npos)
                       c3 = '_';
+                    //c3='_';  // Switch off Tesseract recogntion
                     if (isalnum(c3))
                       c = c3;
 #endif
@@ -303,6 +300,7 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
                             if (patern.find(c4, 0) == string::npos)
                               c4 = '_';
                           }
+                        //c4='_'; // Switch off Cuneiform recogntion
                         if (isalnum(c4))
                           c = c4;
                       }

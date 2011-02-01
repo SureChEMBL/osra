@@ -3384,6 +3384,12 @@ if test -d "/usr/local/include"; then :
 
 fi
 
+if test -d "/usr/local/include/gocr"; then :
+
+        CPPFLAGS="-I/usr/local/include/gocr ${CPPFLAGS}"
+
+fi
+
 if test -d "/usr/local/lib"; then :
 
 	LDFLAGS="-L/usr/local/lib ${LDFLAGS}"
@@ -4297,12 +4303,12 @@ fi
 
 
 
-		for ac_header in gocr/pgm2asc.h
+		for ac_header in pgm2asc.h
 do :
-  ac_fn_cxx_check_header_mongrel "$LINENO" "gocr/pgm2asc.h" "ac_cv_header_gocr_pgm2asc_h" "$ac_includes_default"
-if test "x$ac_cv_header_gocr_pgm2asc_h" = x""yes; then :
+  ac_fn_cxx_check_header_mongrel "$LINENO" "pgm2asc.h" "ac_cv_header_pgm2asc_h" "$ac_includes_default"
+if test "x$ac_cv_header_pgm2asc_h" = x""yes; then :
   cat >>confdefs.h <<_ACEOF
-#define HAVE_GOCR_PGM2ASC_H 1
+#define HAVE_PGM2ASC_H 1
 _ACEOF
  ac_lib_gocr=yes
 else
@@ -4315,7 +4321,7 @@ done
 		if test "${ac_lib_gocr}" != "yes" -a "${with_gocr}" != ""; then :
 
 
-	for ax_var in gocr/pgm2asc.h
+	for ax_var in pgm2asc.h
 do :
 
 				as_ax_Var=`$as_echo "ac_cv_header_${ax_var}" | $as_tr_sh`
@@ -4357,17 +4363,17 @@ do :
 
 done
 
-						{ $as_echo "$as_me:${as_lineno-$LINENO}: checking gocr for gocr/pgm2asc.h in ${ac_location}" >&5
-$as_echo_n "checking gocr for gocr/pgm2asc.h in ${ac_location}... " >&6; }
+						{ $as_echo "$as_me:${as_lineno-$LINENO}: checking gocr for pgm2asc.h in ${ac_location}" >&5
+$as_echo_n "checking gocr for pgm2asc.h in ${ac_location}... " >&6; }
 						$as_echo
 						$as_echo "$as_me:${as_lineno-$LINENO}: CPPFLAGS=\"${CPPFLAGS}\" and LDFLAGS=\"${LDFLAGS}\" for HOME location check" >&5
 
-						for ac_header in gocr/pgm2asc.h
+						for ac_header in pgm2asc.h
 do :
-  ac_fn_cxx_check_header_mongrel "$LINENO" "gocr/pgm2asc.h" "ac_cv_header_gocr_pgm2asc_h" "$ac_includes_default"
-if test "x$ac_cv_header_gocr_pgm2asc_h" = x""yes; then :
+  ac_fn_cxx_check_header_mongrel "$LINENO" "pgm2asc.h" "ac_cv_header_pgm2asc_h" "$ac_includes_default"
+if test "x$ac_cv_header_pgm2asc_h" = x""yes; then :
   cat >>confdefs.h <<_ACEOF
-#define HAVE_GOCR_PGM2ASC_H 1
+#define HAVE_PGM2ASC_H 1
 _ACEOF
  ac_lib_gocr=yes
 else
@@ -4384,7 +4390,7 @@ fi
 												LDFLAGS=${ax_probe_library_save_LDFLAGS}
 						CPPFLAGS=${ax_probe_library_save_CPPFLAGS}
 
-	for ax_var in gocr/pgm2asc.h
+	for ax_var in pgm2asc.h
 do :
 
 				as_ax_Var=`$as_echo "ac_cv_header_${ax_var}" | $as_tr_sh`
@@ -4405,17 +4411,17 @@ else
 
 				CPPFLAGS="-I${ac_test_location} $CPPFLAGS"
 
-				{ $as_echo "$as_me:${as_lineno-$LINENO}: checking gocr for gocr/pgm2asc.h in ${ac_test_location}" >&5
-$as_echo_n "checking gocr for gocr/pgm2asc.h in ${ac_test_location}... " >&6; }
+				{ $as_echo "$as_me:${as_lineno-$LINENO}: checking gocr for pgm2asc.h in ${ac_test_location}" >&5
+$as_echo_n "checking gocr for pgm2asc.h in ${ac_test_location}... " >&6; }
 				$as_echo
 				$as_echo "$as_me:${as_lineno-$LINENO}: CPPFLAGS=\"${CPPFLAGS}\" for custom location check" >&5
 
-				for ac_header in gocr/pgm2asc.h
+				for ac_header in pgm2asc.h
 do :
-  ac_fn_cxx_check_header_mongrel "$LINENO" "gocr/pgm2asc.h" "ac_cv_header_gocr_pgm2asc_h" "$ac_includes_default"
-if test "x$ac_cv_header_gocr_pgm2asc_h" = x""yes; then :
+  ac_fn_cxx_check_header_mongrel "$LINENO" "pgm2asc.h" "ac_cv_header_pgm2asc_h" "$ac_includes_default"
+if test "x$ac_cv_header_pgm2asc_h" = x""yes; then :
   cat >>confdefs.h <<_ACEOF
-#define HAVE_GOCR_PGM2ASC_H 1
+#define HAVE_PGM2ASC_H 1
 _ACEOF
  ac_lib_gocr=yes
 else
@@ -4431,7 +4437,7 @@ fi
 
 								CPPFLAGS=${ax_probe_library_save_CPPFLAGS}
 
-	for ax_var in gocr/pgm2asc.h
+	for ax_var in pgm2asc.h
 do :
 
 				as_ax_Var=`$as_echo "ac_cv_header_${ax_var}" | $as_tr_sh`
@@ -4450,7 +4456,7 @@ fi
 
 
 	if test "${ac_lib_gocr}" != "yes"; then :
-  as_fn_error "gocr/pgm2asc.h header(s) is missing. Check the default/listed above headers locations." "$LINENO" 5
+  as_fn_error "pgm2asc.h header(s) is missing. Check the default/listed above headers locations." "$LINENO" 5
 fi
 
 
@@ -7332,8 +7338,8 @@ ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 /* end confdefs.h.  */
 
 	extern "C" {
-	#include <gocr/pgm2asc.h>
-	#include <gocr/gocr.h>
+	#include <pgm2asc.h>
+	#include <gocr.h>
 	}
 	job_t *OCR_JOB, *JOB;
 
@@ -7376,8 +7382,8 @@ rm -f core conftest.err conftest.$ac_objext \
 /* end confdefs.h.  */
 
 	extern "C" {
-	#include <gocr/pgm2asc.h>
-	#include <gocr/gocr.h>
+	#include <pgm2asc.h>
+	#include <gocr.h>
 	}
 	job_t *OCR_JOB, *JOB;
 

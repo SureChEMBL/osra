@@ -58,6 +58,10 @@ AS_IF([test -d "/usr/local/include"], [
 	CPPFLAGS="-I/usr/local/include ${CPPFLAGS}"
 ])
 
+AS_IF([test -d "/usr/local/include/gocr"], [
+        CPPFLAGS="-I/usr/local/include/gocr ${CPPFLAGS}"
+])
+
 AS_IF([test -d "/usr/local/lib"], [
 	LDFLAGS="-L/usr/local/lib ${LDFLAGS}"
 ])
@@ -144,7 +148,7 @@ dnl gocr library
 
 AX_PROBE_OBLIGATORY_LIBRARY(
 	[gocr],
-	[gocr/pgm2asc.h],
+	[pgm2asc.h],
 	[auto],
 	[custom location of gocr/pgm2asc.h from GOCR (optical character recognition library), see http://jocr.sourceforge.net/]
 )
@@ -561,8 +565,8 @@ osra_lib_gocr=yes
 
 AX_TRY_LINK([Pgm2asc], [
 	extern "C" {
-	#include <gocr/pgm2asc.h>
-	#include <gocr/gocr.h>
+	#include <pgm2asc.h>
+	#include <gocr.h>
 	}
 	job_t *OCR_JOB, *JOB;
 ], [
