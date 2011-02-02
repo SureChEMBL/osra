@@ -585,7 +585,7 @@ const string get_formatted_structure(vector<atom_t> &atom, const vector<bond_t> 
         if (page)
           strstr << " " << *page;
         if (surrounding_box)
-          strstr << surrounding_box->x1 << 'x' << surrounding_box->y1 << '-' << surrounding_box->x2 << 'x' << surrounding_box->y2;
+          strstr << " "<<surrounding_box->x1 << 'x' << surrounding_box->y1 << '-' << surrounding_box->x2 << 'x' << surrounding_box->y2;
       }
 
     strstr << endl;

@@ -1465,6 +1465,126 @@ const Color getBgColor(const Image &image, bool inv)
   return (r);
 }
 
+bool convert_to_bilevel(Image &image, bool invert)
+{
+  if (!invert)
+    {
+      double a = 0;
+      ColorRGB c;
+      Color t;
+      ColorGray g;
+      bool transparent = false;
+      for (int i = 0; i < BG_PICK_POINTS; i++)
+        {
+          int x = (image.columns() * rand()) / RAND_MAX;
+          int y = (image.rows() * rand()) / RAND_MAX;
+          t = image.pixelColor(x, y);
+          c = t;
+          g = t;
+          if (image.matte() && t.alpha() == 1 && g.shade() < 0.5)
+            transparent = true;
+          a += (c.red() + c.green() + c.blue()) / 3;
+        }
+      a /= BG_PICK_POINTS;
+      if (a < 0.5 && !transparent)
+        invert = true;
+    }
+
+  {
+    ColorRGB c, b;
+    Color t;
+    ColorGray g;
+    double a;
+    bool matte = image.matte();
+
+    for (unsigned int i = 0; i < image.columns(); i++)
+      for (unsigned int j = 0; j < image.rows(); j++)
+        {
+          t = image.pixelColor(i, j);
+          b = t;
+          g = t;
+          if (matte && t.alpha() == 1 && g.shade() < 0.5)
+            {
+              g.shade(1);
+              image.pixelColor(i, j, g);
+            }
+          else
+            {
+              a = min(b.red(), min(b.green(), b.blue()));
+              if (invert)
+                a = max(b.red(), max(b.green(), b.blue()));
+              c.red(a);
+              c.green(a);
+              c.blue(a);
+              image.pixelColor(i, j, c);
+            }
+        }
+  }
+
+  image.contrast(2);
+  image.type(GrayscaleType);
+  return(invert);
+}
+
+// Otsu Algorithm, from http://habrahabr.ru/blogs/algorithm/112079/
+double get_threshold(const Image &image)
+{
+  ColorGray g;
+  double min=1,max=0;
+  unsigned int num_bins = 256;
+  vector<unsigned int> histogram(num_bins,0);
+  for (unsigned int i = 0; i < image.columns(); i++)
+    for (unsigned int j = 0; j < image.rows(); j++)
+      {
+        g = image.pixelColor(i, j);
+        if (min>g.shade()) min = g.shade();
+        if (max<g.shade()) max = g.shade();
+      }
+  if (max == min) return (0.1);
+  double scale = 255. / (max - min);
+  for (unsigned int i = 0; i < image.columns(); i++)
+    for (unsigned int j = 0; j < image.rows(); j++)
+      {
+        g = image.pixelColor(i, j);
+        histogram[int((g.shade()-min)*scale)]++;
+      }
+  unsigned int m = 0;
+  unsigned int n = 0;
+  for (unsigned int i = 0; i<num_bins; i++)
+    {
+      m += i*histogram[i];
+      n += histogram[i];
+    }
+
+  double maxSigma = -1;
+  unsigned int min_t = num_bins;
+  unsigned int max_t = 0;
+
+  unsigned int alpha1 = 0;
+  unsigned int beta1 = 0;
+
+  for (unsigned int t = 0; t < num_bins; t++)
+    {
+      alpha1 += t * histogram[t];
+      beta1 += histogram[t];
+
+      double w1 = (double)beta1 / n;
+      double a = (double)alpha1 / beta1 - (double)(m - alpha1) / (n - beta1);
+      double sigma = w1 * (1 - w1) * a * a;
+
+      if (sigma >= maxSigma)
+        {
+          maxSigma = sigma;
+          if (t > max_t) max_t = t;
+          if (t < min_t) min_t = t;
+        }
+    }
+
+  double real_threshold = 0.5*(max_t+min_t)/scale;
+  real_threshold += min;
+  return(real_threshold);
+}
+
 void debug_img(Image &image, const vector<atom_t> &atom, int n_atom, const vector<bond_t> &bond, int n_bond,
                const string &fname)
 {
@@ -5306,62 +5426,7 @@ int main(int argc, char **argv)
 #endif
       image.modifyImage();
 
-      if (!invert)
-        {
-          double a = 0;
-          ColorRGB c;
-          Color t;
-          ColorGray g;
-          bool transparent = false;
-          for (int i = 0; i < BG_PICK_POINTS; i++)
-            {
-              int x = (image.columns() * rand()) / RAND_MAX;
-              int y = (image.rows() * rand()) / RAND_MAX;
-              t = image.pixelColor(x, y);
-              c = t;
-              g = t;
-              if (image.matte() && t.alpha() == 1 && g.shade() < 0.5)
-                transparent = true;
-              a += (c.red() + c.green() + c.blue()) / 3;
-            }
-          a /= BG_PICK_POINTS;
-          if (a < 0.5 && !transparent)
-            invert = true;
-        }
-
-      {
-        ColorRGB c, b;
-        Color t;
-        ColorGray g;
-        double a;
-        bool matte = image.matte();
-
-        for (unsigned int i = 0; i < image.columns(); i++)
-          for (unsigned int j = 0; j < image.rows(); j++)
-            {
-              t = image.pixelColor(i, j);
-              b = t;
-              g = t;
-              if (matte && t.alpha() == 1 && g.shade() < 0.5)
-                {
-                  g.shade(1);
-                  image.pixelColor(i, j, g);
-                }
-              else
-                {
-                  a = min(b.red(), min(b.green(), b.blue()));
-                  if (invert)
-                    a = max(b.red(), max(b.green(), b.blue()));
-                  c.red(a);
-                  c.green(a);
-                  c.blue(a);
-                  image.pixelColor(i, j, c);
-                }
-            }
-      }
-
-      image.contrast(2);
-      image.type(GrayscaleType);
+      invert = convert_to_bilevel(image, invert);
 
       int num_resolutions = NUM_RESOLUTIONS;
       if (input_resolution != 0)
@@ -5406,6 +5471,7 @@ int main(int argc, char **argv)
 
       ColorGray bgColor = getBgColor(image, invert);
 
+
       if (rotate_option.getValue() != 0)
         {
           image.backgroundColor(bgColor);
@@ -5415,6 +5481,9 @@ int main(int argc, char **argv)
       for (int i = 0; i < do_unpaper_option.getValue(); i++)
         unpaper(image);
 
+
+
+      // 0.1 is used for THRESHOLD_BOND here to allow for farther processing.
       list<list<list<point_t> > > clusters = find_segments(image, 0.1, bgColor,verbose);
 
       if (verbose)
@@ -5445,7 +5514,7 @@ int main(int argc, char **argv)
           if (resolution > 300)
             working_resolution = 300;
 
-          double THRESHOLD_BOND, THRESHOLD_CHAR;
+          double THRESHOLD_BOND;
           THRESHOLD_BOND = threshold_option.getValue();
           if (THRESHOLD_BOND < 0.0001)
             {
@@ -5458,7 +5527,7 @@ int main(int argc, char **argv)
                   THRESHOLD_BOND = THRESHOLD_LOW_RES;
                 }
             }
-          THRESHOLD_CHAR = THRESHOLD_BOND;
+
 
           int max_font_height = MAX_FONT_HEIGHT * working_resolution / 150;
           int max_font_width = MAX_FONT_WIDTH * working_resolution / 150;
@@ -5621,7 +5690,7 @@ int main(int argc, char **argv)
 
                 int real_font_width, real_font_height;
                 n_letters = find_chars(p, orig_box, letters, atom, bond, n_atom, n_bond, height, width, bgColor,
-                                       THRESHOLD_CHAR, max_font_width, max_font_height, real_font_width, real_font_height,verbose);
+                                       THRESHOLD_BOND, max_font_width, max_font_height, real_font_width, real_font_height,verbose);
 
                 double avg_bond_length = percentile75(bond, n_bond, atom);
 
@@ -5647,10 +5716,10 @@ int main(int argc, char **argv)
                 remove_zero_bonds(bond, n_bond, atom);
 
                 n_letters = find_fused_chars(bond, n_bond, atom, letters, n_letters, real_font_height,
-                                             real_font_width, 0, orig_box, bgColor, THRESHOLD_CHAR, 3, verbose);
+                                             real_font_width, 0, orig_box, bgColor, THRESHOLD_BOND, 3, verbose);
 
                 n_letters = find_fused_chars(bond, n_bond, atom, letters, n_letters, real_font_height,
-                                             real_font_width, '*', orig_box, bgColor, THRESHOLD_CHAR, 5, verbose);
+                                             real_font_width, '*', orig_box, bgColor, THRESHOLD_BOND, 5, verbose);
 
                 flatten_bonds(bond, n_bond, atom, 3);
                 remove_zero_bonds(bond, n_bond, atom);
