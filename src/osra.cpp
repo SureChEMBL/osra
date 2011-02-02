@@ -5793,6 +5793,8 @@ int main(int argc, char **argv)
                 int real_atoms = count_atoms(atom, n_atom);
                 int real_bonds = count_bonds(bond, n_bond);
 
+                if (verbose)
+                  cout<<"real atoms: "<<real_atoms<<" real bonds: "<<real_bonds<<endl;
                 if (real_atoms > MIN_A_COUNT && real_atoms < MAX_A_COUNT && real_bonds < MAX_A_COUNT)
                   {
                     int num_frag;
@@ -5811,89 +5813,93 @@ int main(int argc, char **argv)
                     vector<fragment_t> fragments = populate_fragments(frags, atom);
                     std::sort(fragments.begin(), fragments.end(), comp_fragments);
                     for (unsigned int i = 0; i < fragments.size(); i++)
-                      if (fragments[i].atom.size() > MIN_A_COUNT)
-                        {
+                      {
+                        if (verbose)
+                          cout<<"Number of fragments: "<<fragments[i].atom.size()<<endl;
+                        if (fragments[i].atom.size() > MIN_A_COUNT)
+                          {
 
-                          frag_atom.clear();
-                          for (int a = 0; a < n_atom; a++)
-                            {
-                              frag_atom.push_back(atom[a]);
-                              frag_atom[a].exists = false;
-                            }
+                            frag_atom.clear();
+                            for (int a = 0; a < n_atom; a++)
+                              {
+                                frag_atom.push_back(atom[a]);
+                                frag_atom[a].exists = false;
+                              }
 
-                          for (unsigned int j = 0; j < fragments[i].atom.size(); j++)
-                            frag_atom[fragments[i].atom[j]].exists = atom[fragments[i].atom[j]].exists;
+                            for (unsigned int j = 0; j < fragments[i].atom.size(); j++)
+                              frag_atom[fragments[i].atom[j]].exists = atom[fragments[i].atom[j]].exists;
 
-                          frag_bond.clear();
-                          for (int b = 0; b < n_bond; b++)
-                            {
-                              frag_bond.push_back(bond[b]);
-                            }
+                            frag_bond.clear();
+                            for (int b = 0; b < n_bond; b++)
+                              {
+                                frag_bond.push_back(bond[b]);
+                              }
 
-                          remove_zero_bonds(frag_bond, n_bond, frag_atom);
+                            remove_zero_bonds(frag_bond, n_bond, frag_atom);
 
-                          double confidence = 0;
-                          molecule_statistics_t molecule_statistics;
-                          int page_number = l + 1;
-                          box_t coordinate_box;
-                          coordinate_box.x1=(int)((double)page_scale*boxes[k].x1 + (double)page_scale*box_scale*fragments[i].x1);
-                          coordinate_box.y1=(int)((double)page_scale*boxes[k].y1 + (double)page_scale*box_scale*fragments[i].y1);
-                          coordinate_box.x2=(int)((double)page_scale*boxes[k].x1 + (double)page_scale*box_scale*fragments[i].x2);
-                          coordinate_box.y2=(int)((double)page_scale*boxes[k].y1 + (double)page_scale*box_scale*fragments[i].y2);
+                            double confidence = 0;
+                            molecule_statistics_t molecule_statistics;
+                            int page_number = l + 1;
+                            box_t coordinate_box;
+                            coordinate_box.x1=(int)((double)page_scale*boxes[k].x1 + (double)page_scale*box_scale*fragments[i].x1);
+                            coordinate_box.y1=(int)((double)page_scale*boxes[k].y1 + (double)page_scale*box_scale*fragments[i].y1);
+                            coordinate_box.x2=(int)((double)page_scale*boxes[k].x1 + (double)page_scale*box_scale*fragments[i].x2);
+                            coordinate_box.y2=(int)((double)page_scale*boxes[k].y1 + (double)page_scale*box_scale*fragments[i].y2);
 
-                          string structure =
-                            get_formatted_structure(frag_atom, frag_bond, n_bond, output_format_option.getValue(),
-                                                    molecule_statistics, confidence,
-                                                    show_confidence_option.getValue(), avg_bond_length, page_scale*box_scale*avg_bond_length,
-                                                    show_avg_bond_length_option.getValue(),
-                                                    show_resolution_guess_option.getValue() ? &resolution : NULL,
-                                                    show_page_option.getValue() ? &page_number : NULL,
-                                                    show_coordinates ? &coordinate_box : NULL, superatom);
+                            string structure =
+                              get_formatted_structure(frag_atom, frag_bond, n_bond, output_format_option.getValue(),
+                                                      molecule_statistics, confidence,
+                                                      show_confidence_option.getValue(), avg_bond_length, page_scale*box_scale*avg_bond_length,
+                                                      show_avg_bond_length_option.getValue(),
+                                                      show_resolution_guess_option.getValue() ? &resolution : NULL,
+                                                      show_page_option.getValue() ? &page_number : NULL,
+                                                      show_coordinates ? &coordinate_box : NULL, superatom);
 
-                          if (verbose)
-                            cout << "Structure length " << structure.length() << ", fragments: " << molecule_statistics.fragments << '.' << endl;
+                            if (verbose)
+                              cout << "Structure length " << structure.length() << ", fragments: " << molecule_statistics.fragments << '.' << endl;
 
-                          if (molecule_statistics.fragments > 0 && molecule_statistics.fragments < MAX_FRAGMENTS && !structure.empty())
-                            {
-                              array_of_structures[res_iter].push_back(structure);
-                              array_of_avg_bonds[res_iter].push_back(page_scale*box_scale*avg_bond_length);
-                              array_of_ind_conf[res_iter].push_back(confidence);
-                              total_boxes++;
-                              total_confidence += confidence;
-                              if (output_image_file_prefix_option.getValue() != "")
-                                {
-                                  Image tmp = image;
-                                  if (fragments.size() > 1)
-                                    {
-                                      try
-                                        {
-                                          tmp.crop(Geometry(box_scale*fragments[i].x2 - box_scale*fragments[i].x1 + 4 * real_font_width,
-                                                            box_scale*fragments[i].y2 - box_scale*fragments[i].y1 + 4 * real_font_height,
-                                                            boxes[k].x1 + box_scale*fragments[i].x1 - FRAME - 2 * real_font_width,
-                                                            boxes[k].y1 + box_scale*fragments[i].y1 - FRAME - 2 * real_font_height));
-                                        }
-                                      catch (...)
-                                        {
-                                          tmp = orig_box;
-                                        }
-                                    }
-                                  else
-                                    {
-                                      try
-                                        {
-                                          tmp.crop(Geometry(boxes[k].x2 - boxes[k].x1, boxes[k].y2 - boxes[k].y1,
-                                                            boxes[k].x1, boxes[k].y1));
-                                        }
-                                      catch (...)
-                                        {
-                                          tmp = orig_box;
-                                        }
-                                    }
+                            if (molecule_statistics.fragments > 0 && molecule_statistics.fragments < MAX_FRAGMENTS && !structure.empty())
+                              {
+                                array_of_structures[res_iter].push_back(structure);
+                                array_of_avg_bonds[res_iter].push_back(page_scale*box_scale*avg_bond_length);
+                                array_of_ind_conf[res_iter].push_back(confidence);
+                                total_boxes++;
+                                total_confidence += confidence;
+                                if (output_image_file_prefix_option.getValue() != "")
+                                  {
+                                    Image tmp = image;
+                                    if (fragments.size() > 1)
+                                      {
+                                        try
+                                          {
+                                            tmp.crop(Geometry(box_scale*fragments[i].x2 - box_scale*fragments[i].x1 + 4 * real_font_width,
+                                                              box_scale*fragments[i].y2 - box_scale*fragments[i].y1 + 4 * real_font_height,
+                                                              boxes[k].x1 + box_scale*fragments[i].x1 - FRAME - 2 * real_font_width,
+                                                              boxes[k].y1 + box_scale*fragments[i].y1 - FRAME - 2 * real_font_height));
+                                          }
+                                        catch (...)
+                                          {
+                                            tmp = orig_box;
+                                          }
+                                      }
+                                    else
+                                      {
+                                        try
+                                          {
+                                            tmp.crop(Geometry(boxes[k].x2 - boxes[k].x1, boxes[k].y2 - boxes[k].y1,
+                                                              boxes[k].x1, boxes[k].y1));
+                                          }
+                                        catch (...)
+                                          {
+                                            tmp = orig_box;
+                                          }
+                                      }
 
-                                  array_of_images[res_iter].push_back(tmp);
-                                }
-                            }
-                        }
+                                    array_of_images[res_iter].push_back(tmp);
+                                  }
+                              }
+                          }
+                      }
                   }
 
                 if (st != NULL)
