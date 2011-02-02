@@ -1465,7 +1465,7 @@ const Color getBgColor(const Image &image, bool inv)
   return (r);
 }
 
-bool convert_to_bilevel(Image &image, bool invert)
+bool convert_to_gray(Image &image, bool invert)
 {
   if (!invert)
     {
@@ -5426,7 +5426,13 @@ int main(int argc, char **argv)
 #endif
       image.modifyImage();
 
-      invert = convert_to_bilevel(image, invert);
+      invert = convert_to_gray(image, invert);
+
+      // Pre-processing for images from iPhone and Android camera phones     
+      image.negate();
+      image.adaptiveThreshold(15,15,7);
+      image.negate();
+      image.blur();
 
       int num_resolutions = NUM_RESOLUTIONS;
       if (input_resolution != 0)
@@ -5469,6 +5475,7 @@ int main(int argc, char **argv)
           cout << '.' << endl;
         }
 
+     
       ColorGray bgColor = getBgColor(image, invert);
 
 
