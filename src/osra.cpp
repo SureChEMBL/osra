@@ -1527,7 +1527,7 @@ bool convert_to_gray(Image &image, bool invert)
 }
 
 // Otsu Algorithm, from http://habrahabr.ru/blogs/algorithm/112079/
-double get_threshold(const Image &image)
+double get_threshold_otsu(const Image &image)
 {
   ColorGray g;
   double min=1,max=0;
@@ -1571,12 +1571,13 @@ double get_threshold(const Image &image)
       double w1 = (double)beta1 / n;
       double a = (double)alpha1 / beta1 - (double)(m - alpha1) / (n - beta1);
       double sigma = w1 * (1 - w1) * a * a;
+      if (sigma == maxSigma) max_t = t;
 
-      if (sigma >= maxSigma)
+      if (sigma > maxSigma)
         {
           maxSigma = sigma;
-          if (t > max_t) max_t = t;
-          if (t < min_t) min_t = t;
+          min_t = t;
+	  max_t = t;
         }
     }
 
