@@ -82,14 +82,14 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
     //job.cfg.dust_size = 1;
     //if ((y2 - y1) > MAX_FONT_HEIGHT) f = 1. * MAX_FONT_HEIGHT / (y2 - y1);
 
-
     job.src.p.x = int(f * (x2 - x1 + 1));
     job.src.p.y = int(f * (y2 - y1 + 1));
     job.src.p.bpp = 1;
     job.src.p.p = (unsigned char *) malloc(job.src.p.x * job.src.p.y);
 
-    int height = job.src.p.y;
-    int width = job.src.p.x;
+    const int width = job.src.p.x;
+    const int height = job.src.p.y;
+
     struct OCRAD_Pixmap *opix = new OCRAD_Pixmap();
     unsigned char *bitmap_data = (unsigned char *) malloc(width * height);
     memset(bitmap_data, 0, width * height);
@@ -102,7 +102,7 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
 
     tmp = (unsigned char *) malloc(int((x2 - x1 + 1) * (y2 - y1 + 1)));
 
-    for (int i = 0; i < job.src.p.x * job.src.p.y; i++)
+    for (int i = 0; i < width * height; i++)
       job.src.p.p[i] = 255;
 
     for (int i = y1; i <= y2; i++)
@@ -162,7 +162,7 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
         int zeros = 0;
 
 #ifdef HAVE_CUNEIFORM_LIB
-        Magick::Image bmp(Magick::Geometry(2*(x2-x1+1)+2,y2-y1+1),"white");
+        Magick::Image bmp(Magick::Geometry(2 * (x2 - x1 + 1) + 2, y2 - y1 + 1), "white");
         bmp.monochrome();
         bmp.type(Magick::BilevelType);
 #endif
@@ -172,41 +172,32 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
               {
                 int x = int(f * (j - x1));
                 int y = int(f * (i - y1));
-                if ((x < job.src.p.x) && (y < job.src.p.y) && (job.src.p.p[y * job.src.p.x + x] == 255))
+                if ((x < width) && (y < height) && (job.src.p.p[y * width + x] == 255))
                   {
-                    job.src.p.p[y * job.src.p.x + x] = tmp[(i - y1) * (x2 - x1 + 1) + j - x1];
+                    job.src.p.p[y * width + x] = tmp[(i - y1) * (x2 - x1 + 1) + j - x1];
                     if (tmp[(i - y1) * (x2 - x1 + 1) + j - x1] == 0)
                       {
-                        bitmap_data[y * job.src.p.x + x] = 1;
+                        bitmap_data[y * width + x] = 1;
 #ifdef HAVE_CUNEIFORM_LIB
                         bmp.pixelColor(x, y, "black");
-                        bmp.pixelColor(x+(x2-x1+1)+2, y, "black");
+                        bmp.pixelColor(x + (x2 - x1 + 1) + 2, y, "black");
 #endif
-                        if (x > 0 && x < job.src.p.x - 1 && y > 0 && y < job.src.p.y - 1)
+                        if (x > 0 && x < width - 1 && y > 0 && y < height - 1)
                           count++;
                       }
-                    else if (x > 0 && x < job.src.p.x - 1 && y > 0 && y < job.src.p.y - 1)
+                    else if (x > 0 && x < width - 1 && y > 0 && y < height - 1)
                       zeros++;
                   }
-
               }
           }
-
-#ifdef HAVE_CUNEIFORM_LIB
-        Magick::Blob blob;
-        bmp.write(&blob, "DIB");
-        size_t data_size = blob.length();
-        char *dib = new char[data_size];
-        memcpy(dib, blob.data(), data_size);
-#endif
 
         if (verbose)
           {
             cout << "Box to OCR: " << x1 << "x" << y1 << "-" << x2 << "x" << y2 << " w/h:" << x2 - x1 << "/" << y2 - y1 << endl;
-            for (int i = 0; i < job.src.p.y; i++)
+            for (int i = 0; i < height; i++)
               {
-                for (int j = 0; j < job.src.p.x; j++)
-                  cout << job.src.p.p[i * job.src.p.x + j] / 255;
+                for (int j = 0; j < width; j++)
+                  cout << job.src.p.p[i * width + j] / 255;
                 cout << endl;
               }
           }
@@ -242,7 +233,7 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
                 OCRAD_Descriptor * const ocrdes = OCRAD_open();
 
                 if (ocrdes && OCRAD_get_errno(ocrdes) == OCRAD_ok && OCRAD_set_image(ocrdes, opix, 0) == 0
-                    && (job.src.p.y >= 10 || OCRAD_scale(ocrdes, 2) == 0) && OCRAD_recognize(ocrdes, 0) == 0)
+                    && (height >= 10 || OCRAD_scale(ocrdes, 2) == 0) && OCRAD_recognize(ocrdes, 0) == 0)
                   {
                     c2 = OCRAD_result_first_character(ocrdes);
                     if (OCRAD_result_blocks(ocrdes) >= 1 && OCRAD_result_lines(ocrdes, 0) && OCRAD_result_line(
@@ -257,7 +248,7 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
                 OCRAD_close(ocrdes);
                 if (patern.find(c2, 0) == string::npos)
                   c2 = '_';
-                //c2='_';  // Switch off OCRAD recogntion
+                //c2='_';  // Switch off OCRAD recognition
                 if (isalnum(c2))
                   c = c2;
 #ifdef HAVE_TESSERACT_LIB
@@ -277,52 +268,62 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
 
                     if (patern.find(c3, 0) == string::npos)
                       c3 = '_';
-                    //c3='_';  // Switch off Tesseract recogntion
+                    //c3='_';  // Switch off Tesseract recognition
                     if (isalnum(c3))
                       c = c3;
 #endif
 #ifdef HAVE_CUNEIFORM_LIB
                     else
                       {
-                        char c4=0;
-                        char str[256];
-                        if (x2-x1>7)
+                        if (x2 - x1 > 7)
                           {
+                            char c4=0;
+                            char str[256];
+
+                            Magick::Blob blob;
+                            bmp.write(&blob, "DIB");
+                            size_t data_size = blob.length();
+                            char *dib = new char[data_size];
+                            memcpy(dib, blob.data(), data_size);
+
                             PUMA_XOpen(dib, NULL);
                             PUMA_XFinalRecognition();
                             PUMA_SaveToMemory(NULL, PUMA_TOTEXT, PUMA_CODE_ASCII, str, 256);
                             PUMA_XClose();
-                            if ((str[0]==str[1] && isspace(str[2])) || (str[0]==str[2] && str[1]==' '))
-                              c4=str[0];
+
+                            if ((str[0] == str[1] && isspace(str[2])) || (str[0] == str[2] && str[1] == ' '))
+                                c4 = str[0];
+
                             if (verbose)
                               cout << "Cuneiform: " << str[0] << "|" << str[1] << "|" << str[2] << "|" << str[3] << "|" << " c4=" << c4 << endl;
 
                             if (patern.find(c4, 0) == string::npos)
                               c4 = '_';
+
+                            delete[] dib;
+
+                            //c4='_'; // Switch off Cuneiform recognition
+                            if (isalnum(c4))
+                              c = c4;
                           }
-                        //c4='_'; // Switch off Cuneiform recogntion
-                        if (isalnum(c4))
-                          c = c4;
                       }
 #endif
 #ifdef HAVE_TESSERACT_LIB
                   }
 #endif
               }
-
-
           }
         //cout << c << endl; // << "==========================" << endl;
-#ifdef HAVE_CUNEIFORM_LIB
-        delete []dib;
-#endif
       }
+
     job_free_image(&job);
     OCR_JOB = NULL;
     JOB = NULL;
+
     free(tmp);
-    delete opix;
+    delete opix; // delete OCRAD Pixmap
     free(bitmap_data);
+
     // This check was introduced in r527
     if (c == '7' && (x2 - x1 <= 10 || y2 - y1 <= 20))
       c = 0;
