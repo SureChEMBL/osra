@@ -138,11 +138,7 @@ void mol_to_abbr() {
 
 int get_atomic_num(const string &s, OBMol &mol, int &n, int &bondn, const map<string, string> &superatom)
 {
-  //mol_to_abbr();
-  /*	if (s == "Xx" || s == "X" || s == "R" || s == "Y" || s == "Z" || s == "R1" || s == "R2" || s == "R3" || s == "R4"
-  		|| s == "R5" || s == "R6" || s == "R7" || s == "R8" || s == "R9" || s == "R10" || s == "Y2")
-  	return (0);
-  */
+
   map<string, string>::const_iterator it = superatom.find(s);
 
   if (it != superatom.end())
@@ -155,7 +151,7 @@ int get_atomic_num(const string &s, OBMol &mol, int &n, int &bondn, const map<st
 
   if (anum != 0)
     return (anum);
-  return (6);
+  return (6);  // Need to change this. Unrecognized labels should be shown as such.
 }
 
 // Function: confidence_function()

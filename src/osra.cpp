@@ -1465,11 +1465,13 @@ const Color getBgColor(const Image &image, bool inv)
   return (r);
 }
 
-bool convert_to_gray(Image &image, bool invert)
+bool convert_to_gray(Image &image, bool invert, bool &cameraphoto)
 {
   if (!invert)
     {
       double a = 0;
+      int num_bins=20;
+      vector<int> h(num_bins,0);
       ColorRGB c;
       Color t;
       ColorGray g;
@@ -1483,10 +1485,21 @@ bool convert_to_gray(Image &image, bool invert)
           g = t;
           if (image.matte() && t.alpha() == 1 && g.shade() < 0.5)
             transparent = true;
-          a += (c.red() + c.green() + c.blue()) / 3;
+          double b= (c.red() + c.green() + c.blue()) / 3;
+	  h[int((num_bins-1)*b)]++;
         }
-      a /= BG_PICK_POINTS;
-      if (a < 0.5 && !transparent)
+      int max = 0;
+      for (int i = 0; i < num_bins; i++)
+	{
+	  if (h[i]>max)
+	    {
+	      max = h[i];
+	      a = i;
+	    }
+	}
+      a /= num_bins;
+      if (a > 0.2 && a<0.8) cameraphoto = true;
+      if (a < 0.3 && !transparent)       // phone-camera taken images can have very dark background yet do not need inversion
         invert = true;
     }
 
@@ -5372,7 +5385,6 @@ int main(int argc, char **argv)
       outfile.close();
     }
 
-  bool invert = invert_option.getValue();
 
   int input_resolution = resolution_option.getValue();
 
@@ -5426,14 +5438,27 @@ int main(int argc, char **argv)
       image.read(pname.str());
 #endif
       image.modifyImage();
-
-      invert = convert_to_gray(image, invert);
+      bool invert = invert_option.getValue();
+      bool cameraphoto = false;
+      invert = convert_to_gray(image, invert, cameraphoto);
 
       // Pre-processing for images from iPhone and Android camera phones     
-      image.negate();
-      image.adaptiveThreshold(15,15,7);
-      image.negate();
-      image.blur();
+      if (cameraphoto)
+	{
+	  if (invert)  
+	    {
+	      image.despeckle();
+	      image.adaptiveThreshold(15,15,7);
+	    }
+	  else
+	    {
+	      image.despeckle();
+	      image.negate();
+	      image.adaptiveThreshold(15,15,7);
+	      image.negate();
+	    }
+	}
+      
 
       int num_resolutions = NUM_RESOLUTIONS;
       if (input_resolution != 0)
@@ -5935,15 +5960,18 @@ int main(int argc, char **argv)
             }
         }
 
-      for (unsigned int i = 0; i < array_of_structures[max_res].size(); i++)
-        {
-          pages_of_structures[l].push_back(array_of_structures[max_res][i]);
-          if (output_image_file_prefix_option.getValue() != "")
-            pages_of_images[l].push_back(array_of_images[max_res][i]);
-          pages_of_avg_bonds[l].push_back(array_of_avg_bonds[max_res][i]);
-          pages_of_ind_conf[l].push_back(array_of_ind_conf[max_res][i]);
-          total_structure_count++;
-        }
+#pragma omp critical
+	  {
+	    for (unsigned int i = 0; i < array_of_structures[max_res].size(); i++)
+	      {
+		pages_of_structures[l].push_back(array_of_structures[max_res][i]);
+		if (output_image_file_prefix_option.getValue() != "")
+		  pages_of_images[l].push_back(array_of_images[max_res][i]);
+		pages_of_avg_bonds[l].push_back(array_of_avg_bonds[max_res][i]);
+		pages_of_ind_conf[l].push_back(array_of_ind_conf[max_res][i]);
+		total_structure_count++;
+	      }
+	  }
     }
 
   double min_bond = -FLT_MAX, max_bond = FLT_MAX;
