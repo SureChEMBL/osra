@@ -37,18 +37,15 @@ extern "C" {
 #include <ocradlib.h>
 
 #ifdef HAVE_CUNEIFORM_LIB
-#include <ctiimage.h>
-#include <cttypes.h>
-#include <puma.h>
-#include <lang_def.h>
-#include <mpuma.h>
-#include <compat_defs.h>
+#include <cuneiform.h>
 #endif
 
 #include "osra.h"
 
 #ifdef HAVE_TESSERACT_LIB
-char *tesseract_backend(unsigned char *p, int x1, int y1, int x2, int y2);
+void osra_tesseract_init();
+void osra_tesseract_release();
+char osra_tesseract_ocr(unsigned char *pixel_map, int x1, int y1, int x2, int y2, string &char_filter);
 #endif
 
 // Global GOCR variable (omg) both for 0.48-0.49 and 0.50 versions:
@@ -63,273 +60,356 @@ job_t *OCR_JOB;
  * are luckily single connected components) and leave the extra bits out.
  */
 
+void osra_ocr_init()
+{
+#ifdef HAVE_CUNEIFORM_LIB
+  int langcode = LANG_ENGLISH;
+  Bool dotmatrix = 0;
+  Bool fax = 0;
+  Bool onecolumn = 1;
+  PUMA_Init(0, 0);
+  PUMA_SetImportData(PUMA_Word32_Language, &langcode);
+  PUMA_SetImportData(PUMA_Bool32_DotMatrix, &dotmatrix);
+  PUMA_SetImportData(PUMA_Bool32_Fax100, &fax);
+  PUMA_SetImportData(PUMA_Bool32_OneColumn, &onecolumn);
+#endif
+
+#ifdef HAVE_TESSERACT_LIB
+  osra_tesseract_init();
+#endif
+}
+
+void osra_ocr_release()
+{
+#ifdef HAVE_CUNEIFORM_LIB
+  PUMA_Done();
+#endif
+#ifdef HAVE_TESSERACT_LIB
+  osra_tesseract_release();
+#endif
+}
+
+//  Function: osra_gocr_ocr()
+//    Make an attempt to OCR the image box with GOCR engine.
+//
+//  Parameters:
+//    job_t - includes pixel map and character filter
+//
+//  Returns:
+//    0 in case the recognition failed or valid alphanumeric character
+char osra_gocr_ocr(job_t &gocr_job)
+{
+  OCR_JOB = &gocr_job;
+  JOB = &gocr_job;
+  try
+    {
+      pgm2asc(&gocr_job);
+    }
+  catch (...)
+    {
+    }
+
+  char *l = (char *) gocr_job.res.linelist.start.next->data;
+
+  if (l != NULL && strlen(l) == 1 && isalnum(l[0]))
+    return l[0];
+
+  return 0;
+}
+
+//  Function: osra_ocrad_ocr()
+//    Make an attempt to OCR the image box with OCRAD engine.
+//
+//  Parameters:
+//    ocrad_pixmap - includes pixel map and the image mode
+//    char_filter - character filter
+//
+//  Returns:
+//    0 in case the recognition failed or valid alphanumeric character
+char osra_ocrad_ocr(const OCRAD_Pixmap * const ocrad_pixmap, string &char_filter)
+{
+  char result = 0;
+  string line;
+
+  OCRAD_Descriptor * const ocrad_res = OCRAD_open();
+
+  // If the box height is less than 10px, it should be scaled up a bit, otherwise OCRAD is unable to catch it:
+  if (ocrad_res && OCRAD_get_errno(ocrad_res) == OCRAD_ok && OCRAD_set_image(ocrad_res, ocrad_pixmap, 0) == 0
+      && (ocrad_pixmap->height >= 10 || OCRAD_scale(ocrad_res, 2) == 0) && OCRAD_recognize(ocrad_res, 0) == 0)
+    {
+      result = OCRAD_result_first_character(ocrad_res);
+      if (OCRAD_result_blocks(ocrad_res) >= 1 && OCRAD_result_lines(ocrad_res, 0) && OCRAD_result_line(
+            ocrad_res, 0, 0) != 0)
+        line = OCRAD_result_line(ocrad_res, 0, 0);
+    }
+
+  OCRAD_close(ocrad_res);
+
+  // TODO: Why line should have 0 or 1 characters? Give examples...
+  if (line.length() > 2 || !isalnum(result) || char_filter.find(result, 0) == string::npos)
+    return 0;
+
+  return result;
+}
+
+//  Function: osra_cuneiform_ocr()
+//    Make an attempt to OCR the image box with Cuneiform engine.
+//
+//  Parameters:
+//    cuneiform_img - pixel map
+//    verbose - if set, then output intermediate results
+//    char_filter - character filter
+//
+//  Returns:
+//    0 in case the recognition failed or valid alphanumeric character
+char osra_cuneiform_ocr(Magick::Image &cuneiform_img, bool verbose, string &char_filter)
+{
+  char str[256];
+
+  Magick::Blob blob;
+  cuneiform_img.write(&blob, "DIB");
+  size_t data_size = blob.length();
+  char *dib = new char[data_size];
+  memcpy(dib, blob.data(), data_size);
+
+  PUMA_XOpen(dib, NULL);
+  PUMA_XFinalRecognition();
+  PUMA_SaveToMemory(NULL, PUMA_TOTEXT, PUMA_CODE_ASCII, str, sizeof(str) - 1);
+  PUMA_XClose();
+
+  delete[] dib;
+
+  if (verbose)
+    cout << "Cuneiform: " << str[0] << "|" << str[1] << "|" << str[2] << "|" << str[3] << endl;
+
+  // TODO: Why first char should be that same as second char, followed by space?
+  // TODO: Why first char should be that same as third char, delimited by space?
+  if (((str[0] == str[1] && isspace(str[2])) || (str[0] == str[2] && str[1] == ' ')) && isalnum(str[0])
+      && char_filter.find(str[0], 0) != string::npos)
+    return str[0];
+
+  return 0;
+}
+
 char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int x1, int y1, int x2, int y2,
                     double THRESHOLD, int dropx, int dropy, bool verbose)
 {
   char c = 0;
+  unsigned char *tmp = (unsigned char *) malloc(int((x2 - x1 + 1) * (y2 - y1 + 1)));
+
+  for (int i = y1; i <= y2; i++)
+    for (int j = x1; j <= x2; j++)
+      tmp[(i - y1) * (x2 - x1 + 1) + j - x1] = (unsigned char) (255 - 255 * get_pixel(image, bg, j, i,
+          THRESHOLD));
+
+  // Here we drop down from the top of the box, middle of x coordinate and extract connected component
+  int t = 1;
+  int y = dropy - y1 + 1;
+  int x = dropx - x1;
+
+  while ((t != 0) && (y < int(y2 - y1 + 1)))
+    {
+      t = tmp[y * (x2 - x1 + 1) + x];
+      y++;
+    }
+
+  if (t != 0)
+    {
+      free(tmp);
+      return 0;
+    }
+
   #pragma omp critical
   {
-    unsigned char *tmp;
-    job_t job;
+    y--;
+
+    tmp[y * (x2 - x1 + 1) + x] = 2;
+
+    list<int> cx;
+    list<int> cy;
+
+    cx.push_back(x);
+    cy.push_back(y);
+
+    while (!cx.empty())
+      {
+        x = cx.front();
+        y = cy.front();
+        cx.pop_front();
+        cy.pop_front();
+        tmp[y * (x2 - x1 + 1) + x] = 1;
+
+        // this goes around 3x3 square touching the chosen pixel
+        for (int i = x - 1; i < x + 2; i++)
+          for (int j = y - 1; j < y + 2; j++)
+            if ((i < (x2 - x1 + 1)) && (j < (y2 - y1 + 1)) && (i >= 0) && (j >= 0) && (tmp[j* (x2 - x1 + 1) + i] == 0))
+              {
+                cx.push_back(i);
+                cy.push_back(j);
+                tmp[j * (x2 - x1 + 1) + i] = 2;
+              }
+      }
+
+    for (int i = 0; i < (y2 - y1 + 1); i++)
+      for (int j = 0; j < (x2 - x1 + 1); j++)
+        if (tmp[i * (x2 - x1 + 1) + j] == 1)
+          {
+            tmp[i * (x2 - x1 + 1) + j] = 0;
+          }
+        else
+          {
+            tmp[i * (x2 - x1 + 1) + j] = 255;
+          }
+
+    job_t gocr_job;
     double f = 1.;
 
-    job_init(&job);
-    job_init_image(&job);
-    job.cfg.cfilter = (char *) "oOcCnNHFsSBuUgMeEXYZRPp23456789AmTh";
+    // The list of all characters, that can be recognised as atom label:
+    string char_filter = "oOcCnNHFsSBuUgMeEXYZRPp23456789AmTh";
+
+    job_init(&gocr_job);
+    job_init_image(&gocr_job);
+    gocr_job.cfg.cfilter = (char*) char_filter.c_str();
 
     //job.cfg.cs = 160;
     //job.cfg.certainty = 80;
     //job.cfg.dust_size = 1;
     //if ((y2 - y1) > MAX_FONT_HEIGHT) f = 1. * MAX_FONT_HEIGHT / (y2 - y1);
 
-    job.src.p.x = int(f * (x2 - x1 + 1));
-    job.src.p.y = int(f * (y2 - y1 + 1));
-    job.src.p.bpp = 1;
-    job.src.p.p = (unsigned char *) malloc(job.src.p.x * job.src.p.y);
+    gocr_job.src.p.x = int(f * (x2 - x1 + 1));
+    gocr_job.src.p.y = int(f * (y2 - y1 + 1));
+    gocr_job.src.p.bpp = 1;
+    gocr_job.src.p.p = (unsigned char *) malloc(gocr_job.src.p.x * gocr_job.src.p.y);
 
-    const int width = job.src.p.x;
-    const int height = job.src.p.y;
-
-    struct OCRAD_Pixmap *opix = new OCRAD_Pixmap();
-    unsigned char *bitmap_data = (unsigned char *) malloc(width * height);
-    memset(bitmap_data, 0, width * height);
-    opix->height = height;
-    opix->width = width;
-    opix->mode = OCRAD_bitmap;
-    opix->data = bitmap_data;
-
-    // The code below initialises the "job.src.p.p" image buffer for GOCR and "opix" buffer for OCRAD.
-
-    tmp = (unsigned char *) malloc(int((x2 - x1 + 1) * (y2 - y1 + 1)));
+    const int width = gocr_job.src.p.x;
+    const int height = gocr_job.src.p.y;
 
     for (int i = 0; i < width * height; i++)
-      job.src.p.p[i] = 255;
+      gocr_job.src.p.p[i] = 255;
 
+    struct OCRAD_Pixmap *ocrad_pixmap = new OCRAD_Pixmap();
+    unsigned char *bitmap_data = (unsigned char *) malloc(width * height);
+
+    memset(bitmap_data, 0, width * height);
+
+    ocrad_pixmap->height = height;
+    ocrad_pixmap->width = width;
+    ocrad_pixmap->mode = OCRAD_bitmap;
+    ocrad_pixmap->data = bitmap_data;
+
+    int count = 0;
+    int zeros = 0;
+
+    // The code below initialises the "job.src.p.p" image buffer for GOCR and "opix->data" buffer ("bitmap_data") for OCRAD from "tmp" buffer:
+#ifdef HAVE_CUNEIFORM_LIB
+    Magick::Image cumeiform_img(Magick::Geometry(2 * (x2 - x1 + 1) + 2, y2 - y1 + 1), "white");
+    cumeiform_img.monochrome();
+    cumeiform_img.type(Magick::BilevelType);
+#endif
     for (int i = y1; i <= y2; i++)
-      for (int j = x1; j <= x2; j++)
-        tmp[(i - y1) * (x2 - x1 + 1) + j - x1] = (unsigned char) (255 - 255 * get_pixel(image, bg, j, i,
-            THRESHOLD));
-
-    // Here we drop down from the top of the box, middle of x coordinate and extract connected component
-    int t = 1;
-    int y = dropy - y1 + 1;
-    int x = dropx - x1;
-
-    while ((t != 0) && (y < int(y2 - y1 + 1)))
       {
-        t = tmp[y * (x2 - x1 + 1) + x];
-        y++;
-      }
-    y--;
-    if (t == 0)
-      {
-        tmp[y * (x2 - x1 + 1) + x] = 2;
-        list<int> cx;
-        list<int> cy;
-        cx.push_back(x);
-        cy.push_back(y);
-        while (!cx.empty())
+        for (int j = x1; j <= x2; j++)
           {
-            x = cx.front();
-            y = cy.front();
-            cx.pop_front();
-            cy.pop_front();
-            tmp[y * (x2 - x1 + 1) + x] = 1;
-
-            // this goes around 3x3 square touching the chosen pixel
-            for (int i = x - 1; i < x + 2; i++)
-              for (int j = y - 1; j < y + 2; j++)
-                if ((i < (x2 - x1 + 1)) && (j < (y2 - y1 + 1)) && (i >= 0) && (j >= 0) && (tmp[j* (x2 - x1 + 1) + i] == 0))
+            int x = int(f * (j - x1));
+            int y = int(f * (i - y1));
+            if ((x < width) && (y < height) && (gocr_job.src.p.p[y * width + x] == 255))
+              {
+                gocr_job.src.p.p[y * width + x] = tmp[(i - y1) * (x2 - x1 + 1) + j - x1];
+                if (tmp[(i - y1) * (x2 - x1 + 1) + j - x1] == 0)
                   {
-                    cx.push_back(i);
-                    cy.push_back(j);
-                    tmp[j * (x2 - x1 + 1) + i] = 2;
-                  }
-          }
-
-        for (int i = 0; i < (y2 - y1 + 1); i++)
-          for (int j = 0; j < (x2 - x1 + 1); j++)
-            if (tmp[i * (x2 - x1 + 1) + j] == 1)
-              {
-                tmp[i * (x2 - x1 + 1) + j] = 0;
-              }
-            else
-              {
-                tmp[i * (x2 - x1 + 1) + j] = 255;
-              }
-
-        int count = 0;
-        int zeros = 0;
-
+                    bitmap_data[y * width + x] = 1;
 #ifdef HAVE_CUNEIFORM_LIB
-        Magick::Image bmp(Magick::Geometry(2 * (x2 - x1 + 1) + 2, y2 - y1 + 1), "white");
-        bmp.monochrome();
-        bmp.type(Magick::BilevelType);
+                    cumeiform_img.pixelColor(x, y, "black");
+                    cumeiform_img.pixelColor(x + (x2 - x1 + 1) + 2, y, "black");
 #endif
-        for (int i = y1; i <= y2; i++)
-          {
-            for (int j = x1; j <= x2; j++)
-              {
-                int x = int(f * (j - x1));
-                int y = int(f * (i - y1));
-                if ((x < width) && (y < height) && (job.src.p.p[y * width + x] == 255))
-                  {
-                    job.src.p.p[y * width + x] = tmp[(i - y1) * (x2 - x1 + 1) + j - x1];
-                    if (tmp[(i - y1) * (x2 - x1 + 1) + j - x1] == 0)
-                      {
-                        bitmap_data[y * width + x] = 1;
-#ifdef HAVE_CUNEIFORM_LIB
-                        bmp.pixelColor(x, y, "black");
-                        bmp.pixelColor(x + (x2 - x1 + 1) + 2, y, "black");
-#endif
-                        if (x > 0 && x < width - 1 && y > 0 && y < height - 1)
-                          count++;
-                      }
-                    else if (x > 0 && x < width - 1 && y > 0 && y < height - 1)
-                      zeros++;
+                    if (x > 0 && x < width - 1 && y > 0 && y < height - 1)
+                      count++;
                   }
+                else if (x > 0 && x < width - 1 && y > 0 && y < height - 1)
+                  zeros++;
               }
           }
-
-        if (verbose)
-          {
-            cout << "Box to OCR: " << x1 << "x" << y1 << "-" << x2 << "x" << y2 << " w/h:" << x2 - x1 << "/" << y2 - y1 << endl;
-            for (int i = 0; i < height; i++)
-              {
-                for (int j = 0; j < width; j++)
-                  cout << job.src.p.p[i * width + j] / 255;
-                cout << endl;
-              }
-          }
-
-        string patern = job.cfg.cfilter;
-
-        if (count > MIN_CHAR_POINTS && zeros > MIN_CHAR_POINTS)
-          {
-            char c1 = 0;
-            OCR_JOB = &job;
-            JOB = &job;
-            try
-              {
-                pgm2asc(&job);
-              }
-            catch (...)
-              {
-              }
-            char *l;
-            l = (char *) job.res.linelist.start.next->data;
-            if (l != NULL && strlen(l)==1)
-              c1 = l[0];
-            if (verbose)
-              cout << "GOCR: c1=" << c1 << endl;
-            //c1='_';  // Switch off GOCR recognition
-            if (isalnum(c1)) // Character recognition succeeded for GOCR:
-              c = c1;
-            else
-              {
-                // Character recognition failed for GOCR and we try OCRAD:
-                char c2 = 0;
-                string line = "_";
-                OCRAD_Descriptor * const ocrdes = OCRAD_open();
-
-                if (ocrdes && OCRAD_get_errno(ocrdes) == OCRAD_ok && OCRAD_set_image(ocrdes, opix, 0) == 0
-                    && (height >= 10 || OCRAD_scale(ocrdes, 2) == 0) && OCRAD_recognize(ocrdes, 0) == 0)
-                  {
-                    c2 = OCRAD_result_first_character(ocrdes);
-                    if (OCRAD_result_blocks(ocrdes) >= 1 && OCRAD_result_lines(ocrdes, 0) && OCRAD_result_line(
-                          ocrdes, 0, 0) != 0)
-                      line = OCRAD_result_line(ocrdes, 0, 0);
-                  }
-                if (verbose)
-                  cout << "OCRAD: c2=" << c2 << endl;
-
-                if (line.length() > 2)
-                  c2 = '_';
-                OCRAD_close(ocrdes);
-                if (patern.find(c2, 0) == string::npos)
-                  c2 = '_';
-                //c2='_';  // Switch off OCRAD recognition
-                if (isalnum(c2))
-                  c = c2;
-#ifdef HAVE_TESSERACT_LIB
-                else
-                  {
-                    char c3 = 0;
-                    char *text = NULL;
-                    text = tesseract_backend(job.src.p.p,x1,y1,x2,y2);
-                    if (text != NULL)
-                      {
-                        if (strlen(text) == 3)
-                          c3 = text[0];
-                        free(text);
-                      }
-                    if (verbose)
-                      cout << "Tesseract: c3=" << c3 << endl;
-
-                    if (patern.find(c3, 0) == string::npos)
-                      c3 = '_';
-                    //c3='_';  // Switch off Tesseract recognition
-                    if (isalnum(c3))
-                      c = c3;
-#endif
-#ifdef HAVE_CUNEIFORM_LIB
-                    else
-                      {
-                        if (x2 - x1 > 7)
-                          {
-                            char c4=0;
-                            char str[256];
-
-                            Magick::Blob blob;
-                            bmp.write(&blob, "DIB");
-                            size_t data_size = blob.length();
-                            char *dib = new char[data_size];
-                            memcpy(dib, blob.data(), data_size);
-
-                            PUMA_XOpen(dib, NULL);
-                            PUMA_XFinalRecognition();
-                            PUMA_SaveToMemory(NULL, PUMA_TOTEXT, PUMA_CODE_ASCII, str, 256);
-                            PUMA_XClose();
-
-                            if ((str[0] == str[1] && isspace(str[2])) || (str[0] == str[2] && str[1] == ' '))
-                                c4 = str[0];
-
-                            if (verbose)
-                              cout << "Cuneiform: " << str[0] << "|" << str[1] << "|" << str[2] << "|" << str[3] << "|" << " c4=" << c4 << endl;
-
-                            if (patern.find(c4, 0) == string::npos)
-                              c4 = '_';
-
-                            delete[] dib;
-
-                            //c4='_'; // Switch off Cuneiform recognition
-                            if (isalnum(c4))
-                              c = c4;
-                          }
-                      }
-#endif
-#ifdef HAVE_TESSERACT_LIB
-                  }
-#endif
-              }
-          }
-        //cout << c << endl; // << "==========================" << endl;
       }
 
-    job_free_image(&job);
+    if (verbose)
+      {
+        cout << "Box to OCR: " << x1 << "x" << y1 << "-" << x2 << "x" << y2 << " w/h:" << x2 - x1 << "/" << y2 - y1 << endl;
+        for (int i = 0; i < height; i++)
+          {
+            for (int j = 0; j < width; j++)
+              cout << gocr_job.src.p.p[i * width + j] / 255;
+            cout << endl;
+          }
+      }
+
+    if (count <= MIN_CHAR_POINTS || zeros <= MIN_CHAR_POINTS)
+      goto FINALIZE;
+
+    c = osra_gocr_ocr(gocr_job);
+
+    if (verbose)
+      cout << "GOCR: c=" << c << endl;
+
+    //c = 0; // Switch off GOCR recognition
+
+    // Character recognition succeeded for GOCR:
+    if (c != 0)
+      goto FINALIZE;
+
+    // Character recognition failed for GOCR and we try OCRAD:
+    c = osra_ocrad_ocr(ocrad_pixmap, char_filter);
+
+    if (verbose)
+      cout << "OCRAD: c=" << c << endl;
+
+    //c = 0;  // Switch off OCRAD recognition
+
+    // Character recognition succeeded for OCRAD:
+    if (c != 0)
+      goto FINALIZE;
+
+#ifdef HAVE_TESSERACT_LIB
+    c = osra_tesseract_ocr(gocr_job.src.p.p, x1, y1, x2, y2, char_filter);
+
+    if (verbose)
+      cout << "Tesseract: c=" << c << endl;
+
+    //c = 0;  // Switch off Tesseract recognition
+
+    // Character recognition succeeded for Tesseract:
+    if (c != 0)
+      goto FINALIZE;
+#endif
+#ifdef HAVE_CUNEIFORM_LIB
+    // TODO: Why box width should be more than 7 for Cuneiform?
+    // TODO: Can we replace this with "width"?
+    if (x2 - x1 <= 7)
+      goto FINALIZE;
+
+    c = osra_cuneiform_ocr(cumeiform_img, verbose, char_filter);
+
+    if (verbose)
+      cout << "Cuneiform: c=" << c << endl;
+
+    //c = 0; // Switch off Cuneiform recognition
+#endif
+
+FINALIZE:
+    job_free_image(&gocr_job);
     OCR_JOB = NULL;
     JOB = NULL;
 
     free(tmp);
-    delete opix; // delete OCRAD Pixmap
+    delete ocrad_pixmap; // delete OCRAD Pixmap
     free(bitmap_data);
 
-    // This check was introduced in r527
+    // TODO: Why there are problems with "7" with a given box size? If the problem is engine-specific, it should be moved to appropriate section
+    // TODO: Can we replace this with "width" and "height"?
     if (c == '7' && (x2 - x1 <= 10 || y2 - y1 <= 20))
       c = 0;
-  } //#pragma omp critical
+  } // #pragma omp critical
 
-  return (isalnum(c) ? c : 0);
+  return c;
 }
 
 /*

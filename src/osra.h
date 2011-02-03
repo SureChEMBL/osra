@@ -342,6 +342,16 @@ Magick::Image anisotropic_smoothing(const Magick::Image &image, int width, int h
 // <anisotropic_smoothing()>
 Magick::Image anisotropic_scaling(const Magick::Image &image, int width, int height, int nw, int nh);
 
+// Function: osra_ocr_init()
+//
+// Initialises OCR engine. Should be called at e.g. program startup.
+void osra_ocr_init();
+
+// Function: osra_ocr_release()
+//
+// Releases all resources allocated by OCR engine.
+void osra_ocr_release();
+
 // Function: get_atom_label()
 //
 // OCR engine function, does single character recognition

@@ -19,22 +19,43 @@
  this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
  St, Fifth Floor, Boston, MA 02110-1301, USA
  *****************************************************************************/
-#include <cstdio>
-#include <iostream>
-#include <cstdlib>
-#include "config.h"
-#ifdef HAVE_TESSERACT_LIB
+
+#include <stddef.h> // NULL
+#include <stdlib.h> // free()
+#include <ctype.h> // isalnum()
+#include <string.h> // strlen()
+
+#include <string>
 
 #include <tesseract/baseapi.h>
 
-char *tesseract_backend(unsigned char *p, int x1, int y1, int x2, int y2)
-{
-  tesseract::TessBaseAPI tess;
-  tess.Init(NULL, "eng", NULL, 0, false);
-  char* text = tess.TesseractRect(p, 1, x2 - x1 + 1, 0, 0, x2 - x1 + 1, y2 - y1 + 1);
-  tess.End();
+using namespace std;
 
-  return(text);
+// Global variable:
+tesseract::TessBaseAPI tess;
+
+void osra_tesseract_init()
+{
+  tess.Init(NULL, "eng", NULL, 0, false);
 }
 
-#endif
+void osra_tesseract_release()
+{
+  tess.End();
+}
+
+char osra_tesseract_ocr(unsigned char *pixmap, int x1, int y1, int x2, int y2, string &char_filter)
+{
+  char result = 0;
+
+  char *text = tess.TesseractRect(pixmap, 1, x2 - x1 + 1, 0, 0, x2 - x1 + 1, y2 - y1 + 1);
+  tess.Clear();
+
+  // TODO: Why text length should be exactly 3? Give examples...
+  if (text != NULL && strlen(text) == 3 && isalnum(text[0]) && char_filter.find(text[0], 0) != string::npos)
+    result = text[0];
+
+  free(text);
+
+  return result;
+}

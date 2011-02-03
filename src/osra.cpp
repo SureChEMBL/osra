@@ -56,10 +56,6 @@ extern "C" {
 #include "osra.h"
 #include "config.h"
 
-#ifdef HAVE_CUNEIFORM_LIB
-#include <cuneiform.h>
-#endif
-
 using namespace std;
 using namespace Magick;
 
@@ -5145,17 +5141,7 @@ int main(int argc, char **argv)
   // Necessary for GraphicsMagick-1.3.8 according to http://www.graphicsmagick.org/1.3/NEWS.html#january-21-2010:
   InitializeMagick(*argv);
 
-#ifdef HAVE_CUNEIFORM_LIB
-  int langcode = LANG_ENGLISH;
-  Bool dotmatrix = 0;
-  Bool fax = 0;
-  Bool onecolumn = 1;
-  PUMA_Init(0, 0);
-  PUMA_SetImportData(PUMA_Word32_Language, &langcode);
-  PUMA_SetImportData(PUMA_Bool32_DotMatrix, &dotmatrix);
-  PUMA_SetImportData(PUMA_Bool32_Fax100, &fax);
-  PUMA_SetImportData(PUMA_Bool32_OneColumn, &onecolumn);
-#endif
+  osra_ocr_init();
 
   srand(1);
 
@@ -5931,9 +5917,7 @@ int main(int argc, char **argv)
     outfile.close();
 #endif
 
-#ifdef HAVE_CUNEIFORM_LIB
-  PUMA_Done();
-#endif
+  osra_ocr_release();
 
 #ifdef ANDROID
   for (int i=0; i<argc; i++)

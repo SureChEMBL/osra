@@ -34,6 +34,7 @@ INSTALL_DATA	:= @INSTALL_DATA@
 INSTALL_DIR	:= ${INSTALL} -d -m 755
 NATURALDOCS	:= @NATURALDOCS@
 XSLTPROC	:= @XSLTPROC@
+TESSERACT_LIB	:= @TESSERACT_LIB@
 
 # Notes: see "configure --enable-static-linking" to enable static linking; use "configure --enable-profiling" to include extra debug info.
 
