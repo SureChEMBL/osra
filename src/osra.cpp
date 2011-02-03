@@ -5034,23 +5034,22 @@ int main(int argc, char **argv)
 {
 
 #ifdef ANDROID
-
-  int argc=j_env->GetArrayLength(jarr);
-  char **argv=(char **)calloc(argc,sizeof(char*));
+  int argc = j_env->GetArrayLength(jarr);
+  char **argv = (char **) calloc(argc, sizeof(char*));
   jboolean isCopy;
 
-  for (int i=0; i<argc; i++)
+  for (int i = 0; i < argc; i++)
     {
-      jstring jstr = (jstring)j_env->GetObjectArrayElement(jarr, i);
+      jstring jstr = (jstring) j_env->GetObjectArrayElement(jarr, i);
       const char *str = (j_env)->GetStringUTFChars(jstr, &isCopy);
-      argv[i]=(char *)calloc(strlen(str)+1,sizeof(char));
-      strcpy(argv[i],str);
+      argv[i] = (char *) calloc(strlen(str) + 1, sizeof(char));
+      strcpy(argv[i], str);
       j_env->ReleaseStringUTFChars(jstr, str);
     }
-  char *rawimage=(char *)j_env->GetByteArrayElements(jrawimage, NULL);
-  if (rawimage==NULL)
+  char *rawimage = (char *) j_env->GetByteArrayElements(jrawimage, NULL);
+  if (rawimage == NULL)
     return j_env->NewStringUTF("");
-  int rawimagelength=j_env->GetArrayLength(jrawimage);
+  int rawimagelength = j_env->GetArrayLength(jrawimage);
 #endif
 
   TCLAP::CmdLine cmd("OSRA: Optical Structure Recognition Application, created by Igor Filippov, 2007-2010", ' ',
@@ -5280,8 +5279,8 @@ int main(int argc, char **argv)
       density << input_resolution << "x" << input_resolution;
       image.density(density.str());
 
-      if (type == "PDF" || type == "PS") page_scale*=72/input_resolution;
-
+      if (type == "PDF" || type == "PS")
+        page_scale *= 72 / input_resolution;
 
 #ifdef ANDROID
       image.read(blob);
@@ -5372,7 +5371,7 @@ int main(int argc, char **argv)
           stringstream scale;
           scale << percent << "%";
           image.scale(scale.str());
-          page_scale /= (double) percent/100;
+          page_scale /= (double) percent / 100;
         }
 
       if (verbose)
@@ -5753,10 +5752,10 @@ int main(int argc, char **argv)
                           molecule_statistics_t molecule_statistics;
                           int page_number = l + 1;
                           box_t coordinate_box;
-                          coordinate_box.x1=(int)((double)page_scale*boxes[k].x1 + (double)page_scale*box_scale*fragments[i].x1);
-                          coordinate_box.y1=(int)((double)page_scale*boxes[k].y1 + (double)page_scale*box_scale*fragments[i].y1);
-                          coordinate_box.x2=(int)((double)page_scale*boxes[k].x1 + (double)page_scale*box_scale*fragments[i].x2);
-                          coordinate_box.y2=(int)((double)page_scale*boxes[k].y1 + (double)page_scale*box_scale*fragments[i].y2);
+                          coordinate_box.x1 = (int) ((double) page_scale * boxes[k].x1 + (double) page_scale * box_scale * fragments[i].x1);
+                          coordinate_box.y1 = (int) ((double) page_scale * boxes[k].y1 + (double) page_scale * box_scale * fragments[i].y1);
+                          coordinate_box.x2 = (int) ((double) page_scale * boxes[k].x1 + (double) page_scale * box_scale * fragments[i].x2);
+                          coordinate_box.y2 = (int) ((double) page_scale * boxes[k].y1 + (double) page_scale * box_scale * fragments[i].y2);
 
                           string structure =
                             get_formatted_structure(frag_atom, frag_bond, n_bond, output_format_option.getValue(),
@@ -5773,7 +5772,7 @@ int main(int argc, char **argv)
                           if (molecule_statistics.fragments > 0 && molecule_statistics.fragments < MAX_FRAGMENTS && !structure.empty())
                             {
                               array_of_structures[res_iter].push_back(structure);
-                              array_of_avg_bonds[res_iter].push_back(page_scale*box_scale*avg_bond_length);
+                              array_of_avg_bonds[res_iter].push_back(page_scale * box_scale * avg_bond_length);
                               array_of_ind_conf[res_iter].push_back(confidence);
                               total_boxes++;
                               total_confidence += confidence;
@@ -5784,10 +5783,10 @@ int main(int argc, char **argv)
                                     {
                                       try
                                         {
-                                          tmp.crop(Geometry(box_scale*fragments[i].x2 - box_scale*fragments[i].x1 + 4 * real_font_width,
-                                                            box_scale*fragments[i].y2 - box_scale*fragments[i].y1 + 4 * real_font_height,
-                                                            boxes[k].x1 + box_scale*fragments[i].x1 - FRAME - 2 * real_font_width,
-                                                            boxes[k].y1 + box_scale*fragments[i].y1 - FRAME - 2 * real_font_height));
+                                          tmp.crop(Geometry(box_scale * fragments[i].x2 - box_scale * fragments[i].x1 + 4 * real_font_width, //
+                                                            box_scale * fragments[i].y2 - box_scale * fragments[i].y1 + 4 * real_font_height, //
+                                                            boxes[k].x1 + box_scale * fragments[i].x1 - FRAME - 2 * real_font_width, //
+                                                            boxes[k].y1 + box_scale * fragments[i].y1 - FRAME - 2 * real_font_height));
                                         }
                                       catch (...)
                                         {
@@ -5864,10 +5863,10 @@ int main(int argc, char **argv)
   string best_smiles;
   for (int l = 0; l < page; l++)
     for (unsigned int i = 0; i < pages_of_structures[l].size(); i++)
-      if (pages_of_avg_bonds[l][i] > min_bond && pages_of_avg_bonds[l][i] < max_bond && pages_of_ind_conf[l][i]>max_conf)
+      if (pages_of_avg_bonds[l][i] > min_bond && pages_of_avg_bonds[l][i] < max_bond && pages_of_ind_conf[l][i] > max_conf)
         {
-          max_conf=pages_of_ind_conf[l][i];
-          best_smiles=pages_of_structures[l][i];
+          max_conf = pages_of_ind_conf[l][i];
+          best_smiles = pages_of_structures[l][i];
         }
 #else
   ofstream outfile;
@@ -5920,10 +5919,10 @@ int main(int argc, char **argv)
   osra_ocr_release();
 
 #ifdef ANDROID
-  for (int i=0; i<argc; i++)
+  for (int i = 0; i < argc; i++)
     free(argv[i]);
   free(argv);
-  j_env->ReleaseByteArrayElements(jrawimage,(jbyte*)rawimage,0);
+  j_env->ReleaseByteArrayElements(jrawimage, (jbyte*) rawimage, 0);
   return (j_env)->NewStringUTF(best_smiles.c_str());
 #else
   return 0;
