@@ -264,47 +264,47 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
     job_t gocr_job;
     double f = 1.;
 
+    //if ((y2 - y1) > MAX_FONT_HEIGHT) f = 1. * MAX_FONT_HEIGHT / (y2 - y1);
+
+    const int width = int(f * (x2 - x1 + 1));
+    const int height = int(f * (y2 - y1 + 1));
+
     // The list of all characters, that can be recognised as atom label:
     string char_filter = "oOcCnNHFsSBuUgMeEXYZRPp23456789AmTh";
 
     job_init(&gocr_job);
     job_init_image(&gocr_job);
-    gocr_job.cfg.cfilter = (char*) char_filter.c_str();
 
-    //job.cfg.cs = 160;
-    //job.cfg.certainty = 80;
-    //job.cfg.dust_size = 1;
-    //if ((y2 - y1) > MAX_FONT_HEIGHT) f = 1. * MAX_FONT_HEIGHT / (y2 - y1);
-
-    gocr_job.src.p.x = int(f * (x2 - x1 + 1));
-    gocr_job.src.p.y = int(f * (y2 - y1 + 1));
+    //gocr_job.cfg.cs = 160;
+    //gocr_job.cfg.certainty = 80;
+    //gocr_job.cfg.dust_size = 1;
+    gocr_job.src.p.x = width;
+    gocr_job.src.p.y = height;
     gocr_job.src.p.bpp = 1;
     gocr_job.src.p.p = (unsigned char *) malloc(gocr_job.src.p.x * gocr_job.src.p.y);
-
-    const int width = gocr_job.src.p.x;
-    const int height = gocr_job.src.p.y;
+    gocr_job.cfg.cfilter = (char*) char_filter.c_str();
 
     for (int i = 0; i < width * height; i++)
       gocr_job.src.p.p[i] = 255;
 
     struct OCRAD_Pixmap *ocrad_pixmap = new OCRAD_Pixmap();
-    unsigned char *bitmap_data = (unsigned char *) malloc(width * height);
+    unsigned char *ocrad_bitmap = (unsigned char *) malloc(width * height);
 
-    memset(bitmap_data, 0, width * height);
+    memset(ocrad_bitmap, 0, width * height);
 
     ocrad_pixmap->height = height;
     ocrad_pixmap->width = width;
     ocrad_pixmap->mode = OCRAD_bitmap;
-    ocrad_pixmap->data = bitmap_data;
+    ocrad_pixmap->data = ocrad_bitmap;
 
     int count = 0;
     int zeros = 0;
 
     // The code below initialises the "job.src.p.p" image buffer for GOCR and "opix->data" buffer ("bitmap_data") for OCRAD from "tmp" buffer:
 #ifdef HAVE_CUNEIFORM_LIB
-    Magick::Image cumeiform_img(Magick::Geometry(2 * (x2 - x1 + 1) + 2, y2 - y1 + 1), "white");
-    cumeiform_img.monochrome();
-    cumeiform_img.type(Magick::BilevelType);
+    Magick::Image cuneiform_img(Magick::Geometry(2 * (x2 - x1 + 1) + 2, y2 - y1 + 1), "white");
+    cuneiform_img.monochrome();
+    cuneiform_img.type(Magick::BilevelType);
 #endif
     for (int i = y1; i <= y2; i++)
       {
@@ -317,10 +317,10 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
                 gocr_job.src.p.p[y * width + x] = tmp[(i - y1) * (x2 - x1 + 1) + j - x1];
                 if (tmp[(i - y1) * (x2 - x1 + 1) + j - x1] == 0)
                   {
-                    bitmap_data[y * width + x] = 1;
+                    ocrad_bitmap[y * width + x] = 1;
 #ifdef HAVE_CUNEIFORM_LIB
-                    cumeiform_img.pixelColor(x, y, "black");
-                    cumeiform_img.pixelColor(x + (x2 - x1 + 1) + 2, y, "black");
+                    cuneiform_img.pixelColor(x, y, "black");
+                    cuneiform_img.pixelColor(x + (x2 - x1 + 1) + 2, y, "black");
 #endif
                     if (x > 0 && x < width - 1 && y > 0 && y < height - 1)
                       count++;
@@ -386,7 +386,7 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
     if (x2 - x1 <= 7)
       goto FINALIZE;
 
-    c = osra_cuneiform_ocr(cumeiform_img, verbose, char_filter);
+    c = osra_cuneiform_ocr(cuneiform_img, verbose, char_filter);
 
     if (verbose)
       cout << "Cuneiform: c=" << c << endl;
@@ -401,7 +401,7 @@ FINALIZE:
 
     free(tmp);
     delete ocrad_pixmap; // delete OCRAD Pixmap
-    free(bitmap_data);
+    free(ocrad_bitmap);
 
     // TODO: Why there are problems with "7" with a given box size? If the problem is engine-specific, it should be moved to appropriate section
     // TODO: Can we replace this with "width" and "height"?
