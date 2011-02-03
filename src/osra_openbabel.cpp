@@ -139,6 +139,7 @@ void mol_to_abbr() {
 int get_atomic_num(const string &s, OBMol &mol, int &n, int &bondn, const map<string, string> &superatom)
 {
 
+  if (s.empty() || s == " ") return 6;
   map<string, string>::const_iterator it = superatom.find(s);
 
   if (it != superatom.end())
@@ -149,9 +150,7 @@ int get_atomic_num(const string &s, OBMol &mol, int &n, int &bondn, const map<st
   int isotope;
   int anum = etab.GetAtomicNum(s.c_str(), isotope);
 
-  if (anum != 0)
-    return (anum);
-  return (6);  // Need to change this. Unrecognized labels should be shown as such.
+  return (anum);
 }
 
 // Function: confidence_function()

@@ -1486,17 +1486,17 @@ bool convert_to_gray(Image &image, bool invert, bool &cameraphoto)
           if (image.matte() && t.alpha() == 1 && g.shade() < 0.5)
             transparent = true;
           double b= (c.red() + c.green() + c.blue()) / 3;
-	  h[int((num_bins-1)*b)]++;
+          h[int((num_bins-1)*b)]++;
         }
       int max = 0;
       for (int i = 0; i < num_bins; i++)
-	{
-	  if (h[i]>max)
-	    {
-	      max = h[i];
-	      a = i;
-	    }
-	}
+        {
+          if (h[i]>max)
+            {
+              max = h[i];
+              a = i;
+            }
+        }
       a /= num_bins;
       if (a > 0.2 && a<0.8) cameraphoto = true;
       if (a < 0.3 && !transparent)       // phone-camera taken images can have very dark background yet do not need inversion
@@ -1590,7 +1590,7 @@ double get_threshold_otsu(const Image &image)
         {
           maxSigma = sigma;
           min_t = t;
-	  max_t = t;
+          max_t = t;
         }
     }
 
@@ -5442,23 +5442,23 @@ int main(int argc, char **argv)
       bool cameraphoto = false;
       invert = convert_to_gray(image, invert, cameraphoto);
 
-      // Pre-processing for images from iPhone and Android camera phones     
+      // Pre-processing for images from iPhone and Android camera phones
       if (cameraphoto)
-	{
-	  if (invert)  
-	    {
-	      image.despeckle();
-	      image.adaptiveThreshold(15,15,7);
-	    }
-	  else
-	    {
-	      image.despeckle();
-	      image.negate();
-	      image.adaptiveThreshold(15,15,7);
-	      image.negate();
-	    }
-	}
-      
+        {
+          if (invert)
+            {
+              image.despeckle();
+              image.adaptiveThreshold(15,15,7);
+            }
+          else
+            {
+              image.despeckle();
+              image.negate();
+              image.adaptiveThreshold(15,15,7);
+              image.negate();
+            }
+        }
+
 
       int num_resolutions = NUM_RESOLUTIONS;
       if (input_resolution != 0)
@@ -5501,7 +5501,7 @@ int main(int argc, char **argv)
           cout << '.' << endl;
         }
 
-     
+
       ColorGray bgColor = getBgColor(image, invert);
 
 
@@ -5960,18 +5960,18 @@ int main(int argc, char **argv)
             }
         }
 
-#pragma omp critical
-	  {
-	    for (unsigned int i = 0; i < array_of_structures[max_res].size(); i++)
-	      {
-		pages_of_structures[l].push_back(array_of_structures[max_res][i]);
-		if (output_image_file_prefix_option.getValue() != "")
-		  pages_of_images[l].push_back(array_of_images[max_res][i]);
-		pages_of_avg_bonds[l].push_back(array_of_avg_bonds[max_res][i]);
-		pages_of_ind_conf[l].push_back(array_of_ind_conf[max_res][i]);
-		total_structure_count++;
-	      }
-	  }
+      #pragma omp critical
+      {
+        for (unsigned int i = 0; i < array_of_structures[max_res].size(); i++)
+          {
+            pages_of_structures[l].push_back(array_of_structures[max_res][i]);
+            if (output_image_file_prefix_option.getValue() != "")
+              pages_of_images[l].push_back(array_of_images[max_res][i]);
+            pages_of_avg_bonds[l].push_back(array_of_avg_bonds[max_res][i]);
+            pages_of_ind_conf[l].push_back(array_of_ind_conf[max_res][i]);
+            total_structure_count++;
+          }
+      }
     }
 
   double min_bond = -FLT_MAX, max_bond = FLT_MAX;
