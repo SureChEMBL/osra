@@ -117,6 +117,51 @@ AC_ARG_ENABLE(
 	[AC_HELP_STRING([--disable-graphicsmagick-config], [Disable use of GraphicsMagick++-config for library linking])]
 )
 
+dnl Java support:
+AC_ARG_ENABLE(
+	[java],
+	[AC_HELP_STRING([--enable-java], [Include Java JNI bridge compilation into build cycle. Make sure you have JDK installed and $JAVA_HOME environment variable pointing to its location.])]
+)
+
+AS_IF([test "${enable_java}" == "yes"], [
+	AS_IF([test "${JAVA_HOME}" == ""], [
+		AC_MSG_WARN([Java JNI bridge support was requested, but disabled because $JAVA_HOME environment variable is not defined])
+		enable_java=no
+	],
+	[
+		save_CPPFLAGS=${CPPFLAGS}
+		CPPFLAGS="-I${JAVA_HOME}/include -I${JAVA_HOME}/include/linux ${CPPFLAGS}"
+		AC_CHECK_HEADER([jni.h], [
+			AC_TRY_COMPILE([#include <jni.h>], [
+				JNIEnv *j_env;
+				jobjectArray j_obj_arr;
+				jbyteArray j_byte_arr;
+				jstring j_str;
+				jboolean j_output_confidence;
+				
+				j_env->GetArrayLength(j_byte_arr);
+				j_env->GetObjectArrayElement(j_obj_arr, 0);
+				j_env->GetByteArrayElements(j_byte_arr, NULL);
+				j_env->ReleaseByteArrayElements(j_byte_arr, (jbyte*) NULL, JNI_ABORT);
+				j_env->GetStringUTFChars(j_str, NULL);
+				j_env->ReleaseStringUTFChars(j_str, (const char *) NULL);
+			], [], [
+				AC_MSG_WARN([Java JNI bridge support was requested, but disabled because JNI API is not supported])
+				CPPFLAGS=${save_CPPFLAGS}
+				enable_java=no
+			])
+		], [
+			AC_MSG_WARN([Java JNI bridge support was requested, but disabled because "jni.h" was not found (search path: ${CPPFLAGS})])
+			CPPFLAGS=${save_CPPFLAGS}
+			enable_java=no
+		])
+	])
+	
+	AS_IF([test "${enable_java}" == "yes"], [
+		AC_SUBST([OSRA_JAVA], [yes])
+	])
+])
+
 AC_ARG_WITH(
 	[macports],
 	[AC_HELP_STRING([--with-macports], [Alternative location for MacPorts libraries on OS X (default: /opt/local/lib)])],

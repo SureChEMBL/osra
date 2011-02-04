@@ -595,6 +595,7 @@ LIBOBJS
 resolved_datadir
 GRAPHICS_MAGICK_CONFIG
 TESSERACT_LIB
+OSRA_JAVA
 EGREP
 GREP
 CXXCPP
@@ -664,6 +665,7 @@ enable_openmp
 enable_static_linking
 enable_profiling
 enable_graphicsmagick_config
+enable_java
 with_macports
 with_tclap_include
 with_potrace_include
@@ -1320,6 +1322,11 @@ Optional Features:
   --disable-graphicsmagick-config
                           Disable use of GraphicsMagick++-config for library
                           linking
+
+  --enable-java           Include Java JNI bridge compilation into build
+                          cycle. Make sure you have JDK installed and
+                          $JAVA_HOME environment variable pointing to its
+                          location.
 
 
 Optional Packages:
@@ -3392,6 +3399,12 @@ if test -d "/usr/local/include"; then :
 
 fi
 
+if test -d "/usr/local/include/gocr"; then :
+
+        CPPFLAGS="-I/usr/local/include/gocr ${CPPFLAGS}"
+
+fi
+
 if test -d "/usr/local/lib"; then :
 
 	LDFLAGS="-L/usr/local/lib ${LDFLAGS}"
@@ -3521,13 +3534,10 @@ if test "${enable_graphicsmagick_config+set}" = set; then :
 fi
 
 
-
-# Check whether --with-macports was given.
-if test "${with_macports+set}" = set; then :
-  withval=$with_macports; MACPORTSLIBS="$withval"
-
+# Check whether --enable-java was given.
+if test "${enable_java+set}" = set; then :
+  enableval=$enable_java;
 fi
-
 
 
 ac_ext=cpp
@@ -3923,6 +3933,88 @@ fi
 done
 
 
+if test "${enable_java}" == "yes"; then :
+
+	if test "${JAVA_HOME}" == ""; then :
+
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Java JNI bridge support was requested, but disabled because $JAVA_HOME environment variable is not defined" >&5
+$as_echo "$as_me: WARNING: Java JNI bridge support was requested, but disabled because $JAVA_HOME environment variable is not defined" >&2;}
+		enable_java=no
+
+else
+
+		save_CPPFLAGS=${CPPFLAGS}
+		CPPFLAGS="-I${JAVA_HOME}/include -I${JAVA_HOME}/include/linux ${CPPFLAGS}"
+		ac_fn_cxx_check_header_mongrel "$LINENO" "jni.h" "ac_cv_header_jni_h" "$ac_includes_default"
+if test "x$ac_cv_header_jni_h" = x""yes; then :
+
+			cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <jni.h>
+int
+main ()
+{
+
+				JNIEnv *j_env;
+				jobjectArray j_obj_arr;
+				jbyteArray j_byte_arr;
+				jstring j_str;
+				jboolean j_output_confidence;
+
+				j_env->GetArrayLength(j_byte_arr);
+				j_env->GetObjectArrayElement(j_obj_arr, 0);
+				j_env->GetByteArrayElements(j_byte_arr, NULL);
+				j_env->ReleaseByteArrayElements(j_byte_arr, (jbyte*) NULL, JNI_ABORT);
+				j_env->GetStringUTFChars(j_str, NULL);
+				j_env->ReleaseStringUTFChars(j_str, (const char *) NULL);
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_cxx_try_compile "$LINENO"; then :
+
+else
+
+				{ $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Java JNI bridge support was requested, but disabled because JNI API is not supported" >&5
+$as_echo "$as_me: WARNING: Java JNI bridge support was requested, but disabled because JNI API is not supported" >&2;}
+				CPPFLAGS=${save_CPPFLAGS}
+				enable_java=no
+
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+
+else
+
+			{ $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Java JNI bridge support was requested, but disabled because \"jni.h\" was not found (search path: ${CPPFLAGS})" >&5
+$as_echo "$as_me: WARNING: Java JNI bridge support was requested, but disabled because \"jni.h\" was not found (search path: ${CPPFLAGS})" >&2;}
+			CPPFLAGS=${save_CPPFLAGS}
+			enable_java=no
+
+fi
+
+
+
+fi
+
+	if test "${enable_java}" == "yes"; then :
+
+		OSRA_JAVA=yes
+
+
+fi
+
+fi
+
+
+# Check whether --with-macports was given.
+if test "${with_macports+set}" = set; then :
+  withval=$with_macports; MACPORTSLIBS="$withval"
+
+fi
+
+
+
 
 
 # Check whether --with-tclap-include was given.
@@ -4304,12 +4396,12 @@ fi
 
 
 
-		for ac_header in gocr/pgm2asc.h
+		for ac_header in pgm2asc.h
 do :
-  ac_fn_cxx_check_header_mongrel "$LINENO" "gocr/pgm2asc.h" "ac_cv_header_gocr_pgm2asc_h" "$ac_includes_default"
-if test "x$ac_cv_header_gocr_pgm2asc_h" = x""yes; then :
+  ac_fn_cxx_check_header_mongrel "$LINENO" "pgm2asc.h" "ac_cv_header_pgm2asc_h" "$ac_includes_default"
+if test "x$ac_cv_header_pgm2asc_h" = x""yes; then :
   cat >>confdefs.h <<_ACEOF
-#define HAVE_GOCR_PGM2ASC_H 1
+#define HAVE_PGM2ASC_H 1
 _ACEOF
  ac_lib_gocr=yes
 else
@@ -4322,7 +4414,7 @@ done
 		if test "${ac_lib_gocr}" != "yes" -a "${with_gocr}" != ""; then :
 
 
-	for ax_var in gocr/pgm2asc.h
+	for ax_var in pgm2asc.h
 do :
 
 				as_ax_Var=`$as_echo "ac_cv_header_${ax_var}" | $as_tr_sh`
@@ -4364,17 +4456,17 @@ do :
 
 done
 
-						{ $as_echo "$as_me:${as_lineno-$LINENO}: checking gocr for gocr/pgm2asc.h in ${ac_location}" >&5
-$as_echo_n "checking gocr for gocr/pgm2asc.h in ${ac_location}... " >&6; }
+						{ $as_echo "$as_me:${as_lineno-$LINENO}: checking gocr for pgm2asc.h in ${ac_location}" >&5
+$as_echo_n "checking gocr for pgm2asc.h in ${ac_location}... " >&6; }
 						$as_echo
 						$as_echo "$as_me:${as_lineno-$LINENO}: CPPFLAGS=\"${CPPFLAGS}\" and LDFLAGS=\"${LDFLAGS}\" for HOME location check" >&5
 
-						for ac_header in gocr/pgm2asc.h
+						for ac_header in pgm2asc.h
 do :
-  ac_fn_cxx_check_header_mongrel "$LINENO" "gocr/pgm2asc.h" "ac_cv_header_gocr_pgm2asc_h" "$ac_includes_default"
-if test "x$ac_cv_header_gocr_pgm2asc_h" = x""yes; then :
+  ac_fn_cxx_check_header_mongrel "$LINENO" "pgm2asc.h" "ac_cv_header_pgm2asc_h" "$ac_includes_default"
+if test "x$ac_cv_header_pgm2asc_h" = x""yes; then :
   cat >>confdefs.h <<_ACEOF
-#define HAVE_GOCR_PGM2ASC_H 1
+#define HAVE_PGM2ASC_H 1
 _ACEOF
  ac_lib_gocr=yes
 else
@@ -4391,7 +4483,7 @@ fi
 												LDFLAGS=${ax_probe_library_save_LDFLAGS}
 						CPPFLAGS=${ax_probe_library_save_CPPFLAGS}
 
-	for ax_var in gocr/pgm2asc.h
+	for ax_var in pgm2asc.h
 do :
 
 				as_ax_Var=`$as_echo "ac_cv_header_${ax_var}" | $as_tr_sh`
@@ -4412,17 +4504,17 @@ else
 
 				CPPFLAGS="-I${ac_test_location} $CPPFLAGS"
 
-				{ $as_echo "$as_me:${as_lineno-$LINENO}: checking gocr for gocr/pgm2asc.h in ${ac_test_location}" >&5
-$as_echo_n "checking gocr for gocr/pgm2asc.h in ${ac_test_location}... " >&6; }
+				{ $as_echo "$as_me:${as_lineno-$LINENO}: checking gocr for pgm2asc.h in ${ac_test_location}" >&5
+$as_echo_n "checking gocr for pgm2asc.h in ${ac_test_location}... " >&6; }
 				$as_echo
 				$as_echo "$as_me:${as_lineno-$LINENO}: CPPFLAGS=\"${CPPFLAGS}\" for custom location check" >&5
 
-				for ac_header in gocr/pgm2asc.h
+				for ac_header in pgm2asc.h
 do :
-  ac_fn_cxx_check_header_mongrel "$LINENO" "gocr/pgm2asc.h" "ac_cv_header_gocr_pgm2asc_h" "$ac_includes_default"
-if test "x$ac_cv_header_gocr_pgm2asc_h" = x""yes; then :
+  ac_fn_cxx_check_header_mongrel "$LINENO" "pgm2asc.h" "ac_cv_header_pgm2asc_h" "$ac_includes_default"
+if test "x$ac_cv_header_pgm2asc_h" = x""yes; then :
   cat >>confdefs.h <<_ACEOF
-#define HAVE_GOCR_PGM2ASC_H 1
+#define HAVE_PGM2ASC_H 1
 _ACEOF
  ac_lib_gocr=yes
 else
@@ -4438,7 +4530,7 @@ fi
 
 								CPPFLAGS=${ax_probe_library_save_CPPFLAGS}
 
-	for ax_var in gocr/pgm2asc.h
+	for ax_var in pgm2asc.h
 do :
 
 				as_ax_Var=`$as_echo "ac_cv_header_${ax_var}" | $as_tr_sh`
@@ -4457,7 +4549,7 @@ fi
 
 
 	if test "${ac_lib_gocr}" != "yes"; then :
-  as_fn_error $? "gocr/pgm2asc.h header(s) is missing. Check the default/listed above headers locations." "$LINENO" 5
+  as_fn_error $? "pgm2asc.h header(s) is missing. Check the default/listed above headers locations." "$LINENO" 5
 fi
 
 
@@ -7322,8 +7414,8 @@ ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 /* end confdefs.h.  */
 
 	extern "C" {
-	#include <gocr/pgm2asc.h>
-	#include <gocr/gocr.h>
+	#include <pgm2asc.h>
+	#include <gocr.h>
 	}
 	job_t *OCR_JOB, *JOB;
 
@@ -7366,8 +7458,8 @@ rm -f core conftest.err conftest.$ac_objext \
 /* end confdefs.h.  */
 
 	extern "C" {
-	#include <gocr/pgm2asc.h>
-	#include <gocr/gocr.h>
+	#include <pgm2asc.h>
+	#include <gocr.h>
 	}
 	job_t *OCR_JOB, *JOB;
 

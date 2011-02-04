@@ -474,3 +474,10 @@ void unpaper(Magick::Image &picture);
 #define STRUCTURE_COUNT 20
 #define SPELLING_TXT "spelling.txt"
 #define SUPERATOM_TXT "superatom.txt"
+
+#define ERROR_SPELLING_FILE_IS_MISSING          -1
+#define ERROR_SUPERATOM_FILE_IS_MISSING         -2
+#define ERROR_UNKNOWN_IMAGE_TYPE                -3
+#define ERROR_OUTPUT_FILE_OPEN_FAILED           -2
+
+
