@@ -5748,29 +5748,29 @@ int osra_process_image(
 
 #ifdef OSRA_LIB
   double max_conf = -FLT_MAX;
-  for (int l = 0; l < page; l++)
-    for (unsigned int i = 0; i < pages_of_structures[l].size(); i++)
-      if (pages_of_avg_bonds[l][i] > min_bond && pages_of_avg_bonds[l][i] < max_bond && pages_of_ind_conf[l][i] > max_conf)
-        {
-          max_conf = pages_of_ind_conf[l][i];
-          output_structure = pages_of_structures[l][i];
-        }
+  //stringstream out_stream;
 #else
-
   ostream &out_stream = outfile.is_open() ? outfile : cout;
+#endif
 
   int image_count = 0;
 
   for (int l = 0; l < page; l++)
-    {
-      for (unsigned int i = 0; i < pages_of_structures[l].size(); i++)
+    for (unsigned int i = 0; i < pages_of_structures[l].size(); i++)
+      if (pages_of_avg_bonds[l][i] > min_bond && pages_of_avg_bonds[l][i] < max_bond)
         {
-          if (pages_of_avg_bonds[l][i] > min_bond && pages_of_avg_bonds[l][i] < max_bond)
-            out_stream << pages_of_structures[l][i];
-        }
-      if (output_image_file_prefix != "")
-        for (unsigned int i = 0; i < pages_of_images[l].size(); i++)
-          if (pages_of_avg_bonds[l][i] > min_bond && pages_of_avg_bonds[l][i] < max_bond)
+#ifdef OSRA_LIB
+          if (pages_of_ind_conf[l][i] > max_conf)
+            {
+              max_conf = pages_of_ind_conf[l][i];
+              // Copy the structure to "output_structure":
+              output_structure = pages_of_structures[l][i];
+            }
+#else
+          out_stream << pages_of_structures[l][i];
+#endif
+          // Dump this structure into a separate file:
+          if (!output_image_file_prefix.empty())
             {
               stringstream fname;
               fname << output_image_file_prefix << image_count << ".png";
@@ -5785,8 +5785,11 @@ int osra_process_image(
                   tmp.write(fname.str());
                 }
             }
-    }
+        }
 
+#ifdef OSRA_LIB
+  //output_structure = out_stream.str();
+#else
   if (outfile.is_open())
     outfile.close();
 #endif
