@@ -5664,34 +5664,24 @@ int osra_process_image(
                               array_of_ind_conf[res_iter].push_back(confidence);
                               total_boxes++;
                               total_confidence += confidence;
-                              if (output_image_file_prefix != "")
+                              if (!output_image_file_prefix.empty())
                                 {
                                   Image tmp = image;
-                                  if (fragments.size() > 1)
+
+                                  Geometry geometry =
+                                      (fragments.size() > 1) ? Geometry(box_scale * fragments[i].x2 - box_scale * fragments[i].x1 + 4 * real_font_width, //
+                                                                        box_scale * fragments[i].y2 - box_scale * fragments[i].y1 + 4 * real_font_height, //
+                                                                        boxes[k].x1 + box_scale * fragments[i].x1 - FRAME - 2 * real_font_width, //
+                                                                        boxes[k].y1 + box_scale * fragments[i].y1 - FRAME - 2 * real_font_height)
+                                          : Geometry(boxes[k].x2 - boxes[k].x1, boxes[k].y2 - boxes[k].y1, boxes[k].x1, boxes[k].y1);
+
+                                  try
                                     {
-                                      try
-                                        {
-                                          tmp.crop(Geometry(box_scale * fragments[i].x2 - box_scale * fragments[i].x1 + 4 * real_font_width, //
-                                                            box_scale * fragments[i].y2 - box_scale * fragments[i].y1 + 4 * real_font_height, //
-                                                            boxes[k].x1 + box_scale * fragments[i].x1 - FRAME - 2 * real_font_width, //
-                                                            boxes[k].y1 + box_scale * fragments[i].y1 - FRAME - 2 * real_font_height));
-                                        }
-                                      catch (...)
-                                        {
-                                          tmp = orig_box;
-                                        }
+                                      tmp.crop(geometry);
                                     }
-                                  else
+                                  catch (...)
                                     {
-                                      try
-                                        {
-                                          tmp.crop(Geometry(boxes[k].x2 - boxes[k].x1, boxes[k].y2 - boxes[k].y1,
-                                                            boxes[k].x1, boxes[k].y1));
-                                        }
-                                      catch (...)
-                                        {
-                                          tmp = orig_box;
-                                        }
+                                      tmp = orig_box;
                                     }
 
                                   array_of_images[res_iter].push_back(tmp);
@@ -5728,7 +5718,7 @@ int osra_process_image(
       for (unsigned int i = 0; i < array_of_structures[max_res].size(); i++)
         {
           pages_of_structures[l].push_back(array_of_structures[max_res][i]);
-          if (output_image_file_prefix != "")
+          if (!output_image_file_prefix.empty())
             pages_of_images[l].push_back(array_of_images[max_res][i]);
           pages_of_avg_bonds[l].push_back(array_of_avg_bonds[max_res][i]);
           pages_of_ind_conf[l].push_back(array_of_ind_conf[max_res][i]);
