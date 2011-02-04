@@ -5119,16 +5119,16 @@ int osra_process_image(
     cout << "Image type is " << type << '.' << endl;
 
 #ifndef OSRA_LIB
+  ofstream outfile;
+
   if (!output_file.empty())
     {
-      ofstream outfile;
       outfile.open(output_file.c_str(), ios::out | ios::trunc);
       if (outfile.bad() || !outfile.is_open())
         {
           cerr << "Cannot open file \"" << output_file << "\" for output" << endl;
           return ERROR_OUTPUT_FILE_OPEN_FAILED;
         }
-      outfile.close();
     }
 #endif
 
@@ -5756,29 +5756,18 @@ int osra_process_image(
           output_structure = pages_of_structures[l][i];
         }
 #else
-  ofstream outfile;
 
-  if (!output_file.empty())
-    {
-      outfile.open(output_file.c_str(), ios::out);
-    }
+  ostream &out_stream = outfile.is_open() ? outfile : cout;
 
   int image_count = 0;
 
   for (int l = 0; l < page; l++)
     {
-      if (outfile.is_open())
-        for (unsigned int i = 0; i < pages_of_structures[l].size(); i++)
-          {
-            if (pages_of_avg_bonds[l][i] > min_bond && pages_of_avg_bonds[l][i] < max_bond)
-              outfile << pages_of_structures[l][i];
-          }
-      else
-        for (unsigned int i = 0; i < pages_of_structures[l].size(); i++)
-          {
-            if (pages_of_avg_bonds[l][i] > min_bond && pages_of_avg_bonds[l][i] < max_bond)
-              cout << pages_of_structures[l][i];
-          }
+      for (unsigned int i = 0; i < pages_of_structures[l].size(); i++)
+        {
+          if (pages_of_avg_bonds[l][i] > min_bond && pages_of_avg_bonds[l][i] < max_bond)
+            out_stream << pages_of_structures[l][i];
+        }
       if (output_image_file_prefix != "")
         for (unsigned int i = 0; i < pages_of_images[l].size(); i++)
           if (pages_of_avg_bonds[l][i] > min_bond && pages_of_avg_bonds[l][i] < max_bond)
