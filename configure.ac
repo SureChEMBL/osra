@@ -85,8 +85,8 @@ AS_IF([test -z "${enable_openmp}" -a "$build_os" == "linux"], [enable_openmp=yes
 
 AS_IF([test "${enable_openmp}" == "yes"], [
 	AC_OPENMP()
-	CPPFLAGS="${CPPFLAGS} ${OPENMP_CFLAGS}"
-	CXXFLAGS="${CXXFLAGS} ${OPENMP_CXXFLAGS}"
+	CPPFLAGS="${OPENMP_CFLAGS} ${CPPFLAGS}"
+	CXXFLAGS="${OPENMP_CXXFLAGS} ${CXXFLAGS}"
 ])
 
 dnl GNU LD-specific option:
@@ -162,11 +162,13 @@ AS_IF([test "${enable_java}" == "yes"], [
 	])
 ])
 
+
 AC_ARG_WITH(
 	[macports],
 	[AC_HELP_STRING([--with-macports], [Alternative location for MacPorts libraries on OS X (default: /opt/local/lib)])],
 	[MACPORTSLIBS="$withval"]
-)	
+)
+
 dnl
 dnl Define includes paths and libraries paths
 dnl
@@ -212,7 +214,7 @@ dnl tesseract library (optional)
 AC_ARG_WITH(
 	[tesseract-include],
 	[AC_HELP_STRING([--with-tesseract-include], [Location of tesseract/baseapi.h header file])],
-	[CPPFLAGS=" ${CPPFLAGS} -I${withval}"]
+	[CPPFLAGS="-I${withval} ${CPPFLAGS}"]
 )
 
 AX_PROBE_OPTIONAL_LIBRARY(
@@ -227,13 +229,13 @@ dnl cuneiform library (optional)
 AC_ARG_WITH(
 	[cuneiform-source],
 	[AC_HELP_STRING([--with-cuneiform-source], [Location of cuneiform library source files])],
-	[CPPFLAGS=" ${CPPFLAGS} -I${withval}/cuneiform_src/Kern/hhh/ -I${withval}/cuneiform_src/Kern/h/  -I${withval}/cuneiform_src/Kern/hrk/  -I${withval}/cuneiform_src/Kern/puma/h/    -I${withval}/cuneiform_src/Kern/include/  -I${withval}/cuneiform_src/Kern/hdebug/"]
+	[CPPFLAGS="-I${withval}/cuneiform_src/Kern/hhh/ -I${withval}/cuneiform_src/Kern/h/ -I${withval}/cuneiform_src/Kern/hrk/ -I${withval}/cuneiform_src/Kern/puma/h/ -I${withval}/cuneiform_src/Kern/include/ -I${withval}/cuneiform_src/Kern/hdebug/ ${CPPFLAGS}"]
 )	
 
 AC_ARG_WITH(
 	[cuneiform-include],
 	[AC_HELP_STRING([--with-cuneiform-include], [Location of cuneiform.h header file])],
-	[CPPFLAGS=" ${CPPFLAGS} -I${withval}"]
+	[CPPFLAGS="-I${withval} ${CPPFLAGS}"]
 )
 
 AX_PROBE_OPTIONAL_LIBRARY(
@@ -260,8 +262,9 @@ dnl limits.h header
 
 osra_header_limits=yes
 
-AC_CHECK_HEADER([limits.h], [], [osra_header_limits=no])
-AC_TRY_COMPILE([#include <limits.h>], [ int a = INT_MAX; ], [], [osra_header_limits=no])
+AC_CHECK_HEADER([limits.h], [
+	AC_TRY_COMPILE([#include <limits.h>], [ int a = INT_MAX; ], [], [osra_header_limits=no])
+], [osra_header_limits=no])
 
 AS_IF([test "${osra_header_limits}" != "yes"], [
 	AC_MSG_ERROR([limits.h was not found; make sure you have installed libc-dev package or check config.log])
@@ -271,8 +274,9 @@ dnl float.h header
 
 osra_header_float=yes
 
-AC_CHECK_HEADER([float.h], [], [osra_header_float=no])
-AC_TRY_COMPILE([#include <float.h>], [ float f = FLT_MAX; ], [], [osra_header_float=no])
+AC_CHECK_HEADER([float.h], [
+	AC_TRY_COMPILE([#include <float.h>], [ float f = FLT_MAX; ], [], [osra_header_float=no])
+], [osra_header_float=no])
 
 AS_IF([test "${osra_header_float}" != "yes"], [
 	AC_MSG_ERROR([float.h was not found; make sure you have installed libc-dev package or check config.log])
@@ -282,8 +286,9 @@ dnl libgen.h header
 
 osra_header_libgen=yes
 
-AC_CHECK_HEADER([libgen.h], [], [osra_header_libgen=no])
-AC_TRY_COMPILE([#include <libgen.h>], [ char *a = dirname(""); ], [], [osra_header_libgen=no])
+AC_CHECK_HEADER([libgen.h], [
+	AC_TRY_COMPILE([#include <libgen.h>], [ char *a = dirname(""); ], [], [osra_header_libgen=no])
+], [osra_header_libgen=no])
 
 AS_IF([test "${osra_header_libgen}" != "yes"], [
 	AC_MSG_ERROR([libgen.h was not found; make sure you have installed libc-dev package or check config.log])
@@ -293,12 +298,12 @@ dnl math library
 
 osra_lib_math=yes
 
-AC_CHECK_HEADER([math.h], [], [osra_lib_math=no])
-
-dnl "-lm" should be checked only for non-OSX platforms:
-AS_IF([test "$build_os" != "darwin"], [
-	AX_TRY_LINK([m], [#include <math.h>], [ sqrt(1); fabs(1); ], [], [osra_lib_math=no])
-])
+AC_CHECK_HEADER([math.h], [
+	dnl "-lm" should be checked only for non-OSX platforms:
+	AS_IF([test "$build_os" != "darwin"], [
+		AX_TRY_LINK([m], [#include <math.h>], [ sqrt(1); fabs(1); ], [], [osra_lib_math=no])
+	])
+], [osra_lib_math=no])
 
 AS_IF([test "${osra_lib_math}" != "yes"], [
 	AC_MSG_ERROR([math.h or libm was not found; make sure you have installed libc-dev package or check config.log])
@@ -395,12 +400,14 @@ AS_IF([test "${ac_lib_tesseract}" == "yes"], [
 	], [ac_lib_tesseract=no])
 ])
 
-AS_IF([test "${with_tesseract}" != "no" -a "${ac_lib_tesseract}" == "no"], [AC_MSG_WARN([Tesseract library support was requested, but disabled due to API check failure (see above messages for the reason or check config.log)])])
+AS_IF([test "${with_tesseract}" != "no" -a "${ac_lib_tesseract}" == "no"], [
+	AC_MSG_WARN([Tesseract library support was requested, but disabled due to API check failure (see above messages for the reason or check config.log)])
+])
 
 dnl cuneiform library (optional)
 
 AS_IF([test "${ac_lib_cuneiform}" == "yes"], [
-dnl	LIBS="${LIBS} -lcuneiform -lrcorrkegl -lrfrmt -lrmarker -lrblock -lrneg -lrout -lced -lrpic -lrselstr -lrstuff -lrimage  -lrline -lrshelllines -lrverline -lcimage -lcfio -lcpage -llns32 -lrdib -lsmetric -lexc -lloc32 -lrreccom -lrpstr -lrstr -lcline -lrcutp -lpass2 -lrbal -lrsadd -lleo32 -levn32 -lfon32 -lctb32 -lmsk32 -ldif32 -lcpu32 -lr3532 -lmmx32 -lrling -lrlings -lcstr -lccom -lstd32 -lcfcompat"
+dnl	LIBS="-lcuneiform -lrcorrkegl -lrfrmt -lrmarker -lrblock -lrneg -lrout -lced -lrpic -lrselstr -lrstuff -lrimage -lrline -lrshelllines -lrverline -lcimage -lcfio -lcpage -llns32 -lrdib -lsmetric -lexc -lloc32 -lrreccom -lrpstr -lrstr -lcline -lrcutp -lpass2 -lrbal -lrsadd -lleo32 -levn32 -lfon32 -lctb32 -lmsk32 -ldif32 -lcpu32 -lr3532 -lmmx32 -lrling -lrlings -lcstr -lccom -lstd32 -lcfcompat ${LIBS}"
 	AX_TRY_LINK([cuneiform], [
 		#include <stddef.h>
 		#include <cuneiform.h>
@@ -415,19 +422,21 @@ dnl	LIBS="${LIBS} -lcuneiform -lrcorrkegl -lrfrmt -lrmarker -lrblock -lrneg -lro
 	], [AC_DEFINE([HAVE_CUNEIFORM_LIB])], [ac_lib_cuneiform=no])
 ])
 
-AS_IF([test "${with_cuneiform}" != "no" -a "${ac_lib_cuneiform}" == "no"], [AC_MSG_WARN([Cineiform library support was requested, but disabled due to API check failure (see above messages for the reason or check config.log)])])
+AS_IF([test "${with_cuneiform}" != "no" -a "${ac_lib_cuneiform}" == "no"], [
+	AC_MSG_WARN([Cineiform library support was requested, but disabled due to API check failure (see above messages for the reason or check config.log)])
+])
 
 dnl openbabel library
 
 osra_lib_openbabel=yes
 
-AS_IF([test "$build_os" == "mingw32"],[LIBS="${LIBS} -lws2_32"])
+AS_IF([test "$build_os" == "mingw32"],[LIBS="-lws2_32 ${LIBS}"])
 
 dnl These libraries are needed for static linking with openbabel:
 AS_IF([test "$build_os" == "darwin"], [
 	AS_IF([test "${enable_static_linking:+set}" == "set"], [
 		AC_CHECK_LIB([inchi], [GetINCHI], [], [osra_lib_openbabel=no])
-		LIBS="${LIBS} ${MACPORTSLIBS}/libxml2.a ${MACPORTSLIBS}/libiconv.a ${MACPORTSLIBS}/libz.a"
+		LIBS="${MACPORTSLIBS}/libxml2.a ${MACPORTSLIBS}/libiconv.a ${MACPORTSLIBS}/libz.a ${LIBS}"
 	])
 ], [
 	AS_IF([test "${enable_static_linking:+set}" == "set" -o "$build_os" == "mingw32"], [
@@ -525,27 +534,25 @@ AS_IF([test "${osra_lib_openbabel}" != "yes"], [
 dnl GraphicsMagick library
 
 AS_IF([test "${enable_graphicsmagick_config:+set}" != "set"], [
-	    AC_PATH_PROG(GRAPHICS_MAGICK_CONFIG, GraphicsMagick++-config)
-	    AS_IF([test "${GRAPHICS_MAGICK_CONFIG}" == ""], [
-	    		AC_MSG_ERROR([GraphicsMagick++-config was not found; make sure you have installed libgraphicsmagick++-dev package])
-	    ])	
-	    LIBS="${LIBS} `${GRAPHICS_MAGICK_CONFIG} --libs`"
-	    CPPFLAGS="${CPPFLAGS} `${GRAPHICS_MAGICK_CONFIG} --cppflags`"
-	    LDFLAGS="${LDFLAGS} `${GRAPHICS_MAGICK_CONFIG} --ldflags`"
+		AC_PATH_PROG(GRAPHICS_MAGICK_CONFIG, GraphicsMagick++-config)
+		AS_IF([test "${GRAPHICS_MAGICK_CONFIG}" == ""], [
+			AC_MSG_ERROR([GraphicsMagick++-config was not found; make sure you have installed libgraphicsmagick++-dev package])
+		])	
+		LIBS="`${GRAPHICS_MAGICK_CONFIG} --libs` ${LIBS}"
+		CPPFLAGS="`${GRAPHICS_MAGICK_CONFIG} --cppflags` ${CPPFLAGS}"
+		LDFLAGS="`${GRAPHICS_MAGICK_CONFIG} --ldflags` ${LDFLAGS}"
 	], [
 		AS_IF([test "${enable_static_linking:+set}" == "set"], [
-			    dnl CPPFLAGS="${CPPFLAGS} "
-			    dnl LDFLAGS="${LDFLAGS} "
-			    AS_IF(["$build_os" == "darwin"], [
-			    		       LIBS="${LIBS} -lGraphicsMagick++ -lGraphicsMagick -ljpeg ${MACPORTSLIBS}/liblcms.a ${MACPORTSLIBS}/libtiff.a ${MACPORTSLIBS}/libfreetype.a ${MACPORTSLIBS}/libjasper.a ${MACPORTSLIBS}/libpng.a ${MACPORTSLIBS}/libbz2.a ${MACPORTSLIBS}/libz.a"
-			    ]) 
+			AS_IF(["$build_os" == "darwin"], [
+				LIBS="-lGraphicsMagick++ -lGraphicsMagick -ljpeg ${MACPORTSLIBS}/liblcms.a ${MACPORTSLIBS}/libtiff.a ${MACPORTSLIBS}/libfreetype.a ${MACPORTSLIBS}/libjasper.a ${MACPORTSLIBS}/libpng.a ${MACPORTSLIBS}/libbz2.a ${MACPORTSLIBS}/libz.a ${LIBS}"
+			]) 
 		])
 ])
 
 AS_IF([test "${enable_static_linking:+set}" == "set" -a "$build_os" == "cygwin"],
 	dnl Here goes statically linking setup section.
 	dnl Note: This hack to link statically against GraphicsMagick is not portable.
-	[LIBS="${LIBS} -lxcb -lXau -lXdmcp"]
+	[LIBS="-lxcb -lXau -lXdmcp ${LIBS}"]
 )
 
 dnl We cannot move this check to the top, because includes for GraphicsMagick are defined only at this point:
