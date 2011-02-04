@@ -1465,16 +1465,18 @@ const Color getBgColor(const Image &image, bool inv)
   return (r);
 }
 
-bool convert_to_gray(Image &image, bool invert, bool &cameraphoto)
+bool convert_to_gray(Image &image, bool invert, bool &cameraphoto, bool verbose)
 {
+  int num_bins=20;
+  vector<int> h(num_bins,0);
+  ColorRGB c,b;
+  Color t;
+  ColorGray g;
+  double a;
+
   if (!invert)
     {
-      double a = 0;
-      int num_bins=20;
-      vector<int> h(num_bins,0);
-      ColorRGB c;
-      Color t;
-      ColorGray g;
+      double peak = 0;
       bool transparent = false;
       for (int i = 0; i < BG_PICK_POINTS; i++)
         {
@@ -1494,110 +1496,97 @@ bool convert_to_gray(Image &image, bool invert, bool &cameraphoto)
           if (h[i]>max)
             {
               max = h[i];
-              a = i;
+              peak = i;
             }
         }
-      a /= num_bins;
-      if (a > 0.2 && a<0.8) cameraphoto = true;
-      if (a < 0.3 && !transparent)       // phone-camera taken images can have very dark background yet do not need inversion
+      peak /= num_bins;
+      if (peak < 0.3 && !transparent)       // phone-camera taken images can have very dark background yet do not need inversion
         invert = true;
     }
+  h.clear();
+  bool matte = image.matte();
 
-  {
-    ColorRGB c, b;
-    Color t;
-    ColorGray g;
-    double a;
-    bool matte = image.matte();
+  for (unsigned int i = 0; i < image.columns(); i++)
+    for (unsigned int j = 0; j < image.rows(); j++)
+      {
+        t = image.pixelColor(i, j);
+        b = t;
+        g = t;
+        if (matte && t.alpha() == 1 && g.shade() < 0.5)
+          {
+            g.shade(1);
+            image.pixelColor(i, j, g);
+          }
+        else
+          {
+            a = min(b.red(), min(b.green(), b.blue()));
+            if (invert)
+              a = max(b.red(), max(b.green(), b.blue()));
+            c.red(a);
+            c.green(a);
+            c.blue(a);
+            image.pixelColor(i, j, c);
+          }
+        g = image.pixelColor(i, j);
+        h[int((num_bins-1)*g.shade())]++;
+      }
+// Otsu Algorithm, from http://habrahabr.ru/blogs/algorithm/112079/
+  unsigned int m = 0;
+  unsigned int n = 0;
+  double maxSigma = -1;
+  unsigned int min_t = num_bins;
+  unsigned int alpha1 = 0;
+  unsigned int beta1 = 0;
+  for (unsigned int i = 0; i<num_bins; i++)
+    {
+      m += i*h[i];
+      n += h[i];
+    }
 
-    for (unsigned int i = 0; i < image.columns(); i++)
-      for (unsigned int j = 0; j < image.rows(); j++)
+  for (unsigned int t = 0; t < num_bins; t++)
+    {
+      alpha1 += t * h[t];
+      beta1 += h[t];
+
+      double w1 = (double)beta1 / n;
+      double a = (double)alpha1 / beta1 - (double)(m - alpha1) / (n - beta1);
+      double sigma = w1 * (1 - w1) * a * a;
+
+      if (sigma > maxSigma)
         {
-          t = image.pixelColor(i, j);
-          b = t;
-          g = t;
-          if (matte && t.alpha() == 1 && g.shade() < 0.5)
-            {
-              g.shade(1);
-              image.pixelColor(i, j, g);
-            }
-          else
-            {
-              a = min(b.red(), min(b.green(), b.blue()));
-              if (invert)
-                a = max(b.red(), max(b.green(), b.blue()));
-              c.red(a);
-              c.green(a);
-              c.blue(a);
-              image.pixelColor(i, j, c);
-            }
+          maxSigma = sigma;
+          min_t = t;
         }
-  }
+    }
+  int max1 = 0;
+  int peak1 = 0;
+  for (unsigned int i = 0; i<=min_t; i++)
+    if (h[i] > max1)
+      {
+        max1 = h[i];
+        peak1 = i;
+      }
+  int max2 = 0;
+  int peak2 = 0;
+  for (unsigned int i = min_t+1; i<num_bins; i++)
+    if (h[i] > max2)
+      {
+        max2 = h[i];
+        peak2 = i;
+      }
+  double distance_between_peaks = (double)(peak2-peak1)/num_bins;
+  if (verbose)
+    {
+      cout << "Distance between light and dark: " << distance_between_peaks << endl;
+      cout<<"Max at peak 1: "<<max1<<"  Max at peak 2: "<<max2<<endl;
+    }
+  if (distance_between_peaks < THRESHOLD_GLOBAL) cameraphoto = true;
 
   image.contrast(2);
   image.type(GrayscaleType);
   return(invert);
 }
 
-// Otsu Algorithm, from http://habrahabr.ru/blogs/algorithm/112079/
-double get_threshold_otsu(const Image &image)
-{
-  ColorGray g;
-  double min=1,max=0;
-  unsigned int num_bins = 256;
-  vector<unsigned int> histogram(num_bins,0);
-  for (unsigned int i = 0; i < image.columns(); i++)
-    for (unsigned int j = 0; j < image.rows(); j++)
-      {
-        g = image.pixelColor(i, j);
-        if (min>g.shade()) min = g.shade();
-        if (max<g.shade()) max = g.shade();
-      }
-  if (max == min) return (0.1);
-  double scale = 255. / (max - min);
-  for (unsigned int i = 0; i < image.columns(); i++)
-    for (unsigned int j = 0; j < image.rows(); j++)
-      {
-        g = image.pixelColor(i, j);
-        histogram[int((g.shade()-min)*scale)]++;
-      }
-  unsigned int m = 0;
-  unsigned int n = 0;
-  for (unsigned int i = 0; i<num_bins; i++)
-    {
-      m += i*histogram[i];
-      n += histogram[i];
-    }
-
-  double maxSigma = -1;
-  unsigned int min_t = num_bins;
-  unsigned int max_t = 0;
-
-  unsigned int alpha1 = 0;
-  unsigned int beta1 = 0;
-
-  for (unsigned int t = 0; t < num_bins; t++)
-    {
-      alpha1 += t * histogram[t];
-      beta1 += histogram[t];
-
-      double w1 = (double)beta1 / n;
-      double a = (double)alpha1 / beta1 - (double)(m - alpha1) / (n - beta1);
-      double sigma = w1 * (1 - w1) * a * a;
-      if (sigma == maxSigma) max_t = t;
-
-      if (sigma > maxSigma)
-        {
-          maxSigma = sigma;
-          min_t = t;
-          max_t = t;
-        }
-    }
-
-  double real_threshold = 0.5*(max_t+min_t)/scale;
-  real_threshold += min;
-  return(real_threshold);
-}
 
 void debug_img(Image &image, const vector<atom_t> &atom, int n_atom, const vector<bond_t> &bond, int n_bond,
                const string &fname)
@@ -5385,7 +5374,10 @@ int main(int argc, char **argv)
       outfile.close();
     }
 
-
+  /*  double THRESHOLD_BOND = threshold_option.getValue();
+  if (THRESHOLD_BOND < 0.0001)
+    THRESHOLD_BOND = THRESHOLD_GLOBAL;
+  */
   int input_resolution = resolution_option.getValue();
 
   if (input_resolution == 0 && (type == "PDF" || type == "PS"))
@@ -5440,7 +5432,7 @@ int main(int argc, char **argv)
       image.modifyImage();
       bool invert = invert_option.getValue();
       bool cameraphoto = false;
-      invert = convert_to_gray(image, invert, cameraphoto);
+      invert = convert_to_gray(image, invert, cameraphoto,verbose);
 
       // Pre-processing for images from iPhone and Android camera phones
       if (cameraphoto)
@@ -5514,8 +5506,6 @@ int main(int argc, char **argv)
       for (int i = 0; i < do_unpaper_option.getValue(); i++)
         unpaper(image);
 
-
-
       // 0.1 is used for THRESHOLD_BOND here to allow for farther processing.
       list<list<list<point_t> > > clusters = find_segments(image, 0.1, bgColor,verbose);
 
@@ -5547,8 +5537,7 @@ int main(int argc, char **argv)
           if (resolution > 300)
             working_resolution = 300;
 
-          double THRESHOLD_BOND;
-          THRESHOLD_BOND = threshold_option.getValue();
+          double THRESHOLD_BOND = threshold_option.getValue();
           if (THRESHOLD_BOND < 0.0001)
             {
               if (resolution >= 150)
@@ -5560,7 +5549,6 @@ int main(int argc, char **argv)
                   THRESHOLD_BOND = THRESHOLD_LOW_RES;
                 }
             }
-
 
           int max_font_height = MAX_FONT_HEIGHT * working_resolution / 150;
           int max_font_width = MAX_FONT_WIDTH * working_resolution / 150;
