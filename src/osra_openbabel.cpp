@@ -149,7 +149,7 @@ int get_atomic_num(const string &s, OBMol &mol, int &n, int &bondn, const map<st
 
   int isotope;
   int anum = etab.GetAtomicNum(s.c_str(), isotope);
-
+//  if (anum == 0) return(6);
   return (anum);
 }
 
