@@ -20,13 +20,13 @@
  St, Fifth Floor, Boston, MA 02110-1301, USA
  *****************************************************************************/
 
-#include <algorithm>
-#include <cstdio>
-#include <vector>
-#include <cstring>
-#include <iostream>
-#include <string>
-#include <sstream>
+#include <string.h> // strlen()
+#include <ctype.h> // isalnum()
+
+#include <vector> // std:vector
+#include <iostream> // std::cout
+#include <string> // std::string
+#include <sstream> // std:stringstream
 
 #include "config.h"
 
@@ -41,11 +41,13 @@ extern "C" {
 #endif
 
 #include "osra.h"
+#include "osra_ocr.h"
 
 #ifdef HAVE_TESSERACT_LIB
+// We can't push these functions into this cpp file, as the types from Tesseract conflict with GOCR
 void osra_tesseract_init();
-void osra_tesseract_release();
-char osra_tesseract_ocr(unsigned char *pixel_map, int x1, int y1, int x2, int y2, string &char_filter);
+void osra_tesseract_destroy();
+char osra_tesseract_ocr(unsigned char *pixel_map, int x1, int y1, int x2, int y2, const string &char_filter);
 #endif
 
 // Global GOCR variable (omg) both for 0.48-0.49 and 0.50 versions:
@@ -79,13 +81,13 @@ void osra_ocr_init()
 #endif
 }
 
-void osra_ocr_release()
+void osra_ocr_destroy()
 {
 #ifdef HAVE_CUNEIFORM_LIB
   PUMA_Done();
 #endif
 #ifdef HAVE_TESSERACT_LIB
-  osra_tesseract_release();
+  osra_tesseract_destroy();
 #endif
 }
 
@@ -126,7 +128,7 @@ char osra_gocr_ocr(job_t &gocr_job)
 //
 //  Returns:
 //    0 in case the recognition failed or valid alphanumeric character
-char osra_ocrad_ocr(const OCRAD_Pixmap * const ocrad_pixmap, string &char_filter)
+char osra_ocrad_ocr(const OCRAD_Pixmap * const ocrad_pixmap, const string &char_filter)
 {
   char result = 0;
   string line;
@@ -162,7 +164,8 @@ char osra_ocrad_ocr(const OCRAD_Pixmap * const ocrad_pixmap, string &char_filter
 //
 //  Returns:
 //    0 in case the recognition failed or valid alphanumeric character
-char osra_cuneiform_ocr(Magick::Image &cuneiform_img, bool verbose, string &char_filter)
+#ifdef HAVE_CUNEIFORM_LIB
+char osra_cuneiform_ocr(Magick::Image &cuneiform_img, bool verbose, const string &char_filter)
 {
   char str[256];
 
@@ -190,6 +193,7 @@ char osra_cuneiform_ocr(Magick::Image &cuneiform_img, bool verbose, string &char
 
   return 0;
 }
+#endif
 
 char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int x1, int y1, int x2, int y2,
                     double THRESHOLD, int dropx, int dropy, bool verbose)

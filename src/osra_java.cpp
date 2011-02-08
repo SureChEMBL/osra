@@ -23,14 +23,16 @@
 #include <jni.h>
 #include <stdlib.h> // calloc(), free()
 
-#include <string>
+#include <string> // std::string
+#include <ostream> // std:ostream
+#include <sstream> // std:stringstream
 
-#include "config.h"
+#include "config.h" // PACKAGE_VERSION
 
 using namespace std;
 
 #ifdef ANDROID
-int main(int argc, char **argv, const char *image_data, int image_length, string &output_structure);
+int main(int argc, char **argv, const char *image_data, int image_length, ostream &output_structure_stream);
 
 extern "C" {
   JNIEXPORT jstring JNICALL Java_cadd_osra_main_runosra_nativeosra(JNIEnv *j_env, jobject j_this, jobjectArray j_arr,
@@ -53,11 +55,11 @@ JNIEXPORT jstring JNICALL Java_cadd_osra_main_runosra_nativeosra(JNIEnv *j_env, 
   char *image_data = (char *) j_env->GetByteArrayElements(j_image_data, NULL);
 
   int result = 0;
-  string output_structure;
+  stringstream output_structure_stream;
 
   if (image_data != NULL)
     {
-      result = main(argc, argv, image_data, j_env->GetArrayLength(j_image_data), output_structure);
+      result = main(argc, argv, image_data, j_env->GetArrayLength(j_image_data), output_structure_stream);
 
       j_env->ReleaseByteArrayElements(j_image_data, (jbyte *) image_data, JNI_ABORT);
     }
@@ -74,58 +76,46 @@ JNIEXPORT jstring JNICALL Java_cadd_osra_main_runosra_nativeosra(JNIEnv *j_env, 
   if (result != 0)
     return j_env->NewStringUTF("");
 
-  return j_env->NewStringUTF(output_structure.c_str());
+  return j_env->NewStringUTF(output_structure_stream.str().c_str());
 }
 #endif
 
 #ifdef OSRA_JAVA
-
-int osra_process_image(
-                       const char *image_data,
-                       int image_length,
-                       string &output_structure,
-                       int rotate = 0,
-                       bool invert = false,
-                       int input_resolution = 0,
-                       double threshold = 0,
-                       int do_unpaper = 0,
-                       bool jaggy = false,
-                       string output_format = "smi",
-                       bool show_confidence = false,
-                       bool show_resolution_guess = false,
-                       bool show_page = false,
-                       bool show_coordinates = false,
-                       bool show_avg_bond_length = false,
-                       string osra_dir = "",
-                       string spelling_file = "",
-                       string superatom_file = "",
-                       bool debug = false,
-                       bool verbose = false,
-                       string output_image_file_prefix = "",
-                       string resize = ""
-);
+#include "osra_lib.h"
 
 extern "C" {
-  JNIEXPORT jstring JNICALL Java_net_sourceforge_osra_OsraLib_processImage(JNIEnv *, jobject, jbyteArray, jstring, jboolean, jboolean, jboolean);
+  /*
+   * Class:     net_sourceforge_osra_OsraLib
+   * Method:    processImage
+   * Signature: ([BLjava/io/Writer;Ljava/lang/String;ZZZ)I
+   */
+  JNIEXPORT jint JNICALL Java_net_sourceforge_osra_OsraLib_processImage(JNIEnv *, jobject, jbyteArray, jobject, jstring, jboolean, jboolean, jboolean);
+
+  /*
+   * Class:     net_sourceforge_osra_OsraLib
+   * Method:    getVersion
+   * Signature: ()Ljava/lang/String;
+   */
   JNIEXPORT jstring JNICALL Java_net_sourceforge_osra_OsraLib_getVersion(JNIEnv *, jobject);
 }
 
-JNIEXPORT jstring JNICALL Java_net_sourceforge_osra_OsraLib_processImage(JNIEnv *j_env, jobject j_this, jbyteArray j_image_data, jstring j_format,
+JNIEXPORT jint JNICALL Java_net_sourceforge_osra_OsraLib_processImage(JNIEnv *j_env, jobject j_this, jbyteArray j_image_data, jobject j_writer, jstring j_format,
                                                                          jboolean j_output_confidence, jboolean j_output_coordinates,
                                                                          jboolean j_output_avg_bond_length)
 {
   const char *format = j_env->GetStringUTFChars(j_format, NULL);
   const char *image_data = (char *) j_env->GetByteArrayElements(j_image_data, NULL);
 
-  int result = 0;
-  string output_structure;
+  int result = -1;
 
   if (image_data != NULL)
     {
+      stringstream output_structure_stream;
+
       result = osra_process_image(
                                   image_data,
                                   j_env->GetArrayLength(j_image_data),
-                                  output_structure,
+                                  output_structure_stream,
                                   0,
                                   false,
                                   0,
@@ -135,20 +125,33 @@ JNIEXPORT jstring JNICALL Java_net_sourceforge_osra_OsraLib_processImage(JNIEnv 
                                   string(format),
                                   j_output_confidence,
                                   false,
-                                  false,
+                                  true,
                                   j_output_coordinates,
                                   j_output_avg_bond_length
       );
 
       j_env->ReleaseByteArrayElements(j_image_data, (jbyte *) image_data, JNI_ABORT);
+
+      // Locate java.io.Writer#write(char[]) method:
+      jclass j_writer_class = j_env->FindClass("java/io/Writer");
+      jmethodID write_method_id = j_env->GetMethodID(j_writer_class, "write", "([C)V");
+
+      // Create a char[] that holds the string characters:
+      jsize len = output_structure_stream.str().length();
+      jcharArray j_char_arr = j_env->NewCharArray(len);
+      j_env->SetCharArrayRegion(j_char_arr, 0, len, (jchar *) output_structure_stream.str().c_str());
+
+      j_env->CallVoidMethod(j_writer, write_method_id, j_char_arr);
+
+      j_env->DeleteLocalRef(j_writer_class);
+      j_env->DeleteLocalRef(j_char_arr);
+
+      jstring output_structure = j_env->NewStringUTF(output_structure_stream.str().c_str());
     }
 
   j_env->ReleaseStringUTFChars(j_format, format);
 
-  if (result != 0)
-    return j_env->NewStringUTF("");
-
-  return j_env->NewStringUTF(output_structure.c_str());
+  return result;
 }
 
 JNIEXPORT jstring JNICALL Java_net_sourceforge_osra_OsraLib_getVersion(JNIEnv *j_env, jobject j_this)

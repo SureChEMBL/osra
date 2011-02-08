@@ -25,7 +25,7 @@
 #include <ctype.h> // isalnum()
 #include <string.h> // strlen()
 
-#include <string>
+#include <string> // std::string
 
 #include <tesseract/baseapi.h>
 
@@ -39,12 +39,12 @@ void osra_tesseract_init()
   tess.Init(NULL, "eng", NULL, 0, false);
 }
 
-void osra_tesseract_release()
+void osra_tesseract_destroy()
 {
   tess.End();
 }
 
-char osra_tesseract_ocr(unsigned char *pixmap, int x1, int y1, int x2, int y2, string &char_filter)
+char osra_tesseract_ocr(unsigned char *pixmap, int x1, int y1, int x2, int y2, const string &char_filter)
 {
   char result = 0;
 

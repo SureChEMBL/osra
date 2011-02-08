@@ -20,19 +20,17 @@
  St, Fifth Floor, Boston, MA 02110-1301, USA
  *****************************************************************************/
 
-#include <stdio.h>
-#include <string.h>
-#include <errno.h>
-#include <stdlib.h>
-#include <math.h>
-#include <float.h>
+#include <stdio.h> // fclose
+#include <stdlib.h> // malloc(), free()
+#include <math.h> // fabs(double)
+#include <float.h> // FLT_MAX
+#include <limits.h> // INT_MAX
 
-#include <list>
-#include <vector>
-#include <algorithm>
-#include <cstdio>
-#include <iostream>
-#include <fstream>
+#include <list> // sdt::list
+#include <vector> // std::vector
+#include <algorithm> // std::sort, std::min(double, double), std::max(double, double)
+#include <iostream> // std::ostream, std::cout
+#include <fstream> // std::ofstream
 #include <sstream> // std:stringstream
 
 //#include <omp.h>
@@ -44,8 +42,14 @@ extern "C" {
 #include <pgm2asc.h>
 }
 
+#include "unpaper.h"
+
 #include "osra.h"
-#include "config.h"
+#include "osra_ocr.h"
+#include "osra_openbabel.h"
+#include "osra_anisotropic.h"
+#include "osra_lib.h"
+#include "config.h" // DATA_DIR
 
 using namespace std;
 using namespace Magick;
@@ -64,6 +68,96 @@ using namespace Magick;
 #define BM_UCLR(bm, x, y) (*bm_index(bm, x, y) &= ~bm_mask(x))
 #define BM_UPUT(bm, x, y, b) ((b) ? BM_USET(bm, x, y) : BM_UCLR(bm, x, y))
 #define BM_PUT(bm, x, y, b) (bm_safe(bm, x, y) ? BM_UPUT(bm, x, y, b) : 0)
+
+// struct: letters_s
+// character found as part of atomic label
+struct letters_s
+{
+  // double: x,y,r
+  // coordinates of the center and radius of the circumscribing circle
+  double x, y, r;
+  // char: a
+  // character
+  char a;
+  // bool: free
+  // whether or not it was already assign to an existing atomic label
+  bool free;
+};
+// typedef: letters_t
+// defines letters_t type based on letters_s struct
+typedef struct letters_s letters_t;
+
+// struct: label_s
+// atomic label
+struct label_s
+{
+  // doubles: x1,y1, x2, y2, r1, r2
+  // central coordinates and circumradii for the first and last characters
+  double x1, y1, r1, x2, y2, r2;
+  // string: a
+  // atomic label string
+  string a;
+  // array: n
+  // vector of character indices comprising the atomic label
+  vector<int> n;
+};
+// typedef: label_t
+// defines label_t type based on label_s struct
+typedef struct label_s label_t;
+
+//struct: lbond_s
+//pairs of characters used for constucting atomic labels in <osra.cpp::assemble_labels()>
+struct lbond_s
+{
+  //int: a,b
+  // indices of first and second character in a pair
+  int a, b;
+  //double: x
+  // x-coordinate of the first character
+  double x;
+  //bool: exists
+  //pair of characters is available
+  bool exists;
+};
+//typedef: lbond_t
+//defines lbond_t type based on lbond_s struct
+typedef struct lbond_s lbond_t;
+
+//struct: dash_s
+// used to identify dashed bonds in <osra.cpp::find_dashed_bonds()> and small bonds in <osra.cpp::find_small_bonds()>
+struct dash_s
+{
+  //double: x,y
+  //coordinates
+  double x, y;
+  //bool: free
+  // is this dash available for a perspective dashed bond?
+  bool free;
+  //pointer: curve
+  // pointer to the curve found by Potrace
+  const potrace_path_t *curve;
+  //int: area
+  // area occupied by the dash
+  int area;
+};
+//typedef: dash_t
+//defines dash_t type based on dash_s struct
+typedef struct dash_s dash_t;
+
+//struct: fragment_s
+// used by <osra.cpp::populate_fragments()> to split chemical structure into unconnected molecules.
+struct fragment_s
+{
+  //int: x1,y1,x2,y2
+  //top left and bottom right coordinates of the fragment
+  int x1, y1, x2, y2;
+  //array: atom
+  //vector of atom indices for atoms in a molecules
+  vector<int> atom;
+};
+//typedef: fragment_t
+//defines fragment_t type based on fragment_s struct
+typedef struct fragment_s fragment_t;
 
 /* return new un-initialized bitmap. NULL with errno on error */
 static potrace_bitmap_t *bm_new(int w, int h)
@@ -5011,7 +5105,8 @@ void find_limits_on_avg_bond(double &min_bond, double &max_bond, const vector<ve
 extern job_t *OCR_JOB;
 extern job_t *JOB;
 
-void osra_init()
+// See this section for details about library init/cleanup: http://www.faqs.org/docs/Linux-HOWTO/Program-Library-HOWTO.html#INIT-AND-CLEANUP
+void __attribute__ ((constructor)) osra_init()
 {
   // Necessary for GraphicsMagick-1.3.8 according to http://www.graphicsmagick.org/1.3/NEWS.html#january-21-2010:
   InitializeMagick(NULL);
@@ -5021,21 +5116,21 @@ void osra_init()
   srand(1);
 }
 
-void osra_release()
+void __attribute__ ((destructor)) osra_destroy()
 {
   MagickLib::DestroyMagick();
 
-  osra_ocr_release();
+  osra_ocr_destroy();
 }
 
 int osra_process_image(
 #ifdef OSRA_LIB
                        const char *image_data,
                        int image_length,
-                       string &output_structure,
+                       ostream &output_structure_stream,
 #else
-                       string input_file,
-                       string output_file,
+                       const string &input_file,
+                       const string &output_file,
 #endif
                        int rotate,
                        bool invert,
@@ -5043,19 +5138,19 @@ int osra_process_image(
                        double threshold,
                        int do_unpaper,
                        bool jaggy,
-                       string output_format,
+                       const string &output_format,
                        bool show_confidence,
                        bool show_resolution_guess,
                        bool show_page,
                        bool show_coordinates,
                        bool show_avg_bond_length,
-                       string osra_dir,
-                       string spelling_file,
-                       string superatom_file,
+                       const string &osra_dir,
+                       const string &spelling_file,
+                       const string &superatom_file,
                        bool debug,
                        bool verbose,
-                       string output_image_file_prefix,
-                       string resize
+                       const string &output_image_file_prefix,
+                       const string &resize
 )
 {
   // Loading the program data files into maps:
@@ -5738,7 +5833,7 @@ int osra_process_image(
 
 #ifdef OSRA_LIB
   double max_conf = -FLT_MAX;
-  //stringstream out_stream;
+  ostream &out_stream = output_structure_stream;
 #else
   ostream &out_stream = outfile.is_open() ? outfile : cout;
 #endif
@@ -5754,7 +5849,7 @@ int osra_process_image(
             {
               max_conf = pages_of_ind_conf[l][i];
               // Copy the structure to "output_structure":
-              output_structure = pages_of_structures[l][i];
+              out_stream << pages_of_structures[l][i];
             }
 #else
           out_stream << pages_of_structures[l][i];
@@ -5777,10 +5872,10 @@ int osra_process_image(
             }
         }
 
-#ifdef OSRA_LIB
-  //output_structure = out_stream.str();
-#else
-  if (outfile.is_open())
+  out_stream.flush();
+
+#ifndef OSRA_LIB
+  if (output_file.empty())
     outfile.close();
 #endif
 

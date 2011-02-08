@@ -23,45 +23,15 @@
 #include <string.h> // strncpy()
 #include <libgen.h> // dirname()
 
-#include <string>
+#include <string> // std::string
+#include <ostream> // std:ostream
 
 #include <tclap/CmdLine.h>
 
-#include "config.h"
+#include "osra_lib.h"
+#include "config.h" // PACKAGE_VERSION
 
 using namespace std;
-
-int osra_process_image(
-#ifdef OSRA_LIB
-                       const char *image_data,
-                       int image_length,
-                       string &output_structure,
-#else
-                       string input_file,
-                       string output_file,
-#endif
-                       int rotate = 0,
-                       bool invert = false,
-                       int input_resolution = 0,
-                       double threshold = 0,
-                       int do_unpaper = 0,
-                       bool jaggy = false,
-                       string output_format = "smi",
-                       bool show_confidence = false,
-                       bool show_resolution_guess = false,
-                       bool show_page = false,
-                       bool show_coordinates = false,
-                       bool show_avg_bond_length = false,
-                       string osra_dir = "",
-                       string spelling_file = "",
-                       string superatom_file = "",
-                       bool debug = false,
-                       bool verbose = false,
-                       string output_image_file_prefix = "",
-                       string resize = ""
-);
-void osra_init();
-void osra_release();
 
 int main(int argc,
          char **argv
@@ -69,7 +39,7 @@ int main(int argc,
          ,
          const char *image_data,
          int image_length,
-         string &output_structure
+         ostream &output_structure_stream
 #endif
 )
 {
@@ -147,7 +117,7 @@ int main(int argc,
   //
   // Input-output options
   //
-#ifndef OSRA_LIB
+#ifndef ANDROID
   TCLAP::UnlabeledValueArg<string> input_file_option("in", "input file", true, "", "filename");
   cmd.add(input_file_option);
 
@@ -157,7 +127,9 @@ int main(int argc,
 
   cmd.parse(argc, argv);
 
+#ifndef ANDROID
   osra_init();
+#endif
 
   // Calculating the current dir:
   char progname[1024];
@@ -166,10 +138,10 @@ int main(int argc,
   string osra_dir = dirname(progname);
 
   int result = osra_process_image(
-#ifdef OSRA_LIB
+#ifdef ANDROID
                             image_data,
                             image_length,
-                            output_structure,
+                            output_structure_stream,
 #else
                             input_file_option.getValue(),
                             output_file_option.getValue(),
@@ -195,7 +167,9 @@ int main(int argc,
                             resize_option.getValue()
   );
 
-  osra_release();
+#ifndef ANDROID
+  osra_destroy();
+#endif
 
   return result;
 }

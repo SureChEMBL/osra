@@ -27,7 +27,7 @@
 #include <openbabel/builder.h>
 #include <openbabel/alias.h>
 
-
+#include "osra_openbabel.h"
 #include "osra.h"
 #include "mcdlutil.h"
 
@@ -42,10 +42,10 @@ int abbreviation_to_mol(OBMol &mol, int &n, int &bondn, const string &smiles_sup
 
   conv.SetInFormat("SMI");
   conv.ReadString(&mol1, smiles_superatom);
+
   a1 = mol1.GetFirstAtom();
+
   unsigned int anum = a1->GetAtomicNum();
-
-
   int firstatom = a1->GetIdx();
   int prevatms = mol.NumAtoms();
   int numatms = mol1.NumAtoms();

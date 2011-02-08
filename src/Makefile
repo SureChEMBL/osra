@@ -30,7 +30,7 @@ all:
 	$(MAKE) clean_obj osra
 	$(MAKE) clean_obj libosra.so
 ifdef OSRA_JAVA
-	$(MAKE) clean_obj libosra_java.so
+	$(MAKE) libosra_java.so
 endif
 
 osra: $(OBJ_CLI)
@@ -38,13 +38,13 @@ osra: $(OBJ_CLI)
 
 libosra.so: CXXFLAGS += -fPIC -DOSRA_LIB
 libosra.so: $(OBJ_LIB)
-	$(LD) $(LDFLAGS) -fPIC -shared -o $@ $(OBJ_LIB) $(LIBS)
-	mv $@ $@.$(LIB_API_VERSION)
+	$(LD) $(LDFLAGS) -fPIC -shared -Wl,-soname,$@ -o $@.$(LIB_API_VERSION) $(OBJ_LIB) $(LIBS)
 
+ifdef OSRA_JAVA
 libosra_java.so: CXXFLAGS += -fPIC -DOSRA_LIB -DOSRA_JAVA
 libosra_java.so: $(OBJ_JAVA)
-	$(LD) $(LDFLAGS) -fPIC -shared -o $@ $(OBJ_LIB) $(LIBS)
-	mv $@ $@.$(LIB_API_VERSION)
+	$(LD) $(LDFLAGS) -fPIC -shared -Wl,-soname,$@ -o $@.$(LIB_API_VERSION) $(OBJ_JAVA) $(LIBS)
+endif
 
 Makefile.dep: $(patsubst %.o,%.cpp,$(OBJ))
 	$(CXX) $(CPPFLAGS) -MM $? > Makefile.dep 
