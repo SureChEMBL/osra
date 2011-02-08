@@ -25,7 +25,6 @@
 
 #include <vector> // std:vector
 #include <iostream> // std::cout
-#include <string> // std::string
 #include <sstream> // std:stringstream
 
 #include "config.h"
@@ -337,7 +336,7 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
 
     if (verbose)
       {
-        cout << "Box to OCR: " << x1 << "x" << y1 << "-" << x2 << "x" << y2 << " w/h:" << x2 - x1 << "/" << y2 - y1 << endl;
+        cout << "Box to OCR: " << x1 << "x" << y1 << "-" << x2 << "x" << y2 << " w/h: " << x2 - x1 << "x" << y2 - y1 << endl;
         for (int i = 0; i < height; i++)
           {
             for (int j = 0; j < width; j++)

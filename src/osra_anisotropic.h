@@ -25,6 +25,8 @@
 // Defines types and functions for anisotropic smoothing module.
 //
 
+#include <Magick++.h> // Magick::Image
+
 //
 // Section: Functions
 //

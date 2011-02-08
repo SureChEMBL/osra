@@ -23,15 +23,10 @@
 #include <string.h> // strncpy()
 #include <libgen.h> // dirname()
 
-#include <string> // std::string
-#include <ostream> // std:ostream
-
 #include <tclap/CmdLine.h>
 
 #include "osra_lib.h"
 #include "config.h" // PACKAGE_VERSION
-
-using namespace std;
 
 int main(int argc,
          char **argv

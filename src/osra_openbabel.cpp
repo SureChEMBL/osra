@@ -20,8 +20,6 @@
  St, Fifth Floor, Boston, MA 02110-1301, USA
  *****************************************************************************/
 
-#include <map>
-
 #include <openbabel/mol.h>
 #include <openbabel/obconversion.h>
 #include <openbabel/builder.h>
@@ -163,18 +161,16 @@ int get_atomic_num(const string &s, OBMol &mol, int &n, int &bondn, const map<st
 // Calculates confidence estimate based on molecular counts provided by <create_molecule()>
 //
 // Parameters:
-//
-// C_Count, N_Count, O_Count, F_Count, S_Count, Cl_Count, Br_Count - number of carbon, nitrogen, oxygen, fluorine, sulfur, chlorine, and bromine atoms
-// R_Count - number of recognized Markush atomic labels, such as R1, R2....
-// Xx_Count - number of unrecognized atomic labels from <osra.cpp::remove_small_terminal_bonds()>
-// num_rings - number of rings
-// num_aromatic - number of aromatic rings
-// num_fragments - number of fragments
-// Num_Rings - vector of counts for number of 3,4,5,6,7-member rings
+//      C_Count, N_Count, O_Count, F_Count, S_Count, Cl_Count, Br_Count - number of carbon, nitrogen, oxygen, fluorine, sulfur, chlorine, and bromine atoms
+//      R_Count - number of recognized Markush atomic labels, such as R1, R2....
+//      Xx_Count - number of unrecognized atomic labels from <osra.cpp::remove_small_terminal_bonds()>
+//      num_rings - number of rings
+//      num_aromatic - number of aromatic rings
+//      num_fragments - number of fragments
+//      Num_Rings - vector of counts for number of 3,4,5,6,7-member rings
 //
 // Returns:
-//
-// confidence estimate
+//      confidence estimate
 double confidence_function(int C_Count, int N_Count, int O_Count, int F_Count, int S_Count, int Cl_Count, int Br_Count,
                            int R_Count, int Xx_Count, int num_rings, int num_aromatic, int num_fragments, const vector<int> &Num_Rings)
 {
@@ -197,25 +193,23 @@ double confidence_function(int C_Count, int N_Count, int O_Count, int F_Count, i
   return (confidence);
 }
 
-//  Function: create_molecule()
+// Function: create_molecule()
 //
-//  Converts vectors of atoms and bonds into a molecular object and calculates the molecule statistics.
-//  Note: this function changes the atoms!
+// Converts vectors of atoms and bonds into a molecular object and calculates the molecule statistics.
+// Note: this function changes the atoms!
 //
-//  Parameters:
+// Parameters:
+//      atom - vector of <atom_s> atoms
+//      bond - vector of <bond_s> bonds
+//      n_bond - total number of bonds
+//      avg_bond_length - average bond length as measured from the image (to be included into output if provided)
+//      molecule_statistics - the molecule statistics (returned to the caller)
+//      generate_2D_coordinates - generate 2D coordinates for chemical groups
+//      confidence - confidence score (returned to the caller if provided)
+//      superatom - dictionary of superatom labels mapped to SMILES
 //
-//   atom - vector of <atom_s> atoms
-//   bond - vector of <bond_s> bonds
-//   n_bond - total number of bonds
-//   avg_bond_length - average bond length as measured from the image (to be included into output if provided)
-//   molecule_statistics - the molecule statistics (returned to the caller)
-//   generate_2D_coordinates - generate 2D coordinates for chemical groups
-//   confidence - confidence score (returned to the caller if provided)
-//   superatom - dictionary of superatom labels mapped to SMILES
-//
-//  Returns:
-//
-//   calculated molecule statistics
+// Returns:
+//      calculated molecule statistics
 void create_molecule(OBMol &mol, vector<atom_t> &atom, const vector<bond_t> &bond, int n_bond, double avg_bond_length, molecule_statistics_t &molecule_statistics,
                      bool generate_2D_coordinates, double * const confidence, const map<string, string> &superatom)
 {
