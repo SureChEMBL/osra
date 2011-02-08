@@ -33,8 +33,6 @@
 #include <fstream> // std::ofstream
 #include <sstream> // std:stringstream
 
-//#include <omp.h>
-
 #include <Magick++.h>
 
 extern "C" {
@@ -42,13 +40,12 @@ extern "C" {
 #include <pgm2asc.h>
 }
 
-#include "unpaper.h"
-
 #include "osra.h"
+#include "osra_lib.h"
 #include "osra_ocr.h"
 #include "osra_openbabel.h"
 #include "osra_anisotropic.h"
-#include "osra_lib.h"
+#include "unpaper.h"
 #include "config.h" // DATA_DIR
 
 using namespace std;
@@ -4725,7 +4722,7 @@ list<list<list<point_t> > > find_segments(const Image &image, double threshold, 
   find_connected_components(image, threshold, bgColor, segments, margins);
 
   if (verbose)
-    cout << "Number of segments is " << segments.size() << '.' << endl;
+    cout << "Number of segments: " << segments.size() << '.' << endl;
 
   if (segments.size() > MAX_SEGMENTS)
     {
@@ -5211,7 +5208,7 @@ int osra_process_image(
     }
 
   if (verbose)
-    cout << "Image type is " << type << '.' << endl;
+    cout << "Image type: " << type << '.' << endl;
 
 #ifndef OSRA_LIB
   ofstream outfile;
@@ -5386,14 +5383,14 @@ int osra_process_image(
       list<list<list<point_t> > > clusters = find_segments(image, 0.1, bgColor,verbose);
 
       if (verbose)
-        cout << "Number of clusters is " << clusters.size() << '.' << endl;
+        cout << "Number of clusters: " << clusters.size() << '.' << endl;
 
       vector<box_t> boxes;
       int n_boxes = prune_clusters(clusters, boxes);
       std::sort(boxes.begin(), boxes.end(), comp_boxes);
 
       if (verbose)
-        cout << "Number of boxes is " << boxes.size() << '.' << endl;
+        cout << "Number of boxes: " << boxes.size() << '.' << endl;
 
       // This will hide the output "Warning: non-positive median line gap" from GOCR. Remove after this is fixed:
       fclose(stderr);
@@ -5591,6 +5588,9 @@ int osra_process_image(
                 n_letters = find_chars(p, orig_box, letters, atom, bond, n_atom, n_bond, height, width, bgColor,
                                        THRESHOLD_CHAR, max_font_width, max_font_height, real_font_width, real_font_height,verbose);
 
+                if (verbose)
+                  cout << "Number of atoms: " << n_atom << ", bonds: " << n_bond << ", chars: " << n_letters << " after find_atoms()" << endl;
+
                 double avg_bond_length = percentile75(bond, n_bond, atom);
 
                 double max_area = avg_bond_length * 5;
@@ -5601,6 +5601,9 @@ int osra_process_image(
                                             real_font_height, real_font_width, n_letters);
 
                 n_atom = find_small_bonds(p, atom, bond, n_atom, &n_bond, max_area, avg_bond_length / 2, 5);
+
+                if (verbose)
+                  cout << "Number of atoms: " << n_atom << ", bonds: " << n_bond << ", chars: " << n_letters << " after find_small_bonds()" << endl;
 
                 find_old_aromatic_bonds(p, bond, n_bond, atom, n_atom, avg_bond_length);
 
@@ -5623,6 +5626,9 @@ int osra_process_image(
                 flatten_bonds(bond, n_bond, atom, 3);
                 remove_zero_bonds(bond, n_bond, atom);
                 avg_bond_length = percentile75(bond, n_bond, atom);
+
+                if (verbose)
+                  cout << "Average bond length: " << avg_bond_length << endl;
 
                 double max_dist_double_bond = dist_double_bonds(atom, bond, n_bond, avg_bond_length);
                 n_bond = double_triple_bonds(atom, bond, n_bond, avg_bond_length, n_atom, max_dist_double_bond);
@@ -5691,6 +5697,9 @@ int osra_process_image(
                 find_up_down_bonds(bond, n_bond, atom, thickness);
                 int real_atoms = count_atoms(atom, n_atom);
                 int real_bonds = count_bonds(bond, n_bond);
+
+                if (verbose)
+                  cout << "Final number of atoms: " << real_atoms << ", bonds: " << real_bonds << ", chars: " << n_letters << endl;
 
                 if (real_atoms > MIN_A_COUNT && real_atoms < MAX_A_COUNT && real_bonds < MAX_A_COUNT)
                   {
