@@ -21,7 +21,10 @@ OBJ_CLI		:= $(OBJ_LIB) osra_cli.o
 
 ifdef OSRA_JAVA
 OBJ_JAVA	:= $(OBJ_LIB) osra_java.o
-ALL			+= libosra_java.so clean_obj
+endif
+
+ifdef OSRA_ANDROID
+OBJ_ANDROID	:= $(OBJ_LIB) osra_cli.o
 endif
 
 #all: $(ALL)
@@ -32,6 +35,10 @@ all:
 ifdef OSRA_JAVA
 	$(MAKE) libosra_java.so
 endif
+ifdef OSRA_ANDROID
+	$(MAKE) clean_obj libosra_andriod.so
+endif
+	$(MAKE) clean_obj
 
 osra: $(OBJ_CLI)
 	$(LD) $(LDFLAGS) -o $@ $(OBJ_CLI) $(LIBS)
@@ -46,12 +53,20 @@ libosra_java.so: $(OBJ_JAVA)
 	$(LD) $(LDFLAGS) -fPIC -shared -Wl,-soname,$@ -o $@.$(LIB_API_VERSION) $(OBJ_JAVA) $(LIBS)
 endif
 
+ifdef OSRA_ANDROID
+libosra_andriod.so: CXXFLAGS += -fPIC -DOSRA_LIB -DOSRA_ANDROID
+libosra_andriod.so: $(OBJ_ANDROID)
+	$(LD) $(LDFLAGS) -fPIC -shared -Wl,-soname,$@ -o $@.$(LIB_API_VERSION) $(OBJ_ANDROID) $(LIBS)
+endif
+
 Makefile.dep: $(patsubst %.o,%.cpp,$(OBJ))
 	$(CXX) $(CPPFLAGS) -MM $? > Makefile.dep 
 
-install: osra
-	$(INSTALL_DIR) $(DESTDIR)$(bindir)
+install: osra libosra.so
+	$(INSTALL_DIR) $(DESTDIR)$(bindir) $(DESTDIR)$(libdir)
 	$(INSTALL_PROGRAM) osra $(DESTDIR)$(bindir)
+	$(INSTALL_PROGRAM) libosra.so.$(LIB_API_VERSION) $(DESTDIR)$(libdir)
+	$(INSTALL_DATA) osra_lib.h $(DESTDIR)$(includedir)
 
 uninstall:
 	$(RM) -f $(DESTDIR)$(bindir)/osra
