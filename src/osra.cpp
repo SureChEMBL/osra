@@ -5102,7 +5102,11 @@ void find_limits_on_avg_bond(double &min_bond, double &max_bond, const vector<ve
 extern job_t *OCR_JOB;
 extern job_t *JOB;
 
+// Function: osra_init()
+//
+// Initialises OSRA library. Should be called at e.g. program startup. This function is automatically called for both SO library and CLI utility.
 // See this section for details about library init/cleanup: http://www.faqs.org/docs/Linux-HOWTO/Program-Library-HOWTO.html#INIT-AND-CLEANUP
+// Below attribute marker is GNU compiler specific.
 void __attribute__ ((constructor)) osra_init()
 {
   // Necessary for GraphicsMagick-1.3.8 according to http://www.graphicsmagick.org/1.3/NEWS.html#january-21-2010:
@@ -5113,6 +5117,11 @@ void __attribute__ ((constructor)) osra_init()
   srand(1);
 }
 
+// Function: osra_destroy()
+//
+// Releases all resources allocated by OSRA library. Should be called at e.g. program exit. This function is automatically called for both SO library and CLI utility.
+// See this section for details about library init/cleanup: http://www.faqs.org/docs/Linux-HOWTO/Program-Library-HOWTO.html#INIT-AND-CLEANUP
+// Below attribute marker is GNU compiler specific.
 void __attribute__ ((destructor)) osra_destroy()
 {
   MagickLib::DestroyMagick();
@@ -5759,7 +5768,7 @@ int osra_process_image(
                                                     show_coordinates ? &coordinate_box : NULL, superatom);
 
                           if (verbose)
-                            cout << "Structure length " << structure.length() << ", fragments: " << molecule_statistics.fragments << '.' << endl;
+                            cout << "Structure length: " << structure.length() << ", fragments: " << molecule_statistics.fragments << '.' << endl;
 
                           if (molecule_statistics.fragments > 0 && molecule_statistics.fragments < MAX_FRAGMENTS && !structure.empty())
                             {
@@ -5841,10 +5850,17 @@ int osra_process_image(
   //cout << min_bond << " " << max_bond << endl;
 
 #ifdef OSRA_LIB
-  double max_conf = -FLT_MAX;
   ostream &out_stream = output_structure_stream;
 #else
   ostream &out_stream = outfile.is_open() ? outfile : cout;
+#endif
+
+#ifdef OSRA_ANDROID
+  // For Andriod version we will find the structure with maximum confidence value, as the common usecase for Andriod is to analyse the
+  // image (taken by embedded photo camera) that usually contains just one molecule:
+  double max_confidence = -FLT_MAX;
+  int l_index = 0;
+  int i_index = 0;
 #endif
 
   int image_count = 0;
@@ -5853,12 +5869,12 @@ int osra_process_image(
     for (unsigned int i = 0; i < pages_of_structures[l].size(); i++)
       if (pages_of_avg_bonds[l][i] > min_bond && pages_of_avg_bonds[l][i] < max_bond)
         {
-#ifdef OSRA_LIB
-          if (pages_of_ind_conf[l][i] > max_conf)
+#ifdef OSRA_ANDROID
+          if (pages_of_ind_conf[l][i] > max_confidence)
             {
-              max_conf = pages_of_ind_conf[l][i];
-              // Copy the structure to "output_structure":
-              out_stream << pages_of_structures[l][i];
+              max_confidence = pages_of_ind_conf[l][i];
+              l_index = l;
+              i_index = i;
             }
 #else
           out_stream << pages_of_structures[l][i];
@@ -5881,10 +5897,15 @@ int osra_process_image(
             }
         }
 
+#ifdef OSRA_ANDROID
+  // Output the structure with maximum confidence value:
+  out_stream << pages_of_structures[l_index][i_index];
+#endif
+
   out_stream.flush();
 
 #ifndef OSRA_LIB
-  if (output_file.empty())
+  if (!output_file.empty())
     outfile.close();
 #endif
 
