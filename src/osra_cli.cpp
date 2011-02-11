@@ -30,7 +30,7 @@
 
 int main(int argc,
          char **argv
-#ifdef ANDROID
+#ifdef OSRA_ANDROID
          ,
          const char *image_data,
          int image_length,
@@ -112,7 +112,7 @@ int main(int argc,
   //
   // Input-output options
   //
-#ifndef ANDROID
+#ifndef OSRA_ANDROID
   TCLAP::UnlabeledValueArg<string> input_file_option("in", "input file", true, "", "filename");
   cmd.add(input_file_option);
 
@@ -122,10 +122,6 @@ int main(int argc,
 
   cmd.parse(argc, argv);
 
-#ifndef ANDROID
-  osra_init();
-#endif
-
   // Calculating the current dir:
   char progname[1024];
   strncpy(progname, cmd.getProgramName().c_str(), sizeof(progname) - 1);
@@ -133,7 +129,7 @@ int main(int argc,
   string osra_dir = dirname(progname);
 
   int result = osra_process_image(
-#ifdef ANDROID
+#ifdef OSRA_ANDROID
                             image_data,
                             image_length,
                             output_structure_stream,
@@ -161,10 +157,6 @@ int main(int argc,
                             output_image_file_prefix_option.getValue(),
                             resize_option.getValue()
   );
-
-#ifndef ANDROID
-  osra_destroy();
-#endif
 
   return result;
 }

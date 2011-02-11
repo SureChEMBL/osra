@@ -34,20 +34,6 @@ using namespace std;
 // Section: Functions
 //
 
-// Function: osra_init()
-//
-// Initialises OSRA library. Should be called at e.g. program startup if this OSRA library is statically linked by main module.
-// If OSRA library is dynamically loaded, this function is called automatically, so one don't need to call it.
-//
-void osra_init();
-
-// Function: osra_destroy()
-//
-// Releases all resources allocated by OSRA library. Should be called at e.g. program exit if this OSRA library is statically linked by main module.
-// If OSRA library is dynamically loaded, this function is called automatically, so one don't need to call it.
-//
-void osra_destroy();
-
 // Function: osra_process_image()
 //
 // Parameters:
