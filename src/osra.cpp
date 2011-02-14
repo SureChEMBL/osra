@@ -31,7 +31,7 @@
 #include <algorithm> // std::sort, std::min(double, double), std::max(double, double)
 #include <iostream> // std::ostream, std::cout
 #include <fstream> // std::ofstream
-#include <sstream> // std:stringstream
+#include <sstream> // std:ostringstream
 
 #include <Magick++.h>
 
@@ -5264,7 +5264,7 @@ int osra_process_image(
       if (verbose)
         cout << "Processing page " << (l+1) << " out of " << page << "..." << endl;
 
-      stringstream density;
+      ostringstream density;
       density << input_resolution << "x" << input_resolution;
       image.density(density.str());
 
@@ -5274,7 +5274,7 @@ int osra_process_image(
 #ifdef OSRA_LIB
       image.read(blob);
 #else
-      stringstream pname;
+      ostringstream pname;
       pname << input_file << "[" << l << "]";
       image.read(pname.str());
 #endif
@@ -5357,7 +5357,7 @@ int osra_process_image(
       if (input_resolution > 300)
         {
           int percent = (100 * 300) / input_resolution;
-          stringstream scale;
+          ostringstream scale;
           scale << percent << "%";
           image.scale(scale.str());
           page_scale /= (double) percent / 100;
@@ -5491,7 +5491,7 @@ int osra_process_image(
                             int new_resolution = max_hist * 300 / 4;
                             int percent = (100 * 300) / new_resolution;
                             resolution = max_hist * select_resolution[res_iter] / 4;
-                            stringstream scale;
+                            ostringstream scale;
                             scale << percent << "%";
                             orig_box.scale(scale.str());
                             box_scale /= (double) percent/100;
@@ -5506,7 +5506,7 @@ int osra_process_image(
                           {
                             resolution = 500;
                             int percent = (100 * 300) / resolution;
-                            stringstream scale;
+                            ostringstream scale;
                             scale << percent << "%";
                             orig_box.scale(scale.str());
                             box_scale /= (double) percent/100;
@@ -5559,7 +5559,7 @@ int osra_process_image(
                     width = thick_box.columns();
                     height = thick_box.rows();
                     int percent = (100 * 300) / resolution;
-                    stringstream scale;
+                    ostringstream scale;
                     scale << percent << "%";
                     orig_box.scale(scale.str());
                     box_scale /= (double) percent/100;
@@ -5882,7 +5882,7 @@ int osra_process_image(
           // Dump this structure into a separate file:
           if (!output_image_file_prefix.empty())
             {
-              stringstream fname;
+              ostringstream fname;
               fname << output_image_file_prefix << image_count << ".png";
               image_count++;
               if (fname.str() != "")

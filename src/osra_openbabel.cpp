@@ -25,6 +25,8 @@
 #include <openbabel/builder.h>
 #include <openbabel/alias.h>
 
+#include <sstream> // std:ostringstream
+
 #include "osra_openbabel.h"
 #include "osra.h"
 #include "mcdlutil.h"
@@ -482,7 +484,7 @@ const string get_formatted_structure(vector<atom_t> &atom, const vector<bond_t> 
                                      const int * const page, const box_t * const surrounding_box,
                                      const map<string, string> &superatom)
 {
-  stringstream strstr;
+  ostringstream strstr;
   #pragma omp critical
   {
     OBMol mol;
@@ -515,7 +517,7 @@ const string get_formatted_structure(vector<atom_t> &atom, const vector<bond_t> 
       {
         OBPairData *label = new OBPairData;
         label->SetAttribute("Confidence_estimate");
-        stringstream cs;
+        ostringstream cs;
         cs << confidence;
         label->SetValue(cs.str());
         mol.SetData(label);
@@ -525,7 +527,7 @@ const string get_formatted_structure(vector<atom_t> &atom, const vector<bond_t> 
       {
         OBPairData *label = new OBPairData;
         label->SetAttribute("Average_bond_length");
-        stringstream cs;
+        ostringstream cs;
         cs << scaled_avg_bond_length;
         label->SetValue(cs.str());
         mol.SetData(label);
@@ -535,7 +537,7 @@ const string get_formatted_structure(vector<atom_t> &atom, const vector<bond_t> 
       {
         OBPairData *label = new OBPairData;
         label->SetAttribute("Resolution");
-        stringstream cs;
+        ostringstream cs;
         cs << *resolution;
         label->SetValue(cs.str());
         mol.SetData(label);
@@ -545,7 +547,7 @@ const string get_formatted_structure(vector<atom_t> &atom, const vector<bond_t> 
       {
         OBPairData *label = new OBPairData;
         label->SetAttribute("Page");
-        stringstream cs;
+        ostringstream cs;
         cs << *page;
         label->SetValue(cs.str());
         mol.SetData(label);
@@ -555,7 +557,7 @@ const string get_formatted_structure(vector<atom_t> &atom, const vector<bond_t> 
       {
         OBPairData *label = new OBPairData;
         label->SetAttribute("Surrounding_box");
-        stringstream cs;
+        ostringstream cs;
         cs << surrounding_box->x1 << 'x' << surrounding_box->y1 << '-' << surrounding_box->x2 << 'x' << surrounding_box->y2;
         label->SetValue(cs.str());
         mol.SetData(label);
