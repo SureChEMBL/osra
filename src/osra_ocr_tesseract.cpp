@@ -48,7 +48,7 @@ void osra_tesseract_destroy()
 
 char osra_tesseract_ocr(unsigned char *pixmap, int x1, int y1, int x2, int y2, const string &char_filter)
 {
-  char result = 0;
+  char result = UNKNOWN_CHAR;
 
   char *text = tess.TesseractRect(pixmap, 1, x2 - x1 + 1, 0, 0, x2 - x1 + 1, y2 - y1 + 1);
   tess.Clear();
