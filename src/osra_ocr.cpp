@@ -25,7 +25,6 @@
 
 #include <vector> // std:vector
 #include <iostream> // std::cout
-#include <sstream> // std:stringstream
 
 #include "config.h"
 
@@ -53,6 +52,9 @@ char osra_tesseract_ocr(unsigned char *pixel_map, int x1, int y1, int x2, int y2
 job_t *JOB;
 job_t *OCR_JOB;
 
+// Also declared in osra_ocr_tesseract.cpp:
+const char UNKNOWN_CHAR = '_';
+
 /**
  * THRESHOLD is the graylevel binarization threshold.
  * dropx and dropy are the coordinates for the starting point from where the connected component (the image of the character) will be searched for.
@@ -64,6 +66,7 @@ job_t *OCR_JOB;
 void osra_ocr_init()
 {
 #ifdef HAVE_CUNEIFORM_LIB
+  // Initialization for Cuneiform library should be called only once. Otherwise it breaks down during deinitialization:
   int langcode = LANG_ENGLISH;
   Bool dotmatrix = 0;
   Bool fax = 0;
@@ -85,19 +88,20 @@ void osra_ocr_destroy()
 #ifdef HAVE_CUNEIFORM_LIB
   PUMA_Done();
 #endif
+
 #ifdef HAVE_TESSERACT_LIB
   osra_tesseract_destroy();
 #endif
 }
 
-//  Function: osra_gocr_ocr()
-//    Make an attempt to OCR the image box with GOCR engine.
+// Function: osra_gocr_ocr()
+//      Make an attempt to OCR the image box with GOCR engine.
 //
-//  Parameters:
-//    job_t - includes pixel map and character filter
+// Parameters:
+//      job_t - includes pixel map and character filter
 //
-//  Returns:
-//    0 in case the recognition failed or valid alphanumeric character
+// Returns:
+//      0 in case the recognition failed or valid alphanumeric character
 char osra_gocr_ocr(job_t &gocr_job)
 {
   OCR_JOB = &gocr_job;
@@ -115,18 +119,18 @@ char osra_gocr_ocr(job_t &gocr_job)
   if (l != NULL && strlen(l) == 1 && isalnum(l[0]))
     return l[0];
 
-  return 0;
+  return UNKNOWN_CHAR;
 }
 
-//  Function: osra_ocrad_ocr()
-//    Make an attempt to OCR the image box with OCRAD engine.
+// Function: osra_ocrad_ocr()
+//      Make an attempt to OCR the image box with OCRAD engine.
 //
-//  Parameters:
-//    ocrad_pixmap - includes pixel map and the image mode
-//    char_filter - character filter
+// Parameters:
+//      ocrad_pixmap - includes pixel map and the image mode
+//      char_filter - character filter
 //
-//  Returns:
-//    0 in case the recognition failed or valid alphanumeric character
+// Returns:
+//      0 in case the recognition failed or valid alphanumeric character
 char osra_ocrad_ocr(const OCRAD_Pixmap * const ocrad_pixmap, const string &char_filter)
 {
   char result = 0;
@@ -148,21 +152,21 @@ char osra_ocrad_ocr(const OCRAD_Pixmap * const ocrad_pixmap, const string &char_
 
   // TODO: Why line should have 0 or 1 characters? Give examples...
   if (line.length() > 2 || !isalnum(result) || char_filter.find(result, 0) == string::npos)
-    return 0;
+    return UNKNOWN_CHAR;
 
   return result;
 }
 
-//  Function: osra_cuneiform_ocr()
-//    Make an attempt to OCR the image box with Cuneiform engine.
+// Function: osra_cuneiform_ocr()
+//      Make an attempt to OCR the image box with Cuneiform engine.
 //
-//  Parameters:
-//    cuneiform_img - pixel map
-//    verbose - if set, then output intermediate results
-//    char_filter - character filter
+// Parameters:
+//      cuneiform_img - pixel map
+//      verbose - if set, then output intermediate results
+//      char_filter - character filter
 //
-//  Returns:
-//    0 in case the recognition failed or valid alphanumeric character
+// Returns:
+//      0 in case the recognition failed or valid alphanumeric character
 #ifdef HAVE_CUNEIFORM_LIB
 char osra_cuneiform_ocr(Magick::Image &cuneiform_img, bool verbose, const string &char_filter)
 {
@@ -182,7 +186,7 @@ char osra_cuneiform_ocr(Magick::Image &cuneiform_img, bool verbose, const string
   delete[] dib;
 
   if (verbose)
-    cout << "Cuneiform: " << str[0] << "|" << str[1] << "|" << str[2] << "|" << str[3] << endl;
+    cout << "Cuneiform: " << str[0] << "|" << str[1] << "|" << str[2] << "|" << str[3] << "|" << endl;
 
   // TODO: Why first char should be that same as second char, followed by space?
   // TODO: Why first char should be that same as third char, delimited by space?
@@ -190,14 +194,14 @@ char osra_cuneiform_ocr(Magick::Image &cuneiform_img, bool verbose, const string
       && char_filter.find(str[0], 0) != string::npos)
     return str[0];
 
-  return 0;
+  return UNKNOWN_CHAR;
 }
 #endif
 
 char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int x1, int y1, int x2, int y2,
                     double THRESHOLD, int dropx, int dropy, bool verbose)
 {
-  char c = 0;
+  char c = UNKNOWN_CHAR;
   unsigned char *tmp = (unsigned char *) malloc(int((x2 - x1 + 1) * (y2 - y1 + 1)));
 
   for (int i = y1; i <= y2; i++)
@@ -336,11 +340,11 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
 
     if (verbose)
       {
-        cout << "Box to OCR: " << x1 << "x" << y1 << "-" << x2 << "x" << y2 << " w/h: " << x2 - x1 << "x" << y2 - y1 << endl;
+        cout << "Box to OCR: " << x1 << "x" << y1 << "-" << x2 << "x" << y2 << " w/h: " << width << "x" << height << endl;
         for (int i = 0; i < height; i++)
           {
             for (int j = 0; j < width; j++)
-              cout << gocr_job.src.p.p[i * width + j] / 255;
+              cout << (gocr_job.src.p.p[i * width + j] / 255 ? '#' : '.');
             cout << endl;
           }
       }
@@ -353,10 +357,10 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
     if (verbose)
       cout << "GOCR: c=" << c << endl;
 
-    //c = 0; // Switch off GOCR recognition
+    //c = UNKNOWN_CHAR; // Switch off GOCR recognition
 
     // Character recognition succeeded for GOCR:
-    if (c != 0)
+    if (c != UNKNOWN_CHAR)
       goto FINALIZE;
 
     // Character recognition failed for GOCR and we try OCRAD:
@@ -365,10 +369,10 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
     if (verbose)
       cout << "OCRAD: c=" << c << endl;
 
-    //c = 0;  // Switch off OCRAD recognition
+    //c = UNKNOWN_CHAR;  // Switch off OCRAD recognition
 
     // Character recognition succeeded for OCRAD:
-    if (c != 0)
+    if (c != UNKNOWN_CHAR)
       goto FINALIZE;
 
 #ifdef HAVE_TESSERACT_LIB
@@ -377,10 +381,10 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
     if (verbose)
       cout << "Tesseract: c=" << c << endl;
 
-    //c = 0;  // Switch off Tesseract recognition
+    //c = UNKNOWN_CHAR;  // Switch off Tesseract recognition
 
     // Character recognition succeeded for Tesseract:
-    if (c != 0)
+    if (c != UNKNOWN_CHAR)
       goto FINALIZE;
 #endif
 #ifdef HAVE_CUNEIFORM_LIB
@@ -394,7 +398,7 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
     if (verbose)
       cout << "Cuneiform: c=" << c << endl;
 
-    //c = 0; // Switch off Cuneiform recognition
+    //c = UNKNOWN_CHAR; // Switch off Cuneiform recognition
 #endif
 
 FINALIZE:
@@ -409,10 +413,10 @@ FINALIZE:
     // TODO: Why there are problems with "7" with a given box size? If the problem is engine-specific, it should be moved to appropriate section
     // TODO: Can we replace this with "width" and "height"?
     if (c == '7' && (x2 - x1 <= 10 || y2 - y1 <= 20))
-      c = 0;
+      c = UNKNOWN_CHAR;
   } // #pragma omp critical
 
-  return c;
+  return(c == UNKNOWN_CHAR ? 0 : c);
 }
 
 /*

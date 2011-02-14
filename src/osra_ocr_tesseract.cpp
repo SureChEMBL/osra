@@ -29,6 +29,8 @@
 
 #include <tesseract/baseapi.h>
 
+const char UNKNOWN_CHAR = '_';
+
 using namespace std;
 
 // Global variable:
