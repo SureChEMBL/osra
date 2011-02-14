@@ -21,11 +21,12 @@ $(SPECIAL_PHONY_TARGETS): %.subdir:
 all: all.subdir
 
 install: install.subdir
-	$(INSTALL_DIR) $(DESTDIR)$(docdir)
+	$(INSTALL_DIR) $(DESTDIR)$(docdir) $(DESTDIR)$(libdir)/pkgconfig
 	$(INSTALL_DATA) README $(DESTDIR)$(docdir)
+	$(INSTALL_DATA) package/linux/osra.pc $(DESTDIR)$(libdir)/pkgconfig
 
 uninstall: uninstall.subdir
-	$(RM) -f $(DESTDIR)$(docdir)/README
+	$(RM) -f $(DESTDIR)$(docdir)/README $(DESTDIR)$(libdir)/pkgconfig/osra.pc
 #	We do not uninstall empty directories
 
 # Should remove all Makefile targets:

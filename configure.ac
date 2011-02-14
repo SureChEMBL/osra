@@ -648,6 +648,6 @@ AC_DEFINE_UNQUOTED(DATA_DIR, ["$resolved_datadir"])
 AC_SUBST([resolved_datadir], [$resolved_datadir])
 
 AC_CONFIG_HEADER([src/config.h])
-AC_CONFIG_FILES([Makefile Makefile.inc doc/manual.sgml package/maven/pom.xml])
+AC_CONFIG_FILES([Makefile Makefile.inc doc/manual.sgml package/linux/osra.pc package/maven/pom.xml])
 AC_OUTPUT
 AC_MSG_NOTICE([Now you can run "make all install" to compile and install the application.])

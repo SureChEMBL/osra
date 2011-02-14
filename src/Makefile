@@ -27,55 +27,67 @@ ifdef OSRA_ANDROID
 OBJ_ANDROID	:= $(OBJ_LIB) osra_cli.o
 endif
 
-#all: $(ALL)
-
 all:
-	$(MAKE) clean_obj osra
-	$(MAKE) clean_obj libosra.so
+	$(RM) -f $(OBJ_CLI)
+	$(MAKE) osra
+	$(RM) -f $(OBJ_LIB)
+	$(MAKE) libosra.a
+	$(RM) -f $(OBJ_LIB)
+	$(MAKE) libosra.so
 ifdef OSRA_JAVA
+	$(RM) -f $(OBJ_JAVA)
 	$(MAKE) libosra_java.so
 endif
 ifdef OSRA_ANDROID
-	$(MAKE) clean_obj libosra_andriod.so
+	$(RM) -f $(OBJ_ANDROID)
+	$(MAKE) libosra_andriod.so
 endif
-	$(MAKE) clean_obj
+#	Not confusing install rule:
+	touch osra libosra.a libosra.so
 
 osra: $(OBJ_CLI)
 	$(LD) $(LDFLAGS) -o $@ $(OBJ_CLI) $(LIBS)
 
+libosra.a: CXXFLAGS += -DOSRA_LIB
+libosra.a: $(OBJ_LIB)
+	$(AR) cru $@ $(OBJ_LIB)
+	$(RANLIB) $@
+
 libosra.so: CXXFLAGS += -fPIC -DOSRA_LIB
 libosra.so: $(OBJ_LIB)
-	$(LD) $(LDFLAGS) -fPIC -shared -Wl,-soname,$@ -o $@.$(LIB_API_VERSION) $(OBJ_LIB) $(LIBS)
+	$(LD) $(LDFLAGS) -fPIC -shared -Wl,-soname,$@ -o $@ $(OBJ_LIB) $(LIBS)
 
 ifdef OSRA_JAVA
 libosra_java.so: CXXFLAGS += -fPIC -DOSRA_LIB -DOSRA_JAVA
 libosra_java.so: $(OBJ_JAVA)
-	$(LD) $(LDFLAGS) -fPIC -shared -Wl,-soname,$@ -o $@.$(LIB_API_VERSION) $(OBJ_JAVA) $(LIBS)
+	$(LD) $(LDFLAGS) -fPIC -shared -Wl,-soname,$@ -o $@ $(OBJ_JAVA) $(LIBS)
 endif
 
 ifdef OSRA_ANDROID
 libosra_andriod.so: CXXFLAGS += -fPIC -DOSRA_LIB -DOSRA_ANDROID
 libosra_andriod.so: $(OBJ_ANDROID)
-	$(LD) $(LDFLAGS) -fPIC -shared -Wl,-soname,$@ -o $@.$(LIB_API_VERSION) $(OBJ_ANDROID) $(LIBS)
+	$(LD) $(LDFLAGS) -fPIC -shared -Wl,-soname,$@ -o $@ $(OBJ_ANDROID) $(LIBS)
 endif
 
-Makefile.dep: $(patsubst %.o,%.cpp,$(OBJ))
-	$(CXX) $(CPPFLAGS) -MM $? > Makefile.dep 
+Makefile.dep: $(wildcard *.cpp)
+	$(CXX) $(CPPFLAGS) -MM $^ > Makefile.dep 
 
-install: osra libosra.so
-	$(INSTALL_DIR) $(DESTDIR)$(bindir) $(DESTDIR)$(libdir)
+install: osra libosra.a libosra.so
+	$(INSTALL_DIR) $(DESTDIR)$(bindir) $(DESTDIR)$(libdir) $(DESTDIR)$(includedir)
 	$(INSTALL_PROGRAM) osra $(DESTDIR)$(bindir)
-	$(INSTALL_PROGRAM) libosra.so.$(LIB_API_VERSION) $(DESTDIR)$(libdir)
+	$(INSTALL_PROGRAM) libosra.so $(DESTDIR)$(libdir)/libosra.so.$(LIB_API_VERSION)
+	$(INSTALL_PROGRAM) libosra.a $(DESTDIR)$(libdir)
 	$(INSTALL_DATA) osra_lib.h $(DESTDIR)$(includedir)
 
 uninstall:
-	$(RM) -f $(DESTDIR)$(bindir)/osra
+	$(RM) -f \
+		$(DESTDIR)$(bindir)/osra \
+		$(DESTDIR)$(libdir)/libosra.so.$(LIB_API_VERSION) \
+		$(DESTDIR)$(libdir)/libosra.a \
+		$(DESTDIR)$(includedir)/osra_lib.h
 
-clean_obj:
-	$(RM) -f *.o
-
-clean: clean_obj
-	$(RM) -f osra libosra*.so*
+clean:
+	$(RM) -f *.o osra libosra*.*
 
 distclean: clean
 	$(RM) -f config.h Makefile.dep
