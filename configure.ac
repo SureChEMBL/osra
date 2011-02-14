@@ -29,6 +29,8 @@ AC_PROG_CXX
 AC_PATH_PROG(RM, rm)
 AC_PROG_LN_S
 AC_PROG_INSTALL
+AC_PATH_PROG(AR, ar)
+AC_PROG_RANLIB
 
 AC_ARG_ENABLE(
 	[docs],
@@ -56,10 +58,6 @@ dnl
 
 AS_IF([test -d "/usr/local/include"], [
 	CPPFLAGS="-I/usr/local/include ${CPPFLAGS}"
-])
-
-AS_IF([test -d "/usr/local/include/gocr"], [
-        CPPFLAGS="-I/usr/local/include/gocr ${CPPFLAGS}"
 ])
 
 AS_IF([test -d "/usr/local/lib"], [
@@ -196,7 +194,7 @@ dnl gocr library
 AX_PROBE_OBLIGATORY_LIBRARY(
 	[gocr],
 	[pgm2asc.h],
-	[auto],
+	[/usr/include/gocr /usr/local/include/gocr auto],
 	[custom location of gocr/pgm2asc.h from GOCR (optical character recognition library), see http://jocr.sourceforge.net/]
 )
 
