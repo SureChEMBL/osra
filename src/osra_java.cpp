@@ -25,13 +25,13 @@
 
 #include <string> // std::string
 #include <ostream> // std:ostream
-#include <sstream> // std:stringstream
+#include <sstream> // std:ostringstream
 
 #include "config.h" // PACKAGE_VERSION
 
 using namespace std;
 
-#ifdef ANDROID
+#ifdef OSRA_ANDROID
 int main(int argc, char **argv, const char *image_data, int image_length, ostream &output_structure_stream);
 
 extern "C" {
@@ -55,7 +55,7 @@ JNIEXPORT jstring JNICALL Java_cadd_osra_main_runosra_nativeosra(JNIEnv *j_env, 
   char *image_data = (char *) j_env->GetByteArrayElements(j_image_data, NULL);
 
   int result = 0;
-  stringstream output_structure_stream;
+  ostringstream output_structure_stream;
 
   if (image_data != NULL)
     {
@@ -110,7 +110,9 @@ JNIEXPORT jint JNICALL Java_net_sourceforge_osra_OsraLib_processImage(JNIEnv *j_
 
   if (image_data != NULL)
     {
-      stringstream output_structure_stream;
+      // Perhaps there is a more optimal way to bridge from std:ostream to java.io.Writer.
+      // See http://stackoverflow.com/questions/524524/creating-an-ostream/524590#524590
+      ostringstream output_structure_stream;
 
       result = osra_process_image(
                                   image_data,
@@ -125,28 +127,23 @@ JNIEXPORT jint JNICALL Java_net_sourceforge_osra_OsraLib_processImage(JNIEnv *j_
                                   string(format),
                                   j_output_confidence,
                                   false,
-                                  true,
+                                  false,
                                   j_output_coordinates,
                                   j_output_avg_bond_length
       );
 
       j_env->ReleaseByteArrayElements(j_image_data, (jbyte *) image_data, JNI_ABORT);
 
-      // Locate java.io.Writer#write(char[]) method:
+      // Locate java.io.Writer#write(String) method:
       jclass j_writer_class = j_env->FindClass("java/io/Writer");
-      jmethodID write_method_id = j_env->GetMethodID(j_writer_class, "write", "([C)V");
+      jmethodID write_method_id = j_env->GetMethodID(j_writer_class, "write", "(Ljava/lang/String;)V");
 
-      // Create a char[] that holds the string characters:
-      jsize len = output_structure_stream.str().length();
-      jcharArray j_char_arr = j_env->NewCharArray(len);
-      j_env->SetCharArrayRegion(j_char_arr, 0, len, (jchar *) output_structure_stream.str().c_str());
+      jstring j_string = j_env->NewStringUTF(output_structure_stream.str().c_str());
 
-      j_env->CallVoidMethod(j_writer, write_method_id, j_char_arr);
+      j_env->CallVoidMethod(j_writer, write_method_id, j_string);
 
       j_env->DeleteLocalRef(j_writer_class);
-      j_env->DeleteLocalRef(j_char_arr);
-
-      jstring output_structure = j_env->NewStringUTF(output_structure_stream.str().c_str());
+      j_env->DeleteLocalRef(j_string);
     }
 
   j_env->ReleaseStringUTFChars(j_format, format);
