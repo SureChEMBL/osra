@@ -1446,7 +1446,7 @@ void assign_charge(vector<atom_t> &atom, vector<bond_t> &bond, int n_atom, int n
       }
 }
 
-const Color getBgColor(const Image &image, bool inv)
+const Color getBgColor(const Image &image)
 {
   ColorGray c, r;
   r = image.pixelColor(1, 1);
@@ -1456,16 +1456,14 @@ const Color getBgColor(const Image &image, bool inv)
       int x = (image.columns() * rand()) / RAND_MAX;
       int y = (image.rows() * rand()) / RAND_MAX;
       c = image.pixelColor(x, y);
-      if ((!inv) && ((c.shade()) > (r.shade())))
-        r = c;
-      else if ((inv) && ((c.shade()) < (r.shade())))
+      if (c.shade() > r.shade())
         r = c;
     }
 
   return (r);
 }
 
-bool convert_to_gray(Image &image, bool invert, bool &cameraphoto, bool verbose)
+void convert_to_gray(Image &image, bool invert, bool adaptive, bool verbose)
 {
   int num_bins=20;
   vector<int> h(num_bins,0);
@@ -1473,7 +1471,6 @@ bool convert_to_gray(Image &image, bool invert, bool &cameraphoto, bool verbose)
   Color t;
   ColorGray g;
   double a;
-
   if (!invert)
     {
       double peak = 0;
@@ -1577,14 +1574,34 @@ bool convert_to_gray(Image &image, bool invert, bool &cameraphoto, bool verbose)
   double distance_between_peaks = (double)(peak2-peak1)/num_bins;
   if (verbose)
     {
+      cout<<"Inversion of background and foreground: "<<invert<<endl;
       cout << "Distance between light and dark: " << distance_between_peaks << endl;
       cout<<"Max at peak 1: "<<max1<<"  Max at peak 2: "<<max2<<endl;
     }
-  if (distance_between_peaks < THRESHOLD_GLOBAL) cameraphoto = true;
+  if (distance_between_peaks < THRESHOLD_GLOBAL) adaptive = true;
 
   image.contrast(2);
   image.type(GrayscaleType);
-  return(invert);
+
+  // Pre-processing for images from iPhone and Android camera phones
+  if (adaptive)
+    {
+      if (invert)
+	{
+	  image.despeckle();
+	  image.adaptiveThreshold(15,15,7);
+	}
+      else
+	{
+	  image.despeckle();
+	  image.negate();
+	  image.adaptiveThreshold(15,15,7);
+	  image.negate();
+	}
+    }
+  if (invert)
+    image.negate();
+
 }
 
 
@@ -4458,8 +4475,11 @@ void find_connected_components(const Image &image, double threshold, const Color
             }
           if (segments.size() > MAX_SEGMENTS)
             return;
-          segments.push_back(new_segment);
-          margins.push_back(new_margin);
+	  if (new_segment.size() > 2)
+	    {
+	      segments.push_back(new_segment);
+	      margins.push_back(new_margin);
+	    }
         }
 }
 
@@ -5206,6 +5226,9 @@ int main(int argc, char **argv)
   TCLAP::SwitchArg jaggy_option("j", "jaggy", "Additional thinning/scaling down of low quality documents", false);
   cmd.add(jaggy_option);
 
+  TCLAP::SwitchArg adaptive_option("i", "adaptive", "Adaptive thresholding pre-processing, useful for low light/low contrast images", false);
+  cmd.add(adaptive_option);
+
   //
   // Output format options
   //
@@ -5430,27 +5453,7 @@ int main(int argc, char **argv)
       image.read(pname.str());
 #endif
       image.modifyImage();
-      bool invert = invert_option.getValue();
-      bool cameraphoto = false;
-      invert = convert_to_gray(image, invert, cameraphoto,verbose);
-
-      // Pre-processing for images from iPhone and Android camera phones
-      if (cameraphoto)
-        {
-          if (invert)
-            {
-              image.despeckle();
-              image.adaptiveThreshold(15,15,7);
-            }
-          else
-            {
-              image.despeckle();
-              image.negate();
-              image.adaptiveThreshold(15,15,7);
-              image.negate();
-            }
-        }
-
+      convert_to_gray(image, invert_option.getValue(), adaptive_option.getValue(), verbose);
 
       int num_resolutions = NUM_RESOLUTIONS;
       if (input_resolution != 0)
@@ -5494,7 +5497,7 @@ int main(int argc, char **argv)
         }
 
 
-      ColorGray bgColor = getBgColor(image, invert);
+      ColorGray bgColor = getBgColor(image);
 
 
       if (rotate_option.getValue() != 0)
@@ -5502,6 +5505,7 @@ int main(int argc, char **argv)
           image.backgroundColor(bgColor);
           image.rotate(rotate_option.getValue());
         }
+
 
       for (int i = 0; i < do_unpaper_option.getValue(); i++)
         unpaper(image);
