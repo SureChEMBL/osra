@@ -127,7 +127,7 @@ struct molecule_statistics_s
   //    number of rotors in molecule
   int rotors;
   // int: num_fragments
-  //    number of fragments in molecule
+  //    number of contiguous fragments in molecule
   int fragments;
   // int: rings56
   //    accumulated number of 5- and 6- rings in molecule

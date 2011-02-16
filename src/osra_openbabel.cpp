@@ -407,6 +407,7 @@ void create_molecule(OBMol &mol, vector<atom_t> &atom, const vector<bond_t> &bon
         Num_Rings[(*iter)->Size()]++;
     }
 
+  // Get a list of contiguous fragments sorted by size from largest to smallest:
   std::vector<std::vector<int> > cfl;
   mol.ContigFragList(cfl);
 
