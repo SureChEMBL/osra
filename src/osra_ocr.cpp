@@ -20,8 +20,8 @@
  St, Fifth Floor, Boston, MA 02110-1301, USA
  *****************************************************************************/
 
-#include <string.h> // strlen()
-#include <ctype.h> // isalnum()
+#include <string.h> // strlen(), memset()
+#include <ctype.h> // isalnum(), isspace()
 
 #include <vector> // std:vector
 #include <iostream> // std::cout
@@ -170,26 +170,29 @@ char osra_ocrad_ocr(const OCRAD_Pixmap * const ocrad_pixmap, const string &char_
 #ifdef HAVE_CUNEIFORM_LIB
 char osra_cuneiform_ocr(Magick::Image &cuneiform_img, bool verbose, const string &char_filter)
 {
-  char str[256];
-
   Magick::Blob blob;
   cuneiform_img.write(&blob, "DIB");
-  size_t data_size = blob.length();
-  char *dib = new char[data_size];
-  memcpy(dib, blob.data(), data_size);
 
-  PUMA_XOpen(dib, NULL);
-  PUMA_XFinalRecognition();
-  PUMA_SaveToMemory(NULL, PUMA_TOTEXT, PUMA_CODE_ASCII, str, sizeof(str) - 1);
-  PUMA_XClose();
+  char str[256];
+  memset(str, 0, sizeof(str));
 
-  delete[] dib;
+  if (!PUMA_XOpen(blob.data(), NULL) || !PUMA_XFinalRecognition() || !PUMA_SaveToMemory(NULL, PUMA_TOTEXT, PUMA_CODE_ASCII, str, sizeof(str) - 1))
+    {
+      if (verbose)
+        cout << "Cuneiform recognition failed." << endl;
+
+      PUMA_XClose();
+
+      return UNKNOWN_CHAR;
+    }
 
   if (verbose)
     cout << "Cuneiform: " << str[0] << "|" << str[1] << "|" << str[2] << "|" << str[3] << "|" << endl;
 
-  // TODO: Why first char should be that same as second char, followed by space?
-  // TODO: Why first char should be that same as third char, delimited by space?
+  PUMA_XClose();
+
+  // As we have initialized the image with two identical samples, it is expected that they go in the string
+  // one after another, or separated by space (e.g. "ZZ\n" or "Z Z\n").
   if (((str[0] == str[1] && isspace(str[2])) || (str[0] == str[2] && str[1] == ' ')) && isalnum(str[0])
       && char_filter.find(str[0], 0) != string::npos)
     return str[0];
@@ -310,6 +313,7 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
     // The code below initialises the "job.src.p.p" image buffer for GOCR and "opix->data" buffer ("bitmap_data") for OCRAD from "tmp" buffer:
 #ifdef HAVE_CUNEIFORM_LIB
     Magick::Image cuneiform_img(Magick::Geometry(2 * (x2 - x1 + 1) + 2, y2 - y1 + 1), "white");
+    // From cuneiform_src/cli/cuneiform-cli.cpp::preprocess_image(Magick::Image&):168
     cuneiform_img.monochrome();
     cuneiform_img.type(Magick::BilevelType);
 #endif
@@ -326,6 +330,7 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
                   {
                     ocrad_bitmap[y * width + x] = 1;
 #ifdef HAVE_CUNEIFORM_LIB
+                    // Draw two identical samples that follow one another. We do so because Cuneiform has difficulties in recognizing single characters:
                     cuneiform_img.pixelColor(x, y, "black");
                     cuneiform_img.pixelColor(x + (x2 - x1 + 1) + 2, y, "black");
 #endif
