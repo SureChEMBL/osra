@@ -5442,7 +5442,7 @@ int main(int argc, char **argv)
       density << input_resolution << "x" << input_resolution;
       image.density(density.str());
 
-      if (type == "PDF" || type == "PS") page_scale*=72/input_resolution;
+      if (type == "PDF" || type == "PS") page_scale*=(double) 72/input_resolution;
 
 
 #ifdef ANDROID
