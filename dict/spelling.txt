@@ -85,6 +85,9 @@ MoO MeO
 M*O MeO
 McoO MeO
 Ome MeO
+MgO MeO
+M8O MeO
+MBO MeO
 
 NC CN 
 YC CN
