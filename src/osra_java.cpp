@@ -54,7 +54,7 @@ JNIEXPORT jstring JNICALL Java_cadd_osra_main_runosra_nativeosra(JNIEnv *j_env, 
 
   char *image_data = (char *) j_env->GetByteArrayElements(j_image_data, NULL);
 
-  int result = 0;
+  int result = -1;
   ostringstream output_structure_stream;
 
   if (image_data != NULL)
@@ -124,7 +124,7 @@ JNIEXPORT jint JNICALL Java_net_sourceforge_osra_OsraLib_processImage(JNIEnv *j_
                                   0,
                                   0,
                                   false,
-                                  string(format),
+                                  format,
                                   j_output_confidence,
                                   false,
                                   false,
