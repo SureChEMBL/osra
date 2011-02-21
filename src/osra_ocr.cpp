@@ -45,7 +45,7 @@ extern "C" {
 // We can't push these functions into this cpp file, as the types from Tesseract conflict with GOCR
 void osra_tesseract_init();
 void osra_tesseract_destroy();
-char osra_tesseract_ocr(unsigned char *pixel_map, int x1, int y1, int x2, int y2, const string &char_filter);
+char osra_tesseract_ocr(unsigned char *pixel_map, int width, int height, const string &char_filter);
 #endif
 
 // Global GOCR variable (omg) both for 0.48-0.49 and 0.50 versions:
@@ -168,7 +168,7 @@ char osra_ocrad_ocr(const OCRAD_Pixmap * const ocrad_pixmap, const string &char_
 // Returns:
 //      0 in case the recognition failed or valid alphanumeric character
 #ifdef HAVE_CUNEIFORM_LIB
-char osra_cuneiform_ocr(Magick::Image &cuneiform_img, bool verbose, const string &char_filter)
+char osra_cuneiform_ocr(Magick::Image &cuneiform_img, const string &char_filter)
 {
   Magick::Blob blob;
   cuneiform_img.write(&blob, "DIB");
@@ -178,16 +178,13 @@ char osra_cuneiform_ocr(Magick::Image &cuneiform_img, bool verbose, const string
 
   if (!PUMA_XOpen(blob.data(), NULL) || !PUMA_XFinalRecognition() || !PUMA_SaveToMemory(NULL, PUMA_TOTEXT, PUMA_CODE_ASCII, str, sizeof(str) - 1))
     {
-      if (verbose)
-        cout << "Cuneiform recognition failed." << endl;
+      //if (verbose)
+      //  cout << "Cuneiform recognition failed." << endl;
 
       PUMA_XClose();
 
       return UNKNOWN_CHAR;
     }
-
-  if (verbose)
-    cout << "Cuneiform: " << str[0] << "|" << str[1] << "|" << str[2] << "|" << str[3] << "|" << endl;
 
   PUMA_XClose();
 
@@ -205,27 +202,30 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
                     double THRESHOLD, int dropx, int dropy, bool verbose)
 {
   char c = UNKNOWN_CHAR;
-  unsigned char *tmp = (unsigned char *) malloc(int((x2 - x1 + 1) * (y2 - y1 + 1)));
+
+  const int width = x2 - x1 + 1;
+  const int height = y2 - y1 + 1;
+
+  unsigned char *pixmap = (unsigned char *) malloc(width * height);
 
   for (int i = y1; i <= y2; i++)
     for (int j = x1; j <= x2; j++)
-      tmp[(i - y1) * (x2 - x1 + 1) + j - x1] = (unsigned char) (255 - 255 * get_pixel(image, bg, j, i,
-          THRESHOLD));
+      pixmap[(i - y1) * width + j - x1] = (unsigned char) (255 - 255 * get_pixel(image, bg, j, i, THRESHOLD));
 
   // Here we drop down from the top of the box, middle of x coordinate and extract connected component
   int t = 1;
   int y = dropy - y1 + 1;
   int x = dropx - x1;
 
-  while ((t != 0) && (y < int(y2 - y1 + 1)))
+  while ((t != 0) && (y < height))
     {
-      t = tmp[y * (x2 - x1 + 1) + x];
+      t = pixmap[y * width + x];
       y++;
     }
 
   if (t != 0)
     {
-      free(tmp);
+      free(pixmap);
       return 0;
     }
 
@@ -233,7 +233,7 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
   {
     y--;
 
-    tmp[y * (x2 - x1 + 1) + x] = 2;
+    pixmap[y * width + x] = 2;
 
     list<int> cx;
     list<int> cy;
@@ -247,37 +247,25 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
         y = cy.front();
         cx.pop_front();
         cy.pop_front();
-        tmp[y * (x2 - x1 + 1) + x] = 1;
+        pixmap[y * width + x] = 1;
 
         // this goes around 3x3 square touching the chosen pixel
         for (int i = x - 1; i < x + 2; i++)
           for (int j = y - 1; j < y + 2; j++)
-            if ((i < (x2 - x1 + 1)) && (j < (y2 - y1 + 1)) && (i >= 0) && (j >= 0) && (tmp[j* (x2 - x1 + 1) + i] == 0))
+            if (i < width && j < height && i >= 0 && j >= 0 && pixmap[j * width + i] == 0)
               {
                 cx.push_back(i);
                 cy.push_back(j);
-                tmp[j * (x2 - x1 + 1) + i] = 2;
+                pixmap[j * width + i] = 2;
               }
       }
 
-    for (int i = 0; i < (y2 - y1 + 1); i++)
-      for (int j = 0; j < (x2 - x1 + 1); j++)
-        if (tmp[i * (x2 - x1 + 1) + j] == 1)
-          {
-            tmp[i * (x2 - x1 + 1) + j] = 0;
-          }
-        else
-          {
-            tmp[i * (x2 - x1 + 1) + j] = 255;
-          }
+    // Flatten the bitmap. Note: the bitmap is inverted after this cycle (255 means "empty", 0 means "pixel").
+    for (int i = 0; i < height; i++)
+      for (int j = 0; j < width; j++)
+        pixmap[i * width + j] = (pixmap[i * width + j] == 1 ? 0 : 255);
 
     job_t gocr_job;
-    double f = 1.;
-
-    //if ((y2 - y1) > MAX_FONT_HEIGHT) f = 1. * MAX_FONT_HEIGHT / (y2 - y1);
-
-    const int width = int(f * (x2 - x1 + 1));
-    const int height = int(f * (y2 - y1 + 1));
 
     // The list of all characters, that can be recognised as atom label:
     string char_filter = "oOcCnNHFsSBuUgMeEXYZRPp23456789AmTh";
@@ -291,11 +279,8 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
     gocr_job.src.p.x = width;
     gocr_job.src.p.y = height;
     gocr_job.src.p.bpp = 1;
-    gocr_job.src.p.p = (unsigned char *) malloc(gocr_job.src.p.x * gocr_job.src.p.y);
+    gocr_job.src.p.p = pixmap;
     gocr_job.cfg.cfilter = (char*) char_filter.c_str();
-
-    for (int i = 0; i < width * height; i++)
-      gocr_job.src.p.p[i] = 255;
 
     struct OCRAD_Pixmap *ocrad_pixmap = new OCRAD_Pixmap();
     unsigned char *ocrad_bitmap = (unsigned char *) malloc(width * height);
@@ -307,39 +292,35 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
     ocrad_pixmap->mode = OCRAD_bitmap;
     ocrad_pixmap->data = ocrad_bitmap;
 
-    int count = 0;
-    int zeros = 0;
+    // Number of non-zero pixels on the bitmap, excluding the 1px border:
+    int pixmap_pixels_count = 0;
+    // Number of zero pixels on the bitmap, excluding the 1px border:
+    int pixmap_zeros_count = 0;
 
-    // The code below initialises the "job.src.p.p" image buffer for GOCR and "opix->data" buffer ("bitmap_data") for OCRAD from "tmp" buffer:
+    // The code below initialises "opix->data" buffer ("bitmap_data") for OCRAD from "tmp" buffer:
 #ifdef HAVE_CUNEIFORM_LIB
-    Magick::Image cuneiform_img(Magick::Geometry(2 * (x2 - x1 + 1) + 2, y2 - y1 + 1), "white");
+    Magick::Image cuneiform_img(Magick::Geometry(2 * width + 2, height), "white");
     // From cuneiform_src/cli/cuneiform-cli.cpp::preprocess_image(Magick::Image&):168
     cuneiform_img.monochrome();
     cuneiform_img.type(Magick::BilevelType);
 #endif
-    for (int i = y1; i <= y2; i++)
+    for (int y = 0; y < height; y++)
       {
-        for (int j = x1; j <= x2; j++)
+        for (int x = 0; x < width; x++)
           {
-            int x = int(f * (j - x1));
-            int y = int(f * (i - y1));
-            if ((x < width) && (y < height) && (gocr_job.src.p.p[y * width + x] == 255))
+            if (pixmap[y * width + x] == 0)
               {
-                gocr_job.src.p.p[y * width + x] = tmp[(i - y1) * (x2 - x1 + 1) + j - x1];
-                if (tmp[(i - y1) * (x2 - x1 + 1) + j - x1] == 0)
-                  {
-                    ocrad_bitmap[y * width + x] = 1;
+                ocrad_bitmap[y * width + x] = 1;
 #ifdef HAVE_CUNEIFORM_LIB
-                    // Draw two identical samples that follow one another. We do so because Cuneiform has difficulties in recognizing single characters:
-                    cuneiform_img.pixelColor(x, y, "black");
-                    cuneiform_img.pixelColor(x + (x2 - x1 + 1) + 2, y, "black");
+                // Draw two identical samples that follow one another. We do so because Cuneiform has difficulties in recognizing single characters:
+                cuneiform_img.pixelColor(x, y, "black");
+                cuneiform_img.pixelColor(x + width + 2, y, "black");
 #endif
-                    if (x > 0 && x < width - 1 && y > 0 && y < height - 1)
-                      count++;
-                  }
-                else if (x > 0 && x < width - 1 && y > 0 && y < height - 1)
-                  zeros++;
+                if (x > 0 && x < width - 1 && y > 0 && y < height - 1)
+                  pixmap_pixels_count++;
               }
+            else if (x > 0 && x < width - 1 && y > 0 && y < height - 1)
+              pixmap_zeros_count++;
           }
       }
 
@@ -354,7 +335,7 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
           }
       }
 
-    if (count <= MIN_CHAR_POINTS || zeros <= MIN_CHAR_POINTS)
+    if (pixmap_pixels_count <= MIN_CHAR_POINTS || pixmap_zeros_count <= MIN_CHAR_POINTS)
       goto FINALIZE;
 
     c = osra_gocr_ocr(gocr_job);
@@ -381,7 +362,7 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
       goto FINALIZE;
 
 #ifdef HAVE_TESSERACT_LIB
-    c = osra_tesseract_ocr(gocr_job.src.p.p, x1, y1, x2, y2, char_filter);
+    c = osra_tesseract_ocr(gocr_job.src.p.p, width, height, char_filter);
 
     if (verbose)
       cout << "Tesseract: c=" << c << endl;
@@ -394,11 +375,10 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
 #endif
 #ifdef HAVE_CUNEIFORM_LIB
     // TODO: Why box width should be more than 7 for Cuneiform?
-    // TODO: Can we replace this with "width"?
-    if (x2 - x1 <= 7)
+    if (width <= 7)
       goto FINALIZE;
 
-    c = osra_cuneiform_ocr(cuneiform_img, verbose, char_filter);
+    c = osra_cuneiform_ocr(cuneiform_img, char_filter);
 
     if (verbose)
       cout << "Cuneiform: c=" << c << endl;
@@ -407,17 +387,16 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
 #endif
 
 FINALIZE:
+    // "pixmap" is freed together with "gocr_job".
     job_free_image(&gocr_job);
     OCR_JOB = NULL;
     JOB = NULL;
 
-    free(tmp);
     delete ocrad_pixmap; // delete OCRAD Pixmap
     free(ocrad_bitmap);
 
     // TODO: Why there are problems with "7" with a given box size? If the problem is engine-specific, it should be moved to appropriate section
-    // TODO: Can we replace this with "width" and "height"?
-    if (c == '7' && (x2 - x1 <= 10 || y2 - y1 <= 20))
+    if (c == '7' && (width <= 10 || height <= 20))
       c = UNKNOWN_CHAR;
   } // #pragma omp critical
 

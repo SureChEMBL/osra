@@ -46,12 +46,11 @@ void osra_tesseract_destroy()
   tess.End();
 }
 
-char osra_tesseract_ocr(unsigned char *pixmap, int x1, int y1, int x2, int y2, const string &char_filter)
+char osra_tesseract_ocr(unsigned char *pixmap, int width, int height, const string &char_filter)
 {
   char result = UNKNOWN_CHAR;
 
-  char *text = tess.TesseractRect(pixmap, 1, x2 - x1 + 1, 0, 0, x2 - x1 + 1, y2 - y1 + 1);
-  tess.Clear();
+  char *text = tess.TesseractRect(pixmap, 1, width, 0, 0, width, height);
 
   // TODO: Why text length should be exactly 3? Give examples...
   if (text != NULL && strlen(text) == 3 && isalnum(text[0]) && char_filter.find(text[0], 0) != string::npos)
