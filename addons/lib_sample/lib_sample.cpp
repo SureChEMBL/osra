@@ -64,17 +64,33 @@ int main(int argc, char **argv)
 
   is.read(buf, buf_size);
 
-  ostringstream output_structure_stream;
-
   // Call OSRA:
-  const int result = osra_process_image(buf, buf_size, output_structure_stream);
+  const int result = osra_process_image(
+                              buf,
+                              buf_size,
+                              cout,
+                              0,
+                              false,
+                              0,
+                              0,
+                              0,
+                              false,
+                              "sdf",
+                              true,
+                              false,
+                              false,
+                              true,
+                              true,
+                              "",
+                              "",
+                              "",
+                              true,
+                              true
+  );
 
   // Release the allocated resources:
   is.close();
   free(buf);
-
-  if (result == 0)
-    cout << "Result was: " << endl << output_structure_stream.str() << endl;
 
   return result;
 }
