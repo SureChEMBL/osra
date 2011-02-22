@@ -1580,6 +1580,10 @@ void convert_to_gray(Image &image, bool invert, bool adaptive, bool verbose)
     }
   if (distance_between_peaks < THRESHOLD_GLOBAL) adaptive = true;
 
+  //const double kernel[]={0.0, -1.0, 0.0,-1.0, 5.0, -1.0, 0.0, -1.0, 0.0};
+  //image.convolve(3,kernel);
+  //image.write("tmp.png");
+
   image.contrast(2);
   image.type(GrayscaleType);
 
