@@ -1467,12 +1467,37 @@ bool convert_to_gray(Image &image, bool invert, bool adaptive, bool verbose)
 {
   int num_bins=20;
   vector<int> h(num_bins,0);
+  vector < vector < vector <int> > > bg_search(num_bins, vector < vector <int> > (num_bins, vector<int>(num_bins, 0)));
   ColorRGB c,b;
   Color t;
   ColorGray g;
   double a, a_inv;
   Image image_inv(image);
 
+  for (int i = 0; i < BG_PICK_POINTS; i++)
+    {
+      int x = (image.columns() * rand()) / RAND_MAX;
+      int y = (image.rows() * rand()) / RAND_MAX;
+      c = image.pixelColor(x, y);
+      bg_search[int((num_bins-1)*c.red())][int((num_bins-1)*c.green())][int((num_bins-1)*c.blue())]++;
+    }
+  int bg_peak = 0;
+  int bg_pos_red = 0, bg_pos_green = 0, bg_pos_blue = 0;
+  for (int i=0; i<num_bins; i++)
+    for (int j=0; j<num_bins; j++)
+      for (int k=0; k<num_bins; k++)
+	if (bg_search[i][j][k] > bg_peak)
+	  {
+	    bg_peak = bg_search[i][j][k];
+	    bg_pos_red = i;
+	    bg_pos_green = j;
+	    bg_pos_blue = k;
+	  }
+
+  bool do_color_mangling = true;
+  if (bg_pos_red != bg_pos_green || bg_pos_red != bg_pos_blue || bg_pos_green != bg_pos_blue)
+    do_color_mangling = false;
+  
   bool matte = image.matte();
 
   for (unsigned int i = 0; i < image.columns(); i++)
@@ -1486,7 +1511,13 @@ bool convert_to_gray(Image &image, bool invert, bool adaptive, bool verbose)
             g.shade(1);
             image.pixelColor(i, j, g);
           }
-        else
+	/*else if (int((num_bins-1)*b.red()) == bg_pos_red &&  int((num_bins-1)*b.green()) == bg_pos_green &&  int((num_bins-1)*b.blue()) == bg_pos_blue &&
+		 bg_pos_red != bg_pos_green || bg_pos_red != bg_pos_blue || bg_pos_green != bg_pos_blue)
+	  {
+	    image.floodFillColor(i,j,"white");
+	    image_inv.floodFillColor(i,j,"black");
+	    }*/
+	else if (do_color_mangling)
           {
             a = min(b.red(), min(b.green(), b.blue()));
             a_inv = max(b.red(), max(b.green(), b.blue()));
@@ -1502,6 +1533,8 @@ bool convert_to_gray(Image &image, bool invert, bool adaptive, bool verbose)
         g = image.pixelColor(i, j);
         h[int((num_bins-1)*g.shade())]++;
       }
+    
+
 // Otsu Algorithm, from http://habrahabr.ru/blogs/algorithm/112079/
   unsigned int m = 0;
   unsigned int n = 0;
@@ -1552,7 +1585,7 @@ bool convert_to_gray(Image &image, bool invert, bool adaptive, bool verbose)
       cout << "Distance between light and dark: " << distance_between_peaks << endl;
       cout<<"Max at peak 1: "<<max1<<"  Max at peak 2: "<<max2<<endl;
     }
-  if (distance_between_peaks < THRESHOLD_GLOBAL) adaptive = true;
+  if (distance_between_peaks < THRESHOLD_GLOBAL || !do_color_mangling) adaptive = true;
   if (max1 > max2 || invert)
     {
       image = image_inv;
@@ -1565,6 +1598,7 @@ bool convert_to_gray(Image &image, bool invert, bool adaptive, bool verbose)
 
   image.contrast(2);
   image.type(GrayscaleType);
+
 
   int window = min(image.columns(),image.rows()) / 41;
   if (window < 15) window = 15;
@@ -1587,7 +1621,9 @@ bool convert_to_gray(Image &image, bool invert, bool adaptive, bool verbose)
     }
   if (invert)
     image.negate();
-  //image.write("tmp.png");
+
+  //  image.write("tmp.png");
+
   return(adaptive);
 }
 
@@ -4404,7 +4440,7 @@ void find_connected_components(const Image &image, double threshold, const Color
       speckle_area = speckle_side * speckle_side;
       if (speckle_area < 2) speckle_area = 2;
     }
-
+  
   vector<vector<int> > tmp(image.columns(), vector<int> (image.rows(), 0));
 
   for (unsigned int i = 0; i < image.columns(); i++)
