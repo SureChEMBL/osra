@@ -1463,44 +1463,16 @@ const Color getBgColor(const Image &image)
   return (r);
 }
 
-void convert_to_gray(Image &image, bool invert, bool adaptive, bool verbose)
+bool convert_to_gray(Image &image, bool invert, bool adaptive, bool verbose)
 {
   int num_bins=20;
   vector<int> h(num_bins,0);
   ColorRGB c,b;
   Color t;
   ColorGray g;
-  double a;
-  if (!invert)
-    {
-      double peak = 0;
-      bool transparent = false;
-      for (int i = 0; i < BG_PICK_POINTS; i++)
-        {
-          int x = (image.columns() * rand()) / RAND_MAX;
-          int y = (image.rows() * rand()) / RAND_MAX;
-          t = image.pixelColor(x, y);
-          c = t;
-          g = t;
-          if (image.matte() && t.alpha() == 1 && g.shade() < 0.5)
-            transparent = true;
-          double b= (c.red() + c.green() + c.blue()) / 3;
-          h[int((num_bins-1)*b)]++;
-        }
-      int max = 0;
-      for (int i = 0; i < num_bins; i++)
-        {
-          if (h[i]>max)
-            {
-              max = h[i];
-              peak = i;
-            }
-        }
-      peak /= num_bins;
-      if (peak < 0.3 && !transparent)       // phone-camera taken images can have very dark background yet do not need inversion
-        invert = true;
-    }
-  h.clear();
+  double a, a_inv;
+  Image image_inv(image);
+
   bool matte = image.matte();
 
   for (unsigned int i = 0; i < image.columns(); i++)
@@ -1517,12 +1489,15 @@ void convert_to_gray(Image &image, bool invert, bool adaptive, bool verbose)
         else
           {
             a = min(b.red(), min(b.green(), b.blue()));
-            if (invert)
-              a = max(b.red(), max(b.green(), b.blue()));
+            a_inv = max(b.red(), max(b.green(), b.blue()));
             c.red(a);
             c.green(a);
             c.blue(a);
             image.pixelColor(i, j, c);
+            c.red(a_inv);
+            c.green(a_inv);
+            c.blue(a_inv);
+            image_inv.pixelColor(i, j, c);
           }
         g = image.pixelColor(i, j);
         h[int((num_bins-1)*g.shade())]++;
@@ -1574,11 +1549,15 @@ void convert_to_gray(Image &image, bool invert, bool adaptive, bool verbose)
   double distance_between_peaks = (double)(peak2-peak1)/num_bins;
   if (verbose)
     {
-      cout<<"Inversion of background and foreground: "<<invert<<endl;
       cout << "Distance between light and dark: " << distance_between_peaks << endl;
       cout<<"Max at peak 1: "<<max1<<"  Max at peak 2: "<<max2<<endl;
     }
   if (distance_between_peaks < THRESHOLD_GLOBAL) adaptive = true;
+  if (max1 > max2 || invert)
+    {
+      image = image_inv;
+      invert = true;
+    }
 
   //const double kernel[]={0.0, -1.0, 0.0,-1.0, 5.0, -1.0, 0.0, -1.0, 0.0};
   //image.convolve(3,kernel);
@@ -1587,25 +1566,29 @@ void convert_to_gray(Image &image, bool invert, bool adaptive, bool verbose)
   image.contrast(2);
   image.type(GrayscaleType);
 
+  int window = min(image.columns(),image.rows()) / 41;
+  if (window < 15) window = 15;
+
   // Pre-processing for images from iPhone and Android camera phones
   if (adaptive)
     {
       if (invert)
-	{
-	  image.despeckle();
-	  image.adaptiveThreshold(15,15,7);
-	}
+        {
+          image.despeckle();
+          image.adaptiveThreshold(window,window,7);
+        }
       else
-	{
-	  image.despeckle();
-	  image.negate();
-	  image.adaptiveThreshold(15,15,7);
-	  image.negate();
-	}
+        {
+          image.despeckle();
+          image.negate();
+          image.adaptiveThreshold(window,window,7);
+          image.negate();
+        }
     }
   if (invert)
     image.negate();
-
+  //image.write("tmp.png");
+  return(adaptive);
 }
 
 
@@ -4410,10 +4393,17 @@ unsigned int distance_between_segments(const vector<point_t> &s1, const vector<p
 }
 
 void find_connected_components(const Image &image, double threshold, const ColorGray &bgColor,
-                               vector<list<point_t> > &segments, vector<vector<point_t> > &margins)
+                               vector<list<point_t> > &segments, vector<vector<point_t> > &margins, bool adaptive)
 {
   point_t p;
   list<point_t> points;
+  int speckle_area = 2;
+  if (adaptive)
+    {
+      int speckle_side = min(image.columns(), image.rows()) / 120;
+      speckle_area = speckle_side * speckle_side;
+      if (speckle_area < 2) speckle_area = 2;
+    }
 
   vector<vector<int> > tmp(image.columns(), vector<int> (image.rows(), 0));
 
@@ -4479,11 +4469,11 @@ void find_connected_components(const Image &image, double threshold, const Color
             }
           if (segments.size() > MAX_SEGMENTS)
             return;
-	  if (new_segment.size() > 2)
-	    {
-	      segments.push_back(new_segment);
-	      margins.push_back(new_margin);
-	    }
+          if (new_segment.size() > speckle_area)
+            {
+              segments.push_back(new_segment);
+              margins.push_back(new_margin);
+            }
         }
 }
 
@@ -4780,7 +4770,7 @@ int locate_max_entropy(const vector<vector<int> > &features, unsigned int max_ar
   return (start_b);
 }
 
-list<list<list<point_t> > > find_segments(const Image &image, double threshold, const ColorGray &bgColor, bool verbose)
+list<list<list<point_t> > > find_segments(const Image &image, double threshold, const ColorGray &bgColor, bool adaptive, bool verbose)
 {
   vector<list<point_t> > segments;
   vector<vector<point_t> > margins;
@@ -4788,7 +4778,7 @@ list<list<list<point_t> > > find_segments(const Image &image, double threshold, 
 
   // 1m34s
 
-  find_connected_components(image, threshold, bgColor, segments, margins);
+  find_connected_components(image, threshold, bgColor, segments, margins, adaptive);
 
   if (verbose)
     cout << "Number of segments is " << segments.size() << '.' << endl;
@@ -5457,7 +5447,7 @@ int main(int argc, char **argv)
       image.read(pname.str());
 #endif
       image.modifyImage();
-      convert_to_gray(image, invert_option.getValue(), adaptive_option.getValue(), verbose);
+      bool adaptive = convert_to_gray(image, invert_option.getValue(), adaptive_option.getValue(), verbose);
 
       int num_resolutions = NUM_RESOLUTIONS;
       if (input_resolution != 0)
@@ -5515,7 +5505,7 @@ int main(int argc, char **argv)
         unpaper(image);
 
       // 0.1 is used for THRESHOLD_BOND here to allow for farther processing.
-      list<list<list<point_t> > > clusters = find_segments(image, 0.1, bgColor,verbose);
+      list<list<list<point_t> > > clusters = find_segments(image, 0.1, bgColor, adaptive, verbose);
 
       if (verbose)
         cout << "Number of clusters is " << clusters.size() << '.' << endl;
