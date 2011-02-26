@@ -3251,7 +3251,7 @@ bool comp_boxes(const box_t &aa, const box_t &bb)
 double noise_factor(const Image &image, int width, int height, const ColorGray &bgColor, double THRESHOLD_BOND,
                     int resolution, int &max, double &nf45)
 {
-  int max_thick = 20;
+  int max_thick = 40;
   vector<double> n(max_thick, 0);
   double nf;
 
@@ -4436,7 +4436,7 @@ void find_connected_components(const Image &image, double threshold, const Color
   int speckle_area = 2;
   if (adaptive)
     {
-      int speckle_side = min(image.columns(), image.rows()) / 120;
+      int speckle_side = min(image.columns(), image.rows()) / 200;
       speckle_area = speckle_side * speckle_side;
       if (speckle_area < 2) speckle_area = 2;
     }
@@ -5640,7 +5640,8 @@ int main(int argc, char **argv)
                           {
                             int new_resolution = max_hist * 300 / 4;
                             int percent = (100 * 300) / new_resolution;
-                            resolution = max_hist * select_resolution[res_iter] / 4;
+                            //resolution = max_hist * select_resolution[res_iter] / 4;
+			    resolution = new_resolution;
                             stringstream scale;
                             scale << percent << "%";
                             orig_box.scale(scale.str());
