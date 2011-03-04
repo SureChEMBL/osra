@@ -53,6 +53,8 @@ extern "C" {
 #endif
 }
 
+#include <openbabel/oberror.h>
+
 #include "osra.h"
 #include "config.h"
 
@@ -5555,7 +5557,8 @@ int main(int argc, char **argv)
 
       // This will hide the output "Warning: non-positive median line gap" from GOCR. Remove after this is fixed:
       fclose(stderr);
-
+      OpenBabel::obErrorLog.StopLogging();
+      
       potrace_param_t * const param = potrace_param_default();
       param->alphamax = 0.;
       //param->turnpolicy = POTRACE_TURNPOLICY_MINORITY;
