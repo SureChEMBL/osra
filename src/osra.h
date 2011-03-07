@@ -452,9 +452,9 @@ void unpaper(Magick::Image &picture);
 #define FRAME 5
 #define SEPARATOR_ASPECT 100
 #define SEPARATOR_AREA 300
-#define MAX_DIST 50
+#define MAX_DIST 100
 #define MAX_AREA_RATIO 50
-#define SINGLE_IMAGE_DIST 100
+#define SINGLE_IMAGE_DIST 1000
 #define THRESHOLD_LEVEL 4
 #define TEXT_LINE_SIZE 8
 #define PARTS_IN_MARGIN 2

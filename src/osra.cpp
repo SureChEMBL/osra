@@ -1465,78 +1465,8 @@ const Color getBgColor(const Image &image)
   return (r);
 }
 
-bool convert_to_gray(Image &image, bool invert, bool adaptive, bool verbose)
+void otsu_find_peaks(const vector<int> &h, int num_bins, int &peak1, int &peak2, int &max1, int &max2)
 {
-  int num_bins=20;
-  vector<int> h(num_bins,0);
-  vector < vector < vector <int> > > bg_search(num_bins, vector < vector <int> > (num_bins, vector<int>(num_bins, 0)));
-  ColorRGB c,b;
-  Color t;
-  ColorGray g;
-  double a, a_inv;
-  Image image_inv(image);
-
-  for (int i = 0; i < BG_PICK_POINTS; i++)
-    {
-      int x = (image.columns() * rand()) / RAND_MAX;
-      int y = (image.rows() * rand()) / RAND_MAX;
-      c = image.pixelColor(x, y);
-      bg_search[int((num_bins-1)*c.red())][int((num_bins-1)*c.green())][int((num_bins-1)*c.blue())]++;
-    }
-  int bg_peak = 0;
-  int bg_pos_red = 0, bg_pos_green = 0, bg_pos_blue = 0;
-  for (int i=0; i<num_bins; i++)
-    for (int j=0; j<num_bins; j++)
-      for (int k=0; k<num_bins; k++)
-	if (bg_search[i][j][k] > bg_peak)
-	  {
-	    bg_peak = bg_search[i][j][k];
-	    bg_pos_red = i;
-	    bg_pos_green = j;
-	    bg_pos_blue = k;
-	  }
-
-  bool do_color_mangling = true;
-  if (bg_pos_red != bg_pos_green || bg_pos_red != bg_pos_blue || bg_pos_green != bg_pos_blue)
-    do_color_mangling = false;
-  
-  bool matte = image.matte();
-
-  for (unsigned int i = 0; i < image.columns(); i++)
-    for (unsigned int j = 0; j < image.rows(); j++)
-      {
-        t = image.pixelColor(i, j);
-        b = t;
-        g = t;
-        if (matte && t.alpha() == 1 && g.shade() < 0.5)
-          {
-            g.shade(1);
-            image.pixelColor(i, j, g);
-          }
-	/*else if (int((num_bins-1)*b.red()) == bg_pos_red &&  int((num_bins-1)*b.green()) == bg_pos_green &&  int((num_bins-1)*b.blue()) == bg_pos_blue &&
-		 bg_pos_red != bg_pos_green || bg_pos_red != bg_pos_blue || bg_pos_green != bg_pos_blue)
-	  {
-	    image.floodFillColor(i,j,"white");
-	    image_inv.floodFillColor(i,j,"black");
-	    }*/
-	else if (do_color_mangling)
-          {
-            a = min(b.red(), min(b.green(), b.blue()));
-            a_inv = max(b.red(), max(b.green(), b.blue()));
-            c.red(a);
-            c.green(a);
-            c.blue(a);
-            image.pixelColor(i, j, c);
-            c.red(a_inv);
-            c.green(a_inv);
-            c.blue(a_inv);
-            image_inv.pixelColor(i, j, c);
-          }
-        g = image.pixelColor(i, j);
-        h[int((num_bins-1)*g.shade())]++;
-      }
-    
-
 // Otsu Algorithm, from http://habrahabr.ru/blogs/algorithm/112079/
   unsigned int m = 0;
   unsigned int n = 0;
@@ -1565,67 +1495,175 @@ bool convert_to_gray(Image &image, bool invert, bool adaptive, bool verbose)
           min_t = t;
         }
     }
-  int max1 = 0;
-  int peak1 = 0;
+  max1 = 0;
+  peak1 = 0;
   for (unsigned int i = 0; i<=min_t; i++)
     if (h[i] > max1)
       {
         max1 = h[i];
         peak1 = i;
       }
-  int max2 = 0;
-  int peak2 = 0;
+  max2 = 0;
+  peak2 = 0;
   for (unsigned int i = min_t+1; i<num_bins; i++)
     if (h[i] > max2)
       {
         max2 = h[i];
         peak2 = i;
       }
+}
+
+bool convert_to_gray(Image &image, bool invert, bool adaptive, bool verbose)
+{
+  int num_bins=20;
+  vector<int> h(num_bins,0);
+  vector < vector < vector <int> > > bg_search(num_bins, vector < vector <int> > (num_bins, vector<int>(num_bins, 0)));
+  ColorRGB c,b;
+  Color t;
+  ColorGray g;
+  double a;
+
+  for (int i = 0; i < BG_PICK_POINTS; i++)
+    {
+      int x = (image.columns() * rand()) / RAND_MAX;
+      int y = (image.rows() * rand()) / RAND_MAX;
+      c = image.pixelColor(x, y);
+      bg_search[int((num_bins-1)*c.red())][int((num_bins-1)*c.green())][int((num_bins-1)*c.blue())]++;
+    }
+  int bg_peak = 0;
+  int bg_pos_red = 0, bg_pos_green = 0, bg_pos_blue = 0;
+  for (int i=0; i<num_bins; i++)
+    for (int j=0; j<num_bins; j++)
+      for (int k=0; k<num_bins; k++)
+	if (bg_search[i][j][k] > bg_peak)
+	  {
+	    bg_peak = bg_search[i][j][k];
+	    bg_pos_red = i;
+	    bg_pos_green = j;
+	    bg_pos_blue = k;
+	  }
+
+  bool color_background = false;
+  if (bg_pos_red != bg_pos_green || bg_pos_red != bg_pos_blue || bg_pos_green != bg_pos_blue) color_background = true;
+  double red = (double)bg_pos_red/(num_bins-1);
+  double green = (double)bg_pos_green/(num_bins-1);
+  double blue = (double)bg_pos_blue/(num_bins-1);
+
+  bool matte = image.matte();
+  if (color_background)
+    {
+      image.contrast(2);
+      image.type(GrayscaleType);
+    }
+
+  for (unsigned int i = 0; i < image.columns(); i++)
+    for (unsigned int j = 0; j < image.rows(); j++)
+      {
+        t = image.pixelColor(i, j);
+        b = t;
+        g = t;
+        if (matte && t.alpha() == 1 && g.shade() < 0.5)
+          {
+            g.shade(1);
+            image.pixelColor(i, j, g);
+          }
+	else if (!color_background)
+          {
+	    if (fabs(b.red()-red) >= fabs(b.green()-green) && fabs(b.red()-red) >= fabs(b.blue()-blue))
+	      a = b.red();
+	    else if (fabs(b.red()-red) < fabs(b.green()-green) && fabs(b.green()-green) >= fabs(b.blue()-blue))
+	      a = b.green();
+	    else
+	      a = b.blue();
+            c.red(a);
+            c.green(a);
+            c.blue(a);
+            image.pixelColor(i, j, c);
+          }
+        g = image.pixelColor(i, j);
+        h[int((num_bins-1)*g.shade())]++;
+      }
+    
+  int peak1, peak2, max1, max2;
+  otsu_find_peaks(h,num_bins,peak1,peak2, max1, max2);
+
   double distance_between_peaks = (double)(peak2-peak1)/num_bins;
   if (verbose)
     {
       cout << "Distance between light and dark: " << distance_between_peaks << endl;
       cout<<"Max at peak 1: "<<max1<<"  Max at peak 2: "<<max2<<endl;
     }
-  if (distance_between_peaks < THRESHOLD_GLOBAL || !do_color_mangling) adaptive = true;
+  if (distance_between_peaks < THRESHOLD_GLOBAL) adaptive = true;
   if (max1 > max2 || invert)
-    {
-      image = image_inv;
-      invert = true;
-    }
+    invert = true;
+
 
   //const double kernel[]={0.0, -1.0, 0.0,-1.0, 5.0, -1.0, 0.0, -1.0, 0.0};
   //image.convolve(3,kernel);
   //image.write("tmp.png");
 
-  image.contrast(2);
-  image.type(GrayscaleType);
+  if (!color_background)
+    {
+      image.contrast(2);
+      image.type(GrayscaleType);
+    }
 
 
   int window = min(image.columns(),image.rows()) / 41;
   if (window < 15) window = 15;
 
   // Pre-processing for images from iPhone and Android camera phones
-  if (adaptive)
+  if (color_background)
     {
-      if (invert)
+      image.despeckle();
+      double median = 0.5*(peak1+peak2)/num_bins;
+      for (int i = 0; i < image.columns(); i++)
+	for (int j = 0; j < image.rows(); j++)
+	  {
+	    g = image.pixelColor(i, j);
+	    if (g.shade() > median)
+	      image.pixelColor(i,j,"white");
+	    else
+	      image.pixelColor(i,j,"black");
+	  }
+    }
+  else if (adaptive)
+    {
+      image.despeckle();
+      /*Image result(Geometry(image.columns(),image.rows()),"white");
+      for (int i = 0; i < image.columns(); i++)
+	 for (int j = 0; j < image.rows(); j++)
+	   {
+	     for (int k = 0; k<num_bins; k++) h[k]=0;
+	     for (int i1 = max(0, i - window/2); i1 < min((int)image.columns(), i + window/2); i1++)
+	       for (int j1 = max(0, j - window/2); j1 < min((int)image.rows(), j + window/2); j1++)
+		 {
+		   g = image.pixelColor(i1, j1);
+		   h[int((num_bins-1)*g.shade())]++;
+		 }
+	     otsu_find_peaks(h,num_bins,peak1,peak2, max1, max2);
+	     g = image.pixelColor(i, j);
+	     double median = 0.5*(peak1+peak2)/num_bins;
+	     if (g.shade() > median)
+	       result.pixelColor(i,j,"white");
+	     else
+	       result.pixelColor(i,j,"black");
+	       }
+	       image = result;*/
+       if (invert)
         {
-          image.despeckle();
           image.adaptiveThreshold(window,window,7);
         }
       else
         {
-          image.despeckle();
-          image.negate();
+	  image.negate();
           image.adaptiveThreshold(window,window,7);
           image.negate();
         }
     }
   if (invert)
     image.negate();
-
-  //  image.write("tmp.png");
-
+  image.write("tmp.png");
   return(adaptive);
 }
 
@@ -4436,13 +4474,13 @@ void find_connected_components(const Image &image, double threshold, const Color
   point_t p;
   list<point_t> points;
   int speckle_area = 2;
-  if (adaptive)
+  /* if (adaptive)
     {
       int speckle_side = min(image.columns(), image.rows()) / 200;
       speckle_area = speckle_side * speckle_side;
       if (speckle_area < 2) speckle_area = 2;
     }
-  
+  */
   vector<vector<int> > tmp(image.columns(), vector<int> (image.rows(), 0));
 
   for (unsigned int i = 0; i < image.columns(); i++)
@@ -5625,6 +5663,7 @@ int main(int argc, char **argv)
                     orig_box.pixelColor(x - boxes[k].x1 + FRAME, y - boxes[k].y1 + FRAME, color);
                   }
 
+
                 int width = orig_box.columns();
                 int height = orig_box.rows();
                 Image thick_box;
@@ -5787,10 +5826,10 @@ int main(int argc, char **argv)
                 double max_dist_double_bond = dist_double_bonds(atom, bond, n_bond, avg_bond_length);
                 n_bond = double_triple_bonds(atom, bond, n_bond, avg_bond_length, n_atom, max_dist_double_bond);
 
-                //if (ttt++ == 9) {
-                //	debug_img(orig_box, atom, n_atom, bond, n_bond, "tmp.png");
-                //}
-
+                /*if (ttt++ == 1) {
+                	debug_img(orig_box, atom, n_atom, bond, n_bond, "tmp.png");
+                }
+		*/
                 n_atom = find_dashed_bonds(p, atom, bond, n_atom, &n_bond, max(MAX_DASH, int(avg_bond_length / 3)),
                                            avg_bond_length, orig_box, bgColor, THRESHOLD_BOND, thick, avg_bond_length);
 
