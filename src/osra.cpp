@@ -1452,11 +1452,12 @@ const Color getBgColor(const Image &image)
 {
   ColorGray c, r;
   r = image.pixelColor(1, 1);
-
   for (int i = 0; i < BG_PICK_POINTS; i++)
     {
-      int x = (image.columns() * rand()) / RAND_MAX;
-      int y = (image.rows() * rand()) / RAND_MAX;
+      double a = (double)rand()/RAND_MAX;
+      double b = (double)rand()/RAND_MAX;
+      int x = int(image.columns() *a);
+      int y = int(image.rows() * b);
       c = image.pixelColor(x, y);
       if (c.shade() > r.shade())
         r = c;
@@ -1513,6 +1514,63 @@ void otsu_find_peaks(const vector<int> &h, int num_bins, int &peak1, int &peak2,
       }
 }
 
+Image adaptive_otsu(const Image &image, int window)
+{
+  int num_bins=20;
+  Image result(Geometry(image.columns(),image.rows()),"white");
+  vector<int> h(num_bins,0);
+  vector<int> h0(num_bins,0);
+  ColorGray g;
+  int peak1, peak2, max1, max2;
+
+  for (int i1 = 0; i1 < min((int)image.columns(), window/2); i1++)
+    for (int j1 = 0; j1 < min((int)image.rows(), window/2); j1++)
+      {
+	g = image.pixelColor(i1, j1);
+	h0[int((num_bins-1)*g.shade())]++;
+      }
+
+  for (int j = 0; j < image.rows(); j++)
+    {
+      for (int k = 0; k<num_bins; k++) h[k]=h0[k];
+      for (int i = 0; i < image.columns(); i++)
+	  {
+	    otsu_find_peaks(h,num_bins,peak1,peak2, max1, max2);
+	    g = image.pixelColor(i, j);
+	    double median = 0.5*(peak1+peak2)/num_bins;
+	    if (g.shade() > median)
+	      result.pixelColor(i,j,"white");
+	    else
+	      result.pixelColor(i,j,"black");
+	    if ((i-window/2) >=0)
+	      for (int j1 = max(0,j-window/2); j1 < min((int)image.rows(), j + window/2); j1++)
+		{
+		  g = image.pixelColor(i-window/2, j1);
+		  h[int((num_bins-1)*g.shade())]--;
+		}
+	    if ((i+window/2) < image.columns())
+	      for (int j1 = max(0,j-window/2); j1 < min((int)image.rows(), j + window/2); j1++)
+		{
+		  g = image.pixelColor(i+window/2, j1);
+		  h[int((num_bins-1)*g.shade())]++;
+		}
+	  }
+      if ((j-window/2) >=0)
+	for (int i1 = 0; i1 < min((int)image.columns(),window/2); i1++)
+	  {
+	    g = image.pixelColor(i1,j-window/2);
+	    h0[int((num_bins-1)*g.shade())]--;
+	  }
+      if ((j+window/2) < image.rows())
+	for (int i1 = 0; i1 < min((int)image.columns(),window/2); i1++)
+	  {
+	    g = image.pixelColor(i1,j+window/2);
+	    h0[int((num_bins-1)*g.shade())]++;
+	  } 
+    }
+  return(result);
+}
+
 bool convert_to_gray(Image &image, bool invert, bool adaptive, bool verbose)
 {
   int num_bins=20;
@@ -1525,8 +1583,10 @@ bool convert_to_gray(Image &image, bool invert, bool adaptive, bool verbose)
 
   for (int i = 0; i < BG_PICK_POINTS; i++)
     {
-      int x = (image.columns() * rand()) / RAND_MAX;
-      int y = (image.rows() * rand()) / RAND_MAX;
+      double a = (double) rand() / RAND_MAX;
+      double b = (double) rand() / RAND_MAX;
+      int x = int(image.columns() * a);
+      int y = int(image.rows() * b);
       c = image.pixelColor(x, y);
       bg_search[int((num_bins-1)*c.red())][int((num_bins-1)*c.green())][int((num_bins-1)*c.blue())]++;
     }
@@ -1544,10 +1604,12 @@ bool convert_to_gray(Image &image, bool invert, bool adaptive, bool verbose)
 	  }
 
   bool color_background = false;
-  if (bg_pos_red != bg_pos_green || bg_pos_red != bg_pos_blue || bg_pos_green != bg_pos_blue) color_background = true;
-  double red = (double)bg_pos_red/(num_bins-1);
-  double green = (double)bg_pos_green/(num_bins-1);
-  double blue = (double)bg_pos_blue/(num_bins-1);
+  if (verbose)
+    {
+      cout<<"Background rgb: "<<bg_pos_red<<" "<<bg_pos_green<<" "<<bg_pos_blue<<endl;
+    }
+      
+  if (fabs(bg_pos_red-bg_pos_green) > 0.1 || fabs(bg_pos_red-bg_pos_blue)>0.1 || fabs(bg_pos_green-bg_pos_blue)>0.1) color_background = true;
 
   bool matte = image.matte();
   if (color_background)
@@ -1569,9 +1631,9 @@ bool convert_to_gray(Image &image, bool invert, bool adaptive, bool verbose)
           }
 	else if (!color_background)
           {
-	    if (fabs(b.red()-red) >= fabs(b.green()-green) && fabs(b.red()-red) >= fabs(b.blue()-blue))
+	    if (fabs(b.red()-bg_pos_red) >= fabs(b.green()-bg_pos_green) && fabs(b.red()-bg_pos_red) >= fabs(b.blue()-bg_pos_blue))
 	      a = b.red();
-	    else if (fabs(b.red()-red) < fabs(b.green()-green) && fabs(b.green()-green) >= fabs(b.blue()-blue))
+	    else if (fabs(b.red()-bg_pos_red) < fabs(b.green()-bg_pos_green) && fabs(b.green()-bg_pos_green) >= fabs(b.blue()-bg_pos_blue))
 	      a = b.green();
 	    else
 	      a = b.blue();
@@ -1588,19 +1650,21 @@ bool convert_to_gray(Image &image, bool invert, bool adaptive, bool verbose)
   otsu_find_peaks(h,num_bins,peak1,peak2, max1, max2);
 
   double distance_between_peaks = (double)(peak2-peak1)/num_bins;
-  if (verbose)
-    {
-      cout << "Distance between light and dark: " << distance_between_peaks << endl;
-      cout<<"Max at peak 1: "<<max1<<"  Max at peak 2: "<<max2<<endl;
-    }
   if (distance_between_peaks < THRESHOLD_GLOBAL) adaptive = true;
   if (max1 > max2 || invert)
     invert = true;
 
+  if (verbose)
+    {
+      cout << "Distance between light and dark: " << distance_between_peaks << endl;
+      cout<<"Max at peak 1: "<<max1<<"  Max at peak 2: "<<max2<<endl;
+      cout<<"Color background? "<<color_background<<endl;
+      cout<<"Adaptive? "<<adaptive<<endl;
+    }
 
   //const double kernel[]={0.0, -1.0, 0.0,-1.0, 5.0, -1.0, 0.0, -1.0, 0.0};
   //image.convolve(3,kernel);
-  //image.write("tmp.png");
+
 
   if (!color_background)
     {
@@ -1612,45 +1676,15 @@ bool convert_to_gray(Image &image, bool invert, bool adaptive, bool verbose)
   int window = min(image.columns(),image.rows()) / 41;
   if (window < 15) window = 15;
 
-  // Pre-processing for images from iPhone and Android camera phones
   if (color_background)
     {
       image.despeckle();
-      double median = 0.5*(peak1+peak2)/num_bins;
-      for (int i = 0; i < image.columns(); i++)
-	for (int j = 0; j < image.rows(); j++)
-	  {
-	    g = image.pixelColor(i, j);
-	    if (g.shade() > median)
-	      image.pixelColor(i,j,"white");
-	    else
-	      image.pixelColor(i,j,"black");
-	  }
+      image = adaptive_otsu(image,window);
     }
   else if (adaptive)
     {
       image.despeckle();
-      /*Image result(Geometry(image.columns(),image.rows()),"white");
-      for (int i = 0; i < image.columns(); i++)
-	 for (int j = 0; j < image.rows(); j++)
-	   {
-	     for (int k = 0; k<num_bins; k++) h[k]=0;
-	     for (int i1 = max(0, i - window/2); i1 < min((int)image.columns(), i + window/2); i1++)
-	       for (int j1 = max(0, j - window/2); j1 < min((int)image.rows(), j + window/2); j1++)
-		 {
-		   g = image.pixelColor(i1, j1);
-		   h[int((num_bins-1)*g.shade())]++;
-		 }
-	     otsu_find_peaks(h,num_bins,peak1,peak2, max1, max2);
-	     g = image.pixelColor(i, j);
-	     double median = 0.5*(peak1+peak2)/num_bins;
-	     if (g.shade() > median)
-	       result.pixelColor(i,j,"white");
-	     else
-	       result.pixelColor(i,j,"black");
-	       }
-	       image = result;*/
-       if (invert)
+      if (invert)
         {
           image.adaptiveThreshold(window,window,7);
         }
@@ -1659,11 +1693,11 @@ bool convert_to_gray(Image &image, bool invert, bool adaptive, bool verbose)
 	  image.negate();
           image.adaptiveThreshold(window,window,7);
           image.negate();
-        }
+	}
     }
   if (invert)
     image.negate();
-  image.write("tmp.png");
+
   return(adaptive);
 }
 
@@ -4474,19 +4508,20 @@ void find_connected_components(const Image &image, double threshold, const Color
   point_t p;
   list<point_t> points;
   int speckle_area = 2;
-  /* if (adaptive)
+  if (adaptive)
     {
       int speckle_side = min(image.columns(), image.rows()) / 200;
       speckle_area = speckle_side * speckle_side;
       if (speckle_area < 2) speckle_area = 2;
     }
-  */
+  
   vector<vector<int> > tmp(image.columns(), vector<int> (image.rows(), 0));
 
   for (unsigned int i = 0; i < image.columns(); i++)
     for (unsigned int j = 0; j < image.rows(); j++)
-      if (get_pixel(image, bgColor, i, j, threshold) == 1) // populate with low threshold for future anisotropic smoothing
-        tmp[i][j] = 1;
+	if (get_pixel(image, bgColor, i, j, threshold) == 1) // populate with low threshold for future anisotropic smoothing
+	  tmp[i][j] = 1;
+
 
   for (unsigned int i = 0; i < image.columns(); i++)
     for (unsigned int j = 0; j < image.rows(); j++)
@@ -5641,7 +5676,6 @@ int main(int argc, char **argv)
           //dbg.backgroundColor("white");
           //dbg.erase();
           //dbg.type(TrueColorType);
-	  image.write("tmp.png"); exit(0);
           for (int k = 0; k < n_boxes; k++)
             if ((boxes[k].x2 - boxes[k].x1) > max_font_width && (boxes[k].y2 - boxes[k].y1) > max_font_height
                 && !boxes[k].c.empty() && ((boxes[k].x2 - boxes[k].x1) > 2 * max_font_width || (boxes[k].y2
@@ -5671,7 +5705,6 @@ int main(int argc, char **argv)
                 int width = orig_box.columns();
                 int height = orig_box.rows();
                 Image thick_box;
-		//      orig_box.write("tmp.png");
                 if (resolution >= 300)
                   {
                     int max_hist;
