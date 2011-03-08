@@ -1531,16 +1531,16 @@ bool convert_to_gray(Image &image, bool invert, bool adaptive, bool verbose)
       bg_search[int((num_bins-1)*c.red())][int((num_bins-1)*c.green())][int((num_bins-1)*c.blue())]++;
     }
   int bg_peak = 0;
-  int bg_pos_red = 0, bg_pos_green = 0, bg_pos_blue = 0;
+  double bg_pos_red = 0, bg_pos_green = 0, bg_pos_blue = 0;
   for (int i=0; i<num_bins; i++)
     for (int j=0; j<num_bins; j++)
       for (int k=0; k<num_bins; k++)
 	if (bg_search[i][j][k] > bg_peak)
 	  {
 	    bg_peak = bg_search[i][j][k];
-	    bg_pos_red = i;
-	    bg_pos_green = j;
-	    bg_pos_blue = k;
+	    bg_pos_red = (double)i/(num_bins-1);
+	    bg_pos_green = (double)j/(num_bins-1);
+	    bg_pos_blue = (double)k/(num_bins-1);
 	  }
 
   bool color_background = false;
@@ -4634,7 +4634,7 @@ void remove_separators(vector<list<point_t> > &segments, vector<vector<point_t> 
       double aspect = 0;
 
       if (sright != sleft)
-        aspect = 1. * (sbottom - stop) / (sright - sleft); // where did right and left come from?
+        aspect = 1. * (sbottom - stop+1) / (sright - sleft+1); // where did right and left come from?
       if (aspect > max_aspect || aspect < 1. / max_aspect)
         {
           s = segments.erase(s);
@@ -4768,7 +4768,7 @@ void remove_text_blocks(const list<list<int> > &clusters, const vector<list<poin
               }
 
             area = segments[*i].size();
-            square_area = (sbottom - stop) * (sright - sleft);
+            square_area = (sbottom - stop+1) * (sright - sleft+1);
 
             if (square_area != 0)
               ratio = 1. * area / square_area;
@@ -4900,7 +4900,7 @@ list<list<list<point_t> > > find_segments(const Image &image, double threshold, 
   int entropy_max = locate_max_entropy(features, max_area_ratio, max_dist, stats);
 
   int dist = SINGLE_IMAGE_DIST;
-  if (entropy_max > THRESHOLD_LEVEL)
+  if (entropy_max > THRESHOLD_LEVEL && !adaptive)
     {
       vector<int> text_stats(max_dist, 0);
       for (unsigned int j = 2; j < max_dist; j++)
@@ -4923,6 +4923,7 @@ list<list<list<point_t> > > find_segments(const Image &image, double threshold, 
       avail[i] = 1;
 
   const list<list<int> > &clusters = assemble_clusters(margins, dist, distance_matrix, avail, false, area_matrix);
+
   explicit_clusters = build_explicit_clusters(clusters, segments);
   return explicit_clusters;
 }
@@ -5032,10 +5033,11 @@ int prune_clusters(list<list<list<point_t> > > &clusters, vector<box_t> &boxes)
             }
 
           area = s->size();
-          square_area = (sbottom - stop) * (sright - sleft);
+          square_area = (sbottom - stop+1) * (sright - sleft+1);
           ratio = 0;
           if (square_area != 0)
             ratio = 1. * area / square_area;
+
           if (ratio < MAX_RATIO && ratio > 0)
             fill_below_max = true;
 
@@ -5051,6 +5053,7 @@ int prune_clusters(list<list<list<point_t> > > &clusters, vector<box_t> &boxes)
 
       if (right != left)
         aspect = 1. * (bottom - top) / (right - left);
+
       if (fill_below_max && aspect > MIN_ASPECT && aspect < MAX_ASPECT)
         {
           box_t b1;
@@ -5638,6 +5641,7 @@ int main(int argc, char **argv)
           //dbg.backgroundColor("white");
           //dbg.erase();
           //dbg.type(TrueColorType);
+	  image.write("tmp.png"); exit(0);
           for (int k = 0; k < n_boxes; k++)
             if ((boxes[k].x2 - boxes[k].x1) > max_font_width && (boxes[k].y2 - boxes[k].y1) > max_font_height
                 && !boxes[k].c.empty() && ((boxes[k].x2 - boxes[k].x1) > 2 * max_font_width || (boxes[k].y2
@@ -5667,7 +5671,7 @@ int main(int argc, char **argv)
                 int width = orig_box.columns();
                 int height = orig_box.rows();
                 Image thick_box;
-
+		//      orig_box.write("tmp.png");
                 if (resolution >= 300)
                   {
                     int max_hist;
