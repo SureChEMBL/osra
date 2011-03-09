@@ -1573,9 +1573,10 @@ Image adaptive_otsu(const Image &image, int window)
 
 bool convert_to_gray(Image &image, bool invert, bool adaptive, bool verbose)
 {
-  int num_bins=20;
+  int num_bins=50;
+  int num_bins_rgb = 20;
   vector<int> h(num_bins,0);
-  vector < vector < vector <int> > > bg_search(num_bins, vector < vector <int> > (num_bins, vector<int>(num_bins, 0)));
+  vector < vector < vector <int> > > bg_search(num_bins_rgb, vector < vector <int> > (num_bins_rgb, vector<int>(num_bins_rgb, 0)));
   ColorRGB c,b;
   Color t;
   ColorGray g;
@@ -1588,19 +1589,19 @@ bool convert_to_gray(Image &image, bool invert, bool adaptive, bool verbose)
       int x = int(image.columns() * a);
       int y = int(image.rows() * b);
       c = image.pixelColor(x, y);
-      bg_search[int((num_bins-1)*c.red())][int((num_bins-1)*c.green())][int((num_bins-1)*c.blue())]++;
+      bg_search[int((num_bins_rgb-1)*c.red())][int((num_bins_rgb-1)*c.green())][int((num_bins_rgb-1)*c.blue())]++;
     }
   int bg_peak = 0;
   double bg_pos_red = 0, bg_pos_green = 0, bg_pos_blue = 0;
-  for (int i=0; i<num_bins; i++)
-    for (int j=0; j<num_bins; j++)
-      for (int k=0; k<num_bins; k++)
+  for (int i=0; i<num_bins_rgb; i++)
+    for (int j=0; j<num_bins_rgb; j++)
+      for (int k=0; k<num_bins_rgb; k++)
 	if (bg_search[i][j][k] > bg_peak)
 	  {
 	    bg_peak = bg_search[i][j][k];
-	    bg_pos_red = (double)i/(num_bins-1);
-	    bg_pos_green = (double)j/(num_bins-1);
-	    bg_pos_blue = (double)k/(num_bins-1);
+	    bg_pos_red = (double)i/(num_bins_rgb-1);
+	    bg_pos_green = (double)j/(num_bins_rgb-1);
+	    bg_pos_blue = (double)k/(num_bins_rgb-1);
 	  }
 
   bool color_background = false;
@@ -1649,7 +1650,7 @@ bool convert_to_gray(Image &image, bool invert, bool adaptive, bool verbose)
   int peak1, peak2, max1, max2;
   otsu_find_peaks(h,num_bins,peak1,peak2, max1, max2);
 
-  double distance_between_peaks = (double)(peak2-peak1)/num_bins;
+  double distance_between_peaks = (double)(peak2-peak1)/(num_bins-1);
   if (distance_between_peaks < THRESHOLD_GLOBAL) adaptive = true;
   if (max1 > max2 || invert)
     invert = true;
@@ -1660,6 +1661,7 @@ bool convert_to_gray(Image &image, bool invert, bool adaptive, bool verbose)
       cout<<"Max at peak 1: "<<max1<<"  Max at peak 2: "<<max2<<endl;
       cout<<"Color background? "<<color_background<<endl;
       cout<<"Adaptive? "<<adaptive<<endl;
+      cout<<"Invert? "<<invert<<endl;
     }
 
   //const double kernel[]={0.0, -1.0, 0.0,-1.0, 5.0, -1.0, 0.0, -1.0, 0.0};
@@ -1672,16 +1674,10 @@ bool convert_to_gray(Image &image, bool invert, bool adaptive, bool verbose)
       image.type(GrayscaleType);
     }
 
-
   int window = min(image.columns(),image.rows()) / 41;
   if (window < 15) window = 15;
 
-  if (color_background)
-    {
-      image.despeckle();
-      image = adaptive_otsu(image,window);
-    }
-  else if (adaptive)
+  if (adaptive)
     {
       image.despeckle();
       if (invert)
@@ -1695,8 +1691,15 @@ bool convert_to_gray(Image &image, bool invert, bool adaptive, bool verbose)
           image.negate();
 	}
     }
+  else if (color_background)
+    {
+      image.despeckle();
+      image = adaptive_otsu(image,window);
+    }
+
   if (invert)
     image.negate();
+  //image.write("tmp.png");
 
   return(adaptive);
 }
