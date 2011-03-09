@@ -432,7 +432,7 @@ void unpaper(Magick::Image &picture);
 #define MAX_FONT_HEIGHT 22
 #define MAX_FONT_WIDTH 21
 #define MIN_FONT_HEIGHT 5
-#define BG_PICK_POINTS 100
+#define BG_PICK_POINTS 1000
 #define D_T_TOLERANCE 0.95
 #define V_DISPLACEMENT 3
 #define DIR_CHANGE 2

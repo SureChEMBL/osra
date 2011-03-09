@@ -1610,7 +1610,7 @@ bool convert_to_gray(Image &image, bool invert, bool adaptive, bool verbose)
       cout<<"Background rgb: "<<bg_pos_red<<" "<<bg_pos_green<<" "<<bg_pos_blue<<endl;
     }
       
-  if (fabs(bg_pos_red-bg_pos_green) > 0.1 || fabs(bg_pos_red-bg_pos_blue)>0.1 || fabs(bg_pos_green-bg_pos_blue)>0.1) color_background = true;
+  if (fabs(bg_pos_red-bg_pos_green) > 0.05 || fabs(bg_pos_red-bg_pos_blue)>0.05 || fabs(bg_pos_green-bg_pos_blue)>0.05) color_background = true;
 
   bool matte = image.matte();
   if (color_background)
@@ -1630,7 +1630,8 @@ bool convert_to_gray(Image &image, bool invert, bool adaptive, bool verbose)
             g.shade(1);
             image.pixelColor(i, j, g);
           }
-	else if (!color_background)
+	else if (!color_background &&
+		 (fabs(b.red()-b.green()) > 0.1 || fabs(b.red()-b.blue()) > 0.1  || fabs(b.blue()-b.green()) > 0.1))
           {
 	    if (fabs(b.red()-bg_pos_red) >= fabs(b.green()-bg_pos_green) && fabs(b.red()-bg_pos_red) >= fabs(b.blue()-bg_pos_blue))
 	      a = b.red();
@@ -1642,7 +1643,7 @@ bool convert_to_gray(Image &image, bool invert, bool adaptive, bool verbose)
             c.green(a);
             c.blue(a);
             image.pixelColor(i, j, c);
-          }
+	  }
         g = image.pixelColor(i, j);
         h[int((num_bins-1)*g.shade())]++;
       }
@@ -1666,7 +1667,6 @@ bool convert_to_gray(Image &image, bool invert, bool adaptive, bool verbose)
 
   //const double kernel[]={0.0, -1.0, 0.0,-1.0, 5.0, -1.0, 0.0, -1.0, 0.0};
   //image.convolve(3,kernel);
-
 
   if (!color_background)
     {
@@ -1699,7 +1699,8 @@ bool convert_to_gray(Image &image, bool invert, bool adaptive, bool verbose)
 
   if (invert)
     image.negate();
-  //image.write("tmp.png");
+
+  //  image.write("tmp.png");
 
   return(adaptive);
 }
