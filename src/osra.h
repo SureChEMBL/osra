@@ -89,7 +89,7 @@ int get_pixel(const Magick::Image &image, const Magick::ColorGray &bg, unsigned 
 #define MAX_FONT_HEIGHT 22
 #define MAX_FONT_WIDTH 21
 #define MIN_FONT_HEIGHT 5
-#define BG_PICK_POINTS 100
+#define BG_PICK_POINTS 1000
 #define D_T_TOLERANCE 0.95
 #define V_DISPLACEMENT 3
 #define DIR_CHANGE 2
@@ -111,7 +111,7 @@ int get_pixel(const Magick::Image &image, const Magick::ColorGray &bg, unsigned 
 #define SEPARATOR_AREA 300
 #define MAX_DIST 50
 #define MAX_AREA_RATIO 50
-#define SINGLE_IMAGE_DIST 100
+#define SINGLE_IMAGE_DIST 1000
 #define THRESHOLD_LEVEL 4
 #define TEXT_LINE_SIZE 8
 #define PARTS_IN_MARGIN 2

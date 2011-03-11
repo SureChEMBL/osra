@@ -100,8 +100,8 @@ extern "C" {
 }
 
 JNIEXPORT jint JNICALL Java_net_sourceforge_osra_OsraLib_processImage(JNIEnv *j_env, jobject j_this, jbyteArray j_image_data, jobject j_writer, jstring j_format,
-                                                                         jboolean j_output_confidence, jboolean j_output_coordinates,
-                                                                         jboolean j_output_avg_bond_length)
+    jboolean j_output_confidence, jboolean j_output_coordinates,
+    jboolean j_output_avg_bond_length)
 {
   const char *format = j_env->GetStringUTFChars(j_format, NULL);
   const char *image_data = (char *) j_env->GetByteArrayElements(j_image_data, NULL);
@@ -115,22 +115,23 @@ JNIEXPORT jint JNICALL Java_net_sourceforge_osra_OsraLib_processImage(JNIEnv *j_
       ostringstream output_structure_stream;
 
       result = osra_process_image(
-                                  image_data,
-                                  j_env->GetArrayLength(j_image_data),
-                                  output_structure_stream,
-                                  0,
-                                  false,
-                                  0,
-                                  0,
-                                  0,
-                                  false,
-                                  format,
-                                  j_output_confidence,
-                                  false,
-                                  false,
-                                  j_output_coordinates,
-                                  j_output_avg_bond_length
-      );
+                 image_data,
+                 j_env->GetArrayLength(j_image_data),
+                 output_structure_stream,
+                 0,
+                 false,
+                 0,
+                 0,
+                 0,
+                 false,
+                 false,
+                 format,
+                 j_output_confidence,
+                 false,
+                 false,
+                 j_output_coordinates,
+                 j_output_avg_bond_length
+               );
 
       j_env->ReleaseByteArrayElements(j_image_data, (jbyte *) image_data, JNI_ABORT);
 

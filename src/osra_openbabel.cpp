@@ -138,11 +138,8 @@ void mol_to_abbr() {
 
 int get_atomic_num(const string &s, OBMol &mol, int &n, int &bondn, const map<string, string> &superatom)
 {
-  //mol_to_abbr();
-  /*	if (s == "Xx" || s == "X" || s == "R" || s == "Y" || s == "Z" || s == "R1" || s == "R2" || s == "R3" || s == "R4"
-  		|| s == "R5" || s == "R6" || s == "R7" || s == "R8" || s == "R9" || s == "R10" || s == "Y2")
-  	return (0);
-  */
+
+  if (s.empty() || s == " ") return 6;
   map<string, string>::const_iterator it = superatom.find(s);
 
   if (it != superatom.end())
@@ -152,10 +149,8 @@ int get_atomic_num(const string &s, OBMol &mol, int &n, int &bondn, const map<st
 
   int isotope;
   int anum = etab.GetAtomicNum(s.c_str(), isotope);
-
-  if (anum != 0)
-    return (anum);
-  return (6);
+//  if (anum == 0) return(6);
+  return (anum);
 }
 
 // Function: confidence_function()
@@ -582,7 +577,7 @@ const string get_formatted_structure(vector<atom_t> &atom, const vector<bond_t> 
         if (page)
           strstr << " " << *page;
         if (surrounding_box)
-          strstr << surrounding_box->x1 << 'x' << surrounding_box->y1 << '-' << surrounding_box->x2 << 'x' << surrounding_box->y2;
+          strstr << " "<<surrounding_box->x1 << 'x' << surrounding_box->y1 << '-' << surrounding_box->x2 << 'x' << surrounding_box->y2;
       }
 
     strstr << endl;

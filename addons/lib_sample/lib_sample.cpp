@@ -66,27 +66,27 @@ int main(int argc, char **argv)
 
   // Call OSRA:
   const int result = osra_process_image(
-                              buf,
-                              buf_size,
-                              cout,
-                              0,
-                              false,
-                              0,
-                              0,
-                              0,
-                              false,
-                              "sdf",
-                              true,
-                              false,
-                              false,
-                              true,
-                              true,
-                              "",
-                              "",
-                              "",
-                              true,
-                              true
-  );
+                       buf,
+                       buf_size,
+                       cout,
+                       0,
+                       false,
+                       0,
+                       0,
+                       0,
+                       false,
+                       "sdf",
+                       true,
+                       false,
+                       false,
+                       true,
+                       true,
+                       "",
+                       "",
+                       "",
+                       true,
+                       true
+                     );
 
   // Release the allocated resources:
   is.close();

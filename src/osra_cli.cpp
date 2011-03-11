@@ -36,7 +36,7 @@ int main(int argc,
          int image_length,
          ostream &output_structure_stream
 #endif
-)
+        )
 {
   TCLAP::CmdLine cmd("OSRA: Optical Structure Recognition Application, created by Igor Filippov, 2007-2010", ' ',
                      PACKAGE_VERSION);
@@ -63,6 +63,9 @@ int main(int argc,
 
   TCLAP::SwitchArg jaggy_option("j", "jaggy", "Additional thinning/scaling down of low quality documents", false);
   cmd.add(jaggy_option);
+
+  TCLAP::SwitchArg adaptive_option("i", "adaptive", "Adaptive thresholding pre-processing, useful for low light/low contrast images", false);
+  cmd.add(adaptive_option);
 
   //
   // Output format options
@@ -130,33 +133,34 @@ int main(int argc,
 
   int result = osra_process_image(
 #ifdef OSRA_ANDROID
-                            image_data,
-                            image_length,
-                            output_structure_stream,
+                 image_data,
+                 image_length,
+                 output_structure_stream,
 #else
-                            input_file_option.getValue(),
-                            output_file_option.getValue(),
+                 input_file_option.getValue(),
+                 output_file_option.getValue(),
 #endif
-                            rotate_option.getValue(),
-                            invert_option.getValue(),
-                            resolution_option.getValue(),
-                            threshold_option.getValue(),
-                            do_unpaper_option.getValue(),
-                            jaggy_option.getValue(),
-                            output_format_option.getValue(),
-                            show_confidence_option.getValue(),
-                            show_resolution_guess_option.getValue(),
-                            show_page_option.getValue(),
-                            show_coordinates_option.getValue(),
-                            show_avg_bond_length_option.getValue(),
-                            osra_dir,
-                            spelling_file_option.getValue(),
-                            superatom_file_option.getValue(),
-                            debug_option.getValue(),
-                            verbose_option.getValue(),
-                            output_image_file_prefix_option.getValue(),
-                            resize_option.getValue()
-  );
+                 rotate_option.getValue(),
+                 invert_option.getValue(),
+                 resolution_option.getValue(),
+                 threshold_option.getValue(),
+                 do_unpaper_option.getValue(),
+                 jaggy_option.getValue(),
+                 adaptive_option.getValue(),
+                 output_format_option.getValue(),
+                 show_confidence_option.getValue(),
+                 show_resolution_guess_option.getValue(),
+                 show_page_option.getValue(),
+                 show_coordinates_option.getValue(),
+                 show_avg_bond_length_option.getValue(),
+                 osra_dir,
+                 spelling_file_option.getValue(),
+                 superatom_file_option.getValue(),
+                 debug_option.getValue(),
+                 verbose_option.getValue(),
+                 output_image_file_prefix_option.getValue(),
+                 resize_option.getValue()
+               );
 
   return result;
 }

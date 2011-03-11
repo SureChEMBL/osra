@@ -40,6 +40,8 @@ extern "C" {
 #include <pgm2asc.h>
 }
 
+#include <openbabel/oberror.h>
+
 #include "osra.h"
 #include "osra_lib.h"
 #include "osra_ocr.h"
@@ -1524,24 +1526,263 @@ void assign_charge(vector<atom_t> &atom, vector<bond_t> &bond, int n_atom, int n
       }
 }
 
-const Color getBgColor(const Image &image, bool inv)
+const Color getBgColor(const Image &image)
 {
   ColorGray c, r;
   r = image.pixelColor(1, 1);
-
   for (int i = 0; i < BG_PICK_POINTS; i++)
     {
-      int x = (image.columns() * rand()) / RAND_MAX;
-      int y = (image.rows() * rand()) / RAND_MAX;
+      double a = (double)rand()/RAND_MAX;
+      double b = (double)rand()/RAND_MAX;
+      int x = int(image.columns() *a);
+      int y = int(image.rows() * b);
       c = image.pixelColor(x, y);
-      if ((!inv) && ((c.shade()) > (r.shade())))
-        r = c;
-      else if ((inv) && ((c.shade()) < (r.shade())))
+      if (c.shade() > r.shade())
         r = c;
     }
 
   return (r);
 }
+
+void otsu_find_peaks(const vector<int> &h, int num_bins, int &peak1, int &peak2, int &max1, int &max2)
+{
+// Otsu Algorithm, from http://habrahabr.ru/blogs/algorithm/112079/
+  unsigned int m = 0;
+  unsigned int n = 0;
+  double maxSigma = -1;
+  unsigned int min_t = num_bins;
+  unsigned int alpha1 = 0;
+  unsigned int beta1 = 0;
+  for (unsigned int i = 0; i<num_bins; i++)
+    {
+      m += i*h[i];
+      n += h[i];
+    }
+
+  for (unsigned int t = 0; t < num_bins; t++)
+    {
+      alpha1 += t * h[t];
+      beta1 += h[t];
+
+      double w1 = (double)beta1 / n;
+      double a = (double)alpha1 / beta1 - (double)(m - alpha1) / (n - beta1);
+      double sigma = w1 * (1 - w1) * a * a;
+
+      if (sigma > maxSigma)
+        {
+          maxSigma = sigma;
+          min_t = t;
+        }
+    }
+  max1 = 0;
+  peak1 = 0;
+  for (unsigned int i = 0; i<=min_t; i++)
+    if (h[i] > max1)
+      {
+        max1 = h[i];
+        peak1 = i;
+      }
+  max2 = 0;
+  peak2 = 0;
+  for (unsigned int i = min_t+1; i<num_bins; i++)
+    if (h[i] > max2)
+      {
+        max2 = h[i];
+        peak2 = i;
+      }
+}
+
+Image adaptive_otsu(const Image &image, int window)
+{
+  int num_bins=20;
+  Image result(Geometry(image.columns(),image.rows()),"white");
+  vector<int> h(num_bins,0);
+  vector<int> h0(num_bins,0);
+  ColorGray g;
+  int peak1, peak2, max1, max2;
+
+  for (int i1 = 0; i1 < min((int)image.columns(), window/2); i1++)
+    for (int j1 = 0; j1 < min((int)image.rows(), window/2); j1++)
+      {
+        g = image.pixelColor(i1, j1);
+        h0[int((num_bins-1)*g.shade())]++;
+      }
+
+  for (int j = 0; j < image.rows(); j++)
+    {
+      for (int k = 0; k<num_bins; k++) h[k]=h0[k];
+      for (int i = 0; i < image.columns(); i++)
+        {
+          otsu_find_peaks(h,num_bins,peak1,peak2, max1, max2);
+          g = image.pixelColor(i, j);
+          double median = 0.5*(peak1+peak2)/num_bins;
+          if (g.shade() > median)
+            result.pixelColor(i,j,"white");
+          else
+            result.pixelColor(i,j,"black");
+          if ((i-window/2) >=0)
+            for (int j1 = max(0,j-window/2); j1 < min((int)image.rows(), j + window/2); j1++)
+              {
+                g = image.pixelColor(i-window/2, j1);
+                h[int((num_bins-1)*g.shade())]--;
+              }
+          if ((i+window/2) < image.columns())
+            for (int j1 = max(0,j-window/2); j1 < min((int)image.rows(), j + window/2); j1++)
+              {
+                g = image.pixelColor(i+window/2, j1);
+                h[int((num_bins-1)*g.shade())]++;
+              }
+        }
+      if ((j-window/2) >=0)
+        for (int i1 = 0; i1 < min((int)image.columns(),window/2); i1++)
+          {
+            g = image.pixelColor(i1,j-window/2);
+            h0[int((num_bins-1)*g.shade())]--;
+          }
+      if ((j+window/2) < image.rows())
+        for (int i1 = 0; i1 < min((int)image.columns(),window/2); i1++)
+          {
+            g = image.pixelColor(i1,j+window/2);
+            h0[int((num_bins-1)*g.shade())]++;
+          }
+    }
+  return(result);
+}
+
+bool convert_to_gray(Image &image, bool invert, bool adaptive, bool verbose)
+{
+  int num_bins=50;
+  int num_bins_rgb = 20;
+  vector<int> h(num_bins,0);
+  vector < vector < vector <int> > > bg_search(num_bins_rgb, vector < vector <int> > (num_bins_rgb, vector<int>(num_bins_rgb, 0)));
+  ColorRGB c,b;
+  Color t;
+  ColorGray g;
+  double a;
+
+  for (int i = 0; i < BG_PICK_POINTS; i++)
+    {
+      double a = (double) rand() / RAND_MAX;
+      double b = (double) rand() / RAND_MAX;
+      int x = int(image.columns() * a);
+      int y = int(image.rows() * b);
+      c = image.pixelColor(x, y);
+      bg_search[int((num_bins_rgb-1)*c.red())][int((num_bins_rgb-1)*c.green())][int((num_bins_rgb-1)*c.blue())]++;
+    }
+  int bg_peak = 0;
+  double bg_pos_red = 0, bg_pos_green = 0, bg_pos_blue = 0;
+  for (int i=0; i<num_bins_rgb; i++)
+    for (int j=0; j<num_bins_rgb; j++)
+      for (int k=0; k<num_bins_rgb; k++)
+        if (bg_search[i][j][k] > bg_peak)
+          {
+            bg_peak = bg_search[i][j][k];
+            bg_pos_red = (double)i/(num_bins_rgb-1);
+            bg_pos_green = (double)j/(num_bins_rgb-1);
+            bg_pos_blue = (double)k/(num_bins_rgb-1);
+          }
+
+  bool color_background = false;
+  if (verbose)
+    {
+      cout<<"Background rgb: "<<bg_pos_red<<" "<<bg_pos_green<<" "<<bg_pos_blue<<endl;
+    }
+
+  if (fabs(bg_pos_red-bg_pos_green) > 0.05 || fabs(bg_pos_red-bg_pos_blue)>0.05 || fabs(bg_pos_green-bg_pos_blue)>0.05) color_background = true;
+
+  bool matte = image.matte();
+  if (color_background)
+    {
+      image.contrast(2);
+      image.type(GrayscaleType);
+    }
+
+  for (unsigned int i = 0; i < image.columns(); i++)
+    for (unsigned int j = 0; j < image.rows(); j++)
+      {
+        t = image.pixelColor(i, j);
+        b = t;
+        g = t;
+        if (matte && t.alpha() == 1 && g.shade() < 0.5)
+          {
+            g.shade(1);
+            image.pixelColor(i, j, g);
+          }
+        else if (!color_background &&
+                 (fabs(b.red()-b.green()) > 0.1 || fabs(b.red()-b.blue()) > 0.1  || fabs(b.blue()-b.green()) > 0.1))
+          {
+            if (fabs(b.red()-bg_pos_red) >= fabs(b.green()-bg_pos_green) && fabs(b.red()-bg_pos_red) >= fabs(b.blue()-bg_pos_blue))
+              a = b.red();
+            else if (fabs(b.red()-bg_pos_red) < fabs(b.green()-bg_pos_green) && fabs(b.green()-bg_pos_green) >= fabs(b.blue()-bg_pos_blue))
+              a = b.green();
+            else
+              a = b.blue();
+            c.red(a);
+            c.green(a);
+            c.blue(a);
+            image.pixelColor(i, j, c);
+          }
+        g = image.pixelColor(i, j);
+        h[int((num_bins-1)*g.shade())]++;
+      }
+
+  int peak1, peak2, max1, max2;
+  otsu_find_peaks(h,num_bins,peak1,peak2, max1, max2);
+
+  double distance_between_peaks = (double)(peak2-peak1)/(num_bins-1);
+  if (distance_between_peaks < THRESHOLD_GLOBAL) adaptive = true;
+  if (max1 > max2 || invert)
+    invert = true;
+
+  if (verbose)
+    {
+      cout << "Distance between light and dark: " << distance_between_peaks << endl;
+      cout<<"Max at peak 1: "<<max1<<"  Max at peak 2: "<<max2<<endl;
+      cout<<"Color background? "<<color_background<<endl;
+      cout<<"Adaptive? "<<adaptive<<endl;
+      cout<<"Invert? "<<invert<<endl;
+    }
+
+  //const double kernel[]={0.0, -1.0, 0.0,-1.0, 5.0, -1.0, 0.0, -1.0, 0.0};
+  //image.convolve(3,kernel);
+
+  if (!color_background)
+    {
+      image.contrast(2);
+      image.type(GrayscaleType);
+    }
+
+  int window = min(image.columns(),image.rows()) / 41;
+  if (window < 15) window = 15;
+
+  if (adaptive)
+    {
+      image.despeckle();
+      if (invert)
+        {
+          image.adaptiveThreshold(window,window,7);
+        }
+      else
+        {
+          image.negate();
+          image.adaptiveThreshold(window,window,7);
+          image.negate();
+        }
+    }
+  else if (color_background)
+    {
+      image.despeckle();
+      image = adaptive_otsu(image,window);
+    }
+
+  if (invert)
+    image.negate();
+
+  //  image.write("tmp.png");
+
+  return(adaptive);
+}
+
 
 void debug_img(Image &image, const vector<atom_t> &atom, int n_atom, const vector<bond_t> &bond, int n_bond,
                const string &fname)
@@ -3166,7 +3407,7 @@ bool comp_boxes(const box_t &aa, const box_t &bb)
 double noise_factor(const Image &image, int width, int height, const ColorGray &bgColor, double THRESHOLD_BOND,
                     int resolution, int &max, double &nf45)
 {
-  int max_thick = 20;
+  int max_thick = 40;
   vector<double> n(max_thick, 0);
   double nf;
 
@@ -4344,10 +4585,17 @@ unsigned int distance_between_segments(const vector<point_t> &s1, const vector<p
 }
 
 void find_connected_components(const Image &image, double threshold, const ColorGray &bgColor,
-                               vector<list<point_t> > &segments, vector<vector<point_t> > &margins)
+                               vector<list<point_t> > &segments, vector<vector<point_t> > &margins, bool adaptive)
 {
   point_t p;
   list<point_t> points;
+  int speckle_area = 2;
+  if (adaptive)
+    {
+      int speckle_side = min(image.columns(), image.rows()) / 200;
+      speckle_area = speckle_side * speckle_side;
+      if (speckle_area < 2) speckle_area = 2;
+    }
 
   vector<vector<int> > tmp(image.columns(), vector<int> (image.rows(), 0));
 
@@ -4355,6 +4603,7 @@ void find_connected_components(const Image &image, double threshold, const Color
     for (unsigned int j = 0; j < image.rows(); j++)
       if (get_pixel(image, bgColor, i, j, threshold) == 1) // populate with low threshold for future anisotropic smoothing
         tmp[i][j] = 1;
+
 
   for (unsigned int i = 0; i < image.columns(); i++)
     for (unsigned int j = 0; j < image.rows(); j++)
@@ -4413,8 +4662,11 @@ void find_connected_components(const Image &image, double threshold, const Color
             }
           if (segments.size() > MAX_SEGMENTS)
             return;
-          segments.push_back(new_segment);
-          margins.push_back(new_margin);
+          if (new_segment.size() > speckle_area)
+            {
+              segments.push_back(new_segment);
+              margins.push_back(new_margin);
+            }
         }
 }
 
@@ -4499,7 +4751,7 @@ void remove_separators(vector<list<point_t> > &segments, vector<vector<point_t> 
       double aspect = 0;
 
       if (sright != sleft)
-        aspect = 1. * (sbottom - stop) / (sright - sleft); // where did right and left come from?
+        aspect = 1. * (sbottom - stop+1) / (sright - sleft+1); // where did right and left come from?
       if (aspect > max_aspect || aspect < 1. / max_aspect)
         {
           s = segments.erase(s);
@@ -4633,7 +4885,7 @@ void remove_text_blocks(const list<list<int> > &clusters, const vector<list<poin
               }
 
             area = segments[*i].size();
-            square_area = (sbottom - stop) * (sright - sleft);
+            square_area = (sbottom - stop+1) * (sright - sleft+1);
 
             if (square_area != 0)
               ratio = 1. * area / square_area;
@@ -4711,7 +4963,7 @@ int locate_max_entropy(const vector<vector<int> > &features, unsigned int max_ar
   return (start_b);
 }
 
-list<list<list<point_t> > > find_segments(const Image &image, double threshold, const ColorGray &bgColor, bool verbose)
+list<list<list<point_t> > > find_segments(const Image &image, double threshold, const ColorGray &bgColor, bool adaptive, bool verbose)
 {
   vector<list<point_t> > segments;
   vector<vector<point_t> > margins;
@@ -4719,7 +4971,7 @@ list<list<list<point_t> > > find_segments(const Image &image, double threshold, 
 
   // 1m34s
 
-  find_connected_components(image, threshold, bgColor, segments, margins);
+  find_connected_components(image, threshold, bgColor, segments, margins, adaptive);
 
   if (verbose)
     cout << "Number of segments: " << segments.size() << '.' << endl;
@@ -4765,7 +5017,7 @@ list<list<list<point_t> > > find_segments(const Image &image, double threshold, 
   int entropy_max = locate_max_entropy(features, max_area_ratio, max_dist, stats);
 
   int dist = SINGLE_IMAGE_DIST;
-  if (entropy_max > THRESHOLD_LEVEL)
+  if (entropy_max > THRESHOLD_LEVEL && !adaptive)
     {
       vector<int> text_stats(max_dist, 0);
       for (unsigned int j = 2; j < max_dist; j++)
@@ -4788,6 +5040,7 @@ list<list<list<point_t> > > find_segments(const Image &image, double threshold, 
       avail[i] = 1;
 
   const list<list<int> > &clusters = assemble_clusters(margins, dist, distance_matrix, avail, false, area_matrix);
+
   explicit_clusters = build_explicit_clusters(clusters, segments);
   return explicit_clusters;
 }
@@ -4897,10 +5150,11 @@ int prune_clusters(list<list<list<point_t> > > &clusters, vector<box_t> &boxes)
             }
 
           area = s->size();
-          square_area = (sbottom - stop) * (sright - sleft);
+          square_area = (sbottom - stop+1) * (sright - sleft+1);
           ratio = 0;
           if (square_area != 0)
             ratio = 1. * area / square_area;
+
           if (ratio < MAX_RATIO && ratio > 0)
             fill_below_max = true;
 
@@ -4916,6 +5170,7 @@ int prune_clusters(list<list<list<point_t> > > &clusters, vector<box_t> &boxes)
 
       if (right != left)
         aspect = 1. * (bottom - top) / (right - left);
+
       if (fill_below_max && aspect > MIN_ASPECT && aspect < MAX_ASPECT)
         {
           box_t b1;
@@ -5131,32 +5386,33 @@ void __attribute__ ((destructor)) osra_destroy()
 
 int osra_process_image(
 #ifdef OSRA_LIB
-                       const char *image_data,
-                       int image_length,
-                       ostream &output_structure_stream,
+  const char *image_data,
+  int image_length,
+  ostream &output_structure_stream,
 #else
-                       const string &input_file,
-                       const string &output_file,
+  const string &input_file,
+  const string &output_file,
 #endif
-                       int rotate,
-                       bool invert,
-                       int input_resolution,
-                       double threshold,
-                       int do_unpaper,
-                       bool jaggy,
-                       const string &output_format,
-                       bool show_confidence,
-                       bool show_resolution_guess,
-                       bool show_page,
-                       bool show_coordinates,
-                       bool show_avg_bond_length,
-                       const string &osra_dir,
-                       const string &spelling_file,
-                       const string &superatom_file,
-                       bool debug,
-                       bool verbose,
-                       const string &output_image_file_prefix,
-                       const string &resize
+  int rotate,
+  bool invert,
+  int input_resolution,
+  double threshold,
+  int do_unpaper,
+  bool jaggy,
+  bool adaptive_option,
+  const string &output_format,
+  bool show_confidence,
+  bool show_resolution_guess,
+  bool show_page,
+  bool show_coordinates,
+  bool show_avg_bond_length,
+  const string &osra_dir,
+  const string &spelling_file,
+  const string &superatom_file,
+  bool debug,
+  bool verbose,
+  const string &output_image_file_prefix,
+  const string &resize
 )
 {
   // Loading the program data files into maps:
@@ -5279,63 +5535,7 @@ int osra_process_image(
       image.read(pname.str());
 #endif
       image.modifyImage();
-
-      if (!invert)
-        {
-          double a = 0;
-          ColorRGB c;
-          Color t;
-          ColorGray g;
-          bool transparent = false;
-          for (int i = 0; i < BG_PICK_POINTS; i++)
-            {
-              int x = (image.columns() * rand()) / RAND_MAX;
-              int y = (image.rows() * rand()) / RAND_MAX;
-              t = image.pixelColor(x, y);
-              c = t;
-              g = t;
-              if (image.matte() && t.alpha() == 1 && g.shade() < 0.5)
-                transparent = true;
-              a += (c.red() + c.green() + c.blue()) / 3;
-            }
-          a /= BG_PICK_POINTS;
-          if (a < 0.5 && !transparent)
-            invert = true;
-        }
-
-      {
-        ColorRGB c, b;
-        Color t;
-        ColorGray g;
-        double a;
-        bool matte = image.matte();
-
-        for (unsigned int i = 0; i < image.columns(); i++)
-          for (unsigned int j = 0; j < image.rows(); j++)
-            {
-              t = image.pixelColor(i, j);
-              b = t;
-              g = t;
-              if (matte && t.alpha() == 1 && g.shade() < 0.5)
-                {
-                  g.shade(1);
-                  image.pixelColor(i, j, g);
-                }
-              else
-                {
-                  a = min(b.red(), min(b.green(), b.blue()));
-                  if (invert)
-                    a = max(b.red(), max(b.green(), b.blue()));
-                  c.red(a);
-                  c.green(a);
-                  c.blue(a);
-                  image.pixelColor(i, j, c);
-                }
-            }
-      }
-
-      image.contrast(2);
-      image.type(GrayscaleType);
+      bool adaptive = convert_to_gray(image, invert, adaptive_option, verbose);
 
       int num_resolutions = NUM_RESOLUTIONS;
       if (input_resolution != 0)
@@ -5378,8 +5578,7 @@ int osra_process_image(
           cout << '.' << endl;
         }
 
-      ColorGray bgColor = getBgColor(image, invert);
-
+      ColorGray bgColor = getBgColor(image);
       if (rotate != 0)
         {
           image.backgroundColor(bgColor);
@@ -5389,7 +5588,8 @@ int osra_process_image(
       for (int i = 0; i < do_unpaper; i++)
         unpaper(image);
 
-      list<list<list<point_t> > > clusters = find_segments(image, 0.1, bgColor,verbose);
+      // 0.1 is used for THRESHOLD_BOND here to allow for farther processing.
+      list<list<list<point_t> > > clusters = find_segments(image, 0.1, bgColor, adaptive, verbose);
 
       if (verbose)
         cout << "Number of clusters: " << clusters.size() << '.' << endl;
@@ -5403,6 +5603,7 @@ int osra_process_image(
 
       // This will hide the output "Warning: non-positive median line gap" from GOCR. Remove after this is fixed:
       fclose(stderr);
+      OpenBabel::obErrorLog.StopLogging();
 
       potrace_param_t * const param = potrace_param_default();
       param->alphamax = 0.;
@@ -5419,8 +5620,9 @@ int osra_process_image(
           if (resolution > 300)
             working_resolution = 300;
 
-          double THRESHOLD_BOND, THRESHOLD_CHAR;
+          double THRESHOLD_BOND;
           THRESHOLD_BOND = threshold;
+
           if (THRESHOLD_BOND < 0.0001)
             {
               if (resolution >= 150)
@@ -5432,7 +5634,6 @@ int osra_process_image(
                   THRESHOLD_BOND = THRESHOLD_LOW_RES;
                 }
             }
-          THRESHOLD_CHAR = THRESHOLD_BOND;
 
           int max_font_height = MAX_FONT_HEIGHT * working_resolution / 150;
           int max_font_width = MAX_FONT_WIDTH * working_resolution / 150;
@@ -5472,10 +5673,10 @@ int osra_process_image(
                     orig_box.pixelColor(x - boxes[k].x1 + FRAME, y - boxes[k].y1 + FRAME, color);
                   }
 
+
                 int width = orig_box.columns();
                 int height = orig_box.rows();
                 Image thick_box;
-
                 if (resolution >= 300)
                   {
                     int max_hist;
@@ -5490,7 +5691,8 @@ int osra_process_image(
                           {
                             int new_resolution = max_hist * 300 / 4;
                             int percent = (100 * 300) / new_resolution;
-                            resolution = max_hist * select_resolution[res_iter] / 4;
+                            //resolution = max_hist * select_resolution[res_iter] / 4;
+                            resolution = new_resolution;
                             ostringstream scale;
                             scale << percent << "%";
                             orig_box.scale(scale.str());
@@ -5595,7 +5797,7 @@ int osra_process_image(
 
                 int real_font_width, real_font_height;
                 n_letters = find_chars(p, orig_box, letters, atom, bond, n_atom, n_bond, height, width, bgColor,
-                                       THRESHOLD_CHAR, max_font_width, max_font_height, real_font_width, real_font_height,verbose);
+                                       THRESHOLD_BOND, max_font_width, max_font_height, real_font_width, real_font_height,verbose);
 
                 if (verbose)
                   cout << "Number of atoms: " << n_atom << ", bonds: " << n_bond << ", chars: " << n_letters << " after find_atoms()" << endl;
@@ -5627,10 +5829,10 @@ int osra_process_image(
                 remove_zero_bonds(bond, n_bond, atom);
 
                 n_letters = find_fused_chars(bond, n_bond, atom, letters, n_letters, real_font_height,
-                                             real_font_width, 0, orig_box, bgColor, THRESHOLD_CHAR, 3, verbose);
+                                             real_font_width, 0, orig_box, bgColor, THRESHOLD_BOND, 3, verbose);
 
                 n_letters = find_fused_chars(bond, n_bond, atom, letters, n_letters, real_font_height,
-                                             real_font_width, '*', orig_box, bgColor, THRESHOLD_CHAR, 5, verbose);
+                                             real_font_width, '*', orig_box, bgColor, THRESHOLD_BOND, 5, verbose);
 
                 flatten_bonds(bond, n_bond, atom, 3);
                 remove_zero_bonds(bond, n_bond, atom);
@@ -5642,10 +5844,10 @@ int osra_process_image(
                 double max_dist_double_bond = dist_double_bonds(atom, bond, n_bond, avg_bond_length);
                 n_bond = double_triple_bonds(atom, bond, n_bond, avg_bond_length, n_atom, max_dist_double_bond);
 
-                //if (ttt++ == 9) {
-                //	debug_img(orig_box, atom, n_atom, bond, n_bond, "tmp.png");
-                //}
-
+                /*if (ttt++ == 1) {
+                	debug_img(orig_box, atom, n_atom, bond, n_bond, "tmp.png");
+                }
+                */
                 n_atom = find_dashed_bonds(p, atom, bond, n_atom, &n_bond, max(MAX_DASH, int(avg_bond_length / 3)),
                                            avg_bond_length, orig_box, bgColor, THRESHOLD_BOND, thick, avg_bond_length);
 
@@ -5707,6 +5909,7 @@ int osra_process_image(
                 int real_atoms = count_atoms(atom, n_atom);
                 int real_bonds = count_bonds(bond, n_bond);
 
+
                 if (verbose)
                   cout << "Final number of atoms: " << real_atoms << ", bonds: " << real_bonds << ", chars: " << n_letters << '.' << endl;
 
@@ -5731,7 +5934,7 @@ int osra_process_image(
                       {
                         if (verbose)
                           cout << "Considering fragment #" << i << " " << fragments[i].x1 << "x" << fragments[i].y1 << "-" << fragments[i].x2 << "x"
-                              << fragments[i].y2 << ", atoms: " << fragments[i].atom.size() << '.' << endl;
+                               << fragments[i].y2 << ", atoms: " << fragments[i].atom.size() << '.' << endl;
 
                         if (fragments[i].atom.size() > MIN_A_COUNT)
                           {
@@ -5774,6 +5977,7 @@ int osra_process_image(
                             if (verbose)
                               cout << "Structure length: " << structure.length() << ", molecule fragments: " << molecule_statistics.fragments << '.' << endl;
 
+
                             if (molecule_statistics.fragments > 0 && molecule_statistics.fragments < MAX_FRAGMENTS && !structure.empty())
                               {
                                 array_of_structures[res_iter].push_back(structure);
@@ -5784,13 +5988,12 @@ int osra_process_image(
                                 if (!output_image_file_prefix.empty())
                                   {
                                     Image tmp = image;
-
                                     Geometry geometry =
-                                        (fragments.size() > 1) ? Geometry(box_scale * fragments[i].x2 - box_scale * fragments[i].x1 + 4 * real_font_width, //
-                                                                          box_scale * fragments[i].y2 - box_scale * fragments[i].y1 + 4 * real_font_height, //
-                                                                          boxes[k].x1 + box_scale * fragments[i].x1 - FRAME - 2 * real_font_width, //
-                                                                          boxes[k].y1 + box_scale * fragments[i].y1 - FRAME - 2 * real_font_height)
-                                            : Geometry(boxes[k].x2 - boxes[k].x1, boxes[k].y2 - boxes[k].y1, boxes[k].x1, boxes[k].y1);
+                                      (fragments.size() > 1) ? Geometry(box_scale * fragments[i].x2 - box_scale * fragments[i].x1 + 4 * real_font_width, //
+                                                                        box_scale * fragments[i].y2 - box_scale * fragments[i].y1 + 4 * real_font_height, //
+                                                                        boxes[k].x1 + box_scale * fragments[i].x1 - FRAME - 2 * real_font_width, //
+                                                                        boxes[k].y1 + box_scale * fragments[i].y1 - FRAME - 2 * real_font_height)
+                                      : Geometry(boxes[k].x2 - boxes[k].x1, boxes[k].y2 - boxes[k].y1, boxes[k].x1, boxes[k].y1);
 
                                     try
                                       {
@@ -5832,16 +6035,18 @@ int osra_process_image(
               max_res = i;
             }
         }
-
-      for (unsigned int i = 0; i < array_of_structures[max_res].size(); i++)
-        {
-          pages_of_structures[l].push_back(array_of_structures[max_res][i]);
-          if (!output_image_file_prefix.empty())
-            pages_of_images[l].push_back(array_of_images[max_res][i]);
-          pages_of_avg_bonds[l].push_back(array_of_avg_bonds[max_res][i]);
-          pages_of_ind_conf[l].push_back(array_of_ind_conf[max_res][i]);
-          total_structure_count++;
-        }
+      #pragma omp critical
+      {
+        for (unsigned int i = 0; i < array_of_structures[max_res].size(); i++)
+          {
+            pages_of_structures[l].push_back(array_of_structures[max_res][i]);
+            if (!output_image_file_prefix.empty())
+              pages_of_images[l].push_back(array_of_images[max_res][i]);
+            pages_of_avg_bonds[l].push_back(array_of_avg_bonds[max_res][i]);
+            pages_of_ind_conf[l].push_back(array_of_ind_conf[max_res][i]);
+            total_structure_count++;
+          }
+      }
     }
 
   double min_bond = -FLT_MAX, max_bond = FLT_MAX;
