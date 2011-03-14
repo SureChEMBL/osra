@@ -115,6 +115,15 @@ AC_ARG_ENABLE(
 	[AC_HELP_STRING([--disable-graphicsmagick-config], [Disable use of GraphicsMagick++-config for library linking])]
 )
 
+dnl Library compilation:
+AC_ARG_ENABLE(
+	[lib],
+	[AC_HELP_STRING([--enable-lib], [Include building of OSRA dynamic (.so) and static (.a) library into build cycle.])],
+	[
+		AC_SUBST([OSRA_LIB], [yes])
+	]
+)
+
 dnl Java support:
 AC_ARG_ENABLE(
 	[java],

@@ -11,8 +11,6 @@ LIB_API_VERSION	:= 1.0.0
 
 OBJ_LIB		:= osra.o osra_anisotropic.o osra_ocr.o osra_openbabel.o mcdlutil.o unpaper.o 
 
-ALL			:= osra clean_obj libosra.so clean_obj
-
 ifdef TESSERACT_LIB
 OBJ_LIB		+= osra_ocr_tesseract.o
 endif
@@ -30,10 +28,12 @@ endif
 all:
 	$(RM) -f $(OBJ_CLI)
 	$(MAKE) osra
+ifdef OSRA_LIB
 	$(RM) -f $(OBJ_LIB)
 	$(MAKE) libosra.a
 	$(RM) -f $(OBJ_LIB)
 	$(MAKE) libosra.so
+endif
 ifdef OSRA_JAVA
 	$(RM) -f $(OBJ_JAVA)
 	$(MAKE) libosra_java.so
@@ -48,6 +48,7 @@ endif
 osra: $(OBJ_CLI)
 	$(LD) $(LDFLAGS) -o $@ $(OBJ_CLI) $(LIBS)
 
+ifdef OSRA_LIB
 libosra.a: CXXFLAGS += -DOSRA_LIB
 libosra.a: $(OBJ_LIB)
 	$(AR) cru $@ $(OBJ_LIB)
@@ -56,6 +57,7 @@ libosra.a: $(OBJ_LIB)
 libosra.so: CXXFLAGS += -fPIC -DOSRA_LIB
 libosra.so: $(OBJ_LIB)
 	$(LD) $(LDFLAGS) -fPIC -shared -Wl,-soname,$@ -o $@ $(OBJ_LIB) $(LIBS)
+endif
 
 ifdef OSRA_JAVA
 libosra_java.so: CXXFLAGS += -fPIC -DOSRA_LIB -DOSRA_JAVA
