@@ -594,12 +594,17 @@ ac_subst_vars='LTLIBOBJS
 LIBOBJS
 resolved_datadir
 GRAPHICS_MAGICK_CONFIG
+TESSERACT_LIB
+OSRA_JAVA
 EGREP
 GREP
 CXXCPP
+OSRA_LIB
 OPENMP_CXXFLAGS
 XSLTPROC
 NATURALDOCS
+RANLIB
+AR
 INSTALL_DATA
 INSTALL_SCRIPT
 INSTALL_PROGRAM
@@ -663,6 +668,8 @@ enable_openmp
 enable_static_linking
 enable_profiling
 enable_graphicsmagick_config
+enable_lib
+enable_java
 with_macports
 with_tclap_include
 with_potrace_include
@@ -1319,6 +1326,13 @@ Optional Features:
                           Disable use of GraphicsMagick++-config for library
                           linking
 
+  --enable-lib            Include building of OSRA dynamic (.so) and static
+                          (.a) library into build cycle.
+  --enable-java           Include Java JNI bridge compilation into build
+                          cycle. Make sure you have JDK installed and
+                          $JAVA_HOME environment variable pointing to its
+                          location.
+
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
@@ -1334,7 +1348,8 @@ Optional Packages:
   --with-potrace-lib      custom location of the library
   --with-gocr-include     custom location of gocr/pgm2asc.h from GOCR (optical
                           character recognition library), see
-                          http://jocr.sourceforge.net/ (default: "auto")
+                          http://jocr.sourceforge.net/ (default:
+                          "/usr/include/gocr /usr/local/include/gocr auto")
   --with-gocr-lib         custom location of the library
   --with-ocrad-include    custom location of ocradlib.h from OCRAD (optical
                           character recognition program), see
@@ -3238,6 +3253,138 @@ test -z "$INSTALL_SCRIPT" && INSTALL_SCRIPT='${INSTALL}'
 
 test -z "$INSTALL_DATA" && INSTALL_DATA='${INSTALL} -m 644'
 
+# Extract the first word of "ar", so it can be a program name with args.
+set dummy ar; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if test "${ac_cv_path_AR+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  case $AR in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_AR="$AR" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
+    ac_cv_path_AR="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  ;;
+esac
+fi
+AR=$ac_cv_path_AR
+if test -n "$AR"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $AR" >&5
+$as_echo "$AR" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+if test -n "$ac_tool_prefix"; then
+  # Extract the first word of "${ac_tool_prefix}ranlib", so it can be a program name with args.
+set dummy ${ac_tool_prefix}ranlib; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if test "${ac_cv_prog_RANLIB+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  if test -n "$RANLIB"; then
+  ac_cv_prog_RANLIB="$RANLIB" # Let the user override the test.
+else
+as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
+    ac_cv_prog_RANLIB="${ac_tool_prefix}ranlib"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+fi
+fi
+RANLIB=$ac_cv_prog_RANLIB
+if test -n "$RANLIB"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $RANLIB" >&5
+$as_echo "$RANLIB" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+fi
+if test -z "$ac_cv_prog_RANLIB"; then
+  ac_ct_RANLIB=$RANLIB
+  # Extract the first word of "ranlib", so it can be a program name with args.
+set dummy ranlib; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if test "${ac_cv_prog_ac_ct_RANLIB+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  if test -n "$ac_ct_RANLIB"; then
+  ac_cv_prog_ac_ct_RANLIB="$ac_ct_RANLIB" # Let the user override the test.
+else
+as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
+    ac_cv_prog_ac_ct_RANLIB="ranlib"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+fi
+fi
+ac_ct_RANLIB=$ac_cv_prog_ac_ct_RANLIB
+if test -n "$ac_ct_RANLIB"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_ct_RANLIB" >&5
+$as_echo "$ac_ct_RANLIB" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+  if test "x$ac_ct_RANLIB" = x; then
+    RANLIB=":"
+  else
+    case $cross_compiling:$ac_tool_warned in
+yes:)
+{ $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: using cross tools not prefixed with host triplet" >&5
+$as_echo "$as_me: WARNING: using cross tools not prefixed with host triplet" >&2;}
+ac_tool_warned=yes ;;
+esac
+    RANLIB=$ac_ct_RANLIB
+  fi
+else
+  RANLIB="$ac_cv_prog_RANLIB"
+fi
+
 
 # Check whether --enable-docs was given.
 if test "${enable_docs+set}" = set; then :
@@ -3384,12 +3531,6 @@ if test -d "/usr/local/include"; then :
 
 fi
 
-if test -d "/usr/local/include/gocr"; then :
-
-        CPPFLAGS="-I/usr/local/include/gocr ${CPPFLAGS}"
-
-fi
-
 if test -d "/usr/local/lib"; then :
 
 	LDFLAGS="-L/usr/local/lib ${LDFLAGS}"
@@ -3480,8 +3621,8 @@ $as_echo "$ac_cv_prog_cxx_openmp" >&6; }
   fi
 
 
-	CPPFLAGS="${CPPFLAGS} ${OPENMP_CFLAGS}"
-	CXXFLAGS="${CXXFLAGS} ${OPENMP_CXXFLAGS}"
+	CPPFLAGS="${OPENMP_CFLAGS} ${CPPFLAGS}"
+	CXXFLAGS="${OPENMP_CXXFLAGS} ${CXXFLAGS}"
 
 fi
 
@@ -3519,13 +3660,20 @@ if test "${enable_graphicsmagick_config+set}" = set; then :
 fi
 
 
+# Check whether --enable-lib was given.
+if test "${enable_lib+set}" = set; then :
+  enableval=$enable_lib;
+		OSRA_LIB=yes
 
-# Check whether --with-macports was given.
-if test "${with_macports+set}" = set; then :
-  withval=$with_macports; MACPORTSLIBS="$withval"
+
 
 fi
 
+
+# Check whether --enable-java was given.
+if test "${enable_java+set}" = set; then :
+  enableval=$enable_java;
+fi
 
 
 ac_ext=cpp
@@ -3922,6 +4070,90 @@ fi
 done
 
 
+if test "${enable_java}" == "yes"; then :
+
+	if test "${JAVA_HOME}" == ""; then :
+
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Java JNI bridge support was requested, but disabled because $JAVA_HOME environment variable is not defined" >&5
+$as_echo "$as_me: WARNING: Java JNI bridge support was requested, but disabled because $JAVA_HOME environment variable is not defined" >&2;}
+		enable_java=no
+
+else
+
+		save_CPPFLAGS=${CPPFLAGS}
+		CPPFLAGS="-I${JAVA_HOME}/include -I${JAVA_HOME}/include/linux ${CPPFLAGS}"
+		ac_fn_cxx_check_header_mongrel "$LINENO" "jni.h" "ac_cv_header_jni_h" "$ac_includes_default"
+if test "x$ac_cv_header_jni_h" = x""yes; then :
+
+			cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <jni.h>
+int
+main ()
+{
+
+				JNIEnv *j_env;
+				jobjectArray j_obj_arr;
+				jbyteArray j_byte_arr;
+				jstring j_str;
+				jboolean j_output_confidence;
+
+				j_env->GetArrayLength(j_byte_arr);
+				j_env->GetObjectArrayElement(j_obj_arr, 0);
+				j_env->GetByteArrayElements(j_byte_arr, NULL);
+				j_env->ReleaseByteArrayElements(j_byte_arr, (jbyte*) NULL, JNI_ABORT);
+				j_env->GetStringUTFChars(j_str, NULL);
+				j_env->ReleaseStringUTFChars(j_str, (const char *) NULL);
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_cxx_try_compile "$LINENO"; then :
+
+else
+
+				{ $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Java JNI bridge support was requested, but disabled because JNI API is not supported" >&5
+$as_echo "$as_me: WARNING: Java JNI bridge support was requested, but disabled because JNI API is not supported" >&2;}
+				CPPFLAGS=${save_CPPFLAGS}
+				enable_java=no
+
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+
+else
+
+			{ $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Java JNI bridge support was requested, but disabled because \"jni.h\" was not found (search path: ${CPPFLAGS})" >&5
+$as_echo "$as_me: WARNING: Java JNI bridge support was requested, but disabled because \"jni.h\" was not found (search path: ${CPPFLAGS})" >&2;}
+			CPPFLAGS=${save_CPPFLAGS}
+			enable_java=no
+
+fi
+
+
+
+fi
+
+	if test "${enable_java}" == "yes"; then :
+
+		OSRA_JAVA=yes
+
+
+fi
+
+fi
+
+
+
+# Check whether --with-macports was given.
+if test "${with_macports+set}" = set; then :
+  withval=$with_macports; MACPORTSLIBS="$withval"
+
+fi
+
+
+
+
 
 
 # Check whether --with-tclap-include was given.
@@ -4100,8 +4332,8 @@ fi
 # Check whether --with-potrace-include was given.
 if test "${with_potrace_include+set}" = set; then :
   withval=$with_potrace_include;
-		 with_potrace="${with_potrace_include}"
-		 CPPFLAGS="-I${withval} ${CPPFLAGS}"
+			with_potrace="${with_potrace_include}"
+			CPPFLAGS="-I${withval} ${CPPFLAGS}"
 
 else
   with_potrace="auto"
@@ -4283,11 +4515,11 @@ fi
 # Check whether --with-gocr-include was given.
 if test "${with_gocr_include+set}" = set; then :
   withval=$with_gocr_include;
-		 with_gocr="${with_gocr_include}"
-		 CPPFLAGS="-I${withval} ${CPPFLAGS}"
+			with_gocr="${with_gocr_include}"
+			CPPFLAGS="-I${withval} ${CPPFLAGS}"
 
 else
-  with_gocr="auto"
+  with_gocr="/usr/include/gocr /usr/local/include/gocr auto"
 fi
 
 
@@ -4466,8 +4698,8 @@ fi
 # Check whether --with-ocrad-include was given.
 if test "${with_ocrad_include+set}" = set; then :
   withval=$with_ocrad_include;
-		 with_ocrad="${with_ocrad_include}"
-		 CPPFLAGS="-I${withval} ${CPPFLAGS}"
+			with_ocrad="${with_ocrad_include}"
+			CPPFLAGS="-I${withval} ${CPPFLAGS}"
 
 else
   with_ocrad="auto"
@@ -4647,7 +4879,7 @@ fi
 
 # Check whether --with-tesseract-include was given.
 if test "${with_tesseract_include+set}" = set; then :
-  withval=$with_tesseract_include; CPPFLAGS=" ${CPPFLAGS} -I${withval}"
+  withval=$with_tesseract_include; CPPFLAGS="-I${withval} ${CPPFLAGS}"
 
 fi
 
@@ -4669,7 +4901,6 @@ fi
 			with_tesseract="auto"
 
 fi
-
 
 
 # Check whether --with-tesseract-lib was given.
@@ -4837,7 +5068,7 @@ fi
 
 # Check whether --with-cuneiform-source was given.
 if test "${with_cuneiform_source+set}" = set; then :
-  withval=$with_cuneiform_source; CPPFLAGS=" ${CPPFLAGS} -I${withval}/cuneiform_src/Kern/hhh/ -I${withval}/cuneiform_src/Kern/h/  -I${withval}/cuneiform_src/Kern/hrk/  -I${withval}/cuneiform_src/Kern/puma/h/    -I${withval}/cuneiform_src/Kern/include/  -I${withval}/cuneiform_src/Kern/hdebug/"
+  withval=$with_cuneiform_source; CPPFLAGS="-I${withval}/cuneiform_src/Kern/hhh/ -I${withval}/cuneiform_src/Kern/h/ -I${withval}/cuneiform_src/Kern/hrk/ -I${withval}/cuneiform_src/Kern/puma/h/ -I${withval}/cuneiform_src/Kern/include/ -I${withval}/cuneiform_src/Kern/hdebug/ ${CPPFLAGS}"
 
 fi
 
@@ -4845,7 +5076,7 @@ fi
 
 # Check whether --with-cuneiform-include was given.
 if test "${with_cuneiform_include+set}" = set; then :
-  withval=$with_cuneiform_include; CPPFLAGS=" ${CPPFLAGS} -I${withval}"
+  withval=$with_cuneiform_include; CPPFLAGS="-I${withval} ${CPPFLAGS}"
 
 fi
 
@@ -4869,7 +5100,6 @@ fi
 fi
 
 
-
 # Check whether --with-cuneiform-lib was given.
 if test "${with_cuneiform_lib+set}" = set; then :
   withval=$with_cuneiform_lib; LDFLAGS="-L${withval} ${LDFLAGS}"
@@ -4877,14 +5107,12 @@ fi
 
 
 
-		for ac_header in ctiimage.h cttypes.h puma.h lang_def.h mpuma.h compat_defs.h
+		for ac_header in cuneiform.h
 do :
-  as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
-ac_fn_cxx_check_header_mongrel "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default"
-eval as_val=\$$as_ac_Header
-   if test "x$as_val" = x""yes; then :
+  ac_fn_cxx_check_header_mongrel "$LINENO" "cuneiform.h" "ac_cv_header_cuneiform_h" "$ac_includes_default"
+if test "x$ac_cv_header_cuneiform_h" = x""yes; then :
   cat >>confdefs.h <<_ACEOF
-#define `$as_echo "HAVE_$ac_header" | $as_tr_cpp` 1
+#define HAVE_CUNEIFORM_H 1
 _ACEOF
  ac_lib_cuneiform=yes
 else
@@ -4897,7 +5125,7 @@ done
 		if test "${ac_lib_cuneiform}" != "yes" -a "${with_cuneiform}" != ""; then :
 
 
-	for ax_var in ctiimage.h cttypes.h puma.h lang_def.h mpuma.h compat_defs.h
+	for ax_var in cuneiform.h
 do :
 
 				as_ax_Var=`$as_echo "ac_cv_header_${ax_var}" | $as_tr_sh`
@@ -4939,19 +5167,17 @@ do :
 
 done
 
-						{ $as_echo "$as_me:${as_lineno-$LINENO}: checking cuneiform for ctiimage.h cttypes.h puma.h lang_def.h mpuma.h compat_defs.h in ${ac_location}" >&5
-$as_echo_n "checking cuneiform for ctiimage.h cttypes.h puma.h lang_def.h mpuma.h compat_defs.h in ${ac_location}... " >&6; }
+						{ $as_echo "$as_me:${as_lineno-$LINENO}: checking cuneiform for cuneiform.h in ${ac_location}" >&5
+$as_echo_n "checking cuneiform for cuneiform.h in ${ac_location}... " >&6; }
 						$as_echo
 						$as_echo "$as_me:${as_lineno-$LINENO}: CPPFLAGS=\"${CPPFLAGS}\" and LDFLAGS=\"${LDFLAGS}\" for HOME location check" >&5
 
-						for ac_header in ctiimage.h cttypes.h puma.h lang_def.h mpuma.h compat_defs.h
+						for ac_header in cuneiform.h
 do :
-  as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
-ac_fn_cxx_check_header_mongrel "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default"
-eval as_val=\$$as_ac_Header
-   if test "x$as_val" = x""yes; then :
+  ac_fn_cxx_check_header_mongrel "$LINENO" "cuneiform.h" "ac_cv_header_cuneiform_h" "$ac_includes_default"
+if test "x$ac_cv_header_cuneiform_h" = x""yes; then :
   cat >>confdefs.h <<_ACEOF
-#define `$as_echo "HAVE_$ac_header" | $as_tr_cpp` 1
+#define HAVE_CUNEIFORM_H 1
 _ACEOF
  ac_lib_cuneiform=yes
 else
@@ -4968,7 +5194,7 @@ fi
 												LDFLAGS=${ax_probe_library_save_LDFLAGS}
 						CPPFLAGS=${ax_probe_library_save_CPPFLAGS}
 
-	for ax_var in ctiimage.h cttypes.h puma.h lang_def.h mpuma.h compat_defs.h
+	for ax_var in cuneiform.h
 do :
 
 				as_ax_Var=`$as_echo "ac_cv_header_${ax_var}" | $as_tr_sh`
@@ -4989,19 +5215,17 @@ else
 
 				CPPFLAGS="-I${ac_test_location} $CPPFLAGS"
 
-				{ $as_echo "$as_me:${as_lineno-$LINENO}: checking cuneiform for ctiimage.h cttypes.h puma.h lang_def.h mpuma.h compat_defs.h in ${ac_test_location}" >&5
-$as_echo_n "checking cuneiform for ctiimage.h cttypes.h puma.h lang_def.h mpuma.h compat_defs.h in ${ac_test_location}... " >&6; }
+				{ $as_echo "$as_me:${as_lineno-$LINENO}: checking cuneiform for cuneiform.h in ${ac_test_location}" >&5
+$as_echo_n "checking cuneiform for cuneiform.h in ${ac_test_location}... " >&6; }
 				$as_echo
 				$as_echo "$as_me:${as_lineno-$LINENO}: CPPFLAGS=\"${CPPFLAGS}\" for custom location check" >&5
 
-				for ac_header in ctiimage.h cttypes.h puma.h lang_def.h mpuma.h compat_defs.h
+				for ac_header in cuneiform.h
 do :
-  as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
-ac_fn_cxx_check_header_mongrel "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default"
-eval as_val=\$$as_ac_Header
-   if test "x$as_val" = x""yes; then :
+  ac_fn_cxx_check_header_mongrel "$LINENO" "cuneiform.h" "ac_cv_header_cuneiform_h" "$ac_includes_default"
+if test "x$ac_cv_header_cuneiform_h" = x""yes; then :
   cat >>confdefs.h <<_ACEOF
-#define `$as_echo "HAVE_$ac_header" | $as_tr_cpp` 1
+#define HAVE_CUNEIFORM_H 1
 _ACEOF
  ac_lib_cuneiform=yes
 else
@@ -5017,7 +5241,7 @@ fi
 
 								CPPFLAGS=${ax_probe_library_save_CPPFLAGS}
 
-	for ax_var in ctiimage.h cttypes.h puma.h lang_def.h mpuma.h compat_defs.h
+	for ax_var in cuneiform.h
 do :
 
 				as_ax_Var=`$as_echo "ac_cv_header_${ax_var}" | $as_tr_sh`
@@ -5043,8 +5267,8 @@ fi
 # Check whether --with-openbabel-include was given.
 if test "${with_openbabel_include+set}" = set; then :
   withval=$with_openbabel_include;
-		 with_openbabel="${with_openbabel_include}"
-		 CPPFLAGS="-I${withval} ${CPPFLAGS}"
+			with_openbabel="${with_openbabel_include}"
+			CPPFLAGS="-I${withval} ${CPPFLAGS}"
 
 else
   with_openbabel="/usr/include/openbabel-2.0 /usr/local/include/openbabel-2.0"
@@ -5233,12 +5457,7 @@ osra_header_limits=yes
 ac_fn_cxx_check_header_mongrel "$LINENO" "limits.h" "ac_cv_header_limits_h" "$ac_includes_default"
 if test "x$ac_cv_header_limits_h" = x""yes; then :
 
-else
-  osra_header_limits=no
-fi
-
-
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+	cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 #include <limits.h>
 int
@@ -5256,6 +5475,12 @@ else
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 
+else
+  osra_header_limits=no
+fi
+
+
+
 if test "${osra_header_limits}" != "yes"; then :
 
 	as_fn_error "limits.h was not found; make sure you have installed libc-dev package or check config.log" "$LINENO" 5
@@ -5268,12 +5493,7 @@ osra_header_float=yes
 ac_fn_cxx_check_header_mongrel "$LINENO" "float.h" "ac_cv_header_float_h" "$ac_includes_default"
 if test "x$ac_cv_header_float_h" = x""yes; then :
 
-else
-  osra_header_float=no
-fi
-
-
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+	cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 #include <float.h>
 int
@@ -5291,6 +5511,12 @@ else
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 
+else
+  osra_header_float=no
+fi
+
+
+
 if test "${osra_header_float}" != "yes"; then :
 
 	as_fn_error "float.h was not found; make sure you have installed libc-dev package or check config.log" "$LINENO" 5
@@ -5303,12 +5529,7 @@ osra_header_libgen=yes
 ac_fn_cxx_check_header_mongrel "$LINENO" "libgen.h" "ac_cv_header_libgen_h" "$ac_includes_default"
 if test "x$ac_cv_header_libgen_h" = x""yes; then :
 
-else
-  osra_header_libgen=no
-fi
-
-
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+	cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 #include <libgen.h>
 int
@@ -5326,6 +5547,12 @@ else
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 
+else
+  osra_header_libgen=no
+fi
+
+
+
 if test "${osra_header_libgen}" != "yes"; then :
 
 	as_fn_error "libgen.h was not found; make sure you have installed libc-dev package or check config.log" "$LINENO" 5
@@ -5338,13 +5565,7 @@ osra_lib_math=yes
 ac_fn_cxx_check_header_mongrel "$LINENO" "math.h" "ac_cv_header_math_h" "$ac_includes_default"
 if test "x$ac_cv_header_math_h" = x""yes; then :
 
-else
-  osra_lib_math=no
-fi
-
-
-
-if test "$build_os" != "darwin"; then :
+		if test "$build_os" != "darwin"; then :
 
 
 
@@ -5479,6 +5700,12 @@ fi
 
 
 fi
+
+else
+  osra_lib_math=no
+fi
+
+
 
 if test "${osra_lib_math}" != "yes"; then :
 
@@ -6081,7 +6308,11 @@ $as_echo "$ac_cv_lib_tesseract_api" >&6; }
 
 		if test "x$ac_cv_lib_tesseract_api" = x""yes; then :
 
-			$as_echo "#define HAVE_TESSERACT_LIB 1" >>confdefs.h
+
+		$as_echo "#define HAVE_TESSERACT_LIB 1" >>confdefs.h
+
+		TESSERACT_LIB=yes
+
 
 			cat >>confdefs.h <<_ACEOF
 #define HAVE_LIBTESSERACT_API 1
@@ -6115,8 +6346,10 @@ fi
 fi
 
 if test "${with_tesseract}" != "no" -a "${ac_lib_tesseract}" == "no"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Tesseract library support was requested, but disabled due to API check failure (see above messages for the reason or check config.log)" >&5
+
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Tesseract library support was requested, but disabled due to API check failure (see above messages for the reason or check config.log)" >&5
 $as_echo "$as_me: WARNING: Tesseract library support was requested, but disabled due to API check failure (see above messages for the reason or check config.log)" >&2;}
+
 fi
 
 
@@ -6157,12 +6390,7 @@ ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 /* end confdefs.h.  */
 
 		#include <stddef.h>
-		#include <ctiimage.h>
-		#include <cttypes.h>
-		#include <puma.h>
-		#include <lang_def.h>
-		#include <mpuma.h>
-		#include <compat_defs.h>
+		#include <cuneiform.h>
 
 int
 main ()
@@ -6204,12 +6432,7 @@ rm -f core conftest.err conftest.$ac_objext \
 /* end confdefs.h.  */
 
 		#include <stddef.h>
-		#include <ctiimage.h>
-		#include <cttypes.h>
-		#include <puma.h>
-		#include <lang_def.h>
-		#include <mpuma.h>
-		#include <compat_defs.h>
+		#include <cuneiform.h>
 
 int
 main ()
@@ -6290,15 +6513,17 @@ fi
 fi
 
 if test "${with_cuneiform}" != "no" -a "${ac_lib_cuneiform}" == "no"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Cineiform library support was requested, but disabled due to API check failure (see above messages for the reason or check config.log)" >&5
+
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Cineiform library support was requested, but disabled due to API check failure (see above messages for the reason or check config.log)" >&5
 $as_echo "$as_me: WARNING: Cineiform library support was requested, but disabled due to API check failure (see above messages for the reason or check config.log)" >&2;}
+
 fi
 
 
 osra_lib_openbabel=yes
 
 if test "$build_os" == "mingw32"; then :
-  LIBS="${LIBS} -lws2_32"
+  LIBS="-lws2_32 ${LIBS}"
 fi
 
 if test "$build_os" == "darwin"; then :
@@ -6352,7 +6577,7 @@ else
   osra_lib_openbabel=no
 fi
 
-		LIBS="${LIBS} ${MACPORTSLIBS}/libxml2.a ${MACPORTSLIBS}/libiconv.a ${MACPORTSLIBS}/libz.a"
+		LIBS="${MACPORTSLIBS}/libxml2.a ${MACPORTSLIBS}/libiconv.a ${MACPORTSLIBS}/libz.a ${LIBS}"
 
 fi
 
@@ -6805,7 +7030,7 @@ fi
 
 if test "${enable_graphicsmagick_config:+set}" != "set"; then :
 
-	    # Extract the first word of "GraphicsMagick++-config", so it can be a program name with args.
+		# Extract the first word of "GraphicsMagick++-config", so it can be a program name with args.
 set dummy GraphicsMagick++-config; ac_word=$2
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
 $as_echo_n "checking for $ac_word... " >&6; }
@@ -6845,22 +7070,22 @@ $as_echo "no" >&6; }
 fi
 
 
-	    if test "${GRAPHICS_MAGICK_CONFIG}" == ""; then :
+		if test "${GRAPHICS_MAGICK_CONFIG}" == ""; then :
 
-	    		as_fn_error "GraphicsMagick++-config was not found; make sure you have installed libgraphicsmagick++-dev package" "$LINENO" 5
+			as_fn_error "GraphicsMagick++-config was not found; make sure you have installed libgraphicsmagick++-dev package" "$LINENO" 5
 
 fi
-	    LIBS="${LIBS} `${GRAPHICS_MAGICK_CONFIG} --libs`"
-	    CPPFLAGS="${CPPFLAGS} `${GRAPHICS_MAGICK_CONFIG} --cppflags`"
-	    LDFLAGS="${LDFLAGS} `${GRAPHICS_MAGICK_CONFIG} --ldflags`"
+		LIBS="`${GRAPHICS_MAGICK_CONFIG} --libs` ${LIBS}"
+		CPPFLAGS="`${GRAPHICS_MAGICK_CONFIG} --cppflags` ${CPPFLAGS}"
+		LDFLAGS="`${GRAPHICS_MAGICK_CONFIG} --ldflags` ${LDFLAGS}"
 
 else
 
 		if test "${enable_static_linking:+set}" == "set"; then :
 
-			    			    			    if "$build_os" == "darwin"; then :
+			if "$build_os" == "darwin"; then :
 
-			    		       LIBS="${LIBS} -lGraphicsMagick++ -lGraphicsMagick -ljpeg ${MACPORTSLIBS}/liblcms.a ${MACPORTSLIBS}/libtiff.a ${MACPORTSLIBS}/libfreetype.a ${MACPORTSLIBS}/libjasper.a ${MACPORTSLIBS}/libpng.a ${MACPORTSLIBS}/libbz2.a ${MACPORTSLIBS}/libz.a"
+				LIBS="-lGraphicsMagick++ -lGraphicsMagick -ljpeg ${MACPORTSLIBS}/liblcms.a ${MACPORTSLIBS}/libtiff.a ${MACPORTSLIBS}/libfreetype.a ${MACPORTSLIBS}/libjasper.a ${MACPORTSLIBS}/libpng.a ${MACPORTSLIBS}/libbz2.a ${MACPORTSLIBS}/libz.a ${LIBS}"
 
 fi
 
@@ -6869,7 +7094,7 @@ fi
 fi
 
 if test "${enable_static_linking:+set}" == "set" -a "$build_os" == "cygwin"; then :
-  		LIBS="${LIBS} -lxcb -lXau -lXdmcp"
+  		LIBS="-lxcb -lXau -lXdmcp ${LIBS}"
 
 fi
 
@@ -6879,8 +7104,8 @@ fi
 # Check whether --with-graphicsmagick-include was given.
 if test "${with_graphicsmagick_include+set}" = set; then :
   withval=$with_graphicsmagick_include;
-		 with_graphicsmagick="${with_graphicsmagick_include}"
-		 CPPFLAGS="-I${withval} ${CPPFLAGS}"
+			with_graphicsmagick="${with_graphicsmagick_include}"
+			CPPFLAGS="-I${withval} ${CPPFLAGS}"
 
 else
   with_graphicsmagick=""
@@ -7483,7 +7708,7 @@ resolved_datadir=$resolved_datadir
 
 ac_config_headers="$ac_config_headers src/config.h"
 
-ac_config_files="$ac_config_files Makefile Makefile.inc doc/manual.sgml package/maven/pom.xml"
+ac_config_files="$ac_config_files Makefile Makefile.inc doc/manual.sgml package/linux/osra.pc package/maven/pom.xml"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -8172,6 +8397,7 @@ do
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
     "Makefile.inc") CONFIG_FILES="$CONFIG_FILES Makefile.inc" ;;
     "doc/manual.sgml") CONFIG_FILES="$CONFIG_FILES doc/manual.sgml" ;;
+    "package/linux/osra.pc") CONFIG_FILES="$CONFIG_FILES package/linux/osra.pc" ;;
     "package/maven/pom.xml") CONFIG_FILES="$CONFIG_FILES package/maven/pom.xml" ;;
 
   *) as_fn_error "invalid argument: \`$ac_config_target'" "$LINENO" 5;;

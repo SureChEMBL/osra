@@ -20,47 +20,35 @@
  St, Fifth Floor, Boston, MA 02110-1301, USA
  *****************************************************************************/
 
-#ifdef ANDROID
-#include <jni.h>
-#endif
+#include <stdio.h> // fclose
+#include <stdlib.h> // malloc(), free()
+#include <math.h> // fabs(double)
+#include <float.h> // FLT_MAX
+#include <limits.h> // INT_MAX
 
-#include <stdio.h>
-#include <string.h>
-#include <errno.h>
-#include <stdlib.h>
-#include <math.h>
-#include <float.h>
-
-#include <list>
-#include <vector>
-#include <algorithm>
-#include <cstdio>
-#include <iostream>
-#include <fstream>
-
-#include <libgen.h>
-//#include <omp.h>
+#include <list> // sdt::list
+#include <vector> // std::vector
+#include <algorithm> // std::sort, std::min(double, double), std::max(double, double)
+#include <iostream> // std::ostream, std::cout
+#include <fstream> // std::ofstream
+#include <sstream> // std:ostringstream
 
 #include <Magick++.h>
-#include <tclap/CmdLine.h>
 
 extern "C" {
 #include <potracelib.h>
-#ifdef ANDROID
 #include <pgm2asc.h>
-#else
-#include <gocr/pgm2asc.h>
-#endif
 }
 
 #include <openbabel/oberror.h>
 
 #include "osra.h"
-#include "config.h"
-
-#ifdef HAVE_CUNEIFORM_LIB
-#include <cuneiform.h>
-#endif
+#include "osra_lib.h"
+#include "osra_ocr.h"
+#include "osra_openbabel.h"
+#include "osra_anisotropic.h"
+#include "unpaper.h"
+#include "config.h" // DATA_DIR
 
 using namespace std;
 using namespace Magick;
@@ -79,6 +67,96 @@ using namespace Magick;
 #define BM_UCLR(bm, x, y) (*bm_index(bm, x, y) &= ~bm_mask(x))
 #define BM_UPUT(bm, x, y, b) ((b) ? BM_USET(bm, x, y) : BM_UCLR(bm, x, y))
 #define BM_PUT(bm, x, y, b) (bm_safe(bm, x, y) ? BM_UPUT(bm, x, y, b) : 0)
+
+// struct: letters_s
+// character found as part of atomic label
+struct letters_s
+{
+  // double: x,y,r
+  // coordinates of the center and radius of the circumscribing circle
+  double x, y, r;
+  // char: a
+  // character
+  char a;
+  // bool: free
+  // whether or not it was already assign to an existing atomic label
+  bool free;
+};
+// typedef: letters_t
+// defines letters_t type based on letters_s struct
+typedef struct letters_s letters_t;
+
+// struct: label_s
+// atomic label
+struct label_s
+{
+  // doubles: x1,y1, x2, y2, r1, r2
+  // central coordinates and circumradii for the first and last characters
+  double x1, y1, r1, x2, y2, r2;
+  // string: a
+  // atomic label string
+  string a;
+  // array: n
+  // vector of character indices comprising the atomic label
+  vector<int> n;
+};
+// typedef: label_t
+// defines label_t type based on label_s struct
+typedef struct label_s label_t;
+
+//struct: lbond_s
+//pairs of characters used for constucting atomic labels in <osra.cpp::assemble_labels()>
+struct lbond_s
+{
+  //int: a,b
+  // indices of first and second character in a pair
+  int a, b;
+  //double: x
+  // x-coordinate of the first character
+  double x;
+  //bool: exists
+  //pair of characters is available
+  bool exists;
+};
+//typedef: lbond_t
+//defines lbond_t type based on lbond_s struct
+typedef struct lbond_s lbond_t;
+
+//struct: dash_s
+// used to identify dashed bonds in <osra.cpp::find_dashed_bonds()> and small bonds in <osra.cpp::find_small_bonds()>
+struct dash_s
+{
+  //double: x,y
+  //coordinates
+  double x, y;
+  //bool: free
+  // is this dash available for a perspective dashed bond?
+  bool free;
+  //pointer: curve
+  // pointer to the curve found by Potrace
+  const potrace_path_t *curve;
+  //int: area
+  // area occupied by the dash
+  int area;
+};
+//typedef: dash_t
+//defines dash_t type based on dash_s struct
+typedef struct dash_s dash_t;
+
+//struct: fragment_s
+// used by <osra.cpp::populate_fragments()> to split chemical structure into unconnected molecules.
+struct fragment_s
+{
+  //int: x1,y1,x2,y2
+  //top left and bottom right coordinates of the fragment
+  int x1, y1, x2, y2;
+  //array: atom
+  //vector of atom indices for atoms in a molecule of this fragment
+  vector<int> atom;
+};
+//typedef: fragment_t
+//defines fragment_t type based on fragment_s struct
+typedef struct fragment_s fragment_t;
 
 /* return new un-initialized bitmap. NULL with errno on error */
 static potrace_bitmap_t *bm_new(int w, int h)
@@ -1526,47 +1604,47 @@ Image adaptive_otsu(const Image &image, int window)
   for (int i1 = 0; i1 < min((int)image.columns(), window/2); i1++)
     for (int j1 = 0; j1 < min((int)image.rows(), window/2); j1++)
       {
-	g = image.pixelColor(i1, j1);
-	h0[int((num_bins-1)*g.shade())]++;
+        g = image.pixelColor(i1, j1);
+        h0[int((num_bins-1)*g.shade())]++;
       }
 
   for (int j = 0; j < image.rows(); j++)
     {
       for (int k = 0; k<num_bins; k++) h[k]=h0[k];
       for (int i = 0; i < image.columns(); i++)
-	  {
-	    otsu_find_peaks(h,num_bins,peak1,peak2, max1, max2);
-	    g = image.pixelColor(i, j);
-	    double median = 0.5*(peak1+peak2)/num_bins;
-	    if (g.shade() > median)
-	      result.pixelColor(i,j,"white");
-	    else
-	      result.pixelColor(i,j,"black");
-	    if ((i-window/2) >=0)
-	      for (int j1 = max(0,j-window/2); j1 < min((int)image.rows(), j + window/2); j1++)
-		{
-		  g = image.pixelColor(i-window/2, j1);
-		  h[int((num_bins-1)*g.shade())]--;
-		}
-	    if ((i+window/2) < image.columns())
-	      for (int j1 = max(0,j-window/2); j1 < min((int)image.rows(), j + window/2); j1++)
-		{
-		  g = image.pixelColor(i+window/2, j1);
-		  h[int((num_bins-1)*g.shade())]++;
-		}
-	  }
+        {
+          otsu_find_peaks(h,num_bins,peak1,peak2, max1, max2);
+          g = image.pixelColor(i, j);
+          double median = 0.5*(peak1+peak2)/num_bins;
+          if (g.shade() > median)
+            result.pixelColor(i,j,"white");
+          else
+            result.pixelColor(i,j,"black");
+          if ((i-window/2) >=0)
+            for (int j1 = max(0,j-window/2); j1 < min((int)image.rows(), j + window/2); j1++)
+              {
+                g = image.pixelColor(i-window/2, j1);
+                h[int((num_bins-1)*g.shade())]--;
+              }
+          if ((i+window/2) < image.columns())
+            for (int j1 = max(0,j-window/2); j1 < min((int)image.rows(), j + window/2); j1++)
+              {
+                g = image.pixelColor(i+window/2, j1);
+                h[int((num_bins-1)*g.shade())]++;
+              }
+        }
       if ((j-window/2) >=0)
-	for (int i1 = 0; i1 < min((int)image.columns(),window/2); i1++)
-	  {
-	    g = image.pixelColor(i1,j-window/2);
-	    h0[int((num_bins-1)*g.shade())]--;
-	  }
+        for (int i1 = 0; i1 < min((int)image.columns(),window/2); i1++)
+          {
+            g = image.pixelColor(i1,j-window/2);
+            h0[int((num_bins-1)*g.shade())]--;
+          }
       if ((j+window/2) < image.rows())
-	for (int i1 = 0; i1 < min((int)image.columns(),window/2); i1++)
-	  {
-	    g = image.pixelColor(i1,j+window/2);
-	    h0[int((num_bins-1)*g.shade())]++;
-	  } 
+        for (int i1 = 0; i1 < min((int)image.columns(),window/2); i1++)
+          {
+            g = image.pixelColor(i1,j+window/2);
+            h0[int((num_bins-1)*g.shade())]++;
+          }
     }
   return(result);
 }
@@ -1596,20 +1674,20 @@ bool convert_to_gray(Image &image, bool invert, bool adaptive, bool verbose)
   for (int i=0; i<num_bins_rgb; i++)
     for (int j=0; j<num_bins_rgb; j++)
       for (int k=0; k<num_bins_rgb; k++)
-	if (bg_search[i][j][k] > bg_peak)
-	  {
-	    bg_peak = bg_search[i][j][k];
-	    bg_pos_red = (double)i/(num_bins_rgb-1);
-	    bg_pos_green = (double)j/(num_bins_rgb-1);
-	    bg_pos_blue = (double)k/(num_bins_rgb-1);
-	  }
+        if (bg_search[i][j][k] > bg_peak)
+          {
+            bg_peak = bg_search[i][j][k];
+            bg_pos_red = (double)i/(num_bins_rgb-1);
+            bg_pos_green = (double)j/(num_bins_rgb-1);
+            bg_pos_blue = (double)k/(num_bins_rgb-1);
+          }
 
   bool color_background = false;
   if (verbose)
     {
       cout<<"Background rgb: "<<bg_pos_red<<" "<<bg_pos_green<<" "<<bg_pos_blue<<endl;
     }
-      
+
   if (fabs(bg_pos_red-bg_pos_green) > 0.05 || fabs(bg_pos_red-bg_pos_blue)>0.05 || fabs(bg_pos_green-bg_pos_blue)>0.05) color_background = true;
 
   bool matte = image.matte();
@@ -1630,24 +1708,24 @@ bool convert_to_gray(Image &image, bool invert, bool adaptive, bool verbose)
             g.shade(1);
             image.pixelColor(i, j, g);
           }
-	else if (!color_background &&
-		 (fabs(b.red()-b.green()) > 0.1 || fabs(b.red()-b.blue()) > 0.1  || fabs(b.blue()-b.green()) > 0.1))
+        else if (!color_background &&
+                 (fabs(b.red()-b.green()) > 0.1 || fabs(b.red()-b.blue()) > 0.1  || fabs(b.blue()-b.green()) > 0.1))
           {
-	    if (fabs(b.red()-bg_pos_red) >= fabs(b.green()-bg_pos_green) && fabs(b.red()-bg_pos_red) >= fabs(b.blue()-bg_pos_blue))
-	      a = b.red();
-	    else if (fabs(b.red()-bg_pos_red) < fabs(b.green()-bg_pos_green) && fabs(b.green()-bg_pos_green) >= fabs(b.blue()-bg_pos_blue))
-	      a = b.green();
-	    else
-	      a = b.blue();
+            if (fabs(b.red()-bg_pos_red) >= fabs(b.green()-bg_pos_green) && fabs(b.red()-bg_pos_red) >= fabs(b.blue()-bg_pos_blue))
+              a = b.red();
+            else if (fabs(b.red()-bg_pos_red) < fabs(b.green()-bg_pos_green) && fabs(b.green()-bg_pos_green) >= fabs(b.blue()-bg_pos_blue))
+              a = b.green();
+            else
+              a = b.blue();
             c.red(a);
             c.green(a);
             c.blue(a);
             image.pixelColor(i, j, c);
-	  }
+          }
         g = image.pixelColor(i, j);
         h[int((num_bins-1)*g.shade())]++;
       }
-    
+
   int peak1, peak2, max1, max2;
   otsu_find_peaks(h,num_bins,peak1,peak2, max1, max2);
 
@@ -1686,10 +1764,10 @@ bool convert_to_gray(Image &image, bool invert, bool adaptive, bool verbose)
         }
       else
         {
-	  image.negate();
+          image.negate();
           image.adaptiveThreshold(window,window,7);
           image.negate();
-	}
+        }
     }
   else if (color_background)
     {
@@ -4518,7 +4596,7 @@ void find_connected_components(const Image &image, double threshold, const Color
       speckle_area = speckle_side * speckle_side;
       if (speckle_area < 2) speckle_area = 2;
     }
-  
+
   vector<vector<int> > tmp(image.columns(), vector<int> (image.rows(), 0));
 
   for (unsigned int i = 0; i < image.columns(); i++)
@@ -4896,7 +4974,7 @@ list<list<list<point_t> > > find_segments(const Image &image, double threshold, 
   find_connected_components(image, threshold, bgColor, segments, margins, adaptive);
 
   if (verbose)
-    cout << "Number of segments is " << segments.size() << '.' << endl;
+    cout << "Number of segments: " << segments.size() << '.' << endl;
 
   if (segments.size() > MAX_SEGMENTS)
     {
@@ -5279,179 +5357,84 @@ void find_limits_on_avg_bond(double &min_bond, double &max_bond, const vector<ve
 extern job_t *OCR_JOB;
 extern job_t *JOB;
 
-#ifdef ANDROID
-extern "C" {
-  JNIEXPORT jstring JNICALL Java_cadd_osra_main_runosra_nativeosra(JNIEnv * j_env, jobject j_this, jobjectArray jarr,
-      jbyteArray jrawimage);
-};
-
-JNIEXPORT jstring JNICALL Java_cadd_osra_main_runosra_nativeosra(JNIEnv * j_env, jobject j_this, jobjectArray jarr,
-    jbyteArray jrawimage)
-#else
-int main(int argc, char **argv)
-#endif
-{
-
-#ifdef ANDROID
-
-  int argc=j_env->GetArrayLength(jarr);
-  char **argv=(char **)calloc(argc,sizeof(char*));
-  jboolean isCopy;
-
-  for (int i=0; i<argc; i++)
-    {
-      jstring jstr = (jstring)j_env->GetObjectArrayElement(jarr, i);
-      const char *str = (j_env)->GetStringUTFChars(jstr, &isCopy);
-      argv[i]=(char *)calloc(strlen(str)+1,sizeof(char));
-      strcpy(argv[i],str);
-      j_env->ReleaseStringUTFChars(jstr, str);
-    }
-  char *rawimage=(char *)j_env->GetByteArrayElements(jrawimage, NULL);
-  if (rawimage==NULL)
-    return j_env->NewStringUTF("");
-  int rawimagelength=j_env->GetArrayLength(jrawimage);
-#endif
-
-  TCLAP::CmdLine cmd("OSRA: Optical Structure Recognition Application, created by Igor Filippov, 2007-2010", ' ',
-                     PACKAGE_VERSION);
-
+// Function: osra_init()
 //
-  // Image pre-processing options
-  //
-  TCLAP::ValueArg<double> rotate_option("R", "rotate", "Rotate image clockwise by specified number of degrees", false, 0,
-                                        "0..360");
-  cmd.add(rotate_option);
-
-  TCLAP::SwitchArg invert_option("n", "negate", "Invert color (white on black)", false);
-  cmd.add(invert_option);
-
-  TCLAP::ValueArg<int> resolution_option("r", "resolution", "Resolution in dots per inch", false, 0, "default: auto");
-  cmd.add(resolution_option);
-
-  TCLAP::ValueArg<double> threshold_option("t", "threshold", "Gray level threshold", false, 0, "0.2..0.8");
-  cmd.add(threshold_option);
-
-  TCLAP::ValueArg<int> do_unpaper_option("u", "unpaper", "Pre-process image with unpaper algorithm, rounds", false, 0,
-                                         "default: 0 rounds");
-  cmd.add(do_unpaper_option);
-
-  TCLAP::SwitchArg jaggy_option("j", "jaggy", "Additional thinning/scaling down of low quality documents", false);
-  cmd.add(jaggy_option);
-
-  TCLAP::SwitchArg adaptive_option("i", "adaptive", "Adaptive thresholding pre-processing, useful for low light/low contrast images", false);
-  cmd.add(adaptive_option);
-
-  //
-  // Output format options
-  //
-  TCLAP::ValueArg<string> output_format_option("f", "format", "Output format", false, "can", "can/smi/sdf");
-  cmd.add(output_format_option);
-
-  TCLAP::SwitchArg show_confidence_option("p", "print", "Print out confidence estimate", false);
-  cmd.add(show_confidence_option);
-
-  TCLAP::SwitchArg show_resolution_guess_option("g", "guess", "Print out resolution guess", false);
-  cmd.add(show_resolution_guess_option);
-
-  TCLAP::SwitchArg show_page_option("e", "page", "Show page number for PDF/PS/TIFF documents (only for SDF/SMI/CAN output format)", false);
-  cmd.add(show_page_option);
-
-  TCLAP::SwitchArg show_coordinates_option("c", "coordinates", "Show surrounding box coordinates (only for SDF/SMI/CAN output format)", false);
-  cmd.add(show_coordinates_option);
-
-  TCLAP::SwitchArg show_avg_bond_length_option("b", "bond", "Show average bond length in pixels (only for SDF/SMI/CAN output format)", false);
-  cmd.add(show_avg_bond_length_option);
-
-  //
-  // Dictionaries options
-  //
-  TCLAP::ValueArg<string> spelling_file_option("l", "spelling", "Spelling correction dictionary", false, "", "configfile");
-  cmd.add(spelling_file_option);
-
-  TCLAP::ValueArg<string> superatom_file_option("a", "superatom", "Superatom label map to SMILES", false, "", "configfile");
-  cmd.add(superatom_file_option);
-
-  //
-  // Debugging options
-  //
-  TCLAP::SwitchArg debug_option("d", "debug", "Print out debug information on spelling corrections", false);
-  cmd.add(debug_option);
-
-  TCLAP::SwitchArg verbose_option("v", "verbose", "Be verbose and print the program flow", false);
-  cmd.add(verbose_option);
-
-  TCLAP::ValueArg<string> output_image_file_prefix_option("o", "output", "Write recognized structures to image files with given prefix", false, "", "filename prefix");
-  cmd.add(output_image_file_prefix_option);
-
-  TCLAP::ValueArg<string> resize_option("s", "size", "Resize image on output", false, "", "dimensions, 300x400");
-  cmd.add(resize_option);
-
-  //
-  // Input-output options
-  //
-#ifndef ANDROID
-  TCLAP::UnlabeledValueArg<string> input_file_option("in", "input file", true, "", "filename");
-  cmd.add(input_file_option);
-#endif
-
-  TCLAP::ValueArg<string> output_file_option("w", "write", "Write recognized structures to text file", false, "", "filename");
-  cmd.add(output_file_option);
-
-
-  cmd.parse(argc, argv);
-
+// Initialises OSRA library. Should be called at e.g. program startup. This function is automatically called for both SO library and CLI utility.
+// See this section for details about library init/cleanup: http://www.faqs.org/docs/Linux-HOWTO/Program-Library-HOWTO.html#INIT-AND-CLEANUP
+// Below attribute marker is GNU compiler specific.
+void __attribute__ ((constructor)) osra_init()
+{
   // Necessary for GraphicsMagick-1.3.8 according to http://www.graphicsmagick.org/1.3/NEWS.html#january-21-2010:
-  InitializeMagick(*argv);
+  InitializeMagick(NULL);
 
-#ifdef HAVE_CUNEIFORM_LIB
-  int langcode = LANG_ENGLISH;
-  Bool dotmatrix = 0;
-  Bool fax = 0;
-  Bool onecolumn = 1;
-  PUMA_Init(0, 0);
-  PUMA_SetImportData(PUMA_Word32_Language, &langcode);
-  PUMA_SetImportData(PUMA_Bool32_DotMatrix, &dotmatrix);
-  PUMA_SetImportData(PUMA_Bool32_Fax100, &fax);
-  PUMA_SetImportData(PUMA_Bool32_OneColumn, &onecolumn);
-#endif
+  osra_ocr_init();
 
   srand(1);
+}
 
-  bool verbose = verbose_option.getValue();
+// Function: osra_destroy()
+//
+// Releases all resources allocated by OSRA library. Should be called at e.g. program exit. This function is automatically called for both SO library and CLI utility.
+// See this section for details about library init/cleanup: http://www.faqs.org/docs/Linux-HOWTO/Program-Library-HOWTO.html#INIT-AND-CLEANUP
+// Below attribute marker is GNU compiler specific.
+void __attribute__ ((destructor)) osra_destroy()
+{
+  MagickLib::DestroyMagick();
 
+  osra_ocr_destroy();
+}
+
+int osra_process_image(
+#ifdef OSRA_LIB
+  const char *image_data,
+  int image_length,
+  ostream &output_structure_stream,
+#else
+  const string &input_file,
+  const string &output_file,
+#endif
+  int rotate,
+  bool invert,
+  int input_resolution,
+  double threshold,
+  int do_unpaper,
+  bool jaggy,
+  bool adaptive_option,
+  const string &output_format,
+  bool show_confidence,
+  bool show_resolution_guess,
+  bool show_page,
+  bool show_coordinates,
+  bool show_avg_bond_length,
+  const string &osra_dir,
+  const string &spelling_file,
+  const string &superatom_file,
+  bool debug,
+  bool verbose,
+  const string &output_image_file_prefix,
+  const string &resize
+)
+{
   // Loading the program data files into maps:
-  char progname[1024];
-  strncpy(progname, cmd.getProgramName().c_str(), sizeof(progname) - 1);
-  progname[sizeof(progname) - 1] = '\0';
-  string osra_dir = dirname(progname);
-
   map<string, string> spelling;
 
-  if (!((spelling_file_option.getValue().length() != 0 && load_config_map(spelling_file_option.getValue(), spelling))
+  if (!((spelling_file.length() != 0 && load_config_map(spelling_file, spelling))
         || load_config_map(string(DATA_DIR) + "/" + SPELLING_TXT, spelling) || load_config_map(osra_dir + "/" + SPELLING_TXT, spelling)))
     {
-#ifdef ANDROID
-      return j_env->NewStringUTF("");
-#else
       cerr << "Cannot open " << SPELLING_TXT << " file (tried locations \"" << DATA_DIR << "\", \"" << osra_dir
            << "\"). Specify the custom file location via -l option." << endl;
-      exit(1);
-#endif
+      return ERROR_SPELLING_FILE_IS_MISSING;
     }
 
   map<string, string> superatom;
 
-  if (!((superatom_file_option.getValue().length() != 0 && load_config_map(superatom_file_option.getValue(), superatom))
+  if (!((superatom_file.length() != 0 && load_config_map(superatom_file, superatom))
         || load_config_map(string(DATA_DIR) + "/" + SUPERATOM_TXT, superatom) || load_config_map(osra_dir + "/"
             + SUPERATOM_TXT, superatom)))
     {
-#ifdef ANDROID
-      return j_env->NewStringUTF("");
-#else
       cerr << "Cannot open " << SUPERATOM_TXT << " file (tried locations \"" << DATA_DIR << "\", \"" << osra_dir
            << "\"). Specify the custom file location via -a option." << endl;
-      exit(1);
-#endif
+      return ERROR_SUPERATOM_FILE_IS_MISSING;
     }
 
   if (verbose)
@@ -5459,17 +5442,17 @@ int main(int argc, char **argv)
 
   string type;
 
-#ifdef ANDROID
-  Blob blob(rawimage,rawimagelength);
+#ifdef OSRA_LIB
+  Blob blob(image_data, image_length);
 #endif
 
   try
     {
       Image image_typer;
-#ifdef ANDROID
+#ifdef OSRA_LIB
       image_typer.ping(blob);
 #else
-      image_typer.ping(input_file_option.getValue());
+      image_typer.ping(input_file);
 #endif
       type = image_typer.magick();
     }
@@ -5481,57 +5464,45 @@ int main(int argc, char **argv)
 
   if (type.empty())
     {
-#ifdef ANDROID
-      return j_env->NewStringUTF("");
+#ifdef OSRA_LIB
+      cerr << "Cannot detect blob image type" << endl;
 #else
-      cerr << "Cannot open file \"" << input_file_option.getValue() << '"' << endl;
-      exit(1);
+      cerr << "Cannot open file \"" << input_file << '"' << endl;
 #endif
+      return ERROR_UNKNOWN_IMAGE_TYPE;
     }
 
   if (verbose)
-    cout << "Image type is " << type << '.' << endl;
+    cout << "Image type: " << type << '.' << endl;
 
-  if (!output_file_option.getValue().empty())
+#ifndef OSRA_LIB
+  ofstream outfile;
+
+  if (!output_file.empty())
     {
-      string filename = output_file_option.getValue();
-      ofstream outfile;
-      outfile.open(filename.c_str(), ios::out | ios::trunc);
+      outfile.open(output_file.c_str(), ios::out | ios::trunc);
       if (outfile.bad() || !outfile.is_open())
         {
-#ifdef ANDROID
-          return j_env->NewStringUTF("");
-#else
-          cerr << "Cannot open file \"" << filename << "\" for output" << endl;
-          exit(1);
-#endif
+          cerr << "Cannot open file \"" << output_file << "\" for output" << endl;
+          return ERROR_OUTPUT_FILE_OPEN_FAILED;
         }
-      outfile.close();
     }
-
-  /*  double THRESHOLD_BOND = threshold_option.getValue();
-  if (THRESHOLD_BOND < 0.0001)
-    THRESHOLD_BOND = THRESHOLD_GLOBAL;
-  */
-  int input_resolution = resolution_option.getValue();
+#endif
 
   if (input_resolution == 0 && (type == "PDF" || type == "PS"))
     input_resolution = 150;
 
-  bool show_coordinates = show_coordinates_option.getValue();
-
-  if (show_coordinates && rotate_option.getValue() != 0)
+  if (show_coordinates && rotate != 0)
     {
       cerr << "Showing the box coordinates is currently not supported together with image rotation and is therefore disabled." << endl;
       show_coordinates = false;
     }
 
-#ifdef ANDROID
+#ifdef OSRA_LIB
   int page = 1;
 #else
-  int page = count_pages(input_file_option.getValue());
+  int page = count_pages(input_file);
 #endif
-
 
   vector<vector<string> > pages_of_structures(page, vector<string> (0));
   vector<vector<Image> > pages_of_images(page, vector<Image> (0));
@@ -5549,23 +5520,22 @@ int main(int argc, char **argv)
       if (verbose)
         cout << "Processing page " << (l+1) << " out of " << page << "..." << endl;
 
-
-      stringstream density;
+      ostringstream density;
       density << input_resolution << "x" << input_resolution;
       image.density(density.str());
 
-      if (type == "PDF" || type == "PS") page_scale*=(double) 72/input_resolution;
+      if (type == "PDF" || type == "PS")
+        page_scale *= 72 / input_resolution;
 
-
-#ifdef ANDROID
+#ifdef OSRA_LIB
       image.read(blob);
 #else
-      stringstream pname;
-      pname << input_file_option.getValue() << "[" << l << "]";
+      ostringstream pname;
+      pname << input_file << "[" << l << "]";
       image.read(pname.str());
 #endif
       image.modifyImage();
-      bool adaptive = convert_to_gray(image, invert_option.getValue(), adaptive_option.getValue(), verbose);
+      bool adaptive = convert_to_gray(image, invert, adaptive_option, verbose);
 
       int num_resolutions = NUM_RESOLUTIONS;
       if (input_resolution != 0)
@@ -5587,10 +5557,10 @@ int main(int argc, char **argv)
       if (input_resolution > 300)
         {
           int percent = (100 * 300) / input_resolution;
-          stringstream scale;
+          ostringstream scale;
           scale << percent << "%";
           image.scale(scale.str());
-          page_scale /= (double) percent/100;
+          page_scale /= (double) percent / 100;
         }
 
       if (verbose)
@@ -5608,37 +5578,33 @@ int main(int argc, char **argv)
           cout << '.' << endl;
         }
 
-
       ColorGray bgColor = getBgColor(image);
-
-
-      if (rotate_option.getValue() != 0)
+      if (rotate != 0)
         {
           image.backgroundColor(bgColor);
-          image.rotate(rotate_option.getValue());
+          image.rotate(rotate);
         }
 
-
-      for (int i = 0; i < do_unpaper_option.getValue(); i++)
+      for (int i = 0; i < do_unpaper; i++)
         unpaper(image);
 
       // 0.1 is used for THRESHOLD_BOND here to allow for farther processing.
       list<list<list<point_t> > > clusters = find_segments(image, 0.1, bgColor, adaptive, verbose);
 
       if (verbose)
-        cout << "Number of clusters is " << clusters.size() << '.' << endl;
+        cout << "Number of clusters: " << clusters.size() << '.' << endl;
 
       vector<box_t> boxes;
       int n_boxes = prune_clusters(clusters, boxes);
       std::sort(boxes.begin(), boxes.end(), comp_boxes);
 
       if (verbose)
-        cout << "Number of boxes is " << boxes.size() << '.' << endl;
+        cout << "Number of boxes: " << boxes.size() << '.' << endl;
 
       // This will hide the output "Warning: non-positive median line gap" from GOCR. Remove after this is fixed:
       fclose(stderr);
       OpenBabel::obErrorLog.StopLogging();
-      
+
       potrace_param_t * const param = potrace_param_default();
       param->alphamax = 0.;
       //param->turnpolicy = POTRACE_TURNPOLICY_MINORITY;
@@ -5654,7 +5620,9 @@ int main(int argc, char **argv)
           if (resolution > 300)
             working_resolution = 300;
 
-          double THRESHOLD_BOND = threshold_option.getValue();
+          double THRESHOLD_BOND;
+          THRESHOLD_BOND = threshold;
+
           if (THRESHOLD_BOND < 0.0001)
             {
               if (resolution >= 150)
@@ -5672,7 +5640,7 @@ int main(int argc, char **argv)
           bool thick = true;
           if (resolution < 150)
             thick = false;
-          else if (resolution == 150 && !jaggy_option.getValue())
+          else if (resolution == 150 && !jaggy)
             thick = false;
 
           //Image dbg = image;
@@ -5724,8 +5692,8 @@ int main(int argc, char **argv)
                             int new_resolution = max_hist * 300 / 4;
                             int percent = (100 * 300) / new_resolution;
                             //resolution = max_hist * select_resolution[res_iter] / 4;
-			    resolution = new_resolution;
-                            stringstream scale;
+                            resolution = new_resolution;
+                            ostringstream scale;
                             scale << percent << "%";
                             orig_box.scale(scale.str());
                             box_scale /= (double) percent/100;
@@ -5740,7 +5708,7 @@ int main(int argc, char **argv)
                           {
                             resolution = 500;
                             int percent = (100 * 300) / resolution;
-                            stringstream scale;
+                            ostringstream scale;
                             scale << percent << "%";
                             orig_box.scale(scale.str());
                             box_scale /= (double) percent/100;
@@ -5753,7 +5721,7 @@ int main(int argc, char **argv)
                                               max_hist, nf45);
                           }
                       }
-                    if (jaggy_option.getValue())
+                    if (jaggy)
                       {
                         orig_box.scale("50%");
                         box_scale *= 2;
@@ -5793,7 +5761,7 @@ int main(int argc, char **argv)
                     width = thick_box.columns();
                     height = thick_box.rows();
                     int percent = (100 * 300) / resolution;
-                    stringstream scale;
+                    ostringstream scale;
                     scale << percent << "%";
                     orig_box.scale(scale.str());
                     box_scale /= (double) percent/100;
@@ -5831,6 +5799,9 @@ int main(int argc, char **argv)
                 n_letters = find_chars(p, orig_box, letters, atom, bond, n_atom, n_bond, height, width, bgColor,
                                        THRESHOLD_BOND, max_font_width, max_font_height, real_font_width, real_font_height,verbose);
 
+                if (verbose)
+                  cout << "Number of atoms: " << n_atom << ", bonds: " << n_bond << ", chars: " << n_letters << " after find_atoms()" << endl;
+
                 double avg_bond_length = percentile75(bond, n_bond, atom);
 
                 double max_area = avg_bond_length * 5;
@@ -5841,6 +5812,9 @@ int main(int argc, char **argv)
                                             real_font_height, real_font_width, n_letters);
 
                 n_atom = find_small_bonds(p, atom, bond, n_atom, &n_bond, max_area, avg_bond_length / 2, 5);
+
+                if (verbose)
+                  cout << "Number of atoms: " << n_atom << ", bonds: " << n_bond << ", chars: " << n_letters << " after find_small_bonds()" << endl;
 
                 find_old_aromatic_bonds(p, bond, n_bond, atom, n_atom, avg_bond_length);
 
@@ -5864,13 +5838,16 @@ int main(int argc, char **argv)
                 remove_zero_bonds(bond, n_bond, atom);
                 avg_bond_length = percentile75(bond, n_bond, atom);
 
+                if (verbose)
+                  cout << "Average bond length: " << avg_bond_length << endl;
+
                 double max_dist_double_bond = dist_double_bonds(atom, bond, n_bond, avg_bond_length);
                 n_bond = double_triple_bonds(atom, bond, n_bond, avg_bond_length, n_atom, max_dist_double_bond);
 
                 /*if (ttt++ == 1) {
                 	debug_img(orig_box, atom, n_atom, bond, n_bond, "tmp.png");
                 }
-		*/
+                */
                 n_atom = find_dashed_bonds(p, atom, bond, n_atom, &n_bond, max(MAX_DASH, int(avg_bond_length / 3)),
                                            avg_bond_length, orig_box, bgColor, THRESHOLD_BOND, thick, avg_bond_length);
 
@@ -5927,13 +5904,15 @@ int main(int argc, char **argv)
                 n_letters = clean_unrecognized_characters(bond, n_bond, atom, real_font_height, real_font_width, 0,
                             letters, n_letters);
 
-                assign_charge(atom, bond, n_atom, n_bond, spelling, superatom, debug_option.getValue());
+                assign_charge(atom, bond, n_atom, n_bond, spelling, superatom, debug);
                 find_up_down_bonds(bond, n_bond, atom, thickness);
                 int real_atoms = count_atoms(atom, n_atom);
                 int real_bonds = count_bonds(bond, n_bond);
 
+
                 if (verbose)
-                  cout<<"real atoms: "<<real_atoms<<" real bonds: "<<real_bonds<<endl;
+                  cout << "Final number of atoms: " << real_atoms << ", bonds: " << real_bonds << ", chars: " << n_letters << '.' << endl;
+
                 if (real_atoms > MIN_A_COUNT && real_atoms < MAX_A_COUNT && real_bonds < MAX_A_COUNT)
                   {
                     int num_frag;
@@ -5954,10 +5933,11 @@ int main(int argc, char **argv)
                     for (unsigned int i = 0; i < fragments.size(); i++)
                       {
                         if (verbose)
-                          cout<<"Number of fragments: "<<fragments[i].atom.size()<<endl;
+                          cout << "Considering fragment #" << i << " " << fragments[i].x1 << "x" << fragments[i].y1 << "-" << fragments[i].x2 << "x"
+                               << fragments[i].y2 << ", atoms: " << fragments[i].atom.size() << '.' << endl;
+
                         if (fragments[i].atom.size() > MIN_A_COUNT)
                           {
-
                             frag_atom.clear();
                             for (int a = 0; a < n_atom; a++)
                               {
@@ -5980,58 +5960,48 @@ int main(int argc, char **argv)
                             molecule_statistics_t molecule_statistics;
                             int page_number = l + 1;
                             box_t coordinate_box;
-                            coordinate_box.x1=(int)((double)page_scale*boxes[k].x1 + (double)page_scale*box_scale*fragments[i].x1);
-                            coordinate_box.y1=(int)((double)page_scale*boxes[k].y1 + (double)page_scale*box_scale*fragments[i].y1);
-                            coordinate_box.x2=(int)((double)page_scale*boxes[k].x1 + (double)page_scale*box_scale*fragments[i].x2);
-                            coordinate_box.y2=(int)((double)page_scale*boxes[k].y1 + (double)page_scale*box_scale*fragments[i].y2);
+                            coordinate_box.x1 = (int) ((double) page_scale * boxes[k].x1 + (double) page_scale * box_scale * fragments[i].x1);
+                            coordinate_box.y1 = (int) ((double) page_scale * boxes[k].y1 + (double) page_scale * box_scale * fragments[i].y1);
+                            coordinate_box.x2 = (int) ((double) page_scale * boxes[k].x1 + (double) page_scale * box_scale * fragments[i].x2);
+                            coordinate_box.y2 = (int) ((double) page_scale * boxes[k].y1 + (double) page_scale * box_scale * fragments[i].y2);
 
                             string structure =
-                              get_formatted_structure(frag_atom, frag_bond, n_bond, output_format_option.getValue(),
+                              get_formatted_structure(frag_atom, frag_bond, n_bond, output_format,
                                                       molecule_statistics, confidence,
-                                                      show_confidence_option.getValue(), avg_bond_length, page_scale*box_scale*avg_bond_length,
-                                                      show_avg_bond_length_option.getValue(),
-                                                      show_resolution_guess_option.getValue() ? &resolution : NULL,
-                                                      show_page_option.getValue() ? &page_number : NULL,
+                                                      show_confidence, avg_bond_length, page_scale * box_scale * avg_bond_length,
+                                                      show_avg_bond_length,
+                                                      show_resolution_guess ? &resolution : NULL,
+                                                      show_page ? &page_number : NULL,
                                                       show_coordinates ? &coordinate_box : NULL, superatom);
 
                             if (verbose)
-                              cout << "Structure length " << structure.length() << ", fragments: " << molecule_statistics.fragments << '.' << endl;
+                              cout << "Structure length: " << structure.length() << ", molecule fragments: " << molecule_statistics.fragments << '.' << endl;
+
 
                             if (molecule_statistics.fragments > 0 && molecule_statistics.fragments < MAX_FRAGMENTS && !structure.empty())
                               {
                                 array_of_structures[res_iter].push_back(structure);
-                                array_of_avg_bonds[res_iter].push_back(page_scale*box_scale*avg_bond_length);
+                                array_of_avg_bonds[res_iter].push_back(page_scale * box_scale * avg_bond_length);
                                 array_of_ind_conf[res_iter].push_back(confidence);
                                 total_boxes++;
                                 total_confidence += confidence;
-                                if (output_image_file_prefix_option.getValue() != "")
+                                if (!output_image_file_prefix.empty())
                                   {
                                     Image tmp = image;
-                                    if (fragments.size() > 1)
+                                    Geometry geometry =
+                                      (fragments.size() > 1) ? Geometry(box_scale * fragments[i].x2 - box_scale * fragments[i].x1 + 4 * real_font_width, //
+                                                                        box_scale * fragments[i].y2 - box_scale * fragments[i].y1 + 4 * real_font_height, //
+                                                                        boxes[k].x1 + box_scale * fragments[i].x1 - FRAME - 2 * real_font_width, //
+                                                                        boxes[k].y1 + box_scale * fragments[i].y1 - FRAME - 2 * real_font_height)
+                                      : Geometry(boxes[k].x2 - boxes[k].x1, boxes[k].y2 - boxes[k].y1, boxes[k].x1, boxes[k].y1);
+
+                                    try
                                       {
-                                        try
-                                          {
-                                            tmp.crop(Geometry(box_scale*fragments[i].x2 - box_scale*fragments[i].x1 + 4 * real_font_width,
-                                                              box_scale*fragments[i].y2 - box_scale*fragments[i].y1 + 4 * real_font_height,
-                                                              boxes[k].x1 + box_scale*fragments[i].x1 - FRAME - 2 * real_font_width,
-                                                              boxes[k].y1 + box_scale*fragments[i].y1 - FRAME - 2 * real_font_height));
-                                          }
-                                        catch (...)
-                                          {
-                                            tmp = orig_box;
-                                          }
+                                        tmp.crop(geometry);
                                       }
-                                    else
+                                    catch (...)
                                       {
-                                        try
-                                          {
-                                            tmp.crop(Geometry(boxes[k].x2 - boxes[k].x1, boxes[k].y2 - boxes[k].y1,
-                                                              boxes[k].x1, boxes[k].y1));
-                                          }
-                                        catch (...)
-                                          {
-                                            tmp = orig_box;
-                                          }
+                                        tmp = orig_box;
                                       }
 
                                     array_of_images[res_iter].push_back(tmp);
@@ -6065,13 +6035,12 @@ int main(int argc, char **argv)
               max_res = i;
             }
         }
-
       #pragma omp critical
       {
         for (unsigned int i = 0; i < array_of_structures[max_res].size(); i++)
           {
             pages_of_structures[l].push_back(array_of_structures[max_res][i]);
-            if (output_image_file_prefix_option.getValue() != "")
+            if (!output_image_file_prefix.empty())
               pages_of_images[l].push_back(array_of_images[max_res][i]);
             pages_of_avg_bonds[l].push_back(array_of_avg_bonds[max_res][i]);
             pages_of_ind_conf[l].push_back(array_of_ind_conf[max_res][i]);
@@ -6090,75 +6059,65 @@ int main(int argc, char **argv)
 
   //cout << min_bond << " " << max_bond << endl;
 
-#ifdef ANDROID
-  double max_conf = -FLT_MAX;
-  string best_smiles;
-  for (int l = 0; l < page; l++)
-    for (unsigned int i = 0; i < pages_of_structures[l].size(); i++)
-      if (pages_of_avg_bonds[l][i] > min_bond && pages_of_avg_bonds[l][i] < max_bond && pages_of_ind_conf[l][i]>max_conf)
-        {
-          max_conf=pages_of_ind_conf[l][i];
-          best_smiles=pages_of_structures[l][i];
-        }
+#ifdef OSRA_LIB
+  ostream &out_stream = output_structure_stream;
 #else
-  ofstream outfile;
+  ostream &out_stream = outfile.is_open() ? outfile : cout;
+#endif
 
-  if (!output_file_option.getValue().empty())
-    {
-      string filename = output_file_option.getValue();
-      outfile.open(filename.c_str(), ios::out);
-    }
+#ifdef OSRA_ANDROID
+  // For Andriod version we will find the structure with maximum confidence value, as the common usecase for Andriod is to analyse the
+  // image (taken by embedded photo camera) that usually contains just one molecule:
+  double max_confidence = -FLT_MAX;
+  int l_index = 0;
+  int i_index = 0;
+#endif
 
   int image_count = 0;
 
   for (int l = 0; l < page; l++)
-    {
-      if (outfile.is_open())
-        for (unsigned int i = 0; i < pages_of_structures[l].size(); i++)
-          {
-            if (pages_of_avg_bonds[l][i] > min_bond && pages_of_avg_bonds[l][i] < max_bond)
-              outfile << pages_of_structures[l][i];
-          }
-      else
-        for (unsigned int i = 0; i < pages_of_structures[l].size(); i++)
-          {
-            if (pages_of_avg_bonds[l][i] > min_bond && pages_of_avg_bonds[l][i] < max_bond)
-              cout << pages_of_structures[l][i];
-          }
-      if (output_image_file_prefix_option.getValue() != "")
-        for (unsigned int i = 0; i < pages_of_images[l].size(); i++)
-          if (pages_of_avg_bonds[l][i] > min_bond && pages_of_avg_bonds[l][i] < max_bond)
+    for (unsigned int i = 0; i < pages_of_structures[l].size(); i++)
+      if (pages_of_avg_bonds[l][i] > min_bond && pages_of_avg_bonds[l][i] < max_bond)
+        {
+#ifdef OSRA_ANDROID
+          if (pages_of_ind_conf[l][i] > max_confidence)
             {
-              stringstream fname;
-              fname << output_image_file_prefix_option.getValue() << image_count << ".png";
+              max_confidence = pages_of_ind_conf[l][i];
+              l_index = l;
+              i_index = i;
+            }
+#else
+          out_stream << pages_of_structures[l][i];
+#endif
+          // Dump this structure into a separate file:
+          if (!output_image_file_prefix.empty())
+            {
+              ostringstream fname;
+              fname << output_image_file_prefix << image_count << ".png";
               image_count++;
               if (fname.str() != "")
                 {
                   Image tmp = pages_of_images[l][i];
-                  if (resize_option.getValue() != "")
+                  if (resize != "")
                     {
-                      tmp.scale(resize_option.getValue());
+                      tmp.scale(resize);
                     }
                   tmp.write(fname.str());
                 }
             }
-    }
+        }
 
-  if (outfile.is_open())
+#ifdef OSRA_ANDROID
+  // Output the structure with maximum confidence value:
+  out_stream << pages_of_structures[l_index][i_index];
+#endif
+
+  out_stream.flush();
+
+#ifndef OSRA_LIB
+  if (!output_file.empty())
     outfile.close();
 #endif
 
-#ifdef HAVE_CUNEIFORM_LIB
-  PUMA_Done();
-#endif
-
-#ifdef ANDROID
-  for (int i=0; i<argc; i++)
-    free(argv[i]);
-  free(argv);
-  j_env->ReleaseByteArrayElements(jrawimage,(jbyte*)rawimage,0);
-  return (j_env)->NewStringUTF(best_smiles.c_str());
-#else
   return 0;
-#endif
 }

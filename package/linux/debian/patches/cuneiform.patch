@@ -25,7 +25,7 @@
  		PUMA_XFinalRecognition();
 --- a/src/osra_ocr.cpp
 +++ b/src/osra_ocr.cpp
-@@ -41,12 +41,7 @@
+@@ -37,12 +37,7 @@
  #include <ocradlib.h>
  
  #ifdef HAVE_CUNEIFORM_LIB
