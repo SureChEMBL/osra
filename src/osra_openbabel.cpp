@@ -475,7 +475,7 @@ molecule_statistics_t caclulate_molecule_statistics(vector<atom_t> &atom, const 
   return molecule_statistics;
 }
 
-const string get_formatted_structure(vector<atom_t> &atom, const vector<bond_t> &bond, int n_bond, const string &format, molecule_statistics_t &molecule_statistics,
+const string get_formatted_structure(vector<atom_t> &atom, const vector<bond_t> &bond, int n_bond, const string &format, const string &embedded_format, molecule_statistics_t &molecule_statistics,
                                      double &confidence, bool show_confidence, double avg_bond_length, double scaled_avg_bond_length, bool show_avg_bond_length, const int * const resolution,
                                      const int * const page, const box_t * const surrounding_box,
                                      const map<string, string> &superatom)
@@ -557,6 +557,36 @@ const string get_formatted_structure(vector<atom_t> &atom, const vector<bond_t> 
         cs << surrounding_box->x1 << 'x' << surrounding_box->y1 << '-' << surrounding_box->x2 << 'x' << surrounding_box->y2;
         label->SetValue(cs.str());
         mol.SetData(label);
+      }
+
+    if (embedded_format == "inchi")
+      {
+        OBConversion conv;
+        string value;
+
+        conv.SetOutFormat("inchi");
+        conv.Read(&mol);
+
+        value = conv.WriteString(&mol);
+        trim(value);
+
+        if (!value.empty())
+          {
+            OBPairData *label = new OBPairData;
+            label->SetAttribute("InChi");
+            label->SetValue(value.c_str());
+            mol.SetData(label);
+
+            conv.SetOptions("K", conv.OUTOPTIONS);
+
+            value = conv.WriteString(&mol);
+            trim(value);
+
+            label = new OBPairData;
+            label->SetAttribute("InChi_key");
+            label->SetValue(value.c_str());
+            mol.SetData(label);
+          }
       }
 
     OBConversion conv;

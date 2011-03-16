@@ -7,8 +7,10 @@ import java.io.Writer;
 
 import org.apache.commons.io.IOUtils;
 
+import net.sourceforge.osra.OsraLib;
+
 /**
- * JBI bridge for OSRA library.
+ * JNI bridge for OSRA library.
  * 
  * @author <a href="mailto:dkatsubo@epo.org">Dmitry Katsubo</a>
  */
@@ -33,7 +35,7 @@ public class OsraLib {
 	 * @return 0, if the call succeeded or negative value in case of error
 	 */
 	public native int processImage(byte[] imageData, Writer outputStructureWriter, String format,
-				boolean outputConfidence, boolean outputCoordinates, boolean outputAvgBondLength);
+				String embeddedFormat, boolean outputConfidence, boolean outputCoordinates, boolean outputAvgBondLength);
 
 	public native String getVersion();
 
@@ -46,8 +48,8 @@ public class OsraLib {
 
 		final StringWriter writer = new StringWriter();
 
-		int result = new OsraLib().processImage(IOUtils.toByteArray(new FileInputStream(args[0])), writer, "sdf", true,
-					true, true);
+		int result = new OsraLib().processImage(IOUtils.toByteArray(new FileInputStream(args[0])), writer, "sdf",
+					"inchi", true, true, true);
 
 		System.out.println("OSRA completed with result:" + result + " structure:'" + writer.toString() + "'");
 	}

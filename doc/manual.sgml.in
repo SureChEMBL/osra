@@ -161,6 +161,18 @@
 			<arg choice="opt">
 				<group choice="req">
 					<arg choice="plain">
+						<option>--embedded-format</option>
+					</arg>
+				</group>
+				<group choice="req">
+					<arg choice="plain">
+						<replaceable class="parameter">inchi</replaceable>
+					</arg>
+				</group>
+			</arg>
+			<arg choice="opt">
+				<group choice="req">
+					<arg choice="plain">
 						<option>-p</option>
 					</arg>
 					<arg choice="plain">
@@ -438,6 +450,17 @@
 					<para>
 						Output format (either <parameter>can</parameter> for Canonical SMILES, <parameter>smi</parameter> for SMILES,
 						<parameter>inchi</parameter> for InChI, <parameter>sdf</parameter> for SD file format).
+					</para>
+				</listitem>
+			</varlistentry>
+			<varlistentry>
+				<term>
+					<option>--embedded-format <replaceable>format</replaceable></option>
+				</term>
+				<listitem>
+					<para>
+						Output format to be embedded into SDF (is only valid if <parameter>format</parameter> is <parameter>sdf</parameter>).
+						The only embedded format supported now is <parameter>inchi</parameter>.
 					</para>
 				</listitem>
 			</varlistentry>

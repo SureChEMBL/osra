@@ -32,7 +32,7 @@
 using namespace std;
 
 #ifdef OSRA_ANDROID
-int main(int argc, char **argv, const char *image_data, int image_length, ostream &output_structure_stream);
+int main(int argc, char **argv, const char *image_data, int image_length, ostream &structure_output_stream);
 
 extern "C" {
   JNIEXPORT jstring JNICALL Java_cadd_osra_main_runosra_nativeosra(JNIEnv *j_env, jobject j_this, jobjectArray j_arr,
@@ -55,11 +55,11 @@ JNIEXPORT jstring JNICALL Java_cadd_osra_main_runosra_nativeosra(JNIEnv *j_env, 
   char *image_data = (char *) j_env->GetByteArrayElements(j_image_data, NULL);
 
   int result = -1;
-  ostringstream output_structure_stream;
+  ostringstream structure_output_stream;
 
   if (image_data != NULL)
     {
-      result = main(argc, argv, image_data, j_env->GetArrayLength(j_image_data), output_structure_stream);
+      result = main(argc, argv, image_data, j_env->GetArrayLength(j_image_data), structure_output_stream);
 
       j_env->ReleaseByteArrayElements(j_image_data, (jbyte *) image_data, JNI_ABORT);
     }
@@ -76,7 +76,7 @@ JNIEXPORT jstring JNICALL Java_cadd_osra_main_runosra_nativeosra(JNIEnv *j_env, 
   if (result != 0)
     return j_env->NewStringUTF("");
 
-  return j_env->NewStringUTF(output_structure_stream.str().c_str());
+  return j_env->NewStringUTF(structure_output_stream.str().c_str());
 }
 #endif
 
@@ -99,11 +99,13 @@ extern "C" {
   JNIEXPORT jstring JNICALL Java_net_sourceforge_osra_OsraLib_getVersion(JNIEnv *, jobject);
 }
 
-JNIEXPORT jint JNICALL Java_net_sourceforge_osra_OsraLib_processImage(JNIEnv *j_env, jobject j_this, jbyteArray j_image_data, jobject j_writer, jstring j_format,
+JNIEXPORT jint JNICALL Java_net_sourceforge_osra_OsraLib_processImage(JNIEnv *j_env, jobject j_this, jbyteArray j_image_data, jobject j_writer,
+    jstring j_output_format, jstring j_embedded_format,
     jboolean j_output_confidence, jboolean j_output_coordinates,
     jboolean j_output_avg_bond_length)
 {
-  const char *format = j_env->GetStringUTFChars(j_format, NULL);
+  const char *output_format = j_env->GetStringUTFChars(j_output_format, NULL);
+  const char *embedded_format = j_env->GetStringUTFChars(j_embedded_format, NULL);
   const char *image_data = (char *) j_env->GetByteArrayElements(j_image_data, NULL);
 
   int result = -1;
@@ -112,12 +114,12 @@ JNIEXPORT jint JNICALL Java_net_sourceforge_osra_OsraLib_processImage(JNIEnv *j_
     {
       // Perhaps there is a more optimal way to bridge from std:ostream to java.io.Writer.
       // See http://stackoverflow.com/questions/524524/creating-an-ostream/524590#524590
-      ostringstream output_structure_stream;
+      ostringstream structure_output_stream;
 
       result = osra_process_image(
                  image_data,
                  j_env->GetArrayLength(j_image_data),
-                 output_structure_stream,
+                 structure_output_stream,
                  0,
                  false,
                  0,
@@ -125,7 +127,8 @@ JNIEXPORT jint JNICALL Java_net_sourceforge_osra_OsraLib_processImage(JNIEnv *j_
                  0,
                  false,
                  false,
-                 format,
+                 output_format,
+                 embedded_format,
                  j_output_confidence,
                  false,
                  false,
@@ -139,7 +142,7 @@ JNIEXPORT jint JNICALL Java_net_sourceforge_osra_OsraLib_processImage(JNIEnv *j_
       jclass j_writer_class = j_env->FindClass("java/io/Writer");
       jmethodID write_method_id = j_env->GetMethodID(j_writer_class, "write", "(Ljava/lang/String;)V");
 
-      jstring j_string = j_env->NewStringUTF(output_structure_stream.str().c_str());
+      jstring j_string = j_env->NewStringUTF(structure_output_stream.str().c_str());
 
       j_env->CallVoidMethod(j_writer, write_method_id, j_string);
 
@@ -147,7 +150,8 @@ JNIEXPORT jint JNICALL Java_net_sourceforge_osra_OsraLib_processImage(JNIEnv *j_
       j_env->DeleteLocalRef(j_string);
     }
 
-  j_env->ReleaseStringUTFChars(j_format, format);
+  j_env->ReleaseStringUTFChars(j_output_format, output_format);
+  j_env->ReleaseStringUTFChars(j_embedded_format, embedded_format);
 
   return result;
 }
