@@ -4601,8 +4601,8 @@ void find_connected_components(const Image &image, double threshold, const Color
 
   for (unsigned int i = 0; i < image.columns(); i++)
     for (unsigned int j = 0; j < image.rows(); j++)
-	if (get_pixel(image, bgColor, i, j, threshold) == 1) // populate with low threshold for future anisotropic smoothing
-	  tmp[i][j] = 1;
+      if (get_pixel(image, bgColor, i, j, threshold) == 1) // populate with low threshold for future anisotropic smoothing
+        tmp[i][j] = 1;
 
 
   for (unsigned int i = 0; i < image.columns(); i++)
@@ -5525,7 +5525,7 @@ int osra_process_image(
       image.density(density.str());
 
       if (type == "PDF" || type == "PS")
-        page_scale *= 72 / input_resolution;
+        page_scale *= (double) 72 / input_resolution;
 
 #ifdef OSRA_LIB
       image.read(blob);
