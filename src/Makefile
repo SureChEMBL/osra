@@ -9,6 +9,8 @@ include Makefile.dep
 
 LIB_API_VERSION	:= 1.0.0
 
+TARGETS		:= osra
+
 OBJ_LIB		:= osra.o osra_anisotropic.o osra_ocr.o osra_openbabel.o mcdlutil.o unpaper.o 
 
 ifdef TESSERACT_LIB
@@ -17,8 +19,13 @@ endif
 
 OBJ_CLI		:= $(OBJ_LIB) osra_cli.o
 
+ifdef OSRA_LIB
+TARGETS		+= libosra.a libosra.so
+endif
+
 ifdef OSRA_JAVA
 OBJ_JAVA	:= $(OBJ_LIB) osra_java.o
+TARGETS		+= libosra_java.so
 endif
 
 ifdef OSRA_ANDROID
@@ -74,18 +81,26 @@ endif
 Makefile.dep: $(wildcard *.cpp)
 	$(CXX) $(CPPFLAGS) -MM $^ > Makefile.dep 
 
-install: osra libosra.a libosra.so
-	$(INSTALL_DIR) $(DESTDIR)$(bindir) $(DESTDIR)$(libdir) $(DESTDIR)$(includedir)
+install: $(TARGETS)
+	$(INSTALL_DIR) $(DESTDIR)$(bindir)
 	$(INSTALL_PROGRAM) osra $(DESTDIR)$(bindir)
+ifdef OSRA_LIB
+	$(INSTALL_DIR) $(DESTDIR)$(libdir) $(DESTDIR)$(includedir)
 	$(INSTALL_PROGRAM) libosra.so $(DESTDIR)$(libdir)/libosra.so.$(LIB_API_VERSION)
 	$(INSTALL_PROGRAM) libosra.a $(DESTDIR)$(libdir)
 	$(INSTALL_DATA) osra_lib.h $(DESTDIR)$(includedir)
+endif
+ifdef OSRA_JAVA
+	$(INSTALL_DIR) $(DESTDIR)$(libdir)
+	$(INSTALL_PROGRAM) libosra_java.so $(DESTDIR)$(libdir)/libosra_java.so.$(LIB_API_VERSION)
+endif
 
 uninstall:
 	$(RM) -f \
 		$(DESTDIR)$(bindir)/osra \
 		$(DESTDIR)$(libdir)/libosra.so.$(LIB_API_VERSION) \
 		$(DESTDIR)$(libdir)/libosra.a \
+		$(DESTDIR)$(libdir)/libosra_java.so.$(LIB_API_VERSION) \
 		$(DESTDIR)$(includedir)/osra_lib.h
 
 clean:
