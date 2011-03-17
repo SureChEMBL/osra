@@ -30,7 +30,7 @@
 #include <vector> // std::vector
 #include <algorithm> // std::sort, std::min(double, double), std::max(double, double)
 #include <iostream> // std::ostream, std::cout
-#include <fstream> // std::ofstream
+#include <fstream> // std::ofstream, std::ifstream
 #include <sstream> // std:ostringstream
 
 #include <Magick++.h>
@@ -5365,7 +5365,7 @@ extern job_t *JOB;
 void __attribute__ ((constructor)) osra_init()
 {
   // Necessary for GraphicsMagick-1.3.8 according to http://www.graphicsmagick.org/1.3/NEWS.html#january-21-2010:
-  InitializeMagick(NULL);
+  MagickLib::InitializeMagick(NULL);
 
   osra_ocr_init();
 
@@ -5388,7 +5388,7 @@ int osra_process_image(
 #ifdef OSRA_LIB
   const char *image_data,
   int image_length,
-  ostream &output_structure_stream,
+  ostream &structure_output_stream,
 #else
   const string &input_file,
   const string &output_file,
@@ -5401,6 +5401,7 @@ int osra_process_image(
   bool jaggy,
   bool adaptive_option,
   const string &output_format,
+  const string &embedded_format,
   bool show_confidence,
   bool show_resolution_guess,
   bool show_page,
@@ -5495,7 +5496,17 @@ int osra_process_image(
   if (show_coordinates && rotate != 0)
     {
       cerr << "Showing the box coordinates is currently not supported together with image rotation and is therefore disabled." << endl;
+#ifdef OSRA_LIB
+      return ERROR_ILLEGAL_ARGUMENT_COMBINATION;
+#else
       show_coordinates = false;
+#endif
+    }
+
+  if (!embedded_format.empty() && (output_format != "sdf" || embedded_format != "inchi"))
+    {
+      cerr << "Embedded format option is only possible if output format is SDF and option can only have 'inchi' value." << endl;
+      return ERROR_ILLEGAL_ARGUMENT_COMBINATION;
     }
 
 #ifdef OSRA_LIB
@@ -5966,7 +5977,7 @@ int osra_process_image(
                             coordinate_box.y2 = (int) ((double) page_scale * boxes[k].y1 + (double) page_scale * box_scale * fragments[i].y2);
 
                             string structure =
-                              get_formatted_structure(frag_atom, frag_bond, n_bond, output_format,
+                              get_formatted_structure(frag_atom, frag_bond, n_bond, output_format, embedded_format,
                                                       molecule_statistics, confidence,
                                                       show_confidence, avg_bond_length, page_scale * box_scale * avg_bond_length,
                                                       show_avg_bond_length,
@@ -6060,7 +6071,7 @@ int osra_process_image(
   //cout << min_bond << " " << max_bond << endl;
 
 #ifdef OSRA_LIB
-  ostream &out_stream = output_structure_stream;
+  ostream &out_stream = structure_output_stream;
 #else
   ostream &out_stream = outfile.is_open() ? outfile : cout;
 #endif

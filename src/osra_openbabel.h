@@ -168,7 +168,8 @@ molecule_statistics_t caclulate_molecule_statistics(vector<atom_t> &atom, const 
 //      atom - vector of <atom_s> atoms
 //      bond - vector of <bond_s> bonds
 //      n_bond - total number of bonds
-//      format - format for molecular representation - i.e. SMI, SDF
+//      format - output format for molecular representation - i.e. SMI, SDF
+//      embedded_format - output format to be embedded into SDF (is only valid if output format is SDF); the only embedded format supported now is "inchi"
 //      molecule_statistics - the molecule statistics (returned to the caller)
 //      confidence - confidence score (returned to the caller)
 //      show_confidence - toggles confidence score inclusion into output
@@ -182,7 +183,7 @@ molecule_statistics_t caclulate_molecule_statistics(vector<atom_t> &atom, const 
 //
 //  Returns:
 //      string containing SMILES, SDF or other representation of the molecule
-const string get_formatted_structure(vector<atom_t> &atom, const vector<bond_t> &bond, int n_bond, const string &format, molecule_statistics_t &molecule_statistics,
+const string get_formatted_structure(vector<atom_t> &atom, const vector<bond_t> &bond, int n_bond, const string &format, const string &second_format, molecule_statistics_t &molecule_statistics,
                                      double &confidence, bool show_confidence, double avg_bond_length, double scaled_avg_bond_length, bool show_avg_bond_length, const int * const resolution,
                                      const int * const page, const box_t * const surrounding_box, const map<string, string> &superatom);
 

@@ -45,7 +45,7 @@ int osra_process_image(
 #ifdef OSRA_LIB
   const char *image_data,
   int image_length,
-  ostream &output_structure_stream,
+  ostream &structure_output_stream,
 #else
   const string &input_file,
   const string &output_file,
@@ -58,6 +58,7 @@ int osra_process_image(
   bool jaggy = false,
   bool adaptive = false,
   const string &output_format = "smi",
+  const string &embedded_format = "",
   bool show_confidence = false,
   bool show_resolution_guess = false,
   bool show_page = false,

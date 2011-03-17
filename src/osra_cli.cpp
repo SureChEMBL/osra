@@ -34,7 +34,7 @@ int main(int argc,
          ,
          const char *image_data,
          int image_length,
-         ostream &output_structure_stream
+         ostream &structure_output_stream
 #endif
         )
 {
@@ -72,6 +72,9 @@ int main(int argc,
   //
   TCLAP::ValueArg<string> output_format_option("f", "format", "Output format", false, "can", "can/smi/sdf");
   cmd.add(output_format_option);
+
+  TCLAP::ValueArg<string> embedded_format_option("", "embedded", "Embedded format", false, "inchi", "inchi");
+  cmd.add(embedded_format_option);
 
   TCLAP::SwitchArg show_confidence_option("p", "print", "Print out confidence estimate", false);
   cmd.add(show_confidence_option);
@@ -135,7 +138,7 @@ int main(int argc,
 #ifdef OSRA_ANDROID
                  image_data,
                  image_length,
-                 output_structure_stream,
+                 structure_output_stream,
 #else
                  input_file_option.getValue(),
                  output_file_option.getValue(),
@@ -148,6 +151,7 @@ int main(int argc,
                  jaggy_option.getValue(),
                  adaptive_option.getValue(),
                  output_format_option.getValue(),
+                 embedded_format_option.getValue(),
                  show_confidence_option.getValue(),
                  show_resolution_guess_option.getValue(),
                  show_page_option.getValue(),

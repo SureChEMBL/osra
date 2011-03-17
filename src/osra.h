@@ -25,6 +25,8 @@
 // Defines types and functions exported from main module to other modules.
 //
 
+#include <string> // std:string
+
 #include <Magick++.h> // Magick::Image, Magick::ColorGray
 
 //
@@ -44,6 +46,14 @@
 // Returns:
 //      1 for set pixel, 0 for background
 int get_pixel(const Magick::Image &image, const Magick::ColorGray &bg, unsigned int x, unsigned int y, double THRESHOLD);
+
+// Function: trim()
+//
+// Remove leading and trailing whitespace
+//
+// Parameters:
+//      s - string to trim (in/out parameter)
+void trim(std::string &s);
 
 // Section: Constants
 //
@@ -124,5 +134,6 @@ int get_pixel(const Magick::Image &image, const Magick::ColorGray &bg, unsigned 
 
 #define ERROR_SPELLING_FILE_IS_MISSING          -1
 #define ERROR_SUPERATOM_FILE_IS_MISSING         -2
-#define ERROR_UNKNOWN_IMAGE_TYPE                -3
-#define ERROR_OUTPUT_FILE_OPEN_FAILED           -2
+#define ERROR_OUTPUT_FILE_OPEN_FAILED           -3
+#define ERROR_UNKNOWN_IMAGE_TYPE                -4
+#define ERROR_ILLEGAL_ARGUMENT_COMBINATION      -5
