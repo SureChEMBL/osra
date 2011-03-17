@@ -573,7 +573,7 @@ const string get_formatted_structure(vector<atom_t> &atom, const vector<bond_t> 
         if (!value.empty())
           {
             OBPairData *label = new OBPairData;
-            label->SetAttribute("InChi");
+            label->SetAttribute("InChI");
             label->SetValue(value.c_str());
             mol.SetData(label);
 
@@ -583,7 +583,7 @@ const string get_formatted_structure(vector<atom_t> &atom, const vector<bond_t> 
             trim(value);
 
             label = new OBPairData;
-            label->SetAttribute("InChi_key");
+            label->SetAttribute("InChI_key");
             label->SetValue(value.c_str());
             mol.SetData(label);
           }
