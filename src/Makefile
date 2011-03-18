@@ -49,8 +49,6 @@ ifdef OSRA_ANDROID
 	$(RM) -f $(OBJ_ANDROID)
 	$(MAKE) libosra_andriod.so
 endif
-#	Not confusing install rule:
-	touch osra libosra.a libosra.so
 
 osra: $(OBJ_CLI)
 	$(LD) $(LDFLAGS) -o $@ $(OBJ_CLI) $(LIBS)
