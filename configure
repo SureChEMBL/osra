@@ -4093,7 +4093,10 @@ if test "x$ac_cv_header_jni_h" = x""yes; then :
 
 			cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
-#include <jni.h>
+
+				#include <stddef.h>
+				#include <jni.h>
+
 int
 main ()
 {
@@ -5723,6 +5726,7 @@ cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
 	#include <stdio.h> // Defines the EOF constant; needed for MinGW
+	#include <stddef.h>
 	#include <tclap/CmdLine.h>
 
 int

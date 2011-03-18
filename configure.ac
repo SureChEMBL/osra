@@ -139,7 +139,10 @@ AS_IF([test "${enable_java}" == "yes"], [
 		save_CPPFLAGS=${CPPFLAGS}
 		CPPFLAGS="-I${JAVA_HOME}/include -I${JAVA_HOME}/include/linux ${CPPFLAGS}"
 		AC_CHECK_HEADER([jni.h], [
-			AC_TRY_COMPILE([#include <jni.h>], [
+			AC_TRY_COMPILE([
+				#include <stddef.h>
+				#include <jni.h>
+			], [
 				JNIEnv *j_env;
 				jobjectArray j_obj_arr;
 				jbyteArray j_byte_arr;
@@ -322,6 +325,7 @@ osra_lib_tclap=yes
 
 AC_TRY_COMPILE([
 	#include <stdio.h> // Defines the EOF constant; needed for MinGW
+	#include <stddef.h>
 	#include <tclap/CmdLine.h>
 ], [
 	TCLAP::CmdLine cmd("");
