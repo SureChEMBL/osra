@@ -73,7 +73,7 @@ int main(int argc,
   TCLAP::ValueArg<string> output_format_option("f", "format", "Output format", false, "can", "can/smi/sdf");
   cmd.add(output_format_option);
 
-  TCLAP::ValueArg<string> embedded_format_option("", "embedded", "Embedded format", false, "inchi", "inchi");
+  TCLAP::ValueArg<string> embedded_format_option("", "embedded_format", "Embedded format", false, "", "inchi");
   cmd.add(embedded_format_option);
 
   TCLAP::SwitchArg show_confidence_option("p", "print", "Print out confidence estimate", false);

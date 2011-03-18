@@ -559,13 +559,12 @@ const string get_formatted_structure(vector<atom_t> &atom, const vector<bond_t> 
         mol.SetData(label);
       }
 
-    if (embedded_format == "inchi")
+    if (!embedded_format.empty())
       {
         OBConversion conv;
         string value;
 
-        conv.SetOutFormat("inchi");
-        conv.Read(&mol);
+        conv.SetOutFormat(embedded_format.c_str());
 
         value = conv.WriteString(&mol);
         trim(value);
@@ -573,19 +572,21 @@ const string get_formatted_structure(vector<atom_t> &atom, const vector<bond_t> 
         if (!value.empty())
           {
             OBPairData *label = new OBPairData;
-            label->SetAttribute("InChI");
+            label->SetAttribute(embedded_format);
             label->SetValue(value.c_str());
             mol.SetData(label);
+            if (embedded_format == "inchi")
+              {
+                conv.SetOptions("K", conv.OUTOPTIONS);
 
-            conv.SetOptions("K", conv.OUTOPTIONS);
+                value = conv.WriteString(&mol);
+                trim(value);
 
-            value = conv.WriteString(&mol);
-            trim(value);
-
-            label = new OBPairData;
-            label->SetAttribute("InChI_key");
-            label->SetValue(value.c_str());
-            mol.SetData(label);
+                label = new OBPairData;
+                label->SetAttribute("InChI_key");
+                label->SetValue(value.c_str());
+                mol.SetData(label);
+              }
           }
       }
 

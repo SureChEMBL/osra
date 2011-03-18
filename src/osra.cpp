@@ -5503,9 +5503,10 @@ int osra_process_image(
 #endif
     }
 
-  if (!embedded_format.empty() && (output_format != "sdf" || embedded_format != "inchi"))
+  if (!embedded_format.empty() && output_format != "sdf" && (embedded_format != "inchi" || embedded_format == "smi"
+      || embedded_format != "can"))
     {
-      cerr << "Embedded format option is only possible if output format is SDF and option can only have 'inchi' value." << endl;
+      cerr << "Embedded format option is only possible if output format is SDF and option can have only inchi, smi, or can values." << endl;
       return ERROR_ILLEGAL_ARGUMENT_COMBINATION;
     }
 

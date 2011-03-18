@@ -169,7 +169,7 @@ molecule_statistics_t caclulate_molecule_statistics(vector<atom_t> &atom, const 
 //      bond - vector of <bond_s> bonds
 //      n_bond - total number of bonds
 //      format - output format for molecular representation - i.e. SMI, SDF
-//      embedded_format - output format to be embedded into SDF (is only valid if output format is SDF); the only embedded format supported now is "inchi"
+//      embedded_format - output format to be embedded into SDF (is only valid if output format is SDF); the only embedded formats supported now are "inchi", "smi", and "can"
 //      molecule_statistics - the molecule statistics (returned to the caller)
 //      confidence - confidence score (returned to the caller)
 //      show_confidence - toggles confidence score inclusion into output
