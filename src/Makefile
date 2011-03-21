@@ -49,6 +49,8 @@ ifdef OSRA_ANDROID
 	$(RM) -f $(OBJ_ANDROID)
 	$(MAKE) libosra_andriod.so
 endif
+#	We have to update the timestaps of the targets, otherwise "install" target will try to re-link and will cause missed symbols:
+	touch $(TARGETS)
 
 osra: $(OBJ_CLI)
 	$(LD) $(LDFLAGS) -o $@ $(OBJ_CLI) $(LIBS)
