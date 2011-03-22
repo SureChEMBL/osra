@@ -68,7 +68,7 @@ package_deb:
 	TAR_NAME=../$(name)_$(version).orig.tar.gz $(MAKE) -C $(BUILD_DIR) tarball 
 
 	pushd $(BUILD_DIR); \
-	debuild -sa; \
+	debuild -sa -us -uc; \
 	exit_code=$$?; \
 	popd; \
 	exit $$exit_code;
