@@ -544,21 +544,24 @@ AS_IF([test "${osra_lib_openbabel}" != "yes"], [
 
 dnl GraphicsMagick library
 
+AC_PATH_PROG(GRAPHICS_MAGICK_CONFIG, GraphicsMagick++-config)
+
+AS_IF([test "${GRAPHICS_MAGICK_CONFIG}" == ""], [
+	AC_MSG_ERROR([GraphicsMagick++-config was not found; make sure you have installed libgraphicsmagick++-dev package])
+])	
+
 AS_IF([test "${enable_graphicsmagick_config:+set}" != "set"], [
-		AC_PATH_PROG(GRAPHICS_MAGICK_CONFIG, GraphicsMagick++-config)
-		AS_IF([test "${GRAPHICS_MAGICK_CONFIG}" == ""], [
-			AC_MSG_ERROR([GraphicsMagick++-config was not found; make sure you have installed libgraphicsmagick++-dev package])
-		])	
-		LIBS="`${GRAPHICS_MAGICK_CONFIG} --libs` ${LIBS}"
-		CPPFLAGS="`${GRAPHICS_MAGICK_CONFIG} --cppflags` ${CPPFLAGS}"
-		LDFLAGS="`${GRAPHICS_MAGICK_CONFIG} --ldflags` ${LDFLAGS}"
-	], [
-		AS_IF([test "${enable_static_linking:+set}" == "set"], [
-			AS_IF(["$build_os" == "darwin"], [
-				LIBS="-lGraphicsMagick++ -lGraphicsMagick -ljpeg ${MACPORTSLIBS}/liblcms.a ${MACPORTSLIBS}/libtiff.a ${MACPORTSLIBS}/libfreetype.a ${MACPORTSLIBS}/libjasper.a ${MACPORTSLIBS}/libpng.a ${MACPORTSLIBS}/libbz2.a ${MACPORTSLIBS}/libz.a ${LIBS}"
-			]) 
-		])
+	LIBS="`${GRAPHICS_MAGICK_CONFIG} --libs` ${LIBS}"
+], [
+	AS_IF([test "${enable_static_linking:+set}" == "set"], [
+		AS_IF(["$build_os" == "darwin"], [
+			LIBS="-lGraphicsMagick++ -lGraphicsMagick -ljpeg ${MACPORTSLIBS}/liblcms.a ${MACPORTSLIBS}/libtiff.a ${MACPORTSLIBS}/libfreetype.a ${MACPORTSLIBS}/libjasper.a ${MACPORTSLIBS}/libpng.a ${MACPORTSLIBS}/libbz2.a ${MACPORTSLIBS}/libz.a ${LIBS}"
+		]) 
+	])
 ])
+
+CPPFLAGS="`${GRAPHICS_MAGICK_CONFIG} --cppflags` ${CPPFLAGS}"
+LDFLAGS="`${GRAPHICS_MAGICK_CONFIG} --ldflags` ${LDFLAGS}"
 
 AS_IF([test "${enable_static_linking:+set}" == "set" -a "$build_os" == "cygwin"],
 	dnl Here goes statically linking setup section.
