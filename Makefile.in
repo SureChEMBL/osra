@@ -36,7 +36,7 @@ clean: clean.subdir
 distclean: clean distclean.subdir
 	$(RM) -rf config.status config.cache config.log autom4te.cache
 	$(RM) -f Makefile Makefile.inc
-	$(RM) -f $(name)*.rpm $(name)*.deb
+	$(RM) -f $(name)*.*rpm $(name)*.deb $(name)*.tar.gz
 
 # This rule is responsible for correcting permissions after checkout from VCS.
 proper:
@@ -72,7 +72,7 @@ package_deb:
 	exit_code=$$?; \
 	popd; \
 	exit $$exit_code;
-	find $(BUILD_DIR)/.. -iname '$(name)*.deb' -exec cp '{}' . \;
+	cp $(BUILD_DIR)/../$(name)*.deb $(BUILD_DIR)/../$(name)*.orig.tar.gz .
 	$(RM) -rf $(BUILD_DIR)
 
 # Create RPM package:
@@ -95,12 +95,19 @@ package_rpm:
 	popd; \
 	exit $$exit_code;
 	$(RM) -f ~/.rpmmacros 
-	find $(BUILD_DIR) -iname '$(name)*.rpm' -exec cp '{}' . \;
+	find $(BUILD_DIR)/RPMS  -iname '$(name)*.rpm'     -exec cp '{}' . \;
+#	Rename to .srpm, because otherwise *.rpm mask does not match unique file:
+	find $(BUILD_DIR)/SRPMS -iname '$(name)*.src.rpm' -exec cp '{}' $(name_version).srpm \;
 	$(RM) -rf $(BUILD_DIR)
 
-# General maven repository deployment rule. See package/hudson/pom.xml for more details:
-deploy_%:
-	mvn deploy:deploy-file -Durl=$(REPOSITORY_URL) -DrepositoryId=$(REPOSITORY_ID) -DpomFile=package/maven/pom.xml -Dfile=`echo $(name)*.$*` -DgroupId=net.sourceforge -DartifactId=$(name) -Dversion=$(version) -Dclassifier=$(TARGET_CPU) -Dpackaging=$*
+# General maven repository deployment rule. See package/hudson/pom.xml for more details. The 1st command in the rule can be parameterized, but the 2nd is tricky:
+deploy_deb:
+	mvn deploy:deploy-file -Durl=$(REPOSITORY_URL) -DrepositoryId=$(REPOSITORY_ID) -Dfile=`echo $(name)*.deb`    -DgroupId=net.sourceforge -DartifactId=$(name) -Dversion=$(version) -Dclassifier=$(TARGET_CPU) -Dpackaging=deb -DpomFile=package/maven/pom.xml
+	mvn deploy:deploy-file -Durl=$(REPOSITORY_URL) -DrepositoryId=$(REPOSITORY_ID) -Dfile=`echo $(name)*.tar.gz` -DgroupId=net.sourceforge -DartifactId=$(name) -Dversion=$(version) -Dclassifier=sources       -Dpackaging=tgz
+
+deploy_rpm:
+	mvn deploy:deploy-file -Durl=$(REPOSITORY_URL) -DrepositoryId=$(REPOSITORY_ID) -Dfile=`echo $(name)*.rpm`    -DgroupId=net.sourceforge -DartifactId=$(name) -Dversion=$(version) -Dclassifier=$(TARGET_CPU) -Dpackaging=rpm -DpomFile=package/maven/pom.xml
+	mvn deploy:deploy-file -Durl=$(REPOSITORY_URL) -DrepositoryId=$(REPOSITORY_ID) -Dfile=`echo $(name)*.srpm`   -DgroupId=net.sourceforge -DartifactId=$(name) -Dversion=$(version) -Dclassifier=sources       -Dpackaging=srpm
 
 beautify:
 	astyle --style=gnu --suffix=none --recursive "*.cpp" "*.h"
