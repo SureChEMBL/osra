@@ -63,11 +63,12 @@ rm -rf $RPM_BUILD_ROOT
 /usr/share/osra
 /usr/share/man/man1/osra.1*
 /usr/share/doc/packages/osra
+/usr/lib/pkgconfig/osra.pc
 
 %doc README
 
 # spec file ends here
 
 %changelog
-* Thu Jul 11 2010 dma_k@mail.ru
+* Thu Jul 01 2011 dma_k@mail.ru
 - Initial SuSE package
