@@ -44,17 +44,17 @@ if installing from RPM make sure you have the following packages:
 	GraphicsMagick-c++ 
 http://www.graphicsmagick.org/
 
-- POTRACE, vector tracing library, version 1.7 or later,
+- POTRACE, vector tracing library, version 1.9 or later,
 http://potrace.sourceforge.net/
 
-- GOCR/JOCR, optical character recognition library, specially patched version
+- GOCR/JOCR, optical character recognition library, specially patched version 0.50pre
 available from http://osra.sourceforge.net is recommended.
 Project website is http://jocr.sourceforge.net/
 
-- OCRAD, optical character recognition program, version 0.20 or later. 
+- OCRAD, optical character recognition program, version 0.21 or later. 
 http://www.gnu.org/software/ocrad/ocrad.html
 
-- TCLAP, Templatized C++ Command Line Parser Library, version 1.1.0,
+- TCLAP, Templatized C++ Command Line Parser Library, version 1.2.0,
 http://tclap.sourceforge.net/
 
 - OpenBabel, open source chemistry toolbox, version 2.3.0 or later; 
@@ -90,24 +90,25 @@ http://unpaper.berlios.de/
 Compilation:
 
 General notes: 
-Potrace (as of version 1.8) does not install libpotrace.a and potracelib.h files
-when "make install" is run so you have to either copy those files by hand into a commonly used location (/usr/local/lib and /usr/local/include for example)
-or set --with-potrace and --with-potrace-lib flags for configure accordingly.
+Potrace (as of version 1.9) can install libpotrace.a and potracelib.h files. Run ./configure --with-libpotrace;make;make install 
+or ./configure --with-libpotrace --disable-shared... for static only library.
+
+GOCR compilation (use the patched version from OSRA website: ./configure; make libs; make install.
+
 GraphicsMagick++-config should be in the PATH.
 Depending on your installation you might also have to set up LD_LIBRARY_PATH to include /usr/local/lib.
 
+OCRAD and TCLAP:
+./configure; make; make install
+
 Linux/Unix systems:
-Compile and/or install all the necessary dependencies. Note - starting with ocrad-0.19
-OCRAD compilation generates libocrad.a library used by OSRA. You need to run
-./configure;make to compile OCRAD.
-Special note for GOCR - use the patched version from OSRA website.
 
 Unpack OSRA package. Starting with 1.3.7 the build process is simplified to the common procedure:
 ./configure
 make
 make install
 
-You can now optionally add Tesseract and Cuneiform OCR engines to OSRA. For Tesseract simply run configure with
+You can now optionally add Tesseract (2.0 for OSRA-1.3.7 and 3.0 for OSRA-1.3.8)  and Cuneiform OCR engines to OSRA. For Tesseract simply run configure with
 --with-tesseract 
 assuming it's installed in a common location. For Cuneiform I used the following options:
 ./configure --with-cuneiform --with-cuneiform-source=/home/igor/cuneiform-linux-1.0.0/ --with-cuneiform-include=/home/igor/cuneiform-linux-1.0.0/install/include/ --with-cuneiform-lib=/home/igor/cuneiform-linux-1.0.0/install/lib64/ 
@@ -122,8 +123,6 @@ jasper.
 
 Download and compile JPEG.
 
-Compile POTRACE, GOCR, OCRAD and TCALP as follows (libpotrace.a does not get installed by default in v1.8): 
-./configure;make;sudo make install
 OpenBabel:
 export LDFLAGS=/usr/local/lib/libiconv.a
 mkdir build
@@ -249,6 +248,12 @@ Other options:
 -b, --bond: Print out average bond length in pixels
 
 -j, --jaggy: Additional thinning/scaling down of low quality documents
+
+-i, --adaptive:    Adaptive thresholding pre-processing, useful for low light/low
+     contrast images
+
+--embedded_format <format>: Allows the user to have InChI or SMILES  included in an SDF file
+as a molecular property
 
 ============================================================================
 LICENSE:
