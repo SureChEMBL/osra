@@ -59,6 +59,7 @@ BUILD_DIR := $(shell echo $${TMP:-/tmp})/build/$(name_version)
 
 # Create DEB package:
 package_deb:
+	$(RM) -rf $(BUILD_DIR)
 	mkdir -p $(BUILD_DIR)
 	
 	cp -a . $(BUILD_DIR)
@@ -73,10 +74,10 @@ package_deb:
 	popd; \
 	exit $$exit_code;
 	cp $(BUILD_DIR)/../$(name)*.deb $(BUILD_DIR)/../$(name)*.orig.tar.gz .
-	$(RM) -rf $(BUILD_DIR)
 
 # Create RPM package:
 package_rpm: 
+	$(RM) -rf $(BUILD_DIR)
 	mkdir -p $(BUILD_DIR)/{SOURCES,SPECS,BUILD,RPMS,SRPMS,$(name_version)}
 
 	echo "%_topdir $(BUILD_DIR)" > ~/.rpmmacros
@@ -98,7 +99,6 @@ package_rpm:
 	find $(BUILD_DIR)/RPMS  -iname '$(name)*.rpm'     -exec cp '{}' . \;
 #	Rename to .srpm, because otherwise *.rpm mask does not match unique file:
 	find $(BUILD_DIR)/SRPMS -iname '$(name)*.src.rpm' -exec cp '{}' $(name_version).srpm \;
-	$(RM) -rf $(BUILD_DIR)
 
 # General maven repository deployment rule. See package/hudson/pom.xml for more details. The 1st command in the rule can be parameterized, but the 2nd is tricky:
 deploy_deb:
