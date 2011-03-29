@@ -9,9 +9,10 @@
 #   There are no defaults for any options as there is no guarantee, that target compiler supports them, see http://www.gnu.org/software/autoconf/manual/make/Command-Variables.html.
 #
 
-name		:= @PACKAGE_NAME@
-version		:= @PACKAGE_VERSION@
-name_version	:= $(name)-$(version)
+NAME		:= @PACKAGE_NAME@
+VERSION		:= @PACKAGE_VERSION@
+LIB_VERSION	:= @LIB_VERSION@
+NAME_VERSION	:= $(NAME)-$(VERSION)
 
 prefix		:= @prefix@
 exec_prefix	:= @exec_prefix@

@@ -7,8 +7,6 @@ include Makefile.dep
 
 .PHONY: clean_obj
 
-LIB_API_VERSION	:= 1.0.0
-
 TARGETS		:= osra
 
 OBJ_LIB		:= osra.o osra_anisotropic.o osra_ocr.o osra_openbabel.o mcdlutil.o unpaper.o 
@@ -86,25 +84,26 @@ install: $(TARGETS)
 	$(INSTALL_PROGRAM) osra $(DESTDIR)$(bindir)
 ifdef OSRA_LIB
 	$(INSTALL_DIR) $(DESTDIR)$(libdir) $(DESTDIR)$(includedir)
-	$(INSTALL_PROGRAM) libosra.so $(DESTDIR)$(libdir)/libosra.so.$(LIB_API_VERSION)
+	$(INSTALL_PROGRAM) libosra.so $(DESTDIR)$(libdir)/libosra.so.$(LIB_VERSION)
 	$(INSTALL_PROGRAM) libosra.a $(DESTDIR)$(libdir)
 	$(INSTALL_DATA) osra_lib.h $(DESTDIR)$(includedir)
 endif
 ifdef OSRA_JAVA
 	$(INSTALL_DIR) $(DESTDIR)$(libdir)
-	$(INSTALL_PROGRAM) libosra_java.so $(DESTDIR)$(libdir)/libosra_java.so.$(LIB_API_VERSION)
+	$(INSTALL_PROGRAM) libosra_java.so $(DESTDIR)$(libdir)/libosra_java.so.$(LIB_VERSION)
 endif
 
+# "install" and "make" tools auomatically autodetect the extension for executables, but "rm" needs extension correction:
 uninstall:
 	$(RM) -f \
-		$(DESTDIR)$(bindir)/osra \
-		$(DESTDIR)$(libdir)/libosra.so.$(LIB_API_VERSION) \
+		$(DESTDIR)$(bindir)/osra$(EXEEXT) \
+		$(DESTDIR)$(libdir)/libosra.so.$(LIB_VERSION) \
 		$(DESTDIR)$(libdir)/libosra.a \
-		$(DESTDIR)$(libdir)/libosra_java.so.$(LIB_API_VERSION) \
+		$(DESTDIR)$(libdir)/libosra_java.so.$(LIB_VERSION) \
 		$(DESTDIR)$(includedir)/osra_lib.h
 
 clean:
-	$(RM) -f *.o osra libosra*.*
+	$(RM) -f *.o osra$(EXEEXT) libosra*.*
 
 distclean: clean
 	$(RM) -f config.h Makefile.dep

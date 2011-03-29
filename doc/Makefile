@@ -20,9 +20,9 @@ $(HTML_DOC_DIR)/index.html:
 endif
 
 ifdef XSLTPROC
-all: $(name).1 $(name).html
+all: $(NAME).1 $(NAME).html
 
-$(name).1: manual.sgml
+$(NAME).1: manual.sgml
 #	This command has been taken from http://www.debian.org/doc/manuals/maint-guide/ch-dother.en.html#s-manpagexml:
 	$(XSLTPROC) --nonet \
 		--param make.year.ranges 1 \
@@ -31,7 +31,7 @@ $(name).1: manual.sgml
 		http://docbook.sourceforge.net/release/xsl/current/manpages/docbook.xsl \
 		$?
 
-$(name).html: manual.sgml
+$(NAME).html: manual.sgml
 	$(XSLTPROC) --nonet \
 		--param make.year.ranges 1 \
 		--param make.single.year.ranges 1 \
@@ -39,16 +39,16 @@ $(name).html: manual.sgml
 		http://docbook.sourceforge.net/release/xsl/current/html/docbook.xsl \
 		$? > $@
 
-install: $(name).1
+install: $(NAME).1
 	$(INSTALL_DIR) $(DESTDIR)$(mandir)/man1
 	$(INSTALL_DATA) $? $(DESTDIR)$(mandir)/man1
 endif
 
 uninstall:
-	$(RM) -f $(DESTDIR)$(mandir)/man1/$(name).1
+	$(RM) -f $(DESTDIR)$(mandir)/man1/$(NAME).1
 
 clean:
-	$(RM) -Rf $(HTML_DOC_DIR) $(name).1 $(name).html
+	$(RM) -Rf $(HTML_DOC_DIR) $(NAME).1 $(NAME).html
 
 distclean:
 	$(RM) -Rf $(NATURALDOCS_DIR) manual.sgml

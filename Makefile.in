@@ -36,7 +36,7 @@ clean: clean.subdir
 distclean: clean distclean.subdir
 	$(RM) -rf config.status config.cache config.log autom4te.cache
 	$(RM) -f Makefile Makefile.inc
-	$(RM) -f $(name)*.*rpm $(name)*.deb $(name)*.tar.gz
+	$(RM) -f $(NAME)*.*rpm $(NAME)*.deb $(NAME)*.tar.gz
 
 # This rule is responsible for correcting permissions after checkout from VCS.
 proper:
@@ -48,14 +48,14 @@ tarball: distclean proper
 	tar -C .. -czf $(TAR_NAME) --exclude-vcs $(shell basename `pwd`)
 
 # Create a tarball snapshot from current source directory (usually to be uploaded to FTP server).
-dist: TAR_NAME := ../$(name_version).tgz
+dist: TAR_NAME := ../$(NAME_VERSION).tgz
 # Generate md5:
 dist: tarball
 	cat $(TAR_NAME) | md5sum  > $(TAR_NAME).md5
 	@echo "Archive $(TAR_NAME) was created."
 
 # Use default value if TMP variable is not defined:
-BUILD_DIR := $(shell echo $${TMP:-/tmp})/build/$(name_version)
+BUILD_DIR := $(shell echo $${TMP:-/tmp})/build/$(NAME_VERSION)
 
 # Create DEB package:
 package_deb:
@@ -66,29 +66,29 @@ package_deb:
 	cp -a package/linux/debian $(BUILD_DIR)
 	
 #	Debian build requires the original tarball name to correspond to mask "NAME_VERSION.orig.(tar|tar.bz2|tar.gz|lzma)":	
-	TAR_NAME=../$(name)_$(version).orig.tar.gz $(MAKE) -C $(BUILD_DIR) tarball 
+	TAR_NAME=../$(NAME)_$(VERSION).orig.tar.gz $(MAKE) -C $(BUILD_DIR) tarball 
 
 	pushd $(BUILD_DIR); \
 	debuild -sa -us -uc; \
 	exit_code=$$?; \
 	popd; \
 	exit $$exit_code;
-	cp $(BUILD_DIR)/../$(name)*.deb $(BUILD_DIR)/../$(name)*.orig.tar.gz .
+	cp $(BUILD_DIR)/../$(NAME)*.deb $(BUILD_DIR)/../$(NAME)*.orig.tar.gz .
 
 # Create RPM package:
 package_rpm: 
 	$(RM) -rf $(BUILD_DIR)
-	mkdir -p $(BUILD_DIR)/{SOURCES,SPECS,BUILD,RPMS,SRPMS,$(name_version)}
+	mkdir -p $(BUILD_DIR)/{SOURCES,SPECS,BUILD,RPMS,SRPMS,$(NAME_VERSION)}
 
 	echo "%_topdir $(BUILD_DIR)" > ~/.rpmmacros
-	echo "%name $(name)" >> ~/.rpmmacros
-	echo "%version $(version)" >> ~/.rpmmacros
+	echo "%name $(NAME)" >> ~/.rpmmacros
+	echo "%version $(VERSION)" >> ~/.rpmmacros
 	
-	cp -a . $(BUILD_DIR)/$(name_version)
+	cp -a . $(BUILD_DIR)/$(NAME_VERSION)
 	cp package/linux/suse/osra.spec $(BUILD_DIR)/SPECS
 	
 #	If you change the tarname here, change also "Source0" in package/linux/suse/osra.spec:
-	TAR_NAME=$(BUILD_DIR)/SOURCES/$(name_version).tar.gz $(MAKE) -C $(BUILD_DIR)/$(name_version) tarball
+	TAR_NAME=$(BUILD_DIR)/SOURCES/$(NAME_VERSION).tar.gz $(MAKE) -C $(BUILD_DIR)/$(NAME_VERSION) tarball
 
 	pushd $(BUILD_DIR)/SPECS; \
 	rpmbuild -ba --target=$(TARGET_CPU) osra.spec; \
@@ -96,18 +96,18 @@ package_rpm:
 	popd; \
 	exit $$exit_code;
 	$(RM) -f ~/.rpmmacros 
-	find $(BUILD_DIR)/RPMS  -iname '$(name)*.rpm'     -exec cp '{}' . \;
+	find $(BUILD_DIR)/RPMS  -iname '$(NAME)*.rpm'     -exec cp '{}' . \;
 #	Rename to .srpm, because otherwise *.rpm mask does not match unique file:
-	find $(BUILD_DIR)/SRPMS -iname '$(name)*.src.rpm' -exec cp '{}' $(name_version).srpm \;
+	find $(BUILD_DIR)/SRPMS -iname '$(NAME)*.src.rpm' -exec cp '{}' $(NAME_VERSION).srpm \;
 
 # General maven repository deployment rule. See package/hudson/pom.xml for more details. The 1st command in the rule can be parameterized, but the 2nd is tricky:
 deploy_deb:
-	mvn deploy:deploy-file -Durl=$(REPOSITORY_URL) -DrepositoryId=$(REPOSITORY_ID) -Dfile=`echo $(name)*.deb`    -DgroupId=net.sourceforge -DartifactId=$(name) -Dversion=$(version) -Dclassifier=$(TARGET_CPU) -Dpackaging=deb -DpomFile=package/maven/pom.xml
-	mvn deploy:deploy-file -Durl=$(REPOSITORY_URL) -DrepositoryId=$(REPOSITORY_ID) -Dfile=`echo $(name)*.tar.gz` -DgroupId=net.sourceforge -DartifactId=$(name) -Dversion=$(version) -Dclassifier=sources       -Dpackaging=tgz
+	mvn deploy:deploy-file -Durl=$(REPOSITORY_URL) -DrepositoryId=$(REPOSITORY_ID) -Dfile=`echo $(NAME)*.deb`    -DgroupId=net.sourceforge -DartifactId=$(NAME) -Dversion=$(VERSION) -Dclassifier=$(TARGET_CPU) -Dpackaging=deb -DpomFile=package/maven/pom.xml
+	mvn deploy:deploy-file -Durl=$(REPOSITORY_URL) -DrepositoryId=$(REPOSITORY_ID) -Dfile=`echo $(NAME)*.tar.gz` -DgroupId=net.sourceforge -DartifactId=$(NAME) -Dversion=$(VERSION) -Dclassifier=sources       -Dpackaging=tgz
 
 deploy_rpm:
-	mvn deploy:deploy-file -Durl=$(REPOSITORY_URL) -DrepositoryId=$(REPOSITORY_ID) -Dfile=`echo $(name)*.rpm`    -DgroupId=net.sourceforge -DartifactId=$(name) -Dversion=$(version) -Dclassifier=$(TARGET_CPU) -Dpackaging=rpm -DpomFile=package/maven/pom.xml
-	mvn deploy:deploy-file -Durl=$(REPOSITORY_URL) -DrepositoryId=$(REPOSITORY_ID) -Dfile=`echo $(name)*.srpm`   -DgroupId=net.sourceforge -DartifactId=$(name) -Dversion=$(version) -Dclassifier=sources       -Dpackaging=srpm
+	mvn deploy:deploy-file -Durl=$(REPOSITORY_URL) -DrepositoryId=$(REPOSITORY_ID) -Dfile=`echo $(NAME)*.rpm`    -DgroupId=net.sourceforge -DartifactId=$(NAME) -Dversion=$(VERSION) -Dclassifier=$(TARGET_CPU) -Dpackaging=rpm -DpomFile=package/maven/pom.xml
+	mvn deploy:deploy-file -Durl=$(REPOSITORY_URL) -DrepositoryId=$(REPOSITORY_ID) -Dfile=`echo $(NAME)*.srpm`   -DgroupId=net.sourceforge -DartifactId=$(NAME) -Dversion=$(VERSION) -Dclassifier=sources       -Dpackaging=srpm
 
 beautify:
 	astyle --style=gnu --suffix=none --recursive "*.cpp" "*.h"
@@ -116,9 +116,9 @@ Makefile.inc: Makefile.inc.in config.status
 	./config.status
 
 config.status: configure
-	echo "Your Makefile.inc is older than configure script. As this file is generated by configure, it is strongly advised to re-run configure to update it."
+	@echo "Your Makefile.inc is older than configure script. As this file is generated by configure, it is strongly advised to re-run configure to update it."
 #	./configure
 
 configure: configure.ac aclocal.m4
-	echo "Your configure script is older than configure.ac. It is strongly advised to re-run autoconf to update it."
+	@echo "Your configure script is older than configure.ac. It is strongly advised to re-run autoconf to update it."
 #	autoconf

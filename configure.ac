@@ -22,6 +22,12 @@ AS_IF([test "${ac_cv_cxx_have_stl}" != "yes"], [
 ])
 
 dnl
+dnl Compute the library version from the package version
+dnl
+
+AC_SUBST([LIB_VERSION], [1.0.`echo ${PACKAGE_VERSION} | perl -ne '/(\d+)\.(\d+)\.(\d+)/ || die; printf "%d%02d%02d", $1, $2, $3;'`])
+
+dnl
 dnl Checks for programs
 dnl
 
@@ -544,29 +550,29 @@ AS_IF([test "${osra_lib_openbabel}" != "yes"], [
 
 dnl GraphicsMagick library
 
-AC_PATH_PROG(GRAPHICS_MAGICK_CONFIG, GraphicsMagick++-config)
-
-AS_IF([test "${GRAPHICS_MAGICK_CONFIG}" == ""], [
-	AC_MSG_ERROR([GraphicsMagick++-config was not found; make sure you have installed libgraphicsmagick++-dev package])
-])	
-
 AS_IF([test "${enable_graphicsmagick_config:+set}" != "set"], [
-	LIBS="`${GRAPHICS_MAGICK_CONFIG} --libs` ${LIBS}"
+	AC_PATH_PROG(GRAPHICS_MAGICK_CONFIG, GraphicsMagick++-config)
+
+	AS_IF([test "${GRAPHICS_MAGICK_CONFIG}" == ""], [
+		AC_MSG_ERROR([GraphicsMagick++-config was not found; make sure you have installed libgraphicsmagick++-dev package])
+	])	
+
+	CPPFLAGS="`${GRAPHICS_MAGICK_CONFIG} --cppflags` ${CPPFLAGS}"
+	LDFLAGS="`${GRAPHICS_MAGICK_CONFIG} --ldflags` ${LDFLAGS}"
+dnl	LIBS="`${GRAPHICS_MAGICK_CONFIG} --libs` ${LIBS}"
 ], [
-	AS_IF([test "${enable_static_linking:+set}" == "set"], [
-		AS_IF(["$build_os" == "darwin"], [
-			LIBS="-lGraphicsMagick++ -lGraphicsMagick -ljpeg ${MACPORTSLIBS}/liblcms.a ${MACPORTSLIBS}/libtiff.a ${MACPORTSLIBS}/libfreetype.a ${MACPORTSLIBS}/libjasper.a ${MACPORTSLIBS}/libpng.a ${MACPORTSLIBS}/libbz2.a ${MACPORTSLIBS}/libz.a ${LIBS}"
-		]) 
+	AS_IF([test "${enable_static_linking:+set}" == "set" -a "$build_os" == "darwin"], [
+		LIBS="-lGraphicsMagick++ -lGraphicsMagick -ljpeg ${MACPORTSLIBS}/liblcms.a ${MACPORTSLIBS}/libtiff.a ${MACPORTSLIBS}/libfreetype.a ${MACPORTSLIBS}/libjasper.a ${MACPORTSLIBS}/libpng.a ${MACPORTSLIBS}/libbz2.a ${MACPORTSLIBS}/libz.a ${LIBS}"
 	])
 ])
 
-CPPFLAGS="`${GRAPHICS_MAGICK_CONFIG} --cppflags` ${CPPFLAGS}"
-LDFLAGS="`${GRAPHICS_MAGICK_CONFIG} --ldflags` ${LDFLAGS}"
-
-AS_IF([test "${enable_static_linking:+set}" == "set" -a "$build_os" == "cygwin"],
-	dnl Here goes statically linking setup section.
-	dnl Note: This hack to link statically against GraphicsMagick is not portable.
-	[LIBS="-lxcb -lXau -lXdmcp ${LIBS}"]
+AS_IF([test "$build_os" == "cygwin"],
+	AS_IF([test "${enable_static_linking:+set}" == "set"],
+		dnl Here goes statically linking setup section.
+		dnl Note: This hack to link statically against GraphicsMagick is not portable.
+		[LIBS="-lxcb -lXau -lXdmcp ${LIBS}"],
+		[LIBS="-lGraphicsMagick ${LIBS}"]
+	)
 )
 
 dnl We cannot move this check to the top, because includes for GraphicsMagick are defined only at this point:
