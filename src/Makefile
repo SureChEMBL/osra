@@ -78,7 +78,7 @@ libosra_andriod.so: $(OBJ_ANDROID)
 	$(LD) $(LDFLAGS) -fPIC -shared -Wl,-soname,$@ -o $@ $(OBJ_ANDROID) $(LIBS)
 endif
 
-Makefile.dep: $(wildcard *.cpp)
+Makefile.dep: $(patsubst %.o,%.cpp,$(OBJ_CLI))
 	$(CXX) $(CPPFLAGS) -MM $^ > Makefile.dep 
 
 install: $(TARGETS)
