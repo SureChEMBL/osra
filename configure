@@ -7072,19 +7072,21 @@ fi
 	CPPFLAGS="`${GRAPHICS_MAGICK_CONFIG} --cppflags` ${CPPFLAGS}"
 	LDFLAGS="`${GRAPHICS_MAGICK_CONFIG} --ldflags` ${LDFLAGS}"
 
+	if test "${enable_static_linking:+set}" == "set"; then :
+
+						LIBS="`${GRAPHICS_MAGICK_CONFIG} --libs` ${LIBS}"
+		if test "$build_os" == "cygwin"; then :
+  LIBS="-lxcb -lXau -lXdmcp ${LIBS}"
+
+fi
+
+fi
+
 else
 
 	if test "${enable_static_linking:+set}" == "set" -a "$build_os" == "darwin"; then :
 
 				LIBS="-ljpeg ${MACPORTSLIBS}/liblcms.a ${MACPORTSLIBS}/libtiff.a ${MACPORTSLIBS}/libfreetype.a ${MACPORTSLIBS}/libjasper.a ${MACPORTSLIBS}/libpng.a ${MACPORTSLIBS}/libbz2.a ${MACPORTSLIBS}/libz.a ${LIBS}"
-
-fi
-
-fi
-
-if test "${enable_static_linking:+set}" == "set"; then :
-  	if test "$build_os" == "cygwin"; then :
-  		LIBS="-lxcb -lXau -lXdmcp `${GRAPHICS_MAGICK_CONFIG} --libs` ${LIBS}"
 
 fi
 

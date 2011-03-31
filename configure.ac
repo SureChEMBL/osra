@@ -544,6 +544,7 @@ AS_IF([test "${osra_lib_openbabel}" != "yes"], [
 
 dnl GraphicsMagick library
 
+dnl The variable ${enable_graphicsmagick_config} has a reverse meaning: when set it means "disable-graphicsmagick-config"
 AS_IF([test "${enable_graphicsmagick_config:+set}" != "set"], [
 	AC_PATH_PROG(GRAPHICS_MAGICK_CONFIG, GraphicsMagick++-config)
 
@@ -553,20 +554,21 @@ AS_IF([test "${enable_graphicsmagick_config:+set}" != "set"], [
 
 	CPPFLAGS="`${GRAPHICS_MAGICK_CONFIG} --cppflags` ${CPPFLAGS}"
 	LDFLAGS="`${GRAPHICS_MAGICK_CONFIG} --ldflags` ${LDFLAGS}"
+
+	AS_IF([test "${enable_static_linking:+set}" == "set"], [
+		dnl Here goes statically linking setup section.
+		dnl Note: This hack to link statically against GraphicsMagick is not portable: the list of libraries should be discovered via pkg-config.
+		LIBS="`${GRAPHICS_MAGICK_CONFIG} --libs` ${LIBS}"
+		AS_IF([test "$build_os" == "cygwin"],
+			[LIBS="-lxcb -lXau -lXdmcp ${LIBS}"]
+		)
+	])
 ], [
 	AS_IF([test "${enable_static_linking:+set}" == "set" -a "$build_os" == "darwin"], [
 		dnl Special case for OSX: the libraries should be at fixed locations:
 		LIBS="-ljpeg ${MACPORTSLIBS}/liblcms.a ${MACPORTSLIBS}/libtiff.a ${MACPORTSLIBS}/libfreetype.a ${MACPORTSLIBS}/libjasper.a ${MACPORTSLIBS}/libpng.a ${MACPORTSLIBS}/libbz2.a ${MACPORTSLIBS}/libz.a ${LIBS}"
 	])
 ])
-
-AS_IF([test "${enable_static_linking:+set}" == "set"],
-	dnl Here goes statically linking setup section.
-	AS_IF([test "$build_os" == "cygwin"],
-		dnl Note: This hack to link statically against GraphicsMagick is not portable: the list of libraries should be discovered via pkg-config.
-		[LIBS="-lxcb -lXau -lXdmcp `${GRAPHICS_MAGICK_CONFIG} --libs` ${LIBS}"]
-	)
-)
 
 _AS_ECHO_LOG([CPPFLAGS="${CPPFLAGS}" LDFLAGS="${LDFLAGS}" LIBS="${LIBS}" after populated with GraphicsMagick++-config])
 
