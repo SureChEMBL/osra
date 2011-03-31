@@ -22,10 +22,15 @@ AS_IF([test "${ac_cv_cxx_have_stl}" != "yes"], [
 ])
 
 dnl
-dnl Compute the library version from the package version
+dnl Compute the library version from the package version. If library ABI changes, change the major number here:
 dnl
 
-AC_SUBST([LIB_VERSION], [1.0.`echo ${PACKAGE_VERSION} | perl -ne '/(\d+)\.(\d+)\.(\d+)/ || die; printf "%d%02d%02d", $1, $2, $3;'`])
+LIB_MAJOR_VERSION=0
+LIB_MINOR_VERSION=0
+
+AC_SUBST([LIB_MAJOR_VERSION], [${LIB_MAJOR_VERSION}])
+AC_SUBST([LIB_MINOR_VERSION], [${LIB_MINOR_VERSION}])
+AC_SUBST([LIB_PATCH_VERSION], [`echo ${PACKAGE_VERSION} | perl -ne '/(\d+)\.(\d+)\.(\d+)/ || die; printf "%d%02d%02d", $1, $2, $3;'`])
 
 dnl
 dnl Checks for programs
@@ -133,51 +138,39 @@ AC_ARG_ENABLE(
 dnl Java support:
 AC_ARG_ENABLE(
 	[java],
-	[AC_HELP_STRING([--enable-java], [Include Java JNI bridge compilation into build cycle. Make sure you have JDK installed and $JAVA_HOME environment variable pointing to its location.])]
+	[AC_HELP_STRING([--enable-java], [Include Java JNI bridge compilation into build cycle. Make sure you have JDK installed and JAVA_HOME environment variable pointing to its location or jni.h is in compiler search path.])]
 )
 
 AS_IF([test "${enable_java}" == "yes"], [
-	AS_IF([test "${JAVA_HOME}" == ""], [
-		AC_MSG_WARN([Java JNI bridge support was requested, but disabled because $JAVA_HOME environment variable is not defined])
-		enable_java=no
-	],
-	[
-		save_CPPFLAGS=${CPPFLAGS}
+	AS_IF([test -n "${JAVA_HOME}"], [
 		CPPFLAGS="-I${JAVA_HOME}/include -I${JAVA_HOME}/include/linux ${CPPFLAGS}"
-		AC_CHECK_HEADER([jni.h], [
-			AC_TRY_COMPILE([
-				#include <stddef.h>
-				#include <jni.h>
-			], [
-				JNIEnv *j_env;
-				jobjectArray j_obj_arr;
-				jbyteArray j_byte_arr;
-				jstring j_str;
-				jboolean j_output_confidence;
-				
-				j_env->GetArrayLength(j_byte_arr);
-				j_env->GetObjectArrayElement(j_obj_arr, 0);
-				j_env->GetByteArrayElements(j_byte_arr, NULL);
-				j_env->ReleaseByteArrayElements(j_byte_arr, (jbyte*) NULL, JNI_ABORT);
-				j_env->GetStringUTFChars(j_str, NULL);
-				j_env->ReleaseStringUTFChars(j_str, (const char *) NULL);
-			], [], [
-				AC_MSG_WARN([Java JNI bridge support was requested, but disabled because JNI API is not supported])
-				CPPFLAGS=${save_CPPFLAGS}
-				enable_java=no
-			])
-		], [
-			AC_MSG_WARN([Java JNI bridge support was requested, but disabled because "jni.h" was not found (search path: ${CPPFLAGS})])
-			CPPFLAGS=${save_CPPFLAGS}
-			enable_java=no
-		])
 	])
-	
-	AS_IF([test "${enable_java}" == "yes"], [
-		AC_SUBST([OSRA_JAVA], [yes])
+	AC_CHECK_HEADER([jni.h], [
+		AC_TRY_COMPILE([
+			#include <stddef.h>
+			#include <jni.h>
+		], [
+			JNIEnv *j_env;
+			jobjectArray j_obj_arr;
+			jbyteArray j_byte_arr;
+			jstring j_str;
+			jboolean j_output_confidence;
+			
+			j_env->GetArrayLength(j_byte_arr);
+			j_env->GetObjectArrayElement(j_obj_arr, 0);
+			j_env->GetByteArrayElements(j_byte_arr, NULL);
+			j_env->ReleaseByteArrayElements(j_byte_arr, (jbyte*) NULL, JNI_ABORT);
+			j_env->GetStringUTFChars(j_str, NULL);
+			j_env->ReleaseStringUTFChars(j_str, (const char *) NULL);
+		], [
+			AC_SUBST([OSRA_JAVA], [yes])
+		], [
+			AC_MSG_ERROR([Java JNI bridge support was requested, but failed because JNI API is not supported])
+		])
+	], [
+		AC_MSG_ERROR([Java JNI bridge support was requested, but failed because "jni.h" was not found (search path: ${CPPFLAGS})])
 	])
 ])
-
 
 AC_ARG_WITH(
 	[macports],
@@ -396,11 +389,12 @@ AS_IF([test "${osra_lib_ocrad}" != "yes"], [
 dnl tesseract library (optional)
 
 AS_IF([test "${ac_lib_tesseract}" == "yes"], [
-	dnl Note: This hack to link statically against Tesseract is not portable.
-	AS_IF([test "${enable_static_linking:+set}" == "set"], [LIBS="-ljpeg -lz ${LIBS}"])
-
-	AC_CHECK_LIB([pthread], [sem_init], [], [ac_lib_tesseract=no])
-	AC_CHECK_LIB([tiff], [TIFFGetField], [], [ac_lib_tesseract=no])
+	dnl Note: This hack to link statically against Tesseract is not portable: the list of libraries should be discovered via pkg-config.
+	AS_IF([test "${enable_static_linking:+set}" == "set"], [
+		LIBS="-ljpeg -lz ${LIBS}"
+		AC_CHECK_LIB([pthread], [sem_init], [], [ac_lib_tesseract=no])
+		AC_CHECK_LIB([tiff], [TIFFGetField], [], [ac_lib_tesseract=no])
+	])
 
 	AX_TRY_LINK([tesseract_api], [
 		#include <stddef.h>
@@ -447,19 +441,19 @@ dnl openbabel library
 
 osra_lib_openbabel=yes
 
-AS_IF([test "$build_os" == "mingw32"],[LIBS="-lws2_32 ${LIBS}"])
+AS_IF([test "$build_os" == "mingw32"], [LIBS="-lws2_32 ${LIBS}"])
 
 dnl These libraries are needed for static linking with openbabel:
-AS_IF([test "$build_os" == "darwin"], [
-	AS_IF([test "${enable_static_linking:+set}" == "set"], [
-		AC_CHECK_LIB([inchi], [GetINCHI], [], [osra_lib_openbabel=no])
+AS_IF([test "${enable_static_linking:+set}" == "set"], [
+	AS_IF([test "$build_os" == "darwin"], [
+		dnl Special case for OSX: the libraries should be at fixed locations:
+		AC_CHECK_LIB([inchi], [GetINCHI])
 		LIBS="${MACPORTSLIBS}/libxml2.a ${MACPORTSLIBS}/libiconv.a ${MACPORTSLIBS}/libz.a ${LIBS}"
-	])
-], [
-	AS_IF([test "${enable_static_linking:+set}" == "set" -o "$build_os" == "mingw32"], [
-		AC_CHECK_LIB([z], [inflateEnd], [], [osra_lib_openbabel=no])
-		AC_CHECK_LIB([xml2], [xmlParseFile], [], [osra_lib_openbabel=no])
-		AC_CHECK_LIB([inchi], [GetINCHI], [], [osra_lib_openbabel=no])	
+	], [
+		dnl Note: This hack to link statically against OpenBabel is not portable: the list of libraries should be discovered via pkg-config.
+		AC_CHECK_LIB([inchi], [GetINCHI])
+		AC_CHECK_LIB([z], [inflateEnd])
+		AC_CHECK_LIB([xml2], [xmlParseFile])
 	])
 ])
 
@@ -559,21 +553,22 @@ AS_IF([test "${enable_graphicsmagick_config:+set}" != "set"], [
 
 	CPPFLAGS="`${GRAPHICS_MAGICK_CONFIG} --cppflags` ${CPPFLAGS}"
 	LDFLAGS="`${GRAPHICS_MAGICK_CONFIG} --ldflags` ${LDFLAGS}"
-dnl	LIBS="`${GRAPHICS_MAGICK_CONFIG} --libs` ${LIBS}"
 ], [
 	AS_IF([test "${enable_static_linking:+set}" == "set" -a "$build_os" == "darwin"], [
-		LIBS="-lGraphicsMagick++ -lGraphicsMagick -ljpeg ${MACPORTSLIBS}/liblcms.a ${MACPORTSLIBS}/libtiff.a ${MACPORTSLIBS}/libfreetype.a ${MACPORTSLIBS}/libjasper.a ${MACPORTSLIBS}/libpng.a ${MACPORTSLIBS}/libbz2.a ${MACPORTSLIBS}/libz.a ${LIBS}"
+		dnl Special case for OSX: the libraries should be at fixed locations:
+		LIBS="-ljpeg ${MACPORTSLIBS}/liblcms.a ${MACPORTSLIBS}/libtiff.a ${MACPORTSLIBS}/libfreetype.a ${MACPORTSLIBS}/libjasper.a ${MACPORTSLIBS}/libpng.a ${MACPORTSLIBS}/libbz2.a ${MACPORTSLIBS}/libz.a ${LIBS}"
 	])
 ])
 
-AS_IF([test "$build_os" == "cygwin"],
-	AS_IF([test "${enable_static_linking:+set}" == "set"],
-		dnl Here goes statically linking setup section.
-		dnl Note: This hack to link statically against GraphicsMagick is not portable.
-		[LIBS="-lxcb -lXau -lXdmcp ${LIBS}"],
-		[LIBS="-lGraphicsMagick ${LIBS}"]
+AS_IF([test "${enable_static_linking:+set}" == "set"],
+	dnl Here goes statically linking setup section.
+	AS_IF([test "$build_os" == "cygwin"],
+		dnl Note: This hack to link statically against GraphicsMagick is not portable: the list of libraries should be discovered via pkg-config.
+		[LIBS="-lxcb -lXau -lXdmcp `${GRAPHICS_MAGICK_CONFIG} --libs` ${LIBS}"]
 	)
 )
+
+_AS_ECHO_LOG([CPPFLAGS="${CPPFLAGS}" LDFLAGS="${LDFLAGS}" LIBS="${LIBS}" after populated with GraphicsMagick++-config])
 
 dnl We cannot move this check to the top, because includes for GraphicsMagick are defined only at this point:
 
@@ -586,7 +581,7 @@ AX_PROBE_OBLIGATORY_LIBRARY(
 
 osra_lib_graphicsmagick=yes
 
-AX_TRY_LINK([GraphicsMagick++], [
+AX_TRY_LINK([GraphicsMagick++ GraphicsMagick], [
 	#include <Magick++.h>
 ], [
 	Magick::Image image;
@@ -609,6 +604,9 @@ AX_TRY_LINK([GraphicsMagick++], [
 	colorRGB.blue();
 
 	colorGray.shade();
+
+	MagickLib::InitializeMagick((char*) 0);
+	MagickLib::DestroyMagick();
 ], [], [osra_lib_graphicsmagick=no])
 
 AS_IF([test "${osra_lib_graphicsmagick}" != "yes"], [
@@ -618,6 +616,8 @@ AS_IF([test "${osra_lib_graphicsmagick}" != "yes"], [
 dnl netpbm library check (which is used by GOCR)
 dnl (copied from GOCR configure.in)
 
+dnl The following symbols are used by GOCR:
+dnl for i in /usr/lib64/* /usr/lib/*; do nm $i 2>/dev/null | egrep '(pnm_readpaminit|pnm_allocpamrow|pnm_readpamrow|pm_freerow|pnm_nextimage)' && echo "[$i]"; done
 AC_SEARCH_LIBS([pnm_readpnminit], [netpbm pnm])
 
 dnl gocr library
@@ -670,6 +670,6 @@ AC_DEFINE_UNQUOTED(DATA_DIR, ["$resolved_datadir"])
 AC_SUBST([resolved_datadir], [$resolved_datadir])
 
 AC_CONFIG_HEADER([src/config.h])
-AC_CONFIG_FILES([Makefile Makefile.inc doc/manual.sgml package/linux/osra.pc package/maven/pom.xml])
+AC_CONFIG_FILES([Makefile Makefile.inc doc/manual.sgml package/linux/osra.pc package/linux/debian/control package/linux/debian/rules package/maven/pom.xml])
 AC_OUTPUT
 AC_MSG_NOTICE([Now you can run "make all install" to compile and install the application.])

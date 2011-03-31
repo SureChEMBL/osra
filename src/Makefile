@@ -7,6 +7,8 @@ include Makefile.dep
 
 .PHONY: clean_obj
 
+LIB_VERSION	:= $(LIB_MAJOR_VERSION).$(LIB_MINOR_VERSION).$(LIB_PATCH_VERSION)
+
 TARGETS		:= osra
 
 OBJ_LIB		:= osra.o osra_anisotropic.o osra_ocr.o osra_openbabel.o mcdlutil.o unpaper.o 
@@ -61,13 +63,13 @@ libosra.a: $(OBJ_LIB)
 
 libosra.so: CXXFLAGS += -fPIC -DOSRA_LIB
 libosra.so: $(OBJ_LIB)
-	$(LD) $(LDFLAGS) -fPIC -shared -Wl,-soname,$@ -o $@ $(OBJ_LIB) $(LIBS)
+	$(LD) $(LDFLAGS) -fPIC -shared -Wl,-soname,$@.$(LIB_MAJOR_VERSION) -o $@ $(OBJ_LIB) $(LIBS)
 endif
 
 ifdef OSRA_JAVA
 libosra_java.so: CXXFLAGS += -fPIC -DOSRA_LIB -DOSRA_JAVA
 libosra_java.so: $(OBJ_JAVA)
-	$(LD) $(LDFLAGS) -fPIC -shared -Wl,-soname,$@ -o $@ $(OBJ_JAVA) $(LIBS)
+	$(LD) $(LDFLAGS) -fPIC -shared -Wl,-soname,$@.$(LIB_MAJOR_VERSION) -o $@ $(OBJ_JAVA) $(LIBS)
 endif
 
 ifdef OSRA_ANDROID
@@ -83,14 +85,17 @@ install: $(TARGETS)
 	$(INSTALL_DIR) $(DESTDIR)$(bindir)
 	$(INSTALL_PROGRAM) osra $(DESTDIR)$(bindir)
 ifdef OSRA_LIB
-	$(INSTALL_DIR) $(DESTDIR)$(libdir) $(DESTDIR)$(includedir)
+	$(INSTALL_DIR) $(DESTDIR)$(libdir) $(DESTDIR)$(includedir) $(DESTDIR)$(libdir)/pkgconfig
 	$(INSTALL_PROGRAM) libosra.so $(DESTDIR)$(libdir)/libosra.so.$(LIB_VERSION)
+	$(LN_S) libosra.so.$(LIB_VERSION) $(DESTDIR)$(libdir)/libosra.so.$(LIB_MAJOR_VERSION)
 	$(INSTALL_PROGRAM) libosra.a $(DESTDIR)$(libdir)
 	$(INSTALL_DATA) osra_lib.h $(DESTDIR)$(includedir)
+	$(INSTALL_DATA) ../package/linux/osra.pc $(DESTDIR)$(libdir)/pkgconfig
 endif
 ifdef OSRA_JAVA
 	$(INSTALL_DIR) $(DESTDIR)$(libdir)
 	$(INSTALL_PROGRAM) libosra_java.so $(DESTDIR)$(libdir)/libosra_java.so.$(LIB_VERSION)
+	$(LN_S) libosra_java.so.$(LIB_VERSION) $(DESTDIR)$(libdir)/libosra_java.so.$(LIB_MAJOR_VERSION)
 endif
 
 # "install" and "make" tools auomatically autodetect the extension for executables, but "rm" needs extension correction:
@@ -100,7 +105,8 @@ uninstall:
 		$(DESTDIR)$(libdir)/libosra.so.$(LIB_VERSION) \
 		$(DESTDIR)$(libdir)/libosra.a \
 		$(DESTDIR)$(libdir)/libosra_java.so.$(LIB_VERSION) \
-		$(DESTDIR)$(includedir)/osra_lib.h
+		$(DESTDIR)$(includedir)/osra_lib.h \
+		$(DESTDIR)$(libdir)/pkgconfig/osra.pc
 
 clean:
 	$(RM) -f *.o osra$(EXEEXT) libosra*.*

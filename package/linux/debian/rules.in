@@ -19,10 +19,10 @@ override_dh_auto_configure:
 
 override_dh_install:
 # Check that *.intall files have the same names as expected by debuild:
-	[ -e debian/osra.install ]		|| ln -s osra.install debian/osra.install
-	[ -e debian/libosra0.install ]		|| ln -s libosra.install debian/libosra0.install
-	[ -e debian/libosra-dev.install ]	|| ln -s libosra-dev.install debian/libosra-dev.install
-	[ -e debian/libosra-java0.install ]	|| ln -s libosra-java.install debian/libosra-java0.install
+	[ -e debian/@PACKAGE_NAME@.install ]		|| @LN_S@ osra.install debian/@PACKAGE_NAME@.install
+	[ -e debian/lib@PACKAGE_NAME@@LIB_MAJOR_VERSION@.install ]		|| @LN_S@ libosra.install debian/lib@PACKAGE_NAME@@LIB_MAJOR_VERSION@.install
+	[ -e debian/lib@PACKAGE_NAME@-dev.install ]	|| @LN_S@ libosra-dev.install debian/lib@PACKAGE_NAME@-dev.install
+	[ -e debian/lib@PACKAGE_NAME@-java@LIB_MAJOR_VERSION@.install ]	|| @LN_S@ libosra-java.install debian/lib@PACKAGE_NAME@-java@LIB_MAJOR_VERSION@.install
 
 # Continue with normal operation:
 	dh_install

@@ -21,12 +21,11 @@ $(SPECIAL_PHONY_TARGETS): %.subdir:
 all: all.subdir
 
 install: install.subdir
-	$(INSTALL_DIR) $(DESTDIR)$(docdir) $(DESTDIR)$(libdir)/pkgconfig
+	$(INSTALL_DIR) $(DESTDIR)$(docdir)
 	$(INSTALL_DATA) README $(DESTDIR)$(docdir)
-	$(INSTALL_DATA) package/linux/osra.pc $(DESTDIR)$(libdir)/pkgconfig
 
 uninstall: uninstall.subdir
-	$(RM) -f $(DESTDIR)$(docdir)/README $(DESTDIR)$(libdir)/pkgconfig/osra.pc
+	$(RM) -f $(DESTDIR)$(docdir)/README
 #	We do not uninstall empty directories
 
 # Should remove all Makefile targets:
@@ -36,7 +35,7 @@ clean: clean.subdir
 distclean: clean distclean.subdir
 	$(RM) -rf config.status config.cache config.log autom4te.cache
 	$(RM) -f Makefile Makefile.inc
-	$(RM) -f $(NAME)*.*rpm $(NAME)*.deb $(NAME)*.tar.gz
+	$(RM) -f *.deb *.rpm *.srpm $(NAME)*.tar.gz
 
 # This rule is responsible for correcting permissions after checkout from VCS.
 proper:
@@ -68,12 +67,13 @@ package_deb:
 #	Debian build requires the original tarball name to correspond to mask "NAME_VERSION.orig.(tar|tar.bz2|tar.gz|lzma)":	
 	TAR_NAME=../$(NAME)_$(VERSION).orig.tar.gz $(MAKE) -C $(BUILD_DIR) tarball 
 
+#	debuild -sa -us -uc -e JAVA_HOME;
 	pushd $(BUILD_DIR); \
 	debuild -sa -us -uc; \
 	exit_code=$$?; \
 	popd; \
 	exit $$exit_code;
-	cp $(BUILD_DIR)/../$(NAME)*.deb $(BUILD_DIR)/../$(NAME)*.orig.tar.gz .
+	cp $(BUILD_DIR)/../*.deb $(BUILD_DIR)/../$(NAME)*.orig.tar.gz .
 
 # Create RPM package:
 package_rpm: 
@@ -96,18 +96,25 @@ package_rpm:
 	popd; \
 	exit $$exit_code;
 	$(RM) -f ~/.rpmmacros 
-	find $(BUILD_DIR)/RPMS  -iname '$(NAME)*.rpm'     -exec cp '{}' . \;
+#	The RPM location depends on target platform and concrete path is unknown in advance:
+	find $(BUILD_DIR)/RPMS -iname '$(NAME)*.rpm' -exec cp '{}' . \;
 #	Rename to .srpm, because otherwise *.rpm mask does not match unique file:
-	find $(BUILD_DIR)/SRPMS -iname '$(NAME)*.src.rpm' -exec cp '{}' $(NAME_VERSION).srpm \;
+	cp $(BUILD_DIR)/SRPMS/$(NAME)*.src.rpm $(NAME_VERSION).srpm
+
+MVN_COMMON_OPS	:= deploy:deploy-file -Durl=$(REPOSITORY_URL) -DrepositoryId=$(REPOSITORY_ID) -DgroupId=net.sourceforge -Dversion=$(VERSION)
 
 # General maven repository deployment rule. See package/hudson/pom.xml for more details. The 1st command in the rule can be parameterized, but the 2nd is tricky:
 deploy_deb:
-	mvn deploy:deploy-file -Durl=$(REPOSITORY_URL) -DrepositoryId=$(REPOSITORY_ID) -Dfile=`echo $(NAME)*.deb`    -DgroupId=net.sourceforge -DartifactId=$(NAME) -Dversion=$(VERSION) -Dclassifier=$(TARGET_CPU) -Dpackaging=deb -DpomFile=package/maven/pom.xml
-	mvn deploy:deploy-file -Durl=$(REPOSITORY_URL) -DrepositoryId=$(REPOSITORY_ID) -Dfile=`echo $(NAME)*.tar.gz` -DgroupId=net.sourceforge -DartifactId=$(NAME) -Dversion=$(VERSION) -Dclassifier=sources       -Dpackaging=tgz
+	mvn $(MVN_COMMON_OPS) -Dfile=`echo $(NAME)_*.deb`	-DartifactId=$(NAME) -Dclassifier=$(TARGET_CPU) -Dpackaging=deb -DpomFile=package/maven/pom.xml
+	mvn $(MVN_COMMON_OPS) -Dfile=`echo $(NAME)_*.tar.gz`	-DartifactId=$(NAME) -Dclassifier=sources       -Dpackaging=tgz
+
+	[ -f lib$(NAME)$(LIB_MAJOR_VERSION)_*.deb ] &&		mvn $(MVN_COMMON_OPS) -Dfile=`echo lib$(NAME)$(LIB_MAJOR_VERSION)_*.deb`	-DartifactId=lib$(NAME)		-Dclassifier=$(TARGET_CPU) -Dpackaging=deb
+	[ -f lib$(NAME)-dev_*.deb ] &&				mvn $(MVN_COMMON_OPS) -Dfile=`echo lib$(NAME)-dev_*.deb`			-DartifactId=lib$(NAME)-dev	-Dclassifier=$(TARGET_CPU) -Dpackaging=deb
+	[ -f lib$(NAME)-java$(LIB_MAJOR_VERSION)_*.deb ] &&	mvn $(MVN_COMMON_OPS) -Dfile=`echo lib$(NAME)-java$(LIB_MAJOR_VERSION)_*.deb`	-DartifactId=lib$(NAME)-java	-Dclassifier=$(TARGET_CPU) -Dpackaging=deb
 
 deploy_rpm:
-	mvn deploy:deploy-file -Durl=$(REPOSITORY_URL) -DrepositoryId=$(REPOSITORY_ID) -Dfile=`echo $(NAME)*.rpm`    -DgroupId=net.sourceforge -DartifactId=$(NAME) -Dversion=$(VERSION) -Dclassifier=$(TARGET_CPU) -Dpackaging=rpm -DpomFile=package/maven/pom.xml
-	mvn deploy:deploy-file -Durl=$(REPOSITORY_URL) -DrepositoryId=$(REPOSITORY_ID) -Dfile=`echo $(NAME)*.srpm`   -DgroupId=net.sourceforge -DartifactId=$(NAME) -Dversion=$(VERSION) -Dclassifier=sources       -Dpackaging=srpm
+	mvn $(MVN_COMMON_OPS) -Dfile=`echo $(NAME)*.rpm`	-DartifactId=$(NAME) -Dclassifier=$(TARGET_CPU) -Dpackaging=rpm -DpomFile=package/maven/pom.xml
+	mvn $(MVN_COMMON_OPS) -Dfile=`echo $(NAME)*.srpm`	-DartifactId=$(NAME) -Dclassifier=sources       -Dpackaging=srpm
 
 beautify:
 	astyle --style=gnu --suffix=none --recursive "*.cpp" "*.h"
