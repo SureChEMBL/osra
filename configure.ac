@@ -14,8 +14,8 @@ dnl
 dnl Library version. If library ABI changes, increase the major number.
 dnl
 
-LIB_MAJOR_VERSION=0
-LIB_MINOR_VERSION=0
+AC_SUBST([LIB_MAJOR_VERSION], [0])
+AC_SUBST([LIB_MINOR_VERSION], [0])
 
 dnl
 dnl Platform detection
@@ -680,17 +680,18 @@ dnl https://sourceforge.net/tracker/index.php?func=detail&aid=2908699&group_id=9
 	LDFLAGS="${OPENMP_CXXFLAGS} ${LDFLAGS}"
 ])
 
-dnl GNU LD-specific option:
-dnl AS_IF([test "${ac_gnu_ld}" == "yes"], [LDFLAGS="${LDFLAGS} -Wl,--as-needed"])
-
 dnl
 dnl Generate Makefile, config.h, etc
 dnl
 
-AC_SUBST([LIB_MAJOR_VERSION], [${LIB_MAJOR_VERSION}])
-AC_SUBST([LIB_MINOR_VERSION], [${LIB_MINOR_VERSION}])
 dnl Compute the library version from the package version:
 AC_SUBST([LIB_PATCH_VERSION], [`echo ${PACKAGE_VERSION} | perl -ne '/(\d+)\.(\d+)\.(\d+)/ || die; printf "%d%02d%02d", $1, $2, $3;'`])
+
+AS_IF([test "$build_os" == "darwin"], [
+	AC_SUBST([LDSHFLAGS], ["-Wl,-dylib_install_name -Wl,"])
+],[
+	AC_SUBST([LDSHFLAGS], ["-shared -Wl,-soname,"])
+])
 
 dnl Substitute config.h paths correctly:
 test "$prefix" = "NONE" && prefix=$ac_default_prefix
@@ -706,6 +707,6 @@ AC_DEFINE_UNQUOTED(DATA_DIR, ["$resolved_datadir"])
 AC_SUBST([resolved_datadir], [$resolved_datadir])
 
 AC_CONFIG_HEADER([src/config.h])
-AC_CONFIG_FILES([Makefile Makefile.inc doc/manual.sgml package/linux/osra.pc package/linux/debian/control package/linux/debian/rules package/maven/pom.xml])
+AC_CONFIG_FILES([Makefile Makefile.inc doc/manual.sgml package/linux/osra.pc package/linux/debian/control package/linux/debian/rules package/linux/suse/osra.spec package/maven/pom.xml])
 AC_OUTPUT
 AC_MSG_NOTICE([Now you can run "make all install" to compile and install the application.])

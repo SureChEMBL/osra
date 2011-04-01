@@ -63,19 +63,19 @@ libosra.a: $(OBJ_LIB)
 
 libosra.so: CXXFLAGS += -fPIC -DOSRA_LIB
 libosra.so: $(OBJ_LIB)
-	$(LD) $(LDFLAGS) -fPIC -shared -Wl,-soname,$@.$(LIB_MAJOR_VERSION) -o $@ $(OBJ_LIB) $(LIBS)
+	$(LD) $(LDFLAGS) -fPIC $(LDSHFLAGS)$@.$(LIB_MAJOR_VERSION) -o $@ $(OBJ_LIB) $(LIBS)
 endif
 
 ifdef OSRA_JAVA
 libosra_java.so: CXXFLAGS += -fPIC -DOSRA_LIB -DOSRA_JAVA
 libosra_java.so: $(OBJ_JAVA)
-	$(LD) $(LDFLAGS) -fPIC -shared -Wl,-soname,$@.$(LIB_MAJOR_VERSION) -o $@ $(OBJ_JAVA) $(LIBS)
+	$(LD) $(LDFLAGS) -fPIC $(LDSHFLAGS)$@.$(LIB_MAJOR_VERSION) -o $@ $(OBJ_JAVA) $(LIBS)
 endif
 
 ifdef OSRA_ANDROID
 libosra_andriod.so: CXXFLAGS += -fPIC -DOSRA_LIB -DOSRA_ANDROID
 libosra_andriod.so: $(OBJ_ANDROID)
-	$(LD) $(LDFLAGS) -fPIC -shared -Wl,-soname,$@ -o $@ $(OBJ_ANDROID) $(LIBS)
+	$(LD) $(LDFLAGS) -fPIC $(LDSHFLAGS)$@ -o $@ $(OBJ_ANDROID) $(LIBS)
 endif
 
 Makefile.dep: $(patsubst %.o,%.cpp,$(OBJ_CLI))

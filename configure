@@ -593,9 +593,8 @@ ac_includes_default="\
 ac_subst_vars='LTLIBOBJS
 LIBOBJS
 resolved_datadir
+LDSHFLAGS
 LIB_PATCH_VERSION
-LIB_MINOR_VERSION
-LIB_MAJOR_VERSION
 OPENMP_CXXFLAGS
 GRAPHICS_MAGICK_CONFIG
 TESSERACT_LIB
@@ -625,6 +624,8 @@ build_os
 build_vendor
 build_cpu
 build
+LIB_MINOR_VERSION
+LIB_MAJOR_VERSION
 target_alias
 host_alias
 build_alias
@@ -2116,7 +2117,9 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
 LIB_MAJOR_VERSION=0
+
 LIB_MINOR_VERSION=0
+
 
 
 ac_aux_dir=
@@ -6988,6 +6991,10 @@ fi
 	if test "${enable_static_linking:+set}" == "set"; then :
 
 						LIBS="`${GRAPHICS_MAGICK_CONFIG} --libs` ${LIBS}"
+		if test "$build_os" == "cygwin"; then :
+  LIBS="-lxcb -lXau -lXdmcp ${LIBS}"
+
+fi
 
 fi
 
@@ -7687,13 +7694,20 @@ $as_echo "$ac_cv_prog_cxx_openmp" >&6; }
 fi
 
 
-
-LIB_MAJOR_VERSION=${LIB_MAJOR_VERSION}
-
-LIB_MINOR_VERSION=${LIB_MINOR_VERSION}
-
 LIB_PATCH_VERSION=`echo ${PACKAGE_VERSION} | perl -ne '/(\d+)\.(\d+)\.(\d+)/ || die; printf "%d%02d%02d", $1, $2, $3;'`
 
+
+if test "$build_os" == "darwin"; then :
+
+	LDSHFLAGS="-Wl,-dylib_install_name -Wl,"
+
+
+else
+
+	LDSHFLAGS="-shared -Wl,-soname,"
+
+
+fi
 
 test "$prefix" = "NONE" && prefix=$ac_default_prefix
 
@@ -7710,7 +7724,7 @@ resolved_datadir=$resolved_datadir
 
 ac_config_headers="$ac_config_headers src/config.h"
 
-ac_config_files="$ac_config_files Makefile Makefile.inc doc/manual.sgml package/linux/osra.pc package/linux/debian/control package/linux/debian/rules package/maven/pom.xml"
+ac_config_files="$ac_config_files Makefile Makefile.inc doc/manual.sgml package/linux/osra.pc package/linux/debian/control package/linux/debian/rules package/linux/suse/osra.spec package/maven/pom.xml"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -8409,6 +8423,7 @@ do
     "package/linux/osra.pc") CONFIG_FILES="$CONFIG_FILES package/linux/osra.pc" ;;
     "package/linux/debian/control") CONFIG_FILES="$CONFIG_FILES package/linux/debian/control" ;;
     "package/linux/debian/rules") CONFIG_FILES="$CONFIG_FILES package/linux/debian/rules" ;;
+    "package/linux/suse/osra.spec") CONFIG_FILES="$CONFIG_FILES package/linux/suse/osra.spec" ;;
     "package/maven/pom.xml") CONFIG_FILES="$CONFIG_FILES package/maven/pom.xml" ;;
 
   *) as_fn_error $? "invalid argument: \`$ac_config_target'" "$LINENO" 5 ;;
