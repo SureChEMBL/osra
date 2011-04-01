@@ -67,9 +67,8 @@ package_deb:
 #	Debian build requires the original tarball name to correspond to mask "NAME_VERSION.orig.(tar|tar.bz2|tar.gz|lzma)":	
 	TAR_NAME=../$(NAME)_$(VERSION).orig.tar.gz $(MAKE) -C $(BUILD_DIR) tarball 
 
-#	debuild -sa -us -uc -e JAVA_HOME;
 	pushd $(BUILD_DIR); \
-	debuild -sa -us -uc; \
+	debuild -e JAVA_HOME -sa -us -uc; \
 	exit_code=$$?; \
 	popd; \
 	exit $$exit_code;

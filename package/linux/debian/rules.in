@@ -15,7 +15,7 @@ endif
 	dh $@
 
 override_dh_auto_configure:
-	JAVA_HOME=/usr/lib/jvm/java-6-sun CFLAGS="$(CFLAGS)" dh_auto_configure -- --enable-docs --enable-lib --enable-java --with-tesseract --with-cuneiform --datadir='$${datarootdir}/$${PACKAGE_NAME}' --docdir='$${datarootdir}/doc/$${PACKAGE_NAME}'
+	CFLAGS="$(CFLAGS)" dh_auto_configure -- --enable-docs --enable-lib --enable-java --with-tesseract --with-cuneiform --datadir='$${datarootdir}/$${PACKAGE_NAME}' --docdir='$${datarootdir}/doc/$${PACKAGE_NAME}'
 
 override_dh_install:
 # Check that *.intall files have the same names as expected by debuild:
