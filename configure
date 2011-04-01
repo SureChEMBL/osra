@@ -593,6 +593,10 @@ ac_includes_default="\
 ac_subst_vars='LTLIBOBJS
 LIBOBJS
 resolved_datadir
+LIB_PATCH_VERSION
+LIB_MINOR_VERSION
+LIB_MAJOR_VERSION
+OPENMP_CXXFLAGS
 GRAPHICS_MAGICK_CONFIG
 TESSERACT_LIB
 OSRA_JAVA
@@ -600,7 +604,6 @@ EGREP
 GREP
 CXXCPP
 OSRA_LIB
-OPENMP_CXXFLAGS
 XSLTPROC
 NATURALDOCS
 RANLIB
@@ -610,9 +613,6 @@ INSTALL_SCRIPT
 INSTALL_PROGRAM
 LN_S
 RM
-LIB_PATCH_VERSION
-LIB_MINOR_VERSION
-LIB_MAJOR_VERSION
 OBJEXT
 EXEEXT
 ac_ct_CXX
@@ -667,13 +667,11 @@ ac_subst_files=''
 ac_user_opts='
 enable_option_checking
 enable_docs
-enable_openmp
 enable_static_linking
 enable_profiling
-enable_graphicsmagick_config
+with_macports
 enable_lib
 enable_java
-with_macports
 with_tclap_include
 with_potrace_include
 with_potrace_lib
@@ -690,8 +688,10 @@ with_cuneiform
 with_cuneiform_lib
 with_openbabel_include
 with_openbabel_lib
+enable_graphicsmagick_config
 with_graphicsmagick_include
 with_graphicsmagick_lib
+enable_openmp
 '
       ac_precious_vars='build_alias
 host_alias
@@ -1319,17 +1319,10 @@ Optional Features:
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
   --enable-docs           Enable generating of documentation (man pages, API
                           reference, etc)
-  --enable-openmp         Enable OpenMP extensions for compilers that support
-                          it
-
-  --disable-openmp        do not use OpenMP
-  --enable-static-linking Link all libraries statically
+  --enable-static-linking Try to link all libraries statically (fallback to
+                          dynamic linking if statis was not found) (GCC-only)
   --enable-profiling      Include verbose profiling/debugging information into
                           the binary
-  --disable-graphicsmagick-config
-                          Disable use of GraphicsMagick++-config for library
-                          linking
-
   --enable-lib            Include building of OSRA dynamic (.so) and static
                           (.a) library into build cycle.
   --enable-java           Include Java JNI bridge compilation into build
@@ -1337,6 +1330,14 @@ Optional Features:
                           JAVA_HOME environment variable pointing to its
                           location or jni.h is in compiler search path.
 
+  --disable-graphicsmagick-config
+                          Disable use of GraphicsMagick++-config for library
+                          linking
+
+  --enable-openmp         Enable OpenMP extensions for compilers that support
+                          it
+
+  --disable-openmp        do not use OpenMP
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
@@ -1516,52 +1517,6 @@ fi
   as_fn_set_status $ac_retval
 
 } # ac_fn_cxx_try_compile
-
-# ac_fn_cxx_try_link LINENO
-# -------------------------
-# Try to link conftest.$ac_ext, and return whether this succeeded.
-ac_fn_cxx_try_link ()
-{
-  as_lineno=${as_lineno-"$1"} as_lineno_stack=as_lineno_stack=$as_lineno_stack
-  rm -f conftest.$ac_objext conftest$ac_exeext
-  if { { ac_try="$ac_link"
-case "(($ac_try" in
-  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
-  *) ac_try_echo=$ac_try;;
-esac
-eval ac_try_echo="\"\$as_me:${as_lineno-$LINENO}: $ac_try_echo\""
-$as_echo "$ac_try_echo"; } >&5
-  (eval "$ac_link") 2>conftest.err
-  ac_status=$?
-  if test -s conftest.err; then
-    grep -v '^ *+' conftest.err >conftest.er1
-    cat conftest.er1 >&5
-    mv -f conftest.er1 conftest.err
-  fi
-  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
-  test $ac_status = 0; } && {
-	 test -z "$ac_cxx_werror_flag" ||
-	 test ! -s conftest.err
-       } && test -s conftest$ac_exeext && {
-	 test "$cross_compiling" = yes ||
-	 $as_test_x conftest$ac_exeext
-       }; then :
-  ac_retval=0
-else
-  $as_echo "$as_me: failed program was:" >&5
-sed 's/^/| /' conftest.$ac_ext >&5
-
-	ac_retval=1
-fi
-  # Delete the IPA/IPO (Inter Procedural Analysis/Optimization) information
-  # created by the PGI compiler (conftest_ipa8_conftest.oo), as it would
-  # interfere with the next link command; also delete a directory that is
-  # left behind by Apple's compiler.  We do this before executing the actions.
-  rm -rf conftest.dSYM conftest_ipa8_conftest.oo
-  eval $as_lineno_stack; test "x$as_lineno_stack" = x && { as_lineno=; unset as_lineno;}
-  as_fn_set_status $ac_retval
-
-} # ac_fn_cxx_try_link
 
 # ac_fn_cxx_try_cpp LINENO
 # ------------------------
@@ -1759,6 +1714,52 @@ $as_echo "$ac_res" >&6; }
   eval $as_lineno_stack; test "x$as_lineno_stack" = x && { as_lineno=; unset as_lineno;}
 
 } # ac_fn_cxx_check_header_compile
+
+# ac_fn_cxx_try_link LINENO
+# -------------------------
+# Try to link conftest.$ac_ext, and return whether this succeeded.
+ac_fn_cxx_try_link ()
+{
+  as_lineno=${as_lineno-"$1"} as_lineno_stack=as_lineno_stack=$as_lineno_stack
+  rm -f conftest.$ac_objext conftest$ac_exeext
+  if { { ac_try="$ac_link"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval ac_try_echo="\"\$as_me:${as_lineno-$LINENO}: $ac_try_echo\""
+$as_echo "$ac_try_echo"; } >&5
+  (eval "$ac_link") 2>conftest.err
+  ac_status=$?
+  if test -s conftest.err; then
+    grep -v '^ *+' conftest.err >conftest.er1
+    cat conftest.er1 >&5
+    mv -f conftest.er1 conftest.err
+  fi
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; } && {
+	 test -z "$ac_cxx_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest$ac_exeext && {
+	 test "$cross_compiling" = yes ||
+	 $as_test_x conftest$ac_exeext
+       }; then :
+  ac_retval=0
+else
+  $as_echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+	ac_retval=1
+fi
+  # Delete the IPA/IPO (Inter Procedural Analysis/Optimization) information
+  # created by the PGI compiler (conftest_ipa8_conftest.oo), as it would
+  # interfere with the next link command; also delete a directory that is
+  # left behind by Apple's compiler.  We do this before executing the actions.
+  rm -rf conftest.dSYM conftest_ipa8_conftest.oo
+  eval $as_lineno_stack; test "x$as_lineno_stack" = x && { as_lineno=; unset as_lineno;}
+  as_fn_set_status $ac_retval
+
+} # ac_fn_cxx_try_link
 cat >config.log <<_ACEOF
 This file contains any messages produced by compilers while
 running configure, to aid debugging if configure makes a mistake.
@@ -2110,6 +2111,12 @@ ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
+
+
+
+
+LIB_MAJOR_VERSION=0
+LIB_MINOR_VERSION=0
 
 
 ac_aux_dir=
@@ -2862,17 +2869,6 @@ if test "${ac_cv_cxx_have_stl}" != "yes"; then :
 fi
 
 
-LIB_MAJOR_VERSION=0
-LIB_MINOR_VERSION=0
-
-LIB_MAJOR_VERSION=${LIB_MAJOR_VERSION}
-
-LIB_MINOR_VERSION=${LIB_MINOR_VERSION}
-
-LIB_PATCH_VERSION=`echo ${PACKAGE_VERSION} | perl -ne '/(\d+)\.(\d+)\.(\d+)/ || die; printf "%d%02d%02d", $1, $2, $3;'`
-
-
-
 ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
@@ -3407,6 +3403,7 @@ else
 fi
 
 
+
 # Check whether --enable-docs was given.
 if test "${enable_docs+set}" = set; then :
   enableval=$enable_docs;
@@ -3565,92 +3562,6 @@ if test -d "/opt/local/lib"; then :
 fi
 
 
-# Check whether --enable-openmp was given.
-if test "${enable_openmp+set}" = set; then :
-  enableval=$enable_openmp;
-fi
-
-
-if test -z "${enable_openmp}" -a "$build_os" == "linux"; then :
-  enable_openmp=yes
-fi
-
-if test "${enable_openmp}" == "yes"; then :
-
-
-  OPENMP_CXXFLAGS=
-  # Check whether --enable-openmp was given.
-if test "${enable_openmp+set}" = set; then :
-  enableval=$enable_openmp;
-fi
-
-  if test "$enable_openmp" != no; then
-    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $CXX option to support OpenMP" >&5
-$as_echo_n "checking for $CXX option to support OpenMP... " >&6; }
-if test "${ac_cv_prog_cxx_openmp+set}" = set; then :
-  $as_echo_n "(cached) " >&6
-else
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-#ifndef _OPENMP
- choke me
-#endif
-#include <omp.h>
-int main () { return omp_get_num_threads (); }
-
-_ACEOF
-if ac_fn_cxx_try_link "$LINENO"; then :
-  ac_cv_prog_cxx_openmp='none needed'
-else
-  ac_cv_prog_cxx_openmp='unsupported'
-	  	  	  	  	  	  	  	  	  	  	  	  	  for ac_option in -fopenmp -xopenmp -openmp -mp -omp -qsmp=omp; do
-	    ac_save_CXXFLAGS=$CXXFLAGS
-	    CXXFLAGS="$CXXFLAGS $ac_option"
-	    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-#ifndef _OPENMP
- choke me
-#endif
-#include <omp.h>
-int main () { return omp_get_num_threads (); }
-
-_ACEOF
-if ac_fn_cxx_try_link "$LINENO"; then :
-  ac_cv_prog_cxx_openmp=$ac_option
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-	    CXXFLAGS=$ac_save_CXXFLAGS
-	    if test "$ac_cv_prog_cxx_openmp" != unsupported; then
-	      break
-	    fi
-	  done
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_prog_cxx_openmp" >&5
-$as_echo "$ac_cv_prog_cxx_openmp" >&6; }
-    case $ac_cv_prog_cxx_openmp in #(
-      "none needed" | unsupported)
-	;; #(
-      *)
-	OPENMP_CXXFLAGS=$ac_cv_prog_cxx_openmp ;;
-    esac
-  fi
-
-
-	CPPFLAGS="${OPENMP_CFLAGS} ${CPPFLAGS}"
-	CXXFLAGS="${OPENMP_CXXFLAGS} ${CXXFLAGS}"
-
-fi
-
-if test "${ac_gnu_ld}" == "yes"; then :
-  LDFLAGS="${LDFLAGS} -Wl,--as-needed"
-fi
-
 # Check whether --enable-static-linking was given.
 if test "${enable_static_linking+set}" = set; then :
   enableval=$enable_static_linking;
@@ -3675,10 +3586,13 @@ else
 fi
 
 
-# Check whether --enable-graphicsmagick-config was given.
-if test "${enable_graphicsmagick_config+set}" = set; then :
-  enableval=$enable_graphicsmagick_config;
+
+# Check whether --with-macports was given.
+if test "${with_macports+set}" = set; then :
+  withval=$with_macports; MACPORTSLIBS="$withval"
+
 fi
+
 
 
 # Check whether --enable-lib was given.
@@ -3689,6 +3603,7 @@ if test "${enable_lib+set}" = set; then :
 
 
 fi
+
 
 
 # Check whether --enable-java was given.
@@ -4148,14 +4063,6 @@ fi
 
 
 fi
-
-
-# Check whether --with-macports was given.
-if test "${with_macports+set}" = set; then :
-  withval=$with_macports; MACPORTSLIBS="$withval"
-
-fi
-
 
 
 
@@ -7020,6 +6927,12 @@ if test "${osra_lib_openbabel}" != "yes"; then :
 fi
 
 
+# Check whether --enable-graphicsmagick-config was given.
+if test "${enable_graphicsmagick_config+set}" = set; then :
+  enableval=$enable_graphicsmagick_config;
+fi
+
+
 if test "${enable_graphicsmagick_config:+set}" != "set"; then :
 
 	# Extract the first word of "GraphicsMagick++-config", so it can be a program name with args.
@@ -7075,10 +6988,6 @@ fi
 	if test "${enable_static_linking:+set}" == "set"; then :
 
 						LIBS="`${GRAPHICS_MAGICK_CONFIG} --libs` ${LIBS}"
-		if test "$build_os" == "cygwin"; then :
-  LIBS="-lxcb -lXau -lXdmcp ${LIBS}"
-
-fi
 
 fi
 
@@ -7693,6 +7602,97 @@ if test "${osra_lib_gocr}" != "yes"; then :
 	as_fn_error $? "GOCR API check failed; make sure you have installed libgocr-dev package or check config.log" "$LINENO" 5
 
 fi
+
+# Check whether --enable-openmp was given.
+if test "${enable_openmp+set}" = set; then :
+  enableval=$enable_openmp;
+fi
+
+
+if test -z "${enable_openmp}" -a "$build_os" == "linux"; then :
+  enable_openmp=yes
+fi
+
+if test "${enable_openmp}" == "yes"; then :
+
+
+  OPENMP_CXXFLAGS=
+  # Check whether --enable-openmp was given.
+if test "${enable_openmp+set}" = set; then :
+  enableval=$enable_openmp;
+fi
+
+  if test "$enable_openmp" != no; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $CXX option to support OpenMP" >&5
+$as_echo_n "checking for $CXX option to support OpenMP... " >&6; }
+if test "${ac_cv_prog_cxx_openmp+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#ifndef _OPENMP
+ choke me
+#endif
+#include <omp.h>
+int main () { return omp_get_num_threads (); }
+
+_ACEOF
+if ac_fn_cxx_try_link "$LINENO"; then :
+  ac_cv_prog_cxx_openmp='none needed'
+else
+  ac_cv_prog_cxx_openmp='unsupported'
+	  	  	  	  	  	  	  	  	  	  	  	  	  for ac_option in -fopenmp -xopenmp -openmp -mp -omp -qsmp=omp; do
+	    ac_save_CXXFLAGS=$CXXFLAGS
+	    CXXFLAGS="$CXXFLAGS $ac_option"
+	    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#ifndef _OPENMP
+ choke me
+#endif
+#include <omp.h>
+int main () { return omp_get_num_threads (); }
+
+_ACEOF
+if ac_fn_cxx_try_link "$LINENO"; then :
+  ac_cv_prog_cxx_openmp=$ac_option
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+	    CXXFLAGS=$ac_save_CXXFLAGS
+	    if test "$ac_cv_prog_cxx_openmp" != unsupported; then
+	      break
+	    fi
+	  done
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_prog_cxx_openmp" >&5
+$as_echo "$ac_cv_prog_cxx_openmp" >&6; }
+    case $ac_cv_prog_cxx_openmp in #(
+      "none needed" | unsupported)
+	;; #(
+      *)
+	OPENMP_CXXFLAGS=$ac_cv_prog_cxx_openmp ;;
+    esac
+  fi
+
+
+	CPPFLAGS="${OPENMP_CFLAGS} ${CPPFLAGS}"
+	CXXFLAGS="${OPENMP_CXXFLAGS} ${CXXFLAGS}"
+	LDFLAGS="${OPENMP_CXXFLAGS} ${LDFLAGS}"
+
+fi
+
+
+
+LIB_MAJOR_VERSION=${LIB_MAJOR_VERSION}
+
+LIB_MINOR_VERSION=${LIB_MINOR_VERSION}
+
+LIB_PATCH_VERSION=`echo ${PACKAGE_VERSION} | perl -ne '/(\d+)\.(\d+)\.(\d+)/ || die; printf "%d%02d%02d", $1, $2, $3;'`
 
 
 test "$prefix" = "NONE" && prefix=$ac_default_prefix

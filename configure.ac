@@ -9,6 +9,18 @@ dnl
 
 AC_INIT([osra], [1.3.8])
 AC_PREREQ([2.65])
+
+dnl
+dnl Library version. If library ABI changes, increase the major number.
+dnl
+
+LIB_MAJOR_VERSION=0
+LIB_MINOR_VERSION=0
+
+dnl
+dnl Platform detection
+dnl
+
 AC_CANONICAL_BUILD
 
 AS_CASE(["$build_os"], [linux*], [build_os="linux"], [darwin*], [build_os="darwin"]);
@@ -22,18 +34,7 @@ AS_IF([test "${ac_cv_cxx_have_stl}" != "yes"], [
 ])
 
 dnl
-dnl Compute the library version from the package version. If library ABI changes, change the major number here:
-dnl
-
-LIB_MAJOR_VERSION=0
-LIB_MINOR_VERSION=0
-
-AC_SUBST([LIB_MAJOR_VERSION], [${LIB_MAJOR_VERSION}])
-AC_SUBST([LIB_MINOR_VERSION], [${LIB_MINOR_VERSION}])
-AC_SUBST([LIB_PATCH_VERSION], [`echo ${PACKAGE_VERSION} | perl -ne '/(\d+)\.(\d+)\.(\d+)/ || die; printf "%d%02d%02d", $1, $2, $3;'`])
-
-dnl
-dnl Checks for programs
+dnl Checks for general purpose tools
 dnl
 
 AC_PROG_CXX
@@ -42,6 +43,10 @@ AC_PROG_LN_S
 AC_PROG_INSTALL
 AC_PATH_PROG(AR, ar)
 AC_PROG_RANLIB
+
+dnl
+dnl Checks for programs needed to build a documentation
+dnl
 
 AC_ARG_ENABLE(
 	[docs],
@@ -83,27 +88,9 @@ dnl
 dnl Compilation/linking configuration options
 dnl
 
-dnl OpenMP support:
-AC_ARG_ENABLE(
-	[openmp],
-	[AC_HELP_STRING([--enable-openmp], [Enable OpenMP extensions for compilers that support it])]
-)
-
-dnl Enable OpenMP on Linux by default (unless it is disabled):
-AS_IF([test -z "${enable_openmp}" -a "$build_os" == "linux"], [enable_openmp=yes])
-
-AS_IF([test "${enable_openmp}" == "yes"], [
-	AC_OPENMP()
-	CPPFLAGS="${OPENMP_CFLAGS} ${CPPFLAGS}"
-	CXXFLAGS="${OPENMP_CXXFLAGS} ${CXXFLAGS}"
-])
-
-dnl GNU LD-specific option:
-AS_IF([test "${ac_gnu_ld}" == "yes"], [LDFLAGS="${LDFLAGS} -Wl,--as-needed"])
-
 AC_ARG_ENABLE(
 	[static-linking],
-	[AC_HELP_STRING([--enable-static-linking], [Link all libraries statically])],
+	[AC_HELP_STRING([--enable-static-linking], [Try to link all libraries statically (fallback to dynamic linking if statis was not found) (GCC-only)])],
 	[
 		LDFLAGS="${LDFLAGS} -static-libgcc"
 		dnl GNU LD-specific option:
@@ -121,12 +108,14 @@ AC_ARG_ENABLE(
 	[INSTALL_PROGRAM="${INSTALL_PROGRAM} -s"]
 )
 
-AC_ARG_ENABLE(
-	[graphicsmagick-config],
-	[AC_HELP_STRING([--disable-graphicsmagick-config], [Disable use of GraphicsMagick++-config for library linking])]
+AC_ARG_WITH(
+	[macports],
+	[AC_HELP_STRING([--with-macports], [Alternative location for MacPorts libraries on OS X (default: /opt/local/lib)])],
+	[MACPORTSLIBS="$withval"]
 )
 
-dnl Library compilation:
+dnl Library compilation
+
 AC_ARG_ENABLE(
 	[lib],
 	[AC_HELP_STRING([--enable-lib], [Include building of OSRA dynamic (.so) and static (.a) library into build cycle.])],
@@ -135,7 +124,10 @@ AC_ARG_ENABLE(
 	]
 )
 
-dnl Java support:
+dnl
+dnl Java bridge support
+dnl
+
 AC_ARG_ENABLE(
 	[java],
 	[AC_HELP_STRING([--enable-java], [Include Java JNI bridge compilation into build cycle. Make sure you have JDK installed and JAVA_HOME environment variable pointing to its location or jni.h is in compiler search path.])]
@@ -171,12 +163,6 @@ AS_IF([test "${enable_java}" == "yes"], [
 		AC_MSG_ERROR([Java JNI bridge support was requested, but failed because "jni.h" was not found (search path: ${CPPFLAGS})])
 	])
 ])
-
-AC_ARG_WITH(
-	[macports],
-	[AC_HELP_STRING([--with-macports], [Alternative location for MacPorts libraries on OS X (default: /opt/local/lib)])],
-	[MACPORTSLIBS="$withval"]
-)
 
 dnl
 dnl Define includes paths and libraries paths
@@ -318,7 +304,9 @@ AS_IF([test "${osra_lib_math}" != "yes"], [
 	AC_MSG_ERROR([math.h or libm was not found; make sure you have installed libc-dev package or check config.log])
 ])
 
-dnl tclap library
+dnl
+dnl TCLAP library
+dnl
 
 osra_lib_tclap=yes
 
@@ -339,7 +327,9 @@ AS_IF([test "${osra_lib_tclap}" != "yes"], [
 	AC_MSG_ERROR([TCLAP API check failed; make sure you have installed libtclap-dev package or check config.log])
 ])
 
-dnl potrace library
+dnl
+dnl Potrace library
+dnl
 
 osra_lib_potrace=yes
 
@@ -363,7 +353,9 @@ AS_IF([test "${osra_lib_potrace}" != "yes"], [
 	AC_MSG_ERROR([POTRACE API check failed; make sure you have installed libpotrace-dev package or check config.log])
 ])
 
-dnl ocrad library
+dnl
+dnl Ocrad library
+dnl
 
 osra_lib_ocrad=yes
 
@@ -386,7 +378,9 @@ AS_IF([test "${osra_lib_ocrad}" != "yes"], [
 	AC_MSG_ERROR([OCRAD API check failed; make sure you have installed libocrad-dev package or check config.log])
 ])
 
-dnl tesseract library (optional)
+dnl
+dnl Tesseract library (optional)
+dnl
 
 AS_IF([test "${ac_lib_tesseract}" == "yes"], [
 	dnl Note: This hack to link statically against Tesseract is not portable: the list of libraries should be discovered via pkg-config.
@@ -415,7 +409,9 @@ AS_IF([test "${with_tesseract}" != "no" -a "${ac_lib_tesseract}" == "no"], [
 	AC_MSG_WARN([Tesseract library support was requested, but disabled due to API check failure (see above messages for the reason or check config.log)])
 ])
 
-dnl cuneiform library (optional)
+dnl
+dnl Cuneiform library (optional)
+dnl
 
 AS_IF([test "${ac_lib_cuneiform}" == "yes"], [
 dnl	LIBS="-lcuneiform -lrcorrkegl -lrfrmt -lrmarker -lrblock -lrneg -lrout -lced -lrpic -lrselstr -lrstuff -lrimage -lrline -lrshelllines -lrverline -lcimage -lcfio -lcpage -llns32 -lrdib -lsmetric -lexc -lloc32 -lrreccom -lrpstr -lrstr -lcline -lrcutp -lpass2 -lrbal -lrsadd -lleo32 -levn32 -lfon32 -lctb32 -lmsk32 -ldif32 -lcpu32 -lr3532 -lmmx32 -lrling -lrlings -lcstr -lccom -lstd32 -lcfcompat ${LIBS}"
@@ -437,7 +433,9 @@ AS_IF([test "${with_cuneiform}" != "no" -a "${ac_lib_cuneiform}" == "no"], [
 	AC_MSG_WARN([Cineiform library support was requested, but disabled due to API check failure (see above messages for the reason or check config.log)])
 ])
 
-dnl openbabel library
+dnl
+dnl OpenBabel library
+dnl
 
 osra_lib_openbabel=yes
 
@@ -542,7 +540,14 @@ AS_IF([test "${osra_lib_openbabel}" != "yes"], [
 	AC_MSG_ERROR([OpenBabel API check failed; make sure you have installed libopenbabel-dev package or check config.log])
 ])
 
+dnl
 dnl GraphicsMagick library
+dnl
+
+AC_ARG_ENABLE(
+	[graphicsmagick-config],
+	[AC_HELP_STRING([--disable-graphicsmagick-config], [Disable use of GraphicsMagick++-config for library linking])]
+)
 
 dnl The variable ${enable_graphicsmagick_config} has a reverse meaning: when set it means "disable-graphicsmagick-config"
 AS_IF([test "${enable_graphicsmagick_config:+set}" != "set"], [
@@ -655,8 +660,37 @@ AS_IF([test "${osra_lib_gocr}" != "yes"], [
 ])
 
 dnl
-dnl Generate Makefile and config.h
+dnl OpenMP support
 dnl
+AC_ARG_ENABLE(
+	[openmp],
+	[AC_HELP_STRING([--enable-openmp], [Enable OpenMP extensions for compilers that support it])]
+)
+
+dnl Enable OpenMP on Linux by default (unless it is disabled):
+AS_IF([test -z "${enable_openmp}" -a "$build_os" == "linux"], [enable_openmp=yes])
+
+AS_IF([test "${enable_openmp}" == "yes"], [
+	AC_OPENMP()
+	CPPFLAGS="${OPENMP_CFLAGS} ${CPPFLAGS}"
+	CXXFLAGS="${OPENMP_CXXFLAGS} ${CXXFLAGS}"
+dnl Alternatively, one can add "-lgomp" explicitly, as itis done here (not recommended):
+dnl https://subversion.imagemagick.org/subversion/ImageMagick/trunk/configure.ac
+dnl https://sourceforge.net/tracker/index.php?func=detail&aid=2908699&group_id=97659&atid=618683
+	LDFLAGS="${OPENMP_CXXFLAGS} ${LDFLAGS}"
+])
+
+dnl GNU LD-specific option:
+dnl AS_IF([test "${ac_gnu_ld}" == "yes"], [LDFLAGS="${LDFLAGS} -Wl,--as-needed"])
+
+dnl
+dnl Generate Makefile, config.h, etc
+dnl
+
+AC_SUBST([LIB_MAJOR_VERSION], [${LIB_MAJOR_VERSION}])
+AC_SUBST([LIB_MINOR_VERSION], [${LIB_MINOR_VERSION}])
+dnl Compute the library version from the package version:
+AC_SUBST([LIB_PATCH_VERSION], [`echo ${PACKAGE_VERSION} | perl -ne '/(\d+)\.(\d+)\.(\d+)/ || die; printf "%d%02d%02d", $1, $2, $3;'`])
 
 dnl Substitute config.h paths correctly:
 test "$prefix" = "NONE" && prefix=$ac_default_prefix
