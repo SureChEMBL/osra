@@ -20,7 +20,22 @@
 # %{name} and %{version} should be either defined here or inherited from ~/.rpmmacros
 
 Name:			%{name}
-BuildRequires:	glibc-devel, libstdc++45-devel, tclap >= 1.2, potrace-devel >= 1.8, gocr-devel >= 0.49, ocrad-devel >= 0.20, libopenbabel-devel >= 2.2, libGraphicsMagick++-devel >= 1.2.5, docbook-xsl-stylesheets => 1.74.0, libxslt
+BuildRequires:	glibc-devel, tclap >= 1.2, potrace-devel >= 1.8, gocr-devel >= 0.49, ocrad-devel >= 0.20, libopenbabel-devel >= 2.2, libGraphicsMagick++-devel >= 1.2.5, docbook-xsl-stylesheets => 1.74.0, libxslt
+
+# For list of all versions, see here: http://en.opensuse.org/openSUSE:Build_Service_cross_distribution_howto
+%if 0%{?suse_version} <= 1120
+# SuSE 11.2 and before
+BuildRequires:	libstdc++43-devel
+%else
+# SuSE 11.3 and after:
+%if 0%{?suse_version} >= 1130
+BuildRequires:	libstdc++45-devel
+%else
+# Other distros:
+BuildRequires:	libstdc++-devel
+%endif
+%endif
+
 Url:			http://osra.sourceforge.net/
 Summary:		A command line chemical structure recognition tool
 Version:		%{version}
