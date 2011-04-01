@@ -9,7 +9,7 @@ include Makefile.dep
 
 LIB_VERSION	:= $(LIB_MAJOR_VERSION).$(LIB_MINOR_VERSION).$(LIB_PATCH_VERSION)
 
-TARGETS		:= osra
+TARGETS		:= osra$(EXEEXT)
 
 OBJ_LIB		:= osra.o osra_anisotropic.o osra_ocr.o osra_openbabel.o mcdlutil.o unpaper.o 
 
@@ -34,7 +34,7 @@ endif
 
 all:
 	$(RM) -f $(OBJ_CLI)
-	$(MAKE) osra
+	$(MAKE) osra$(EXEEXT)
 ifdef OSRA_LIB
 	$(RM) -f $(OBJ_LIB)
 	$(MAKE) libosra.a
@@ -52,7 +52,7 @@ endif
 #	We have to update the timestaps of the targets, otherwise "install" target will try to re-link and will cause missed symbols:
 	touch $(TARGETS)
 
-osra: $(OBJ_CLI)
+osra$(EXEEXT): $(OBJ_CLI)
 	$(LD) $(LDFLAGS) -o $@ $(OBJ_CLI) $(LIBS)
 
 ifdef OSRA_LIB
@@ -83,7 +83,7 @@ Makefile.dep: $(patsubst %.o,%.cpp,$(OBJ_CLI))
 
 install: $(TARGETS)
 	$(INSTALL_DIR) $(DESTDIR)$(bindir)
-	$(INSTALL_PROGRAM) osra $(DESTDIR)$(bindir)
+	$(INSTALL_PROGRAM) osra$(EXEEXT) $(DESTDIR)$(bindir)
 ifdef OSRA_LIB
 	$(INSTALL_DIR) $(DESTDIR)$(libdir) $(DESTDIR)$(includedir) $(DESTDIR)$(libdir)/pkgconfig
 	$(INSTALL_PROGRAM) libosra.so $(DESTDIR)$(libdir)/libosra.so.$(LIB_VERSION)
