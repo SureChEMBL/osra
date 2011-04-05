@@ -686,8 +686,8 @@ AC_SUBST([LIB_PATCH_VERSION], [`echo ${PACKAGE_VERSION} | perl -ne '/(\d+)\.(\d+
 
 AS_CASE(["$build_os"],
 	[darwin], [
-		AC_SUBST([LDSHAREDFLAGS], ['-Wl,-dylib_install_name -Wl,$@.$(LIB_MAJOR_VERSION)'])
-		AC_SUBST([SHAREDEXT], [.so])
+		AC_SUBST([LDSHAREDFLAGS], ['-dynamiclib -Wl,-dylib_install_name -Wl,$@.$(LIB_MAJOR_VERSION)'])
+		AC_SUBST([SHAREDEXT], [.dylib])
 	],
 	[cygwin | mingw], [
 		AC_SUBST([LDSHAREDFLAGS], ['-shared -Wl,--out-implib,$@.a'])

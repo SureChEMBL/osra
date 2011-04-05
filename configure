@@ -7701,9 +7701,9 @@ LIB_PATCH_VERSION=`echo ${PACKAGE_VERSION} | perl -ne '/(\d+)\.(\d+)\.(\d+)/ || 
 case "$build_os" in #(
   darwin) :
 
-		LDSHAREDFLAGS='-Wl,-dylib_install_name -Wl,$@.$(LIB_MAJOR_VERSION)'
+		LDSHAREDFLAGS='-dynamiclib -Wl,-dylib_install_name -Wl,$@.$(LIB_MAJOR_VERSION)'
 
-		SHAREDEXT=.so
+		SHAREDEXT=.dylib
 
 	 ;; #(
   cygwin | mingw) :
