@@ -23,7 +23,7 @@ dnl
 
 AC_CANONICAL_BUILD
 
-AS_CASE(["$build_os"], [linux*], [build_os="linux"], [darwin*], [build_os="darwin"]);
+AS_CASE(["$build_os"], [linux*], [build_os="linux"], [darwin*], [build_os="darwin"], [mingw*], [build_os="mingw"])
 
 AC_LANG([C++])
 AX_GNU_LD
@@ -455,7 +455,7 @@ dnl
 
 osra_lib_openbabel=yes
 
-AS_IF([test "$build_os" == "mingw32"], [LIBS="-lws2_32 ${LIBS}"])
+AS_IF([test "$build_os" == "mingw"], [LIBS="-lws2_32 ${LIBS}"])
 
 dnl These libraries are needed for static linking with openbabel:
 AS_IF([test "${enable_static_linking:+set}" == "set"], [
@@ -684,11 +684,21 @@ dnl
 dnl Compute the library version from the package version:
 AC_SUBST([LIB_PATCH_VERSION], [`echo ${PACKAGE_VERSION} | perl -ne '/(\d+)\.(\d+)\.(\d+)/ || die; printf "%d%02d%02d", $1, $2, $3;'`])
 
-AS_IF([test "$build_os" == "darwin"], [
-	AC_SUBST([LDSHFLAGS], ["-Wl,-dylib_install_name -Wl,"])
-],[
-	AC_SUBST([LDSHFLAGS], ["-shared -Wl,-soname,"])
-])
+AS_CASE(["$build_os"],
+	[darwin], [
+		AC_SUBST([LDSHAREDFLAGS], ['-Wl,-dylib_install_name -Wl,$@.$(LIB_MAJOR_VERSION)'])
+		AC_SUBST([SHAREDEXT], [.so])
+	],
+	[cygwin | mingw], [
+		AC_SUBST([LDSHAREDFLAGS], ['-shared -Wl,--out-implib,$@.a'])
+		AC_SUBST([SHAREDEXT], [.dll])
+	],
+	[*], [
+		dnl Assume this is Linux/Unix:
+		AC_SUBST([LDSHAREDFLAGS], ['-shared -Wl,-soname,$@.$(LIB_MAJOR_VERSION)'])
+		AC_SUBST([SHAREDEXT], [.so])
+	]
+)
 
 AS_IF([test -n "${OPENMP_CXXFLAGS}" ], [
 	CPPFLAGS="${OPENMP_CFLAGS} ${CPPFLAGS}"

@@ -593,7 +593,8 @@ ac_includes_default="\
 ac_subst_vars='LTLIBOBJS
 LIBOBJS
 resolved_datadir
-LDSHFLAGS
+SHAREDEXT
+LDSHAREDFLAGS
 LIB_PATCH_VERSION
 GRAPHICS_MAGICK_CONFIG
 TESSERACT_LIB
@@ -2195,9 +2196,11 @@ case "$build_os" in #(
     build_os="linux" ;; #(
   darwin*) :
     build_os="darwin" ;; #(
+  mingw*) :
+    build_os="mingw" ;; #(
   *) :
      ;;
-esac;
+esac
 
 ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
@@ -6517,7 +6520,7 @@ fi
 
 osra_lib_openbabel=yes
 
-if test "$build_os" == "mingw32"; then :
+if test "$build_os" == "mingw"; then :
   LIBS="-lws2_32 ${LIBS}"
 fi
 
@@ -7695,17 +7698,32 @@ fi
 LIB_PATCH_VERSION=`echo ${PACKAGE_VERSION} | perl -ne '/(\d+)\.(\d+)\.(\d+)/ || die; printf "%d%02d%02d", $1, $2, $3;'`
 
 
-if test "$build_os" == "darwin"; then :
+case "$build_os" in #(
+  darwin) :
 
-	LDSHFLAGS="-Wl,-dylib_install_name -Wl,"
+		LDSHAREDFLAGS='-Wl,-dylib_install_name -Wl,$@.$(LIB_MAJOR_VERSION)'
+
+		SHAREDEXT=.so
+
+	 ;; #(
+  cygwin | mingw) :
+
+		LDSHAREDFLAGS='-shared -Wl,--out-implib,$@.a'
+
+		SHAREDEXT=.dll
+
+	 ;; #(
+  *) :
+
+				LDSHAREDFLAGS='-shared -Wl,-soname,$@.$(LIB_MAJOR_VERSION)'
+
+		SHAREDEXT=.so
 
 
-else
-
-	LDSHFLAGS="-shared -Wl,-soname,"
-
-
-fi
+ ;; #(
+  *) :
+     ;;
+esac
 
 if test -n "${OPENMP_CXXFLAGS}" ; then :
 

@@ -20,12 +20,12 @@ endif
 OBJ_CLI		:= $(OBJ_LIB) osra_cli.o
 
 ifdef OSRA_LIB
-TARGETS		+= libosra.a libosra.so
+TARGETS		+= libosra.a libosra$(SHAREDEXT)
 endif
 
 ifdef OSRA_JAVA
 OBJ_JAVA	:= $(OBJ_LIB) osra_java.o
-TARGETS		+= libosra_java.so
+TARGETS		+= libosra_java$(SHAREDEXT)
 endif
 
 ifdef OSRA_ANDROID
@@ -39,15 +39,15 @@ ifdef OSRA_LIB
 	$(RM) -f $(OBJ_LIB)
 	$(MAKE) libosra.a
 	$(RM) -f $(OBJ_LIB)
-	$(MAKE) libosra.so
+	$(MAKE) libosra$(SHAREDEXT)
 endif
 ifdef OSRA_JAVA
 	$(RM) -f $(OBJ_JAVA)
-	$(MAKE) libosra_java.so
+	$(MAKE) libosra_java$(SHAREDEXT)
 endif
 ifdef OSRA_ANDROID
 	$(RM) -f $(OBJ_ANDROID)
-	$(MAKE) libosra_andriod.so
+	$(MAKE) libosra_andriod$(SHAREDEXT)
 endif
 #	We have to update the timestaps of the targets, otherwise "install" target will try to re-link and will cause missed symbols:
 	touch $(TARGETS)
@@ -61,50 +61,52 @@ libosra.a: $(OBJ_LIB)
 	$(AR) cru $@ $(OBJ_LIB)
 	$(RANLIB) $@
 
-libosra.so: CXXFLAGS += -fPIC -DOSRA_LIB
-libosra.so: $(OBJ_LIB)
-	$(LINK.cpp) -fPIC $(LDSHFLAGS)$@.$(LIB_MAJOR_VERSION) -o $@ $(OBJ_LIB) $(LIBS)
+libosra$(SHAREDEXT): CXXFLAGS += -fPIC -DOSRA_LIB
+libosra$(SHAREDEXT): $(OBJ_LIB)
+	$(LINK.cpp) $(LDSHAREDFLAGS) -o $@ $(OBJ_LIB) $(LIBS)
 endif
 
 ifdef OSRA_JAVA
-libosra_java.so: CXXFLAGS += -fPIC -DOSRA_LIB -DOSRA_JAVA
-libosra_java.so: $(OBJ_JAVA)
-	$(LINK.cpp) -fPIC $(LDSHFLAGS)$@.$(LIB_MAJOR_VERSION) -o $@ $(OBJ_JAVA) $(LIBS)
+libosra_java$(SHAREDEXT): CXXFLAGS += -fPIC -DOSRA_LIB -DOSRA_JAVA
+libosra_java$(SHAREDEXT): $(OBJ_JAVA)
+	$(LINK.cpp) $(LDSHAREDFLAGS) -o $@ $(OBJ_JAVA) $(LIBS)
 endif
 
 ifdef OSRA_ANDROID
-libosra_andriod.so: CXXFLAGS += -fPIC -DOSRA_LIB -DOSRA_ANDROID
-libosra_andriod.so: $(OBJ_ANDROID)
-	$(LINK.cpp) -fPIC $(LDSHFLAGS)$@ -o $@ $(OBJ_ANDROID) $(LIBS)
+libosra_andriod$(SHAREDEXT): CXXFLAGS += -fPIC -DOSRA_LIB -DOSRA_ANDROID
+libosra_andriod$(SHAREDEXT): $(OBJ_ANDROID)
+	$(LINK.cpp) $(LDSHAREDFLAGS) -o $@ $(OBJ_ANDROID) $(LIBS)
 endif
 
 Makefile.dep: $(patsubst %.o,%.cpp,$(OBJ_CLI))
 	$(CXX) $(CPPFLAGS) -MM $^ > Makefile.dep 
 
+# Correct installation for Cygwin/MinGW also needs handling of libosra.dll.a, which is not done here:
 install: $(TARGETS)
 	$(INSTALL_DIR) $(DESTDIR)$(bindir)
 	$(INSTALL_PROGRAM) osra$(EXEEXT) $(DESTDIR)$(bindir)
 ifdef OSRA_LIB
 	$(INSTALL_DIR) $(DESTDIR)$(libdir) $(DESTDIR)$(includedir) $(DESTDIR)$(libdir)/pkgconfig
-	$(INSTALL_PROGRAM) libosra.so $(DESTDIR)$(libdir)/libosra.so.$(LIB_VERSION)
-	$(LN_S) libosra.so.$(LIB_VERSION) $(DESTDIR)$(libdir)/libosra.so.$(LIB_MAJOR_VERSION)
-	$(INSTALL_PROGRAM) libosra.a $(DESTDIR)$(libdir)
+	$(INSTALL_PROGRAM) libosra$(SHAREDEXT) $(DESTDIR)$(libdir)/libosra$(SHAREDEXT).$(LIB_VERSION)
+	$(LN_S) libosra$(SHAREDEXT).$(LIB_VERSION) $(DESTDIR)$(libdir)/libosra$(SHAREDEXT).$(LIB_MAJOR_VERSION)
+	$(INSTALL_DATA) libosra.a $(DESTDIR)$(libdir)
 	$(INSTALL_DATA) osra_lib.h $(DESTDIR)$(includedir)
 	$(INSTALL_DATA) ../package/linux/osra.pc $(DESTDIR)$(libdir)/pkgconfig
 endif
 ifdef OSRA_JAVA
 	$(INSTALL_DIR) $(DESTDIR)$(libdir)
-	$(INSTALL_PROGRAM) libosra_java.so $(DESTDIR)$(libdir)/libosra_java.so.$(LIB_VERSION)
-	$(LN_S) libosra_java.so.$(LIB_VERSION) $(DESTDIR)$(libdir)/libosra_java.so.$(LIB_MAJOR_VERSION)
+	$(INSTALL_PROGRAM) libosra_java$(SHAREDEXT) $(DESTDIR)$(libdir)/libosra_java$(SHAREDEXT).$(LIB_VERSION)
+	$(LN_S) libosra_java$(SHAREDEXT).$(LIB_VERSION) $(DESTDIR)$(libdir)/libosra_java$(SHAREDEXT).$(LIB_MAJOR_VERSION)
 endif
 
-# "install" and "make" tools auomatically autodetect the extension for executables, but "rm" needs extension correction:
+# "install" and "make" tools auomatically autodetect the extension for executables, but "rm" needs extension correction.
+# We also do not remove the SO symlinks, leaving them brocken:
 uninstall:
 	$(RM) -f \
 		$(DESTDIR)$(bindir)/osra$(EXEEXT) \
-		$(DESTDIR)$(libdir)/libosra.so.$(LIB_VERSION) \
+		$(DESTDIR)$(libdir)/libosra$(SHAREDEXT).$(LIB_VERSION) \
 		$(DESTDIR)$(libdir)/libosra.a \
-		$(DESTDIR)$(libdir)/libosra_java.so.$(LIB_VERSION) \
+		$(DESTDIR)$(libdir)/libosra_java$(SHAREDEXT).$(LIB_VERSION) \
 		$(DESTDIR)$(includedir)/osra_lib.h \
 		$(DESTDIR)$(libdir)/pkgconfig/osra.pc
 
