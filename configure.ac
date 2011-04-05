@@ -85,6 +85,22 @@ AS_IF([test -d "/opt/local/lib"], [
 ])
 
 dnl
+dnl OpenMP support
+dnl
+
+AC_ARG_ENABLE(
+	[openmp],
+	[AC_HELP_STRING([--enable-openmp], [Enable OpenMP extensions for compilers that support it])]
+)
+
+dnl Enable OpenMP on Linux by default (unless it is disabled):
+AS_IF([test -z "${enable_openmp}" -a "$build_os" == "linux"], [enable_openmp=yes])
+
+AS_IF([test "${enable_openmp}" == "yes"], [
+	AC_OPENMP()
+])
+
+dnl
 dnl Compilation/linking configuration options
 dnl
 
@@ -629,7 +645,7 @@ AC_SEARCH_LIBS([pnm_readpnminit], [netpbm pnm])
 
 dnl gocr library
 dnl 
-dnl TODO: The check goes the last in the row, because of missing global OCR_JOB declaration:
+dnl TODO: This check should go the last in the row, because of missing global OCR_JOB declaration:
 dnl 
 dnl pgm2asc.c:2900: In function `add_line_info':
 dnl pgm2asc.c:1712: In function `count_subboxes'
@@ -637,6 +653,8 @@ dnl pgm2asc.c:2505: In function `divide_vert_glued_boxes'
 dnl pgm2asc.c:1764: In function `glue_holes_inside_chars'
 dnl pgm2asc.c:1146: In function `distance'
 dnl undefined reference to `JOB'
+dnl
+dnl All other checks after this one will fail. 
 
 osra_lib_gocr=yes
 
@@ -660,27 +678,6 @@ AS_IF([test "${osra_lib_gocr}" != "yes"], [
 ])
 
 dnl
-dnl OpenMP support
-dnl
-AC_ARG_ENABLE(
-	[openmp],
-	[AC_HELP_STRING([--enable-openmp], [Enable OpenMP extensions for compilers that support it])]
-)
-
-dnl Enable OpenMP on Linux by default (unless it is disabled):
-AS_IF([test -z "${enable_openmp}" -a "$build_os" == "linux"], [enable_openmp=yes])
-
-AS_IF([test "${enable_openmp}" == "yes"], [
-	AC_OPENMP()
-	CPPFLAGS="${OPENMP_CFLAGS} ${CPPFLAGS}"
-	CXXFLAGS="${OPENMP_CXXFLAGS} ${CXXFLAGS}"
-dnl Alternatively, one can add "-lgomp" explicitly, as itis done here (not recommended):
-dnl https://subversion.imagemagick.org/subversion/ImageMagick/trunk/configure.ac
-dnl https://sourceforge.net/tracker/index.php?func=detail&aid=2908699&group_id=97659&atid=618683
-	LDFLAGS="${OPENMP_CXXFLAGS} ${LDFLAGS}"
-])
-
-dnl
 dnl Generate Makefile, config.h, etc
 dnl
 
@@ -691,6 +688,11 @@ AS_IF([test "$build_os" == "darwin"], [
 	AC_SUBST([LDSHFLAGS], ["-Wl,-dylib_install_name -Wl,"])
 ],[
 	AC_SUBST([LDSHFLAGS], ["-shared -Wl,-soname,"])
+])
+
+AS_IF([test -n "${OPENMP_CXXFLAGS}" ], [
+	CPPFLAGS="${OPENMP_CFLAGS} ${CPPFLAGS}"
+	CXXFLAGS="${OPENMP_CXXFLAGS} ${CXXFLAGS}"
 ])
 
 dnl Substitute config.h paths correctly:
