@@ -1,6 +1,6 @@
-                        OSRA: Optical Structure Recognition
+                        OSRA: Optical Structure Recognition Application
 
-							Igor Filippov, 2007-2010
+							Igor Filippov, 2007-2011
 							igorf@helix.nih.gov
 
 
@@ -101,6 +101,10 @@ Depending on your installation you might also have to set up LD_LIBRARY_PATH to 
 OCRAD and TCLAP:
 ./configure; make; make install
 
+libosra: You can create a library version of OSRA (libosra.a and one of the
+following - libosra.so, libosra.dylib, or libosra.dll) by adding
+--enable-lib command-line option to ./configure
+
 Linux/Unix systems:
 
 Unpack OSRA package. Starting with 1.3.7 the build process is simplified to the common procedure:
@@ -134,8 +138,8 @@ GraphicsMagick (make sure GraphicsMagick++-config script is in your PATH):
 make
 make install
 
-OSRA:
-./configure --enable-static-linking --disable-graphicsmagick-config
+OSRA (static linking):
+./configure --enable-static-linking --disable-graphicsmagick-config --with-graphicsmagick-include=/Users/igor/build/include/GraphicsMagick --with-graphicsmagick-lib=/Users/igor/build/lib
 make
 
 Windows:
@@ -169,8 +173,7 @@ make
 make install
 
 Compiling osra:
-
-./configure --with-potrace-include=/home/igor/potrace-1.8/src/ --with-potrace-lib=/home/igor/potrace-1.8/src/ --with-openbabel-lib=/usr/local/bin --enable-static-linking
+./configure --with-openbabel-lib=/usr/local/bin --enable-static-linking
 make
 
 Make sure you take a look at osra.bat to see that the environment is set
@@ -240,7 +243,7 @@ Other options:
 
 -l <configfile>,  --spelling <configfile>:   Spelling correction dictionary (spelling.txt by default)
 
--u <roundss>,  --unpaper <rounds>
+-u <rounds>,  --unpaper <rounds>
      Pre-process image with unpaper algorithm, rounds (default: do not pre-process)
 
 -w <filename>, --write <filename> Write output to a file instead of stdout
@@ -251,6 +254,8 @@ Other options:
 
 -i, --adaptive:    Adaptive thresholding pre-processing, useful for low light/low
      contrast images
+
+-c,  --coordinates: Show surrounding box coordinates (only for SDF/SMI/CAN output format)
 
 --embedded_format <format>: Allows the user to have InChI or SMILES  included in an SDF file
 as a molecular property
