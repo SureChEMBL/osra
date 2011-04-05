@@ -3,7 +3,7 @@
 #
 # Notes:
 # - Use $(CXX) variable for compiler.
-# - Use $(LD) for linker. Currently it is equal to $(CXX), but if you need real linker detection, use libtool + LT_PATH_LD macros
+# - Use $(LINK.cpp) for linker. Currently it is equal to "$(CXX) $(CXXFLAGS) $(CPPFLAGS) $(LDFLAGS) $(TARGET_ARCH)", but if you need real linker detection, use libtool + LT_PATH_LD macros
 # - Pass optimization flags as follows:
 #   CXXFLAGS="-g -O3" ./configure
 #   There are no defaults for any options as there is no guarantee, that target compiler supports them, see http://www.gnu.org/software/autoconf/manual/make/Command-Variables.html.
