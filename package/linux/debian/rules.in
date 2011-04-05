@@ -26,3 +26,7 @@ override_dh_install:
 
 # Continue with normal operation:
 	dh_install
+
+# The default file "debian/substvars" is replaced by package-specific "debian/${package}.substvars", so in order not to mess with symlinks, we define an additional file with variable substitution:
+override_dh_gencontrol:
+	dh_gencontrol -- -Tdebian/substvars
