@@ -35,7 +35,12 @@ extern "C" {
 #include <ocradlib.h>
 
 #ifdef HAVE_CUNEIFORM_LIB
-#include <cuneiform.h>
+#include <ctiimage.h>
+#include <cttypes.h>
+#include <puma.h>
+#include <lang_def.h>
+#include <mpuma.h>
+#include <compat_defs.h>
 #endif
 
 #include "osra.h"
