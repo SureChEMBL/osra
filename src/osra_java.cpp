@@ -87,22 +87,21 @@ extern "C" {
   /*
    * Class:     net_sourceforge_osra_OsraLib
    * Method:    processImage
-   * Signature: ([BLjava/io/Writer;Ljava/lang/String;ZZZ)I
+   * Signature: ([BLjava/io/Writer;Ljava/lang/String;Ljava/lang/String;ZZZ)I
    */
-  JNIEXPORT jint JNICALL Java_net_sourceforge_osra_OsraLib_processImage(JNIEnv *, jobject, jbyteArray, jobject, jstring, jboolean, jboolean, jboolean);
+  JNIEXPORT jint JNICALL Java_net_sourceforge_osra_OsraLib_processImage(JNIEnv *, jclass, jbyteArray, jobject, jstring, jstring, jboolean, jboolean, jboolean);
 
   /*
    * Class:     net_sourceforge_osra_OsraLib
    * Method:    getVersion
    * Signature: ()Ljava/lang/String;
    */
-  JNIEXPORT jstring JNICALL Java_net_sourceforge_osra_OsraLib_getVersion(JNIEnv *, jobject);
+  JNIEXPORT jstring JNICALL Java_net_sourceforge_osra_OsraLib_getVersion(JNIEnv *, jclass);
 }
 
-JNIEXPORT jint JNICALL Java_net_sourceforge_osra_OsraLib_processImage(JNIEnv *j_env, jobject j_this, jbyteArray j_image_data, jobject j_writer,
+JNIEXPORT jint JNICALL Java_net_sourceforge_osra_OsraLib_processImage(JNIEnv *j_env, jclass j_class, jbyteArray j_image_data, jobject j_writer,
     jstring j_output_format, jstring j_embedded_format,
-    jboolean j_output_confidence, jboolean j_output_coordinates,
-    jboolean j_output_avg_bond_length)
+    jboolean j_output_confidence, jboolean j_output_coordinates, jboolean j_output_avg_bond_length)
 {
   const char *output_format = j_env->GetStringUTFChars(j_output_format, NULL);
   const char *embedded_format = j_env->GetStringUTFChars(j_embedded_format, NULL);
@@ -156,7 +155,7 @@ JNIEXPORT jint JNICALL Java_net_sourceforge_osra_OsraLib_processImage(JNIEnv *j_
   return result;
 }
 
-JNIEXPORT jstring JNICALL Java_net_sourceforge_osra_OsraLib_getVersion(JNIEnv *j_env, jobject j_this)
+JNIEXPORT jstring JNICALL Java_net_sourceforge_osra_OsraLib_getVersion(JNIEnv *j_env, jclass j_class)
 {
   return j_env->NewStringUTF(PACKAGE_VERSION);
 }

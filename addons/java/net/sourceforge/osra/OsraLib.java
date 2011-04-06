@@ -7,8 +7,6 @@ import java.io.Writer;
 
 import org.apache.commons.io.IOUtils;
 
-import net.sourceforge.osra.OsraLib;
-
 /**
  * JNI bridge for OSRA library.
  * 
@@ -26,6 +24,8 @@ public class OsraLib {
 	 *            the writer to output the found structures in given format
 	 * @param format
 	 *            one of the formats, accepted by OpenBabel ("sdf", "smi", "can").
+	 * @param embeddedFormat
+	 *            format to be embedded into SDF ("inchi", "smi", "can").
 	 * @param outputConfidence
 	 *            include confidence
 	 * @param outputCoordinates
@@ -34,23 +34,21 @@ public class OsraLib {
 	 *            include average bond length
 	 * @return 0, if the call succeeded or negative value in case of error
 	 */
-	public native int processImage(byte[] imageData, Writer outputStructureWriter, String format,
+	public static native int processImage(byte[] imageData, Writer outputStructureWriter, String format,
 				String embeddedFormat, boolean outputConfidence, boolean outputCoordinates, boolean outputAvgBondLength);
 
-	public native String getVersion();
+	public static native String getVersion();
 
 	static {
 		System.loadLibrary("osra_java");
 	}
 
 	public static void main(String[] args) throws IOException {
-		System.out.println("Processing file " + args[0]);
-
 		final StringWriter writer = new StringWriter();
 
-		int result = new OsraLib().processImage(IOUtils.toByteArray(new FileInputStream(args[0])), writer, "sdf",
-					"inchi", true, true, true);
+		int result = processImage(IOUtils.toByteArray(new FileInputStream(args[0])), writer, "sdf", "inchi", true,
+					true, true);
 
-		System.out.println("OSRA completed with result:" + result + " structure:'" + writer.toString() + "'");
+		System.out.println("OSRA completed with result:" + result + " structure:\n" + writer.toString() + "\n");
 	}
 }
