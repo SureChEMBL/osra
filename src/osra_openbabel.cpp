@@ -26,6 +26,7 @@
 #include <openbabel/alias.h>
 
 #include <sstream> // std:ostringstream
+#include <iostream> // std::cerr
 
 #include "osra_openbabel.h"
 #include "osra.h"
@@ -44,6 +45,16 @@ int abbreviation_to_mol(OBMol &mol, int &n, int &bondn, const string &smiles_sup
   conv.ReadString(&mol1, smiles_superatom);
 
   a1 = mol1.GetFirstAtom();
+
+  if (a1 == NULL)
+    {
+      cerr << "Unable to parse the SMILES " << smiles_superatom << '.' << endl << "That means:" << endl
+          << "(a) You have no /usr/lib/openbabel/x.x.x/smilesformat.so library installed. Install the format libraries / check http://openbabel.org/docs/dev/Installation/install.html#environment-variables" << endl
+          << "(b) The format libraries are installed, but do not correspond to /usr/lib/libopenbabel.so.y.y.y. Check they correspond to the same OpenBabel version." << endl
+          << "OSRA will produce unpredictable/wrong results." << endl;
+
+      return 0;
+    }
 
   unsigned int anum = a1->GetAtomicNum();
   int firstatom = a1->GetIdx();
