@@ -10,14 +10,20 @@ Vcs-browser: http://osra.svn.sourceforge.net/viewvc/osra/
 
 Package: @PACKAGE_NAME@
 Architecture: any
-Depends: ${misc:Depends}, ${shlibs:Depends}, ${binary:Depends}
+Depends: ${misc:Depends}, ${shlibs:Depends}, ${binary:Depends}, @PACKAGE_NAME@-common (= ${source:Version})
 Recommends: gocr, ocrad, potrace
 Description: A command line chemical structure recognition tool (OSRA)
  ${common:Description}
 
+Package: @PACKAGE_NAME@-common
+Architecture: all
+Depends: ${misc:Depends}
+Description: Shared files for chemical structure recognition tool (OSRA)
+ ${common:Description}
+
 Package: lib@PACKAGE_NAME@@LIB_MAJOR_VERSION@
 Architecture: any
-Depends: ${misc:Depends}, ${shlibs:Depends}, ${binary:Depends}
+Depends: ${misc:Depends}, ${shlibs:Depends}, ${binary:Depends}, @PACKAGE_NAME@-common (= ${source:Version})
 Description: A library for chemical structure recognition tool (OSRA)
  ${common:Description}
 
@@ -31,6 +37,6 @@ Description: Development headers to consume the OSRA library
 Package: lib@PACKAGE_NAME@-java@LIB_MAJOR_VERSION@
 Architecture: any
 Section: java
-Depends: ${misc:Depends}, ${shlibs:Depends}, ${binary:Depends}
+Depends: ${misc:Depends}, ${shlibs:Depends}, ${binary:Depends}, @PACKAGE_NAME@-common (= ${source:Version})
 Description: Development headers to consume the OSRA library
  ${common:Description}

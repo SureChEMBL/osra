@@ -103,20 +103,22 @@ MVN_COMMON_OPS	:= deploy:deploy-file -Durl=$(REPOSITORY_URL) -DrepositoryId=$(RE
 
 # General maven repository deployment rule. See package/hudson/pom.xml for more details. The 1st command in the rule can be parameterized, but the 2nd is tricky:
 deploy_deb:
-	mvn $(MVN_COMMON_OPS) -Dfile=`echo $(NAME)_*.deb`	-DartifactId=$(NAME) -Dclassifier=$(TARGET_CPU) -Dpackaging=deb -DpomFile=package/maven/pom.xml
-	mvn $(MVN_COMMON_OPS) -Dfile=`echo $(NAME)_*.tar.gz`	-DartifactId=$(NAME) -Dclassifier=sources       -Dpackaging=tgz
+	mvn $(MVN_COMMON_OPS) -Dfile=`echo $(NAME)_*.deb`		-DartifactId=$(NAME)		-Dclassifier=$(TARGET_CPU)	-Dpackaging=deb -DpomFile=package/maven/pom.xml
+	mvn $(MVN_COMMON_OPS) -Dfile=`echo $(NAME)-common_*.deb`	-DartifactId=$(NAME)-common	-Dclassifier=all		-Dpackaging=deb
+	mvn $(MVN_COMMON_OPS) -Dfile=`echo $(NAME)_*.tar.gz`		-DartifactId=$(NAME) 		-Dclassifier=sources		-Dpackaging=tgz
 
 	-[ -f lib$(NAME)$(LIB_MAJOR_VERSION)_*.deb ] &&		mvn $(MVN_COMMON_OPS) -Dfile=`echo lib$(NAME)$(LIB_MAJOR_VERSION)_*.deb`	-DartifactId=$(NAME)-lib	-Dclassifier=$(TARGET_CPU) -Dpackaging=deb
 	-[ -f lib$(NAME)-java$(LIB_MAJOR_VERSION)_*.deb ] &&	mvn $(MVN_COMMON_OPS) -Dfile=`echo lib$(NAME)-java$(LIB_MAJOR_VERSION)_*.deb`	-DartifactId=$(NAME)-lib-java	-Dclassifier=$(TARGET_CPU) -Dpackaging=deb
-	-[ -f lib$(NAME)-dev_*.deb ] &&				mvn $(MVN_COMMON_OPS) -Dfile=`echo lib$(NAME)-dev_*.deb`			-DartifactId=$(NAME)-dev	-Dclassifier=$(TARGET_CPU) -Dpackaging=deb
+	-[ -f lib$(NAME)-dev_*.deb ] &&				mvn $(MVN_COMMON_OPS) -Dfile=`echo lib$(NAME)-dev_*.deb`			-DartifactId=$(NAME)-devel	-Dclassifier=$(TARGET_CPU) -Dpackaging=deb
 
 deploy_rpm:
-	mvn $(MVN_COMMON_OPS) -Dfile=`echo $(NAME_VERSION)-*.rpm`	-DartifactId=$(NAME) -Dclassifier=$(TARGET_CPU) -Dpackaging=rpm -DpomFile=package/maven/pom.xml
-	mvn $(MVN_COMMON_OPS) -Dfile=`echo $(NAME)-*.srpm`		-DartifactId=$(NAME) -Dclassifier=sources       -Dpackaging=srpm
+	mvn $(MVN_COMMON_OPS) -Dfile=`echo $(NAME_VERSION)-*.rpm`	-DartifactId=$(NAME)		-Dclassifier=$(TARGET_CPU)	-Dpackaging=rpm -DpomFile=package/maven/pom.xml
+	mvn $(MVN_COMMON_OPS) -Dfile=`echo $(NAME)-common-*.rpm`	-DartifactId=$(NAME)-common	-Dclassifier=noarch		-Dpackaging=rpm
+	mvn $(MVN_COMMON_OPS) -Dfile=`echo $(NAME)-*.srpm`		-DartifactId=$(NAME)		-Dclassifier=sources		-Dpackaging=srpm
 
 	-[ -f $(NAME)-lib$(LIB_MAJOR_VERSION)-*.rpm ] &&	mvn $(MVN_COMMON_OPS) -Dfile=`echo $(NAME)-lib$(LIB_MAJOR_VERSION)-*.rpm`	-DartifactId=$(NAME)-lib	-Dclassifier=$(TARGET_CPU) -Dpackaging=rpm
 	-[ -f $(NAME)-lib-java$(LIB_MAJOR_VERSION)-*.rpm ] &&	mvn $(MVN_COMMON_OPS) -Dfile=`echo $(NAME)-lib-java$(LIB_MAJOR_VERSION)-*.rpm`	-DartifactId=$(NAME)-lib-java	-Dclassifier=$(TARGET_CPU) -Dpackaging=rpm
-	-[ -f $(NAME)-devel-*.rpm ] &&				mvn $(MVN_COMMON_OPS) -Dfile=`echo $(NAME)-devel-*.rpm`				-DartifactId=$(NAME)-dev	-Dclassifier=$(TARGET_CPU) -Dpackaging=rpm
+	-[ -f $(NAME)-devel-*.rpm ] &&				mvn $(MVN_COMMON_OPS) -Dfile=`echo $(NAME)-devel-*.rpm`				-DartifactId=$(NAME)-devel	-Dclassifier=$(TARGET_CPU) -Dpackaging=rpm
 
 beautify:
 	astyle --style=gnu --suffix=none --recursive "*.cpp" "*.h"
