@@ -257,7 +257,7 @@ Other options:
 
 -c,  --coordinates: Show surrounding box coordinates (only for SDF/SMI/CAN output format)
 
---embedded_format <format>: Allows the user to have InChI or SMILES  included in an SDF file
+--embedded-format <format>: Allows the user to have InChI or SMILES  included in an SDF file
 as a molecular property
 
 ============================================================================
