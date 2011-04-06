@@ -168,6 +168,12 @@
 					<arg choice="plain">
 						<replaceable class="parameter">inchi</replaceable>
 					</arg>
+					<arg choice="plain">
+						<replaceable class="parameter">smi</replaceable>
+					</arg>
+					<arg choice="plain">
+						<replaceable class="parameter">can</replaceable>
+					</arg>
 				</group>
 			</arg>
 			<arg choice="opt">
@@ -460,7 +466,7 @@
 				<listitem>
 					<para>
 						Output format to be embedded into SDF (is only valid if <parameter>format</parameter> is <parameter>sdf</parameter>).
-						The only embedded format supported now is <parameter>inchi</parameter>.
+						The embedded formats supported now are <parameter>inchi</parameter>, <parameter>smi</parameter>, <parameter>can</parameter>.
 					</para>
 				</listitem>
 			</varlistentry>
