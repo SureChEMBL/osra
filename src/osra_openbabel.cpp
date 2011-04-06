@@ -49,9 +49,9 @@ int abbreviation_to_mol(OBMol &mol, int &n, int &bondn, const string &smiles_sup
   if (a1 == NULL)
     {
       cerr << "Unable to parse the SMILES " << smiles_superatom << '.' << endl << "That means:" << endl
-          << "(a) You have no /usr/lib/openbabel/x.x.x/smilesformat.so library installed. Install the format libraries / check http://openbabel.org/docs/dev/Installation/install.html#environment-variables" << endl
-          << "(b) The format libraries are installed, but do not correspond to /usr/lib/libopenbabel.so.y.y.y. Check they correspond to the same OpenBabel version." << endl
-          << "OSRA will produce unpredictable/wrong results." << endl;
+           << "(a) You have no /usr/lib/openbabel/x.x.x/smilesformat.so library installed. Install the format libraries / check http://openbabel.org/docs/dev/Installation/install.html#environment-variables" << endl
+           << "(b) The format libraries are installed, but do not correspond to /usr/lib/libopenbabel.so.y.y.y. Check they correspond to the same OpenBabel version." << endl
+           << "OSRA will produce unpredictable/wrong results." << endl;
 
       return 0;
     }

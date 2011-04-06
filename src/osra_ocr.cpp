@@ -34,6 +34,10 @@ extern "C" {
 
 #include <ocradlib.h>
 
+#include "osra.h"
+#include "osra_ocr.h"
+
+
 #ifdef HAVE_CUNEIFORM_LIB
 #include <ctiimage.h>
 #include <cttypes.h>
@@ -42,9 +46,6 @@ extern "C" {
 #include <mpuma.h>
 #include <compat_defs.h>
 #endif
-
-#include "osra.h"
-#include "osra_ocr.h"
 
 #ifdef HAVE_TESSERACT_LIB
 // We can't push these functions into this cpp file, as the types from Tesseract conflict with GOCR
@@ -177,21 +178,26 @@ char osra_cuneiform_ocr(Magick::Image &cuneiform_img, const string &char_filter)
 {
   Magick::Blob blob;
   cuneiform_img.write(&blob, "DIB");
+  size_t data_size = blob.length();
+  char *dib = new char[data_size];
+  memcpy(dib, blob.data(), data_size);
 
   char str[256];
   memset(str, 0, sizeof(str));
 
-  if (!PUMA_XOpen(blob.data(), NULL) || !PUMA_XFinalRecognition() || !PUMA_SaveToMemory(NULL, PUMA_TOTEXT, PUMA_CODE_ASCII, str, sizeof(str) - 1))
+  if (!PUMA_XOpen(dib, NULL) || !PUMA_XFinalRecognition() || !PUMA_SaveToMemory(NULL, PUMA_TOTEXT, PUMA_CODE_ASCII, str, sizeof(str) - 1))
     {
       //if (verbose)
       //  cout << "Cuneiform recognition failed." << endl;
 
       PUMA_XClose();
+      delete []dib;
 
       return UNKNOWN_CHAR;
     }
 
   PUMA_XClose();
+  delete []dib;
 
   // As we have initialized the image with two identical samples, it is expected that they go in the string
   // one after another, or separated by space (e.g. "ZZ\n" or "Z Z\n").

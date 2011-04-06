@@ -430,7 +430,7 @@ dnl Cuneiform library (optional)
 dnl
 
 AS_IF([test "${ac_lib_cuneiform}" == "yes"], [
-dnl	LIBS="-lcuneiform -lrcorrkegl -lrfrmt -lrmarker -lrblock -lrneg -lrout -lced -lrpic -lrselstr -lrstuff -lrimage -lrline -lrshelllines -lrverline -lcimage -lcfio -lcpage -llns32 -lrdib -lsmetric -lexc -lloc32 -lrreccom -lrpstr -lrstr -lcline -lrcutp -lpass2 -lrbal -lrsadd -lleo32 -levn32 -lfon32 -lctb32 -lmsk32 -ldif32 -lcpu32 -lr3532 -lmmx32 -lrling -lrlings -lcstr -lccom -lstd32 -lcfcompat ${LIBS}"
+	LIBS="-lcuneiform -lrcorrkegl -lrfrmt -lrmarker -lrblock -lrneg -lrout -lced -lrpic -lrselstr -lrstuff -lrimage -lrline -lrshelllines -lrverline -lcimage -lcfio -lcpage -llns32 -lrdib -lsmetric -lexc -lloc32 -lrreccom -lrpstr -lrstr -lcline -lrcutp -lpass2 -lrbal -lrsadd -lleo32 -levn32 -lfon32 -lctb32 -lmsk32 -ldif32 -lcpu32 -lr3532 -lmmx32 -lrling -lrlings -lcstr -lccom -lstd32 -lcfcompat ${LIBS}"
 	AX_TRY_LINK([cuneiform], [
 		#include <stddef.h>
 		#include <ctiimage.h>
