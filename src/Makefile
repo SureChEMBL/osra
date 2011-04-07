@@ -97,6 +97,8 @@ ifdef OSRA_JAVA
 	$(INSTALL_DIR) $(DESTDIR)$(libdir)
 	$(INSTALL_PROGRAM) libosra_java$(SHAREDEXT) $(DESTDIR)$(libdir)/libosra_java$(SHAREDEXT).$(LIB_VERSION)
 	$(LN_S) libosra_java$(SHAREDEXT).$(LIB_VERSION) $(DESTDIR)$(libdir)/libosra_java$(SHAREDEXT).$(LIB_MAJOR_VERSION)
+#	As JVM can only load the libraries with .so extension (no versioning) we need to create this link:
+	$(LN_S) libosra_java$(SHAREDEXT).$(LIB_MAJOR_VERSION) $(DESTDIR)$(libdir)/libosra_java$(SHAREDEXT)
 endif
 
 # "install" and "make" tools auomatically autodetect the extension for executables, but "rm" needs extension correction.
