@@ -2390,12 +2390,15 @@ int count_atoms(const vector<atom_t> &atom, int n_atom)
   return (r);
 }
 
-int count_bonds(const vector<bond_t> &bond, int n_bond)
+int count_bonds(const vector<bond_t> &bond, int n_bond, int &bond_max_type)
 {
   int r = 0;
   for (int i = 0; i < n_bond; i++)
     if (bond[i].exists)
-      r++;
+      {
+        r++;
+        if (bond[i].type>bond_max_type) bond_max_type = bond[i].type;
+      }
   return (r);
 }
 
@@ -5919,13 +5922,14 @@ int osra_process_image(
                 assign_charge(atom, bond, n_atom, n_bond, spelling, superatom, debug);
                 find_up_down_bonds(bond, n_bond, atom, thickness);
                 int real_atoms = count_atoms(atom, n_atom);
-                int real_bonds = count_bonds(bond, n_bond);
+                int bond_max_type = 0;
+                int real_bonds = count_bonds(bond, n_bond,bond_max_type);
 
 
                 if (verbose)
                   cout << "Final number of atoms: " << real_atoms << ", bonds: " << real_bonds << ", chars: " << n_letters << '.' << endl;
 
-                if (real_atoms > MIN_A_COUNT && real_atoms < MAX_A_COUNT && real_bonds < MAX_A_COUNT)
+                if (real_atoms > MIN_A_COUNT && real_atoms < MAX_A_COUNT && real_bonds < MAX_A_COUNT && bond_max_type>0 && bond_max_type<5)
                   {
                     int num_frag;
 
@@ -5990,7 +5994,7 @@ int osra_process_image(
                               cout << "Structure length: " << structure.length() << ", molecule fragments: " << molecule_statistics.fragments << '.' << endl;
 
 
-                            if (molecule_statistics.fragments > 0 && molecule_statistics.fragments < MAX_FRAGMENTS && !structure.empty())
+                            if (molecule_statistics.fragments > 0 && molecule_statistics.fragments < MAX_FRAGMENTS && molecule_statistics.num_atoms>MIN_A_COUNT)
                               {
                                 array_of_structures[res_iter].push_back(structure);
                                 array_of_avg_bonds[res_iter].push_back(page_scale * box_scale * avg_bond_length);

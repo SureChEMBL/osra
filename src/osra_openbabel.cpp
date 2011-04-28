@@ -229,7 +229,6 @@ void create_molecule(OBMol &mol, vector<atom_t> &atom, const vector<bond_t> &bon
   int anum;
 
   mol.SetDimension(2);
-
   mol.BeginModify();
   for (int i = 0; i < n_bond; i++)
     if (bond[i].exists && i < MAX_ATOMS - 1 && bond[i].a < MAX_ATOMS - 1 && bond[i].b < MAX_ATOMS - 1)
@@ -420,6 +419,7 @@ void create_molecule(OBMol &mol, vector<atom_t> &atom, const vector<bond_t> &bon
   molecule_statistics.rotors = mol.NumRotors();
   molecule_statistics.fragments = cfl.size();
   molecule_statistics.rings56 = Num_Rings[5] + Num_Rings[6];
+  molecule_statistics.num_atoms = mol.NumAtoms();
 
   if (confidence)
     {

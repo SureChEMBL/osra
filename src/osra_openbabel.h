@@ -132,6 +132,9 @@ struct molecule_statistics_s
   // int: rings56
   //    accumulated number of 5- and 6- rings in molecule
   int rings56;
+  // int: num_atoms
+  // number of atoms in molecule
+  int num_atoms;
 };
 
 // typedef: molecule_statistics_t
