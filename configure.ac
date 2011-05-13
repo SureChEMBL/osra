@@ -251,7 +251,7 @@ AC_ARG_WITH(
 
 AX_PROBE_OPTIONAL_LIBRARY(
 	[cuneiform],
-	[ctiimage.h cttypes.h puma.h lang_def.h mpuma.h compat_defs.h],
+	[cuneiform.h],
 	[auto],
 	[Enable optional support for Cuneiform (OCR system developed by Cognitive technologies), see https://launchpad.net/cuneiform-linux]
 )
@@ -430,15 +430,9 @@ dnl Cuneiform library (optional)
 dnl
 
 AS_IF([test "${ac_lib_cuneiform}" == "yes"], [
-	LIBS="-lcuneiform -lrcorrkegl -lrfrmt -lrmarker -lrblock -lrneg -lrout -lced -lrpic -lrselstr -lrstuff -lrimage -lrline -lrshelllines -lrverline -lcimage -lcfio -lcpage -llns32 -lrdib -lsmetric -lexc -lloc32 -lrreccom -lrpstr -lrstr -lcline -lrcutp -lpass2 -lrbal -lrsadd -lleo32 -levn32 -lfon32 -lctb32 -lmsk32 -ldif32 -lcpu32 -lr3532 -lmmx32 -lrling -lrlings -lcstr -lccom -lstd32 -lcfcompat ${LIBS}"
 	AX_TRY_LINK([cuneiform], [
 		#include <stddef.h>
-		#include <ctiimage.h>
-		#include <cttypes.h>
-		#include <puma.h>
-		#include <lang_def.h>
-		#include <mpuma.h>
-		#include <compat_defs.h>
+		#include <cuneiform.h>
 	], [
 		PUMA_XOpen(NULL, "");
 		PUMA_XFinalRecognition();

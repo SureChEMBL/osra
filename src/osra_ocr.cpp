@@ -37,14 +37,8 @@ extern "C" {
 #include "osra.h"
 #include "osra_ocr.h"
 
-
 #ifdef HAVE_CUNEIFORM_LIB
-#include <ctiimage.h>
-#include <cttypes.h>
-#include <puma.h>
-#include <lang_def.h>
-#include <mpuma.h>
-#include <compat_defs.h>
+#include <cuneiform.h>
 #endif
 
 #ifdef HAVE_TESSERACT_LIB
@@ -73,15 +67,15 @@ void osra_ocr_init()
 {
 #ifdef HAVE_CUNEIFORM_LIB
   // Initialization for Cuneiform library should be called only once. Otherwise it breaks down during deinitialization:
-  int langcode = LANG_ENGLISH;
-  Bool dotmatrix = 0;
-  Bool fax = 0;
-  Bool onecolumn = 1;
+  int langcode = PUMA_LANG_ENGLISH;
+  PumaBool dotmatrix = 0;
+  PumaBool fax = 0;
+  PumaBool onecolumn = 1;
   PUMA_Init(0, 0);
   PUMA_SetImportData(PUMA_Word32_Language, &langcode);
-  PUMA_SetImportData(PUMA_Bool32_DotMatrix, &dotmatrix);
-  PUMA_SetImportData(PUMA_Bool32_Fax100, &fax);
-  PUMA_SetImportData(PUMA_Bool32_OneColumn, &onecolumn);
+  PUMA_SetImportData(PUMA_PumaBool32_DotMatrix, &dotmatrix);
+  PUMA_SetImportData(PUMA_PumaBool32_Fax100, &fax);
+  PUMA_SetImportData(PUMA_PumaBool32_OneColumn, &onecolumn);
 #endif
 
 #ifdef HAVE_TESSERACT_LIB
