@@ -33,8 +33,8 @@ OBJ_ANDROID	:= $(OBJ_LIB) osra_cli.o
 endif
 
 all:
-ifneq ($(OSRA_LIB)$(OSRA_JAVA)$(OSRA_ANDROID),)
-	echo "$(OSRA_LIB)$(OSRA_JAVA)$(OSRA_ANDROID)"
+# From here: http://stackoverflow.com/questions/5584872/complex-conditions-check-in-makefile/5586785#5586785
+ifneq ($(or $(OSRA_LIB),$(OSRA_JAVA),$(OSRA_ANDROID)),)
 	$(RM) -f $(OBJ_CLI)
 endif
 	$(MAKE) osra$(EXEEXT)

@@ -99,7 +99,7 @@ package_rpm:
 #	Rename to .srpm, because otherwise *.rpm mask does not match unique file:
 	cp $(BUILD_DIR)/SRPMS/$(NAME)*.src.rpm $(NAME_VERSION).srpm
 
-MVN_COMMON_OPS	:= deploy:deploy-file -Durl=$(REPOSITORY_URL) -DrepositoryId=$(REPOSITORY_ID) -DgroupId=net.sourceforge -Dversion=$(VERSION)
+MVN_COMMON_OPS	:= -B deploy:deploy-file -Durl=$(REPOSITORY_URL) -DrepositoryId=$(REPOSITORY_ID) -DgroupId=net.sourceforge -Dversion=$(VERSION)
 
 # General maven repository deployment rule. See package/hudson/pom.xml for more details. The 1st command in the rule can be parameterized, but the 2nd is tricky:
 deploy_deb:
