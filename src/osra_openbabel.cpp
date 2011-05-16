@@ -420,6 +420,7 @@ void create_molecule(OBMol &mol, vector<atom_t> &atom, const vector<bond_t> &bon
   molecule_statistics.fragments = cfl.size();
   molecule_statistics.rings56 = Num_Rings[5] + Num_Rings[6];
   molecule_statistics.num_atoms = mol.NumAtoms();
+  molecule_statistics.num_bonds = mol.NumBonds();
 
   if (confidence)
     {

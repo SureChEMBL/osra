@@ -2396,8 +2396,8 @@ int count_bonds(const vector<bond_t> &bond, int n_bond, int &bond_max_type)
   for (int i = 0; i < n_bond; i++)
     if (bond[i].exists)
       {
-        r++;
-        if (bond[i].type>bond_max_type) bond_max_type = bond[i].type;
+	r++;
+	if (bond[i].type>bond_max_type) bond_max_type = bond[i].type;
       }
   return (r);
 }
@@ -5922,7 +5922,7 @@ int osra_process_image(
                 assign_charge(atom, bond, n_atom, n_bond, spelling, superatom, debug);
                 find_up_down_bonds(bond, n_bond, atom, thickness);
                 int real_atoms = count_atoms(atom, n_atom);
-                int bond_max_type = 0;
+		int bond_max_type = 0;
                 int real_bonds = count_bonds(bond, n_bond,bond_max_type);
 
 
@@ -5994,7 +5994,7 @@ int osra_process_image(
                               cout << "Structure length: " << structure.length() << ", molecule fragments: " << molecule_statistics.fragments << '.' << endl;
 
 
-                            if (molecule_statistics.fragments > 0 && molecule_statistics.fragments < MAX_FRAGMENTS && molecule_statistics.num_atoms>MIN_A_COUNT)
+                            if (molecule_statistics.fragments > 0 && molecule_statistics.fragments < MAX_FRAGMENTS && molecule_statistics.num_atoms>MIN_A_COUNT && molecule_statistics.num_bonds>0)
                               {
                                 array_of_structures[res_iter].push_back(structure);
                                 array_of_avg_bonds[res_iter].push_back(page_scale * box_scale * avg_bond_length);

@@ -135,6 +135,9 @@ struct molecule_statistics_s
   // int: num_atoms
   // number of atoms in molecule
   int num_atoms;
+ // int: num_bonds
+  // number of bonds in molecule
+  int num_bonds;
 };
 
 // typedef: molecule_statistics_t

@@ -237,11 +237,11 @@ AX_PROBE_OPTIONAL_LIBRARY(
 
 dnl cuneiform library (optional)
 
-AC_ARG_WITH(
-	[cuneiform-source],
-	[AC_HELP_STRING([--with-cuneiform-source], [Location of cuneiform library source files])],
-	[CPPFLAGS="-I${withval}/cuneiform_src/Kern/hhh/ -I${withval}/cuneiform_src/Kern/h/ -I${withval}/cuneiform_src/Kern/hrk/ -I${withval}/cuneiform_src/Kern/puma/h/ -I${withval}/cuneiform_src/Kern/include/ -I${withval}/cuneiform_src/Kern/hdebug/ ${CPPFLAGS}"]
-)	
+dnl AC_ARG_WITH(
+dnl	[cuneiform-source],
+dnl	[AC_HELP_STRING([--with-cuneiform-source], [Location of cuneiform library source files])],
+dnl	[CPPFLAGS="-I${withval}/cuneiform_src/Kern/hhh/ -I${withval}/cuneiform_src/Kern/h/ -I${withval}/cuneiform_src/Kern/hrk/ -I${withval}/cuneiform_src/Kern/puma/h/ -I${withval}/cuneiform_src/Kern/include/ -I${withval}/cuneiform_src/Kern/hdebug/ ${CPPFLAGS}"]
+dnl)	
 
 AC_ARG_WITH(
 	[cuneiform-include],
