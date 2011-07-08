@@ -27,10 +27,7 @@
 #include <map> // std::map
 #include <vector> // std::vector
 
-extern "C" {
-#include <potracelib.h>
-}
-
+#include "osra.h"
 #include "osra_segment.h"
 
 using namespace std;
@@ -40,62 +37,6 @@ using namespace std;
 // Defines types and functions for OSRA OpenBabel module.
 //
 
-// struct: atom_s
-//      Contains information about perspective atom
-struct atom_s
-{
-  // doubles: x, y
-  //    coordinates within the image clip
-  double x, y;
-  // string: label
-  //    atomic label
-  string label;
-  // int: n
-  //    counter of created OBAtom objects in <create_molecule()>
-  int n;
-  // int: anum
-  //    atomic number
-  int anum;
-  // pointer: curve
-  //    pointer to the curve found by Potrace
-  const potrace_path_t *curve;
-  // bools: exists, corner, terminal
-  //    atom exists, atom is at the corner (has two bonds leading to it), atom is a terminal atom
-  bool exists, corner, terminal;
-  // int: charge
-  //    electric charge on the atom
-  int charge;
-};
-// typedef: atom_t
-//      defines atom_t type based on atom_s struct
-typedef struct atom_s atom_t;
-
-// struct: bond_s
-//      contains information about perspective bond between two atoms
-struct bond_s
-{
-  // ints: a, b, type
-  //    starting atom, ending atom, bond type (single/doouble/triple)
-  int a, b, type;
-  // pointer: curve
-  //    pointer to the curve found by Potrace
-  const potrace_path_t *curve;
-  // bools: exists, hash, wedge, up, down, Small, arom
-  //    bond existence and type flags
-  bool exists;
-  bool hash;
-  bool wedge;
-  bool up;
-  bool down;
-  bool Small;
-  bool arom;
-  // bool: conjoined
-  //    true for a double bond which is joined at one end on the image
-  bool conjoined;
-};
-// typedef: bond_t
-//      defines bond_t type based on bond_s struct
-typedef struct bond_s bond_t;
 
 
 

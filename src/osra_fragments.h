@@ -25,7 +25,7 @@
 // Declares operations on molecular fragments
 //
 
-#include "osra_openbabel.h"
+#include "osra.h"
 
 //struct: fragment_s
 // used by <osra.cpp::populate_fragments()> to split chemical structure into unconnected molecules.

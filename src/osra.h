@@ -24,10 +24,78 @@
 //
 // Defines types and functions exported from main module to other modules.
 //
+#ifndef OSRA_H
+#define OSRA_H
 
 #include <string> // std:string
+#include <vector>
 
 #include <Magick++.h> // Magick::Image, Magick::ColorGray
+
+extern "C" {
+#include <potracelib.h>
+}
+
+using namespace std;
+using namespace Magick;
+
+// struct: atom_s
+//      Contains information about perspective atom
+struct atom_s
+{
+  // doubles: x, y
+  //    coordinates within the image clip
+  double x, y;
+  // string: label
+  //    atomic label
+  string label;
+  // int: n
+  //    counter of created OBAtom objects in <create_molecule()>
+  int n;
+  // int: anum
+  //    atomic number
+  int anum;
+  // pointer: curve
+  //    pointer to the curve found by Potrace
+  const potrace_path_t *curve;
+  // bools: exists, corner, terminal
+  //    atom exists, atom is at the corner (has two bonds leading to it), atom is a terminal atom
+  bool exists, corner, terminal;
+  // int: charge
+  //    electric charge on the atom
+  int charge;
+};
+// typedef: atom_t
+//      defines atom_t type based on atom_s struct
+typedef struct atom_s atom_t;
+
+// struct: bond_s
+//      contains information about perspective bond between two atoms
+struct bond_s
+{
+  // ints: a, b, type
+  //    starting atom, ending atom, bond type (single/doouble/triple)
+  int a, b, type;
+  // pointer: curve
+  //    pointer to the curve found by Potrace
+  const potrace_path_t *curve;
+  // bools: exists, hash, wedge, up, down, Small, arom
+  //    bond existence and type flags
+  bool exists;
+  bool hash;
+  bool wedge;
+  bool up;
+  bool down;
+  bool Small;
+  bool arom;
+  // bool: conjoined
+  //    true for a double bond which is joined at one end on the image
+  bool conjoined;
+};
+// typedef: bond_t
+//      defines bond_t type based on bond_s struct
+typedef struct bond_s bond_t;
+
 
 //
 // Section: Functions
@@ -56,6 +124,13 @@ int get_pixel(const Magick::Image &image, const Magick::ColorGray &bg, unsigned 
 void trim(std::string &s);
 
 double distance(double x1, double y1, double x2, double y2);
+double bond_length(const vector<bond_t> &bond, int i, const vector<atom_t> &atom);
+void delete_curve(vector<atom_t> &atom, vector<bond_t> &bond, int n_atom, int n_bond,
+                  const potrace_path_t * const curve);
+void delete_curve_with_children(vector<atom_t> &atom, vector<bond_t> &bond, int n_atom, int n_bond,
+                                const potrace_path_t * const p);
+bool detect_curve(vector<bond_t> &bond, int n_bond, const potrace_path_t * const curve);
+bool terminal_bond(int a, int b, const vector<bond_t> &bond, int n_bond);
 
 // Section: Constants
 //
@@ -139,3 +214,5 @@ double distance(double x1, double y1, double x2, double y2);
 #define ERROR_OUTPUT_FILE_OPEN_FAILED           -3
 #define ERROR_UNKNOWN_IMAGE_TYPE                -4
 #define ERROR_ILLEGAL_ARGUMENT_COMBINATION      -5
+
+#endif
