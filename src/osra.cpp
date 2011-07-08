@@ -45,6 +45,7 @@ extern "C" {
 #include "osra.h"
 #include "osra_grayscale.h"
 #include "osra_segment.h"
+#include "osra_fragments.h"
 #include "osra_lib.h"
 #include "osra_ocr.h"
 #include "osra_openbabel.h"
@@ -145,21 +146,6 @@ struct dash_s
 //defines dash_t type based on dash_s struct
 typedef struct dash_s dash_t;
 
-//struct: fragment_s
-// used by <osra.cpp::populate_fragments()> to split chemical structure into unconnected molecules.
-struct fragment_s
-{
-  //int: x1,y1,x2,y2
-  //top left and bottom right coordinates of the fragment
-  int x1, y1, x2, y2;
-  //array: atom
-  //vector of atom indices for atoms in a molecule of this fragment
-  vector<int> atom;
-};
-//typedef: fragment_t
-//defines fragment_t type based on fragment_s struct
-typedef struct fragment_s fragment_t;
-
 /* return new un-initialized bitmap. NULL with errno on error */
 static potrace_bitmap_t *bm_new(int w, int h)
 {
@@ -188,10 +174,7 @@ double distance(double x1, double y1, double x2, double y2)
   return (sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2)));
 }
 
-double atom_distance(const vector<atom_t> &atom, int a, int b)
-{
-  return (distance(atom[a].x, atom[a].y, atom[b].x, atom[b].y));
-}
+
 
 double angle4(double x1, double y1, double x2, double y2, double x3, double y3, double x4, double y4)
 {
@@ -4167,158 +4150,6 @@ void mark_terminal_atoms(const vector<bond_t> &bond, int n_bond, vector<atom_t> 
       }
 }
 
-/**
- * TODO: Returning the vector from the stack causes copy constructor to trigger, which is inefficient.
- * Consider passing the vector as a reference.
- */
-vector<vector<int> > find_fragments(const vector<bond_t> &bond, int n_bond, const vector<atom_t> &atom)
-{
-  vector<vector<int> > frags;
-  vector<int> pool;
-  int n = 0;
-
-  for (int i = 0; i < n_bond; i++)
-    if (bond[i].exists && atom[bond[i].a].exists && atom[bond[i].b].exists)
-      pool.push_back(i);
-
-  while (!pool.empty())
-    {
-      frags.resize(n + 1);
-      frags[n].push_back(bond[pool.back()].a);
-      frags[n].push_back(bond[pool.back()].b);
-      pool.pop_back();
-      bool found = true;
-
-      while (found)
-        {
-          found = false;
-          unsigned int i = 0;
-          while (i < pool.size())
-            {
-              bool found_a = false;
-              bool found_b = false;
-              bool newfound = false;
-              for (unsigned int k = 0; k < frags[n].size(); k++)
-                {
-                  if (frags[n][k] == bond[pool[i]].a)
-                    found_a = true;
-                  else if (frags[n][k] == bond[pool[i]].b)
-                    found_b = true;
-                }
-              if (found_a && !found_b)
-                {
-                  frags[n].push_back(bond[pool[i]].b);
-                  pool.erase(pool.begin() + i);
-                  found = true;
-                  newfound = true;
-                }
-              if (!found_a && found_b)
-                {
-                  frags[n].push_back(bond[pool[i]].a);
-                  pool.erase(pool.begin() + i);
-                  found = true;
-                  newfound = true;
-                }
-              if (found_a && found_b)
-                {
-                  pool.erase(pool.begin() + i);
-                  newfound = true;
-                }
-              if (!newfound)
-                i++;
-            }
-        }
-      n++;
-    }
-  return (frags);
-}
-
-int reconnect_fragments(vector<bond_t> &bond, int n_bond, vector<atom_t> &atom, double avg)
-{
-  vector<vector<int> > frags = find_fragments(bond, n_bond, atom);
-
-  if (frags.size() <= 3)
-    {
-      for (unsigned int i = 0; i < frags.size(); i++)
-        if (frags[i].size() > 2)
-          for (unsigned int j = i + 1; j < frags.size(); j++)
-            if (frags[j].size() > 2)
-              {
-                double l = FLT_MAX;
-                int atom1 = 0, atom2 = 0;
-                for (unsigned int ii = 0; ii < frags[i].size(); ii++)
-                  for (unsigned int jj = 0; jj < frags[j].size(); jj++)
-                    {
-                      double d = atom_distance(atom, frags[i][ii], frags[j][jj]);
-                      if (d < l)
-                        {
-                          l = d;
-                          atom1 = frags[i][ii];
-                          atom2 = frags[j][jj];
-                        }
-                    }
-                if (l < 1.1 * avg && l > avg / 3)
-                  {
-                    bond_t b1;
-                    bond.push_back(b1);
-                    bond[n_bond].a = atom1;
-                    bond[n_bond].exists = true;
-                    bond[n_bond].type = 1;
-                    bond[n_bond].b = atom2;
-                    bond[n_bond].curve = atom[atom1].curve;
-                    bond[n_bond].hash = false;
-                    bond[n_bond].wedge = false;
-                    bond[n_bond].up = false;
-                    bond[n_bond].down = false;
-                    bond[n_bond].Small = false;
-                    bond[n_bond].arom = false;
-                    bond[n_bond].conjoined = false;
-                    n_bond++;
-                  }
-                if (l < avg / 3)
-                  {
-                    atom[atom2].x = atom[atom1].x;
-                    atom[atom2].y = atom[atom1].y;
-                  }
-              }
-    }
-
-  return (n_bond);
-}
-
-
-/**
- * TODO: Returning the vector from the stack causes copy constructor to trigger, which is inefficient.
- * Consider passing the vector as a reference.
- */
-vector<fragment_t> populate_fragments(const vector<vector<int> > &frags, const vector<atom_t> &atom)
-{
-  vector<fragment_t> r;
-
-  for (unsigned int i = 0; i < frags.size(); i++)
-    {
-      fragment_t f;
-      f.x1 = INT_MAX;
-      f.x2 = 0;
-      f.y1 = INT_MAX;
-      f.y2 = 0;
-
-      for (unsigned j = 0; j < frags[i].size(); j++)
-        {
-          f.atom.push_back(frags[i][j]);
-          if ((int) atom[frags[i][j]].x < f.x1)
-            f.x1 = (int) atom[frags[i][j]].x;
-          if ((int) atom[frags[i][j]].x > f.x2)
-            f.x2 = (int) atom[frags[i][j]].x;
-          if ((int) atom[frags[i][j]].y < f.y1)
-            f.y1 = (int) atom[frags[i][j]].y;
-          if ((int) atom[frags[i][j]].y > f.y2)
-            f.y2 = (int) atom[frags[i][j]].y;
-        }
-      r.push_back(f);
-    }
-  return (r);
-}
 
 // Igor Filippov - 2009.
 // The following two functions are adapted from ConfigFile
@@ -4392,19 +4223,7 @@ bool load_config_map(const string &file, map<string, string> &out)
   return true;
 }
 
-bool comp_fragments(const fragment_t &aa, const fragment_t &bb)
-{
-  if (aa.y2 < bb.y1)
-    return (true);
-  if (aa.y1 > bb.y2)
-    return (false);
-  if (aa.x1 > bb.x1)
-    return (false);
-  if (aa.x1 < bb.x1)
-    return (true);
 
-  return (false);
-}
 
 void find_limits_on_avg_bond(double &min_bond, double &max_bond, const vector<vector<double> > &pages_of_avg_bonds,
                              const vector<vector<double> > &pages_of_ind_conf)

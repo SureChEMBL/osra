@@ -20,6 +20,9 @@
  St, Fifth Floor, Boston, MA 02110-1301, USA
  *****************************************************************************/
 
+#ifndef OSRA_OPENBABEL_H
+#define OSRA_OPENBABEL_H
+
 #include <string> // std::string
 #include <map> // std::map
 #include <vector> // std::vector
@@ -170,3 +173,4 @@ const string get_formatted_structure(vector<atom_t> &atom, const vector<bond_t> 
                                      double &confidence, bool show_confidence, double avg_bond_length, double scaled_avg_bond_length, bool show_avg_bond_length, const int * const resolution,
                                      const int * const page, const box_t * const surrounding_box, const map<string, string> &superatom);
 
+#endif

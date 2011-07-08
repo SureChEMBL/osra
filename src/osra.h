@@ -55,6 +55,8 @@ int get_pixel(const Magick::Image &image, const Magick::ColorGray &bg, unsigned 
 //      s - string to trim (in/out parameter)
 void trim(std::string &s);
 
+double distance(double x1, double y1, double x2, double y2);
+
 // Section: Constants
 //
 // Constants: global defines
