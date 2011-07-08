@@ -28,6 +28,7 @@
 #include <sstream> // std:ostringstream
 #include <iostream> // std::cerr
 
+#include "osra_common.h"
 #include "osra_openbabel.h"
 #include "osra.h"
 #include "mcdlutil.h"

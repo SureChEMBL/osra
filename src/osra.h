@@ -96,42 +96,6 @@ struct bond_s
 //      defines bond_t type based on bond_s struct
 typedef struct bond_s bond_t;
 
-
-//
-// Section: Functions
-//
-
-// Function: get_pixel()
-//
-// Returns a binarized pixel value from a gray-level image
-//
-// Parameters:
-//      image - image object
-//      bg - gray-level background color
-//      x, y - coordinates of the pixel
-//      THRESHOLD - gray-level threshold for binarization
-//
-// Returns:
-//      1 for set pixel, 0 for background
-int get_pixel(const Magick::Image &image, const Magick::ColorGray &bg, unsigned int x, unsigned int y, double THRESHOLD);
-
-// Function: trim()
-//
-// Remove leading and trailing whitespace
-//
-// Parameters:
-//      s - string to trim (in/out parameter)
-void trim(std::string &s);
-
-double distance(double x1, double y1, double x2, double y2);
-double bond_length(const vector<bond_t> &bond, int i, const vector<atom_t> &atom);
-void delete_curve(vector<atom_t> &atom, vector<bond_t> &bond, int n_atom, int n_bond,
-                  const potrace_path_t * const curve);
-void delete_curve_with_children(vector<atom_t> &atom, vector<bond_t> &bond, int n_atom, int n_bond,
-                                const potrace_path_t * const p);
-bool detect_curve(vector<bond_t> &bond, int n_bond, const potrace_path_t * const curve);
-bool terminal_bond(int a, int b, const vector<bond_t> &bond, int n_bond);
-
 // Section: Constants
 //
 // Constants: global defines

@@ -24,7 +24,7 @@
 //
 // Defines functions dealing with atomic labels
 //
-
+#include "osra_common.h"
 #include "osra_ocr.h"
 #include "osra_labels.h"
 

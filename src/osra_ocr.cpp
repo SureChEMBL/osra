@@ -26,6 +26,7 @@
 #include <vector> // std:vector
 #include <iostream> // std::cout
 
+#include "osra_common.h"
 #include "config.h"
 
 extern "C" {
