@@ -28,6 +28,8 @@ extern "C" {
 #include <potracelib.h>
 }
 
+#include "osra_page.h"
+
 using namespace std;
 
 // Header: osra_openbabel.h
@@ -92,32 +94,7 @@ struct bond_s
 //      defines bond_t type based on bond_s struct
 typedef struct bond_s bond_t;
 
-// struct: point_s
-//      a point of the image, used by image segmentation routines
-struct point_s
-{
-  // int: x,y
-  //    coordinates of the image point
-  int x, y;
-};
-// typedef: point_t
-//      defines point_t type based on point_s struct
-typedef struct point_s point_t;
 
-// struct: box_s
-//      encompassing box structure for image segmentation
-struct box_s
-{
-  // int: x1, y1, x2, y2
-  //    coordinates of top-left and bottom-right corners
-  int x1, y1, x2, y2;
-  // array: c
-  //    vector of points in the box
-  vector<point_t> c;
-};
-// typedef: box_t
-//      defines box_t type based on box_s struct
-typedef struct box_s box_t;
 
 //struct: molecule_statistics_s
 //      contains the statistical information about molecule used for analysis of recognition accuracy

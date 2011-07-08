@@ -11,7 +11,7 @@ LIB_VERSION	:= $(LIB_MAJOR_VERSION).$(LIB_MINOR_VERSION).$(LIB_PATCH_VERSION)
 
 TARGETS		:= osra$(EXEEXT)
 
-OBJ_LIB		:= osra.o osra_anisotropic.o osra_ocr.o osra_openbabel.o mcdlutil.o unpaper.o 
+OBJ_LIB		:= osra.o osra_page.o osra_anisotropic.o osra_ocr.o osra_openbabel.o mcdlutil.o unpaper.o 
 
 ifdef TESSERACT_LIB
 OBJ_LIB		+= osra_ocr_tesseract.o
