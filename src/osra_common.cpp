@@ -300,8 +300,8 @@ int count_bonds(const vector<bond_t> &bond, int n_bond, int &bond_max_type)
   for (int i = 0; i < n_bond; i++)
     if (bond[i].exists)
       {
-	r++;
-	if (bond[i].type>bond_max_type) bond_max_type = bond[i].type;
+        r++;
+        if (bond[i].type>bond_max_type) bond_max_type = bond[i].type;
       }
   return (r);
 }
@@ -386,5 +386,19 @@ bool load_config_map(const string &file, map<string, string> &out)
   is.close();
 
   return true;
+}
+
+
+bool comp_boxes(const box_t &aa, const box_t &bb)
+{
+  if (aa.y2 < bb.y1)
+    return (true);
+  if (aa.y1 > bb.y2)
+    return (false);
+  if (aa.x1 > bb.x1)
+    return (false);
+  if (aa.x1 < bb.x1)
+    return (true);
+  return (false);
 }
 

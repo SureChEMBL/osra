@@ -89,3 +89,4 @@ int count_pages(const string &input);
 int count_atoms(const vector<atom_t> &atom, int n_atom);
 int count_bonds(const vector<bond_t> &bond, int n_bond, int &bond_max_type);
 bool load_config_map(const string &file, map<string, string> &out);
+bool comp_boxes(const box_t &aa, const box_t &bb);

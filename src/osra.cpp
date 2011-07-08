@@ -84,8 +84,6 @@ struct dash_s
 //defines dash_t type based on dash_s struct
 typedef struct dash_s dash_t;
 
-
-
 void remove_disconnected_atoms(vector<atom_t> &atom, vector<bond_t> &bond, int n_atom, int n_bond)
 {
   for (int i = 0; i < n_atom; i++)
@@ -133,7 +131,6 @@ void collapse_doubleup_bonds(vector<bond_t> &bond, int n_bond)
           }
 }
 
-
 void bond_end_swap(vector<bond_t> &bond, int i)
 {
   int t = bond[i].a;
@@ -170,7 +167,6 @@ bool bonds_within_each_other(const vector<bond_t> &bond, int ii, int jj, const v
 
   return (res);
 }
-
 
 bool no_white_space(int ai, int bi, int aj, int bj, const vector<atom_t> &atom, const Image &image, double threshold,
                     const ColorGray &bgColor)
@@ -1876,21 +1872,6 @@ int fix_one_sided_bonds(vector<bond_t> &bond, int n_bond, const vector<atom_t> &
   return (n_bond);
 }
 
-
-bool comp_boxes(const box_t &aa, const box_t &bb)
-{
-  if (aa.y2 < bb.y1)
-    return (true);
-  if (aa.y1 > bb.y2)
-    return (false);
-  if (aa.x1 > bb.x1)
-    return (false);
-  if (aa.x1 < bb.x1)
-    return (true);
-  return (false);
-}
-
-
 int thickness_hor(const Image &image, int x1, int y1, const ColorGray &bgColor, double THRESHOLD_BOND)
 {
   int i = 0, s = 0, w = 0;
@@ -3128,7 +3109,7 @@ int osra_process_image(
                 assign_charge(atom, bond, n_atom, n_bond, spelling, superatom, debug);
                 find_up_down_bonds(bond, n_bond, atom, thickness);
                 int real_atoms = count_atoms(atom, n_atom);
-		int bond_max_type = 0;
+                int bond_max_type = 0;
                 int real_bonds = count_bonds(bond, n_bond,bond_max_type);
 
 
