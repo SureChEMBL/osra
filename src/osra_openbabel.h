@@ -28,7 +28,7 @@ extern "C" {
 #include <potracelib.h>
 }
 
-#include "osra_page.h"
+#include "osra_segment.h"
 
 using namespace std;
 

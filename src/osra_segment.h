@@ -19,13 +19,13 @@
  this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
  St, Fifth Floor, Boston, MA 02110-1301, USA
  *****************************************************************************/
-// Header: osra_page.h
+// Header: osra_segment.h
 //
-// Declares binarization and page segmentation functions
+// Declares page segmentation functions
 //
 
-#ifndef OSRA_PAGE_H
-#define OSRA_PAGE_H
+#ifndef OSRA_SEGMENT_H
+#define OSRA_SEGMENT_H
 
 #include <list> // sdt::list
 #include <vector> // std::vector
@@ -62,8 +62,6 @@ struct box_s
 //      defines box_t type based on box_s struct
 typedef struct box_s box_t;
 
-const Color getBgColor(const Image &image);
-bool convert_to_gray(Image &image, bool invert, bool adaptive, bool verbose);
 list<list<list<point_t> > > find_segments(const Image &image, double threshold, const ColorGray &bgColor, bool adaptive, bool verbose);
 int prune_clusters(list<list<list<point_t> > > &clusters, vector<box_t> &boxes);
 #endif

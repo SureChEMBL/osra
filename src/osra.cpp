@@ -43,7 +43,8 @@ extern "C" {
 #include <openbabel/oberror.h>
 
 #include "osra.h"
-#include "osra_page.h"
+#include "osra_grayscale.h"
+#include "osra_segment.h"
 #include "osra_lib.h"
 #include "osra_ocr.h"
 #include "osra_openbabel.h"
