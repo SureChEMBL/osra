@@ -60,6 +60,249 @@ extern "C" {
 using namespace std;
 using namespace Magick;
 
+void create_thick_box(Image &orig_box,Image &thick_box,int &width,int &height,int &resolution,int &working_resolution,double &box_scale,
+                      ColorGray bgColor, double THRESHOLD_BOND, int res_iter, bool thick, bool jaggy)
+{
+  if (resolution >= 300)
+    {
+      int max_hist;
+      double nf45;
+      double nf =
+        noise_factor(orig_box, width, height, bgColor, THRESHOLD_BOND, resolution, max_hist, nf45);
+
+      //if (max_hist < 5) thick = false;
+      if (res_iter == 3)
+        {
+          if (max_hist > 6)
+            {
+              int new_resolution = max_hist * 300 / 4;
+              int percent = (100 * 300) / new_resolution;
+              //resolution = max_hist * select_resolution[res_iter] / 4;
+              resolution = new_resolution;
+              ostringstream scale;
+              scale << percent << "%";
+              orig_box.scale(scale.str());
+              box_scale /= (double) percent/100;
+              working_resolution = 300;
+              thick_box = orig_box;
+              width = thick_box.columns();
+              height = thick_box.rows();
+              nf = noise_factor(orig_box, width, height, bgColor, THRESHOLD_BOND, resolution,
+                                max_hist, nf45);
+            }
+          else
+            {
+              resolution = 500;
+              int percent = (100 * 300) / resolution;
+              ostringstream scale;
+              scale << percent << "%";
+              orig_box.scale(scale.str());
+              box_scale /= (double) percent/100;
+              working_resolution = 300;
+              thick_box = orig_box;
+              width = thick_box.columns();
+              height = thick_box.rows();
+              thick = false;
+              nf = noise_factor(orig_box, width, height, bgColor, THRESHOLD_BOND, resolution,
+                                max_hist, nf45);
+            }
+        }
+      if (jaggy)
+        {
+          orig_box.scale("50%");
+          box_scale *= 2;
+          thick_box = orig_box;
+          working_resolution = 150;
+          width = thick_box.columns();
+          height = thick_box.rows();
+        }
+      else if (nf > 0.5 && nf < 1. && max_hist <= 6)// && res_iter != 3 && max_hist <= 6)
+        try
+          {
+            thick_box = anisotropic_smoothing(orig_box, width, height, 20, 0.3, 1.0, 0.6, 2);
+          }
+        catch (...)
+          {
+            thick_box = orig_box;
+          }
+      /*else if (nf45 > 0.9 && nf45 < 1.2 && max_hist == 3)
+      {
+      //orig_box = anisotropic_smoothing(thick_box, width, height, 60, 0.3, 0.6, 4., 2.);
+      orig_box.scale("50%");
+      thick_box = orig_box;
+      //working_resolution = 150;
+      width = thick_box.columns();
+      height = thick_box.rows();
+      //thick = false;
+      }*/
+      else
+        thick_box = orig_box;
+    }
+  else if (resolution < 300 && resolution > 150)
+    {
+      int nw = width * 300 / resolution;
+      int nh = height * 300 / resolution;
+      thick_box = anisotropic_scaling(orig_box, width, height, nw, nh);
+      width = thick_box.columns();
+      height = thick_box.rows();
+      int percent = (100 * 300) / resolution;
+      ostringstream scale;
+      scale << percent << "%";
+      orig_box.scale(scale.str());
+      box_scale /= (double) percent/100;
+      working_resolution = 300;
+    }
+  else
+    thick_box = orig_box;
+}
+
+potrace_state_t * const  raster_to_vector(Image &box,ColorGray bgColor, double THRESHOLD_BOND,int width,int height,int working_resolution)
+{
+  potrace_param_t * const param = potrace_param_default();
+  param->alphamax = 0.;
+  //param->turnpolicy = POTRACE_TURNPOLICY_MINORITY;
+  param->turdsize = 0;
+
+  param->turnpolicy = POTRACE_TURNPOLICY_MINORITY;
+  double c_width = 1. * width * 72 / working_resolution;
+  double c_height = 1. * height * 72 / working_resolution;
+  if (c_height * c_width < SMALL_PICTURE_AREA)
+    param->turnpolicy = POTRACE_TURNPOLICY_BLACK;
+
+  potrace_bitmap_t * const bm = bm_new(width, height);
+  for (int i = 0; i < width; i++)
+    for (int j = 0; j < height; j++)
+      BM_PUT(bm, i, j, get_pixel(box, bgColor, i, j, THRESHOLD_BOND));
+
+  potrace_state_t * const st = potrace_trace(param, bm);
+  if (bm != NULL)
+    {
+      free(bm->map);
+      free(bm);
+    }
+  potrace_param_free(param);
+  return(st);
+}
+
+void split_fragments_and_assemble_structure_record(vector<atom_t> &atom,int n_atom, vector<bond_t>  &bond, int n_bond, const vector<box_t> &boxes,
+    int l,int k,int resolution,int res_iter, const string &output_image_file_prefix,Image &image,Image &orig_box,int real_font_width,int real_font_height,
+    double thickness, double avg_bond_length,const map<string, string> &superatom,int real_atoms, int real_bonds, int bond_max_type,
+    double box_scale, double page_scale,
+    const string &output_format,
+    const string &embedded_format,
+    bool show_confidence,
+    bool show_resolution_guess,
+    bool show_page,
+    bool show_coordinates,
+    bool show_avg_bond_length,
+    vector<vector<string> > &array_of_structures,
+    vector<vector<double> > &array_of_avg_bonds,
+    vector<vector<double> > &array_of_ind_conf,
+    vector<vector<Image> > &array_of_images,
+    int &total_boxes,
+    double &total_confidence,
+    bool verbose)
+{
+  vector<atom_t> frag_atom;
+  vector<bond_t> frag_bond;
+
+  if (real_atoms > MIN_A_COUNT && real_atoms < MAX_A_COUNT && real_bonds < MAX_A_COUNT && bond_max_type>0 && bond_max_type<5)
+    {
+      int num_frag;
+      num_frag = resolve_bridge_bonds(atom, n_atom, bond, n_bond, 2 * thickness, avg_bond_length, superatom);
+      collapse_bonds(atom, bond, n_bond, avg_bond_length / 4);
+      collapse_atoms(atom, bond, n_atom, n_bond, 3);
+      remove_zero_bonds(bond, n_bond, atom);
+      extend_terminal_bond_to_bonds(atom, bond, n_bond, avg_bond_length, 7, 0);
+
+      remove_small_terminal_bonds(bond, n_bond, atom, avg_bond_length);
+      n_bond = reconnect_fragments(bond, n_bond, atom, avg_bond_length);
+      collapse_atoms(atom, bond, n_atom, n_bond, 1);
+      mark_terminal_atoms(bond, n_bond, atom, n_atom);
+      const vector<vector<int> > &frags = find_fragments(bond, n_bond, atom);
+      vector<fragment_t> fragments = populate_fragments(frags, atom);
+      std::sort(fragments.begin(), fragments.end(), comp_fragments);
+      for (unsigned int i = 0; i < fragments.size(); i++)
+        {
+          if (verbose)
+            cout << "Considering fragment #" << i << " " << fragments[i].x1 << "x" << fragments[i].y1 << "-" << fragments[i].x2 << "x"
+                 << fragments[i].y2 << ", atoms: " << fragments[i].atom.size() << '.' << endl;
+
+          if (fragments[i].atom.size() > MIN_A_COUNT)
+            {
+              frag_atom.clear();
+              for (int a = 0; a < n_atom; a++)
+                {
+                  frag_atom.push_back(atom[a]);
+                  frag_atom[a].exists = false;
+                }
+
+              for (unsigned int j = 0; j < fragments[i].atom.size(); j++)
+                frag_atom[fragments[i].atom[j]].exists = atom[fragments[i].atom[j]].exists;
+
+              frag_bond.clear();
+              for (int b = 0; b < n_bond; b++)
+                {
+                  frag_bond.push_back(bond[b]);
+                }
+
+              remove_zero_bonds(frag_bond, n_bond, frag_atom);
+
+              double confidence = 0;
+              molecule_statistics_t molecule_statistics;
+              int page_number = l + 1;
+              box_t coordinate_box;
+              coordinate_box.x1 = (int) ((double) page_scale * boxes[k].x1 + (double) page_scale * box_scale * fragments[i].x1);
+              coordinate_box.y1 = (int) ((double) page_scale * boxes[k].y1 + (double) page_scale * box_scale * fragments[i].y1);
+              coordinate_box.x2 = (int) ((double) page_scale * boxes[k].x1 + (double) page_scale * box_scale * fragments[i].x2);
+              coordinate_box.y2 = (int) ((double) page_scale * boxes[k].y1 + (double) page_scale * box_scale * fragments[i].y2);
+
+              string structure =
+                get_formatted_structure(frag_atom, frag_bond, n_bond, output_format, embedded_format,
+                                        molecule_statistics, confidence,
+                                        show_confidence, avg_bond_length, page_scale * box_scale * avg_bond_length,
+                                        show_avg_bond_length,
+                                        show_resolution_guess ? &resolution : NULL,
+                                        show_page ? &page_number : NULL,
+                                        show_coordinates ? &coordinate_box : NULL, superatom);
+
+              if (verbose)
+                cout << "Structure length: " << structure.length() << ", molecule fragments: " << molecule_statistics.fragments << '.' << endl;
+
+
+              if (molecule_statistics.fragments > 0 && molecule_statistics.fragments < MAX_FRAGMENTS && molecule_statistics.num_atoms>MIN_A_COUNT && molecule_statistics.num_bonds>0)
+                {
+                  array_of_structures[res_iter].push_back(structure);
+                  array_of_avg_bonds[res_iter].push_back(page_scale * box_scale * avg_bond_length);
+                  array_of_ind_conf[res_iter].push_back(confidence);
+                  total_boxes++;
+                  total_confidence += confidence;
+                  if (!output_image_file_prefix.empty())
+                    {
+                      Image tmp = image;
+                      Geometry geometry =
+                        (fragments.size() > 1) ? Geometry(box_scale * fragments[i].x2 - box_scale * fragments[i].x1 + 4 * real_font_width, //
+                                                          box_scale * fragments[i].y2 - box_scale * fragments[i].y1 + 4 * real_font_height, //
+                                                          boxes[k].x1 + box_scale * fragments[i].x1 - FRAME - 2 * real_font_width, //
+                                                          boxes[k].y1 + box_scale * fragments[i].y1 - FRAME - 2 * real_font_height)
+                        : Geometry(boxes[k].x2 - boxes[k].x1, boxes[k].y2 - boxes[k].y1, boxes[k].x1, boxes[k].y1);
+
+                      try
+                        {
+                          tmp.crop(geometry);
+                        }
+                      catch (...)
+                        {
+                          tmp = orig_box;
+                        }
+
+                      array_of_images[res_iter].push_back(tmp);
+                    }
+                }
+            }
+        }
+    }
+}
 
 extern job_t *OCR_JOB;
 extern job_t *JOB;
@@ -324,10 +567,6 @@ int osra_process_image(
       fclose(stderr);
       OpenBabel::obErrorLog.StopLogging();
 
-      potrace_param_t * const param = potrace_param_default();
-      param->alphamax = 0.;
-      //param->turnpolicy = POTRACE_TURNPOLICY_MINORITY;
-      param->turdsize = 0;
 
       for (int res_iter = 0; res_iter < num_resolutions; res_iter++)
         {
@@ -375,8 +614,6 @@ int osra_process_image(
                 int n_atom = 0, n_bond = 0, n_letters = 0, n_label = 0;
                 vector<atom_t> atom;
                 vector<bond_t> bond;
-                vector<atom_t> frag_atom;
-                vector<bond_t> frag_bond;
                 vector<letters_t> letters;
                 vector<label_t> label;
                 double box_scale = 1;
@@ -392,126 +629,21 @@ int osra_process_image(
                     orig_box.pixelColor(x - boxes[k].x1 + FRAME, y - boxes[k].y1 + FRAME, color);
                   }
 
-
                 int width = orig_box.columns();
                 int height = orig_box.rows();
                 Image thick_box;
-                if (resolution >= 300)
-                  {
-                    int max_hist;
-                    double nf45;
-                    double nf =
-                      noise_factor(orig_box, width, height, bgColor, THRESHOLD_BOND, resolution, max_hist, nf45);
-
-                    //if (max_hist < 5) thick = false;
-                    if (res_iter == 3)
-                      {
-                        if (max_hist > 6)
-                          {
-                            int new_resolution = max_hist * 300 / 4;
-                            int percent = (100 * 300) / new_resolution;
-                            //resolution = max_hist * select_resolution[res_iter] / 4;
-                            resolution = new_resolution;
-                            ostringstream scale;
-                            scale << percent << "%";
-                            orig_box.scale(scale.str());
-                            box_scale /= (double) percent/100;
-                            working_resolution = 300;
-                            thick_box = orig_box;
-                            width = thick_box.columns();
-                            height = thick_box.rows();
-                            nf = noise_factor(orig_box, width, height, bgColor, THRESHOLD_BOND, resolution,
-                                              max_hist, nf45);
-                          }
-                        else
-                          {
-                            resolution = 500;
-                            int percent = (100 * 300) / resolution;
-                            ostringstream scale;
-                            scale << percent << "%";
-                            orig_box.scale(scale.str());
-                            box_scale /= (double) percent/100;
-                            working_resolution = 300;
-                            thick_box = orig_box;
-                            width = thick_box.columns();
-                            height = thick_box.rows();
-                            thick = false;
-                            nf = noise_factor(orig_box, width, height, bgColor, THRESHOLD_BOND, resolution,
-                                              max_hist, nf45);
-                          }
-                      }
-                    if (jaggy)
-                      {
-                        orig_box.scale("50%");
-                        box_scale *= 2;
-                        thick_box = orig_box;
-                        working_resolution = 150;
-                        width = thick_box.columns();
-                        height = thick_box.rows();
-                      }
-                    else if (nf > 0.5 && nf < 1. && max_hist <= 6)// && res_iter != 3 && max_hist <= 6)
-                      try
-                        {
-                          thick_box = anisotropic_smoothing(orig_box, width, height, 20, 0.3, 1.0, 0.6, 2);
-                        }
-                      catch (...)
-                        {
-                          thick_box = orig_box;
-                        }
-                    /*else if (nf45 > 0.9 && nf45 < 1.2 && max_hist == 3)
-                      {
-                        //orig_box = anisotropic_smoothing(thick_box, width, height, 60, 0.3, 0.6, 4., 2.);
-                        orig_box.scale("50%");
-                        thick_box = orig_box;
-                        //working_resolution = 150;
-                        width = thick_box.columns();
-                        height = thick_box.rows();
-                        //thick = false;
-                    						}*/
-                    else
-                      thick_box = orig_box;
-
-                  }
-                else if (resolution < 300 && resolution > 150)
-                  {
-                    int nw = width * 300 / resolution;
-                    int nh = height * 300 / resolution;
-                    thick_box = anisotropic_scaling(orig_box, width, height, nw, nh);
-                    width = thick_box.columns();
-                    height = thick_box.rows();
-                    int percent = (100 * 300) / resolution;
-                    ostringstream scale;
-                    scale << percent << "%";
-                    orig_box.scale(scale.str());
-                    box_scale /= (double) percent/100;
-                    working_resolution = 300;
-                  }
-                else
-                  thick_box = orig_box;
+                create_thick_box(orig_box,thick_box,width,height,resolution,working_resolution,box_scale,bgColor,THRESHOLD_BOND,res_iter,thick,jaggy);
 
                 if (verbose)
                   cout << "Analysing box " << boxes[k].x1 << "x" << boxes[k].y1 << "-" << boxes[k].x2 << "x" << boxes[k].y2 << " using working resolution " << working_resolution << '.' << endl;
-
-                param->turnpolicy = POTRACE_TURNPOLICY_MINORITY;
-                double c_width = 1. * width * 72 / working_resolution;
-                double c_height = 1. * height * 72 / working_resolution;
-                if (c_height * c_width < SMALL_PICTURE_AREA)
-                  param->turnpolicy = POTRACE_TURNPOLICY_BLACK;
 
                 Image box;
                 if (thick)
                   box = thin_image(thick_box, THRESHOLD_BOND, bgColor);
                 else
                   box = thick_box;
-
-                potrace_bitmap_t * const bm = bm_new(width, height);
-                for (int i = 0; i < width; i++)
-                  for (int j = 0; j < height; j++)
-                    BM_PUT(bm, i, j, get_pixel(box, bgColor, i, j, THRESHOLD_BOND));
-
-                potrace_state_t * const st = potrace_trace(param, bm);
+                potrace_state_t * const  st = raster_to_vector(box,bgColor,THRESHOLD_BOND,width,height,working_resolution);
                 potrace_path_t const * const p = st->plist;
-
                 n_atom = find_atoms(p, atom, bond, &n_bond);
 
                 int real_font_width, real_font_height;
@@ -633,117 +765,19 @@ int osra_process_image(
                 if (verbose)
                   cout << "Final number of atoms: " << real_atoms << ", bonds: " << real_bonds << ", chars: " << n_letters << '.' << endl;
 
-                if (real_atoms > MIN_A_COUNT && real_atoms < MAX_A_COUNT && real_bonds < MAX_A_COUNT && bond_max_type>0 && bond_max_type<5)
-                  {
-                    int num_frag;
-
-                    num_frag = resolve_bridge_bonds(atom, n_atom, bond, n_bond, 2 * thickness, avg_bond_length, superatom);
-                    collapse_bonds(atom, bond, n_bond, avg_bond_length / 4);
-                    collapse_atoms(atom, bond, n_atom, n_bond, 3);
-                    remove_zero_bonds(bond, n_bond, atom);
-                    extend_terminal_bond_to_bonds(atom, bond, n_bond, avg_bond_length, 7, 0);
-
-                    remove_small_terminal_bonds(bond, n_bond, atom, avg_bond_length);
-                    n_bond = reconnect_fragments(bond, n_bond, atom, avg_bond_length);
-                    collapse_atoms(atom, bond, n_atom, n_bond, 1);
-                    mark_terminal_atoms(bond, n_bond, atom, n_atom);
-                    const vector<vector<int> > &frags = find_fragments(bond, n_bond, atom);
-                    vector<fragment_t> fragments = populate_fragments(frags, atom);
-                    std::sort(fragments.begin(), fragments.end(), comp_fragments);
-                    for (unsigned int i = 0; i < fragments.size(); i++)
-                      {
-                        if (verbose)
-                          cout << "Considering fragment #" << i << " " << fragments[i].x1 << "x" << fragments[i].y1 << "-" << fragments[i].x2 << "x"
-                               << fragments[i].y2 << ", atoms: " << fragments[i].atom.size() << '.' << endl;
-
-                        if (fragments[i].atom.size() > MIN_A_COUNT)
-                          {
-                            frag_atom.clear();
-                            for (int a = 0; a < n_atom; a++)
-                              {
-                                frag_atom.push_back(atom[a]);
-                                frag_atom[a].exists = false;
-                              }
-
-                            for (unsigned int j = 0; j < fragments[i].atom.size(); j++)
-                              frag_atom[fragments[i].atom[j]].exists = atom[fragments[i].atom[j]].exists;
-
-                            frag_bond.clear();
-                            for (int b = 0; b < n_bond; b++)
-                              {
-                                frag_bond.push_back(bond[b]);
-                              }
-
-                            remove_zero_bonds(frag_bond, n_bond, frag_atom);
-
-                            double confidence = 0;
-                            molecule_statistics_t molecule_statistics;
-                            int page_number = l + 1;
-                            box_t coordinate_box;
-                            coordinate_box.x1 = (int) ((double) page_scale * boxes[k].x1 + (double) page_scale * box_scale * fragments[i].x1);
-                            coordinate_box.y1 = (int) ((double) page_scale * boxes[k].y1 + (double) page_scale * box_scale * fragments[i].y1);
-                            coordinate_box.x2 = (int) ((double) page_scale * boxes[k].x1 + (double) page_scale * box_scale * fragments[i].x2);
-                            coordinate_box.y2 = (int) ((double) page_scale * boxes[k].y1 + (double) page_scale * box_scale * fragments[i].y2);
-
-                            string structure =
-                              get_formatted_structure(frag_atom, frag_bond, n_bond, output_format, embedded_format,
-                                                      molecule_statistics, confidence,
-                                                      show_confidence, avg_bond_length, page_scale * box_scale * avg_bond_length,
-                                                      show_avg_bond_length,
-                                                      show_resolution_guess ? &resolution : NULL,
-                                                      show_page ? &page_number : NULL,
-                                                      show_coordinates ? &coordinate_box : NULL, superatom);
-
-                            if (verbose)
-                              cout << "Structure length: " << structure.length() << ", molecule fragments: " << molecule_statistics.fragments << '.' << endl;
-
-
-                            if (molecule_statistics.fragments > 0 && molecule_statistics.fragments < MAX_FRAGMENTS && molecule_statistics.num_atoms>MIN_A_COUNT && molecule_statistics.num_bonds>0)
-                              {
-                                array_of_structures[res_iter].push_back(structure);
-                                array_of_avg_bonds[res_iter].push_back(page_scale * box_scale * avg_bond_length);
-                                array_of_ind_conf[res_iter].push_back(confidence);
-                                total_boxes++;
-                                total_confidence += confidence;
-                                if (!output_image_file_prefix.empty())
-                                  {
-                                    Image tmp = image;
-                                    Geometry geometry =
-                                      (fragments.size() > 1) ? Geometry(box_scale * fragments[i].x2 - box_scale * fragments[i].x1 + 4 * real_font_width, //
-                                                                        box_scale * fragments[i].y2 - box_scale * fragments[i].y1 + 4 * real_font_height, //
-                                                                        boxes[k].x1 + box_scale * fragments[i].x1 - FRAME - 2 * real_font_width, //
-                                                                        boxes[k].y1 + box_scale * fragments[i].y1 - FRAME - 2 * real_font_height)
-                                      : Geometry(boxes[k].x2 - boxes[k].x1, boxes[k].y2 - boxes[k].y1, boxes[k].x1, boxes[k].y1);
-
-                                    try
-                                      {
-                                        tmp.crop(geometry);
-                                      }
-                                    catch (...)
-                                      {
-                                        tmp = orig_box;
-                                      }
-
-                                    array_of_images[res_iter].push_back(tmp);
-                                  }
-                              }
-                          }
-                      }
-                  }
+                split_fragments_and_assemble_structure_record(atom,n_atom,bond,n_bond,boxes,
+                    l,k,resolution,res_iter,output_image_file_prefix,image,orig_box,real_font_width,real_font_height,
+                    thickness,avg_bond_length,superatom,real_atoms,real_bonds,bond_max_type,
+                    box_scale,page_scale,output_format,embedded_format,show_confidence,show_resolution_guess,show_page,show_coordinates,show_avg_bond_length,
+                    array_of_structures,array_of_avg_bonds,array_of_ind_conf,array_of_images,total_boxes,total_confidence,verbose);
 
                 if (st != NULL)
                   potrace_state_free(st);
-                if (bm != NULL)
-                  {
-                    free(bm->map);
-                    free(bm);
-                  }
               }
           if (total_boxes > 0)
             array_of_confidence[res_iter] = total_confidence / total_boxes;
           //dbg.write("debug.png");
         }
-      potrace_param_free(param);
 
       double max_conf = -FLT_MAX;
       int max_res = 0;

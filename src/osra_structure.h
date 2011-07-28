@@ -42,8 +42,8 @@ void extend_terminal_bond_to_bonds(vector<atom_t> &atom, vector<bond_t> &bond, i
 void assign_charge(vector<atom_t> &atom, vector<bond_t> &bond, int n_atom, int n_bond, const map<string, string> &fix,const map<string, string> &superatom, bool debug);
 int find_bonds(vector<atom_t> &atom, vector<bond_t> &bond, int b_atom, int n_atom, int n_bond, const potrace_path_t * const p);
 int find_atoms(const potrace_path_t *p, vector<atom_t> &atom, vector<bond_t> &bond, int *n_bond);
-int find_dashed_bonds(const potrace_path_t *p, vector<atom_t> &atom, vector<bond_t> &bond, int n_atom, int *n_bond,int max, double avg, const Image &img, 
-		      const ColorGray &bg, double THRESHOLD, bool thick, double dist);
+int find_dashed_bonds(const potrace_path_t *p, vector<atom_t> &atom, vector<bond_t> &bond, int n_atom, int *n_bond,int max, double avg, const Image &img,
+                      const ColorGray &bg, double THRESHOLD, bool thick, double dist);
 int find_small_bonds(const potrace_path_t *p, vector<atom_t> &atom, vector<bond_t> &bond, int n_atom, int *n_bond,
                      double max_area, double Small, double thickness);
 int resolve_bridge_bonds(vector<atom_t> &atom, int n_atom, vector<bond_t> &bond, int n_bond, double thickness,
