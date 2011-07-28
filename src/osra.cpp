@@ -60,6 +60,61 @@ extern "C" {
 using namespace std;
 using namespace Magick;
 
+void set_select_resolution(vector<int>  &select_resolution, int input_resolution)
+{
+  if (input_resolution == 0)
+    {
+      select_resolution[0] = 72;
+      select_resolution[1] = 150;
+      select_resolution[2] = 300;
+      select_resolution[3] = 500;
+    }
+}
+
+double set_threshold(double threshold,int resolution)
+{
+  double THRESHOLD_BOND = threshold;
+
+  if (THRESHOLD_BOND < 0.0001)
+    {
+      if (resolution >= 150)
+        {
+          THRESHOLD_BOND = THRESHOLD_GLOBAL;
+        }
+      else
+        {
+          THRESHOLD_BOND = THRESHOLD_LOW_RES;
+        }
+    }
+  return THRESHOLD_BOND;
+}
+
+int load_superatom_spelling_maps(map<string, string> &spelling,map<string, string> &superatom, const string &osra_dir,
+                                 const string &spelling_file,const string &superatom_file,bool verbose)
+{
+// Loading the program data files into maps:
+  if (!((spelling_file.length() != 0 && load_config_map(spelling_file, spelling))
+        || load_config_map(string(DATA_DIR) + "/" + SPELLING_TXT, spelling) || load_config_map(osra_dir + "/" + SPELLING_TXT, spelling)))
+    {
+      cerr << "Cannot open " << SPELLING_TXT << " file (tried locations \"" << DATA_DIR << "\", \"" << osra_dir
+           << "\"). Specify the custom file location via -l option." << endl;
+      return ERROR_SPELLING_FILE_IS_MISSING;
+    }
+
+  if (!((superatom_file.length() != 0 && load_config_map(superatom_file, superatom))
+        || load_config_map(string(DATA_DIR) + "/" + SUPERATOM_TXT, superatom) || load_config_map(osra_dir + "/"
+            + SUPERATOM_TXT, superatom)))
+    {
+      cerr << "Cannot open " << SUPERATOM_TXT << " file (tried locations \"" << DATA_DIR << "\", \"" << osra_dir
+           << "\"). Specify the custom file location via -a option." << endl;
+      return ERROR_SUPERATOM_FILE_IS_MISSING;
+    }
+
+  if (verbose)
+    cout << "spelling (size: " << spelling.size() << ") and superatom (size: " << superatom.size() << ") dictionaries are loaded." << endl;
+  return 0;
+}
+
 void create_thick_box(Image &orig_box,Image &thick_box,int &width,int &height,int &resolution,int &working_resolution,double &box_scale,
                       ColorGray bgColor, double THRESHOLD_BOND, int res_iter, bool thick, bool jaggy)
 {
@@ -366,30 +421,9 @@ int osra_process_image(
   const string &resize
 )
 {
-  // Loading the program data files into maps:
-  map<string, string> spelling;
-
-  if (!((spelling_file.length() != 0 && load_config_map(spelling_file, spelling))
-        || load_config_map(string(DATA_DIR) + "/" + SPELLING_TXT, spelling) || load_config_map(osra_dir + "/" + SPELLING_TXT, spelling)))
-    {
-      cerr << "Cannot open " << SPELLING_TXT << " file (tried locations \"" << DATA_DIR << "\", \"" << osra_dir
-           << "\"). Specify the custom file location via -l option." << endl;
-      return ERROR_SPELLING_FILE_IS_MISSING;
-    }
-
-  map<string, string> superatom;
-
-  if (!((superatom_file.length() != 0 && load_config_map(superatom_file, superatom))
-        || load_config_map(string(DATA_DIR) + "/" + SUPERATOM_TXT, superatom) || load_config_map(osra_dir + "/"
-            + SUPERATOM_TXT, superatom)))
-    {
-      cerr << "Cannot open " << SUPERATOM_TXT << " file (tried locations \"" << DATA_DIR << "\", \"" << osra_dir
-           << "\"). Specify the custom file location via -a option." << endl;
-      return ERROR_SUPERATOM_FILE_IS_MISSING;
-    }
-
-  if (verbose)
-    cout << "spelling (size: " << spelling.size() << ") and superatom (size: " << superatom.size() << ") dictionaries are loaded." << endl;
+  map<string, string> spelling, superatom;
+  int err = load_superatom_spelling_maps(spelling,superatom,osra_dir,spelling_file,superatom_file,verbose);
+  if (err != 0) return err;
 
   string type;
 
@@ -508,13 +542,7 @@ int osra_process_image(
       vector<double> array_of_confidence(num_resolutions, -FLT_MAX);
       vector<vector<Image> > array_of_images(num_resolutions);
 
-      if (input_resolution == 0)
-        {
-          select_resolution[0] = 72;
-          select_resolution[1] = 150;
-          select_resolution[2] = 300;
-          select_resolution[3] = 500;
-        }
+      set_select_resolution(select_resolution,input_resolution);
 
       if (input_resolution > 300)
         {
@@ -578,20 +606,7 @@ int osra_process_image(
           if (resolution > 300)
             working_resolution = 300;
 
-          double THRESHOLD_BOND;
-          THRESHOLD_BOND = threshold;
-
-          if (THRESHOLD_BOND < 0.0001)
-            {
-              if (resolution >= 150)
-                {
-                  THRESHOLD_BOND = THRESHOLD_GLOBAL;
-                }
-              else
-                {
-                  THRESHOLD_BOND = THRESHOLD_LOW_RES;
-                }
-            }
+          double THRESHOLD_BOND = set_threshold(threshold,resolution);
 
           int max_font_height = MAX_FONT_HEIGHT * working_resolution / 150;
           int max_font_width = MAX_FONT_WIDTH * working_resolution / 150;
