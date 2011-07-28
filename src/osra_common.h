@@ -29,6 +29,7 @@ extern "C" {
 }
 
 #include "osra.h"
+#include "osra_segment.h"
 
 #define BM_WORDSIZE ((int)sizeof(potrace_word))
 #define BM_WORDBITS (8*BM_WORDSIZE)

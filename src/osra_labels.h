@@ -24,6 +24,9 @@
 //
 // declares functions dealing with atomic labels
 //
+#ifndef OSRA_LABELS_H
+#define OSRA_LABELS_H
+
 #include <string>
 #include <vector>
 #include <math.h> // fabs(double)
@@ -108,3 +111,4 @@ int remove_small_bonds(vector<bond_t> &bond, int n_bond, const vector<atom_t> &a
 int find_fused_chars(vector<bond_t> &bond, int n_bond, vector<atom_t> &atom, vector<letters_t> &letters, int n_letters,
                      int max_font_height, int max_font_width, char dummy, const Image &orig, const ColorGray &bgColor,
                      double THRESHOLD, unsigned int size, bool verbose);
+#endif
