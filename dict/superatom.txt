@@ -68,11 +68,9 @@ COCO    C(=O)C=O
 COEt    C(=O)CC
 COF     C(=O)F
 COMe    C(=O)C
-CONEt2  C(=O)(CC)NCC
 CONH2   C(=O)N
 CONHEt  C(=O)NCC
 CONHMe  C(=O)NC
-CONMe2  C(=O)(C)NC
 COSH    C(=O)S
 Et2N    N(CC)CC
 Et3N    N(CC)(CC)CC
@@ -117,10 +115,8 @@ NHCbz NC(=O)OCc1ccccc1
 OCH2CF3 OCC(F)(F)F
 NHSO2BU NS(=O)(=O)CCCC
 MeO2SO OSOOC
-EtO2CHN N=COOCC
 NHCOOEt NC(=O)OCC
 NHCH3 NC
-H4NO3S S(=O)(=O)ON
 H4NOOC C(=O)ON
 C3H7 CCC
 C2H5 CC
@@ -150,6 +146,11 @@ Bn Cc1ccccc1
 OCH2Ph OCc1ccccc1
 COOCH2Ph C(=O)OCc1ccccc1
 
+CONEt2 C(=O)N(CC)CC
+CONMe2 C(=O)N(C)C
+EtO2CHN NC(=O)OCC
+H4NO3S S(=O)(=O)ON
+
 Xx [*]
 X  [*]
 Y [*]
@@ -166,3 +167,4 @@ R8 [*]
 R9 [*]
 R10 [*]
 Y2 [*]
+
