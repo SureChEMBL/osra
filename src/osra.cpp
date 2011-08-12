@@ -164,10 +164,13 @@ void create_thick_box(Image &orig_box,Image &thick_box,int &width,int &height,in
         }
       if (jaggy)
         {
-          orig_box.scale("50%");
-          box_scale *= 2;
+	  orig_box.scale("50%");
+	  box_scale *= 2;
+	  working_resolution = 150;
+	  //orig_box.scale("33%");
+	  //box_scale *= 3;
+	  // working_resolution = 100;
           thick_box = orig_box;
-          working_resolution = 150;
           width = thick_box.columns();
           height = thick_box.rows();
         }
