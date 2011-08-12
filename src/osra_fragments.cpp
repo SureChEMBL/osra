@@ -144,7 +144,7 @@ int reconnect_fragments(vector<bond_t> &bond, int n_bond, vector<atom_t> &atom, 
                     bond[n_bond].conjoined = false;
                     n_bond++;
                   }
-                if (l < avg / 3)
+                if (l <= avg / 3)
                   {
                     atom[atom2].x = atom[atom1].x;
                     atom[atom2].y = atom[atom1].y;
