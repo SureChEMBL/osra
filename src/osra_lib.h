@@ -20,7 +20,7 @@
  St, Fifth Floor, Boston, MA 02110-1301, USA
  *****************************************************************************/
 
-// Header: osra.h
+// Header: osra_lib.h
 //
 // Defines types and functions of OSRA library.
 //

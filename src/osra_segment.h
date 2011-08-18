@@ -62,6 +62,34 @@ struct box_s
 //      defines box_t type based on box_s struct
 typedef struct box_s box_t;
 
+//
+// Section: Functions
+//
+
+// Function: find_segments()
+//
+// Performs page segmentation to different regions (text/graphics/linear etc.)
+//
+// Parameters:
+// image - page image
+// threshold - black-white binarization threshold
+// bgColor - background color
+// adaptive - flag set if adaptive thresholding has been used in grayscale conversion
+// verbose - flag set for verbose reporting
+//
+// Returns:
+// A list of clusters, each of which is a list of  connected segments each of which is a list of points
 list<list<list<point_t> > > find_segments(const Image &image, double threshold, const ColorGray &bgColor, bool adaptive, bool verbose);
+
+// Function: prune_clusters()
+//
+// Prunes the list of clusters and retains only molecular structure images
+//
+// Parameters:
+// clusters - a list of clusters detected by <find_segments()>
+// boxes - a vector of <box_t> objects for molecular structure images
+//
+// Returns:
+// Number of molecular structure images
 int prune_clusters(list<list<list<point_t> > > &clusters, vector<box_t> &boxes);
 #endif
