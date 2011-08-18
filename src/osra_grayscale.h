@@ -29,5 +29,31 @@
 using namespace std;
 using namespace Magick;
 
+//
+// Section: Functions
+//
+
+// Function: getBgColor()
+//
+// Detects the backgroun color of the image
+//
+// Parameters: 
+// image -  a reference to the image object
+//
+// Returns:
+// a Color object corresponding to the background color
 const Color getBgColor(const Image &image);
+
+// Function: convert_to_gray()
+//
+// Converts image to grayscale
+//
+// Parameters:
+// image - reference to Image object
+// invert - flag set if the image is white-on-black
+// adaptive - flag set if adaptive thresholding is enforced
+// verbose - flag set if verbose reporting is on
+//
+// Returns:
+// a boolean flag indicating whether adaptive thresholding is indicated
 bool convert_to_gray(Image &image, bool invert, bool adaptive, bool verbose);
