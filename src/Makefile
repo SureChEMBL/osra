@@ -11,13 +11,13 @@ LIB_VERSION	:= $(LIB_MAJOR_VERSION).$(LIB_MINOR_VERSION).$(LIB_PATCH_VERSION)
 
 TARGETS		:= osra$(EXEEXT)
 
-OBJ_LIB		:= osra.o osra_grayscale.o osra_segment.o osra_fragments.o osra_labels.o osra_thin.o osra_common.o osra_structure.o osra_anisotropic.o osra_ocr.o osra_openbabel.o mcdlutil.o unpaper.o 
+OBJ_LIB		:=  osra_lib.o osra_grayscale.o osra_segment.o osra_fragments.o osra_labels.o osra_thin.o osra_common.o osra_structure.o osra_anisotropic.o osra_ocr.o osra_openbabel.o mcdlutil.o unpaper.o 
 
 ifdef TESSERACT_LIB
 OBJ_LIB		+= osra_ocr_tesseract.o
 endif
 
-OBJ_CLI		:= $(OBJ_LIB) osra_cli.o
+OBJ_CLI		:= $(OBJ_LIB) osra.o
 
 ifdef OSRA_LIB
 TARGETS		+= libosra.a libosra$(SHAREDEXT)
@@ -29,7 +29,7 @@ TARGETS		+= libosra_java$(SHAREDEXT)
 endif
 
 ifdef OSRA_ANDROID
-OBJ_ANDROID	:= $(OBJ_LIB) osra_cli.o
+OBJ_ANDROID	:= $(OBJ_LIB) osra.o
 endif
 
 all:
