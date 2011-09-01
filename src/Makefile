@@ -81,7 +81,7 @@ libosra_andriod$(SHAREDEXT): $(OBJ_ANDROID)
 	$(LINK.cpp) $(LDSHAREDFLAGS) -o $@ $(OBJ_ANDROID) $(LIBS)
 endif
 
-Makefile.dep: $(patsubst %.o,%.cpp,$(OBJ_CLI))
+Makefile.dep: ../Makefile.inc $(patsubst %.o,%.cpp,$(OBJ_CLI))
 	$(CXX) $(CPPFLAGS) -MM $^ > Makefile.dep 
 
 # Correct installation for Cygwin/MinGW also needs handling of libosra.dll.a, which is not done here:

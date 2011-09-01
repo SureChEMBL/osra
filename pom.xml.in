@@ -5,19 +5,20 @@
 
 This POM file can be used to simplify uploading of the binary packages to Maven repositories. 
 Usage:
-REPOSITORY_URL=http://dev.repo.internal.epo.org/nexus/content/repositories/rpm-releases REPOSITORY_ID=EPO_Releases make package_rpm deploy_rpm
+REPOSITORY_URL=http://server.internal.org/nexus/content/repositories/rpm-releases REPOSITORY_ID=Releases make package_rpm deploy_rpm deploy_jar
 
 -->
 
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>net.sourceforge</groupId>
+	<groupId>net.sf.osra</groupId>
 	<artifactId>osra</artifactId>
-	<packaging>pom</packaging>
+	<packaging>jar</packaging>
 	<version>@PACKAGE_VERSION@</version>
 
 	<name>OSRA</name>
-
+	<url>http://osra.sourceforge.net/</url>
+	
 	<scm>
 		<connection>https://osra.svn.sourceforge.net/svnroot/osra/trunk</connection>
 	</scm>
@@ -26,11 +27,23 @@ REPOSITORY_URL=http://dev.repo.internal.epo.org/nexus/content/repositories/rpm-r
 		<system>SourceForge</system>
 		<url>https://sourceforge.net/tracker/?group_id=203833&amp;atid=987182</url>
 	</issueManagement>
-
+	
 	<licenses>
 		<license>
 			<name>GPLv2 License</name>
 			<url>http://www.gnu.org/licenses/gpl-2.0.txt</url>
 		</license>
 	</licenses>
+
+	<dependencies>
+		<dependency>
+			<groupId>commons-logging</groupId>
+			<artifactId>commons-logging</artifactId>
+			<version>1.1.1</version>
+		</dependency>
+	</dependencies>
+	
+	<build>
+		<sourceDirectory>addons/java</sourceDirectory>
+	</build>
 </project>

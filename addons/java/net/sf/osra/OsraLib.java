@@ -1,16 +1,13 @@
-package net.sourceforge.osra;
+package net.sf.osra;
 
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.StringWriter;
 import java.io.Writer;
 
-import org.apache.commons.io.IOUtils;
+import org.apache.commons.logging.LogFactory;
 
 /**
  * JNI bridge for OSRA library.
  * 
- * @author <a href="mailto:dkatsubo@epo.org">Dmitry Katsubo</a>
+ * @author <a href="mailto:dmitry.katsubo@gmail.com">Dmitry Katsubo</a>
  */
 public class OsraLib {
 
@@ -40,9 +37,19 @@ public class OsraLib {
 	public static native String getVersion();
 
 	static {
-		System.loadLibrary("osra_java");
+		try {
+			System.loadLibrary("osra_java");
+		}
+		catch (UnsatisfiedLinkError e) {
+			LogFactory.getLog(OsraLib.class).error(
+						"Failed to load OSRA library from java.library.path ("
+									+ System.getProperty("java.library.path") + "): " + e.getMessage());
+			throw e;
+		}
 	}
 
+	/*
+	// Sample usage:
 	public static void main(String[] args) throws IOException {
 		final StringWriter writer = new StringWriter();
 
@@ -51,4 +58,5 @@ public class OsraLib {
 
 		System.out.println("OSRA completed with result:" + result + " structure:\n" + writer.toString() + "\n");
 	}
+	*/
 }

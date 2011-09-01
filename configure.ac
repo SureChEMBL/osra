@@ -151,7 +151,7 @@ AC_ARG_ENABLE(
 
 AS_IF([test "${enable_java}" == "yes"], [
 	AS_IF([test -n "${JAVA_HOME}"], [
-		CPPFLAGS="-I${JAVA_HOME}/include -I${JAVA_HOME}/include/linux ${CPPFLAGS}"
+		CPPFLAGS="-I${JAVA_HOME}/include -I${JAVA_HOME}/include/linux -I${JAVA_HOME}/include/win32 ${CPPFLAGS}"
 	])
 	AC_CHECK_HEADER([jni.h], [
 		AC_TRY_COMPILE([
@@ -718,6 +718,6 @@ AC_DEFINE_UNQUOTED(DATA_DIR, ["$resolved_datadir"])
 AC_SUBST([resolved_datadir], [$resolved_datadir])
 
 AC_CONFIG_HEADER([src/config.h])
-AC_CONFIG_FILES([Makefile Makefile.inc doc/manual.sgml package/linux/osra.pc package/linux/debian/control package/linux/debian/rules package/linux/suse/osra.spec package/maven/pom.xml])
+AC_CONFIG_FILES([Makefile Makefile.inc doc/manual.sgml package/linux/osra.pc package/linux/debian/control package/linux/debian/rules package/linux/suse/osra.spec pom.xml])
 AC_OUTPUT
 AC_MSG_NOTICE([Now you can run "make all install" to compile and install the application.])
