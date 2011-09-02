@@ -85,21 +85,21 @@ JNIEXPORT jstring JNICALL Java_cadd_osra_main_runosra_nativeosra(JNIEnv *j_env, 
 
 extern "C" {
   /*
-   * Class:     net_sourceforge_osra_OsraLib
+   * Class:     net_sf_osra_OsraLib
    * Method:    processImage
    * Signature: ([BLjava/io/Writer;Ljava/lang/String;Ljava/lang/String;ZZZ)I
    */
-  JNIEXPORT jint JNICALL Java_net_sourceforge_osra_OsraLib_processImage(JNIEnv *, jclass, jbyteArray, jobject, jstring, jstring, jboolean, jboolean, jboolean);
+  JNIEXPORT jint JNICALL Java_net_sf_osra_OsraLib_processImage(JNIEnv *, jclass, jbyteArray, jobject, jstring, jstring, jboolean, jboolean, jboolean);
 
   /*
-   * Class:     net_sourceforge_osra_OsraLib
+   * Class:     net_sf_osra_OsraLib
    * Method:    getVersion
    * Signature: ()Ljava/lang/String;
    */
-  JNIEXPORT jstring JNICALL Java_net_sourceforge_osra_OsraLib_getVersion(JNIEnv *, jclass);
+  JNIEXPORT jstring JNICALL Java_net_sf_osra_OsraLib_getVersion(JNIEnv *, jclass);
 }
 
-JNIEXPORT jint JNICALL Java_net_sourceforge_osra_OsraLib_processImage(JNIEnv *j_env, jclass j_class, jbyteArray j_image_data, jobject j_writer,
+JNIEXPORT jint JNICALL Java_net_sf_osra_OsraLib_processImage(JNIEnv *j_env, jclass j_class, jbyteArray j_image_data, jobject j_writer,
     jstring j_output_format, jstring j_embedded_format,
     jboolean j_output_confidence, jboolean j_output_coordinates, jboolean j_output_avg_bond_length)
 {
@@ -155,7 +155,7 @@ JNIEXPORT jint JNICALL Java_net_sourceforge_osra_OsraLib_processImage(JNIEnv *j_
   return result;
 }
 
-JNIEXPORT jstring JNICALL Java_net_sourceforge_osra_OsraLib_getVersion(JNIEnv *j_env, jclass j_class)
+JNIEXPORT jstring JNICALL Java_net_sf_osra_OsraLib_getVersion(JNIEnv *j_env, jclass j_class)
 {
   return j_env->NewStringUTF(PACKAGE_VERSION);
 }
