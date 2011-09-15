@@ -18,7 +18,7 @@ REPOSITORY_URL=http://server.internal.org/nexus/content/repositories/rpm-release
 
 	<name>OSRA</name>
 	<url>http://osra.sourceforge.net/</url>
-	
+
 	<scm>
 		<connection>https://osra.svn.sourceforge.net/svnroot/osra/trunk</connection>
 	</scm>
@@ -27,7 +27,7 @@ REPOSITORY_URL=http://server.internal.org/nexus/content/repositories/rpm-release
 		<system>SourceForge</system>
 		<url>https://sourceforge.net/tracker/?group_id=203833&amp;atid=987182</url>
 	</issueManagement>
-	
+
 	<licenses>
 		<license>
 			<name>GPLv2 License</name>
@@ -37,12 +37,18 @@ REPOSITORY_URL=http://server.internal.org/nexus/content/repositories/rpm-release
 
 	<dependencies>
 		<dependency>
-			<groupId>commons-logging</groupId>
-			<artifactId>commons-logging</artifactId>
-			<version>1.1.1</version>
+			<groupId>net.sf.jnati</groupId>
+			<artifactId>jnati-deploy</artifactId>
+			<version>0.4</version>
+			<exclusions>
+				<exclusion>
+					<groupId>log4j</groupId>
+					<artifactId>log4j</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 	</dependencies>
-	
+
 	<build>
 		<sourceDirectory>addons/java</sourceDirectory>
 	</build>
