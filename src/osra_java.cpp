@@ -20,7 +20,13 @@
  St, Fifth Floor, Boston, MA 02110-1301, USA
  *****************************************************************************/
 
+/* Fix for jlong definition in jni.h on some versions of gcc on Windows */
+#if defined(__GNUC__) && !defined(__INTEL_COMPILER)
+typedef long long __int64;
+#endif
+
 #include <jni.h>
+
 #include <stdlib.h> // calloc(), free()
 
 #include <string> // std::string
