@@ -573,7 +573,6 @@ AS_IF([test "${enable_graphicsmagick_config:+set}" != "set"], [
 	])	
 
 	CPPFLAGS="`${GRAPHICS_MAGICK_CONFIG} --cppflags` ${CPPFLAGS}"
-	LDFLAGS="`${GRAPHICS_MAGICK_CONFIG} --ldflags` ${LDFLAGS}"
 
 	AS_IF([test "${enable_static_linking:+set}" == "set"], [
 		dnl Here goes statically linking setup section.
