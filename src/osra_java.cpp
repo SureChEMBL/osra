@@ -138,7 +138,8 @@ JNIEXPORT jint JNICALL Java_net_sf_osra_OsraLib_processImage(JNIEnv *j_env, jcla
                  false,
                  false,
                  j_output_coordinates,
-                 j_output_avg_bond_length
+                 j_output_avg_bond_length,
+                 "."
                );
 
       j_env->ReleaseByteArrayElements(j_image_data, (jbyte *) image_data, JNI_ABORT);
