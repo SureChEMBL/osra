@@ -29,7 +29,6 @@
 
 #include <list> // sdt::list
 #include <vector> // std::vector
-#include <algorithm> // std::sort, std::min(double, double), std::max(double, double)
 #include <Magick++.h>
 
 using namespace std;

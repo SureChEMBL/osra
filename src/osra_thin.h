@@ -26,8 +26,6 @@
 //
 #include <Magick++.h>
 
-#include "osra.h"
-
 using namespace Magick;
 
 //

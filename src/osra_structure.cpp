@@ -19,13 +19,20 @@
  this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
  St, Fifth Floor, Boston, MA 02110-1301, USA
  *****************************************************************************/
+
 // File: osra_structure.cpp
 //
 // Defines main structure recognition (molecular atoms and bonds)
 // recognition routines
 //
 
+#include <math.h> // fabs(double)
+#include <float.h> // FLT_MAX
+
+#include "osra_common.h"
 #include "osra_structure.h"
+#include "osra_ocr.h"
+#include "osra_openbabel.h"
 
 void remove_disconnected_atoms(vector<atom_t> &atom, vector<bond_t> &bond, int n_atom, int n_bond)
 {

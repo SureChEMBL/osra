@@ -19,18 +19,15 @@
  this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
  St, Fifth Floor, Boston, MA 02110-1301, USA
  *****************************************************************************/
+
 // Header: osra_structure.h
 //
 // Declares main structure recognition (molecular atoms and bonds)
 // recognition routines
 //
 
-#include <math.h> // fabs(double)
-#include "osra_labels.h"
-#include "osra_common.h"
-#include "osra_ocr.h"
-#include "osra_openbabel.h"
 #include "osra.h"
+#include "osra_labels.h"
 
 #define PI 3.14159265358979323846
 

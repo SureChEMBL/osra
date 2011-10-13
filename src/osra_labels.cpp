@@ -24,6 +24,9 @@
 //
 // Defines functions dealing with atomic labels
 //
+#include <math.h> // fabs(double)
+#include <float.h> // FLT_MAX
+
 #include "osra_common.h"
 #include "osra_ocr.h"
 #include "osra_labels.h"

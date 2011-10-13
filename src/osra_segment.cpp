@@ -28,6 +28,8 @@
 #include <math.h> // fabs(double)
 #include <float.h> // FLT_MAX
 #include <limits.h> // INT_MAX
+#include <algorithm> // std::min(double, double), std::max(double, double)
+
 #include "osra.h"
 #include "osra_common.h"
 #include "osra_segment.h"

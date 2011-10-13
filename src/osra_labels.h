@@ -29,15 +29,8 @@
 
 #include <string>
 #include <vector>
-#include <math.h> // fabs(double)
-#include <float.h> // FLT_MAX
 
 #include <Magick++.h>
-
-extern "C" {
-#include <potracelib.h>
-}
-
 
 #include "osra.h"
 

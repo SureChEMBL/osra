@@ -19,6 +19,7 @@
  this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
  St, Fifth Floor, Boston, MA 02110-1301, USA
  *****************************************************************************/
+
 // File: osra_grayscale.cpp
 //
 // Defines grayscale conversion functions
@@ -27,9 +28,9 @@
 #include <vector>
 #include <iostream> // std::ostream, std::cout
 #include <math.h> // fabs(double)
+
 #include "osra.h"
 #include "osra_grayscale.h"
-
 
 const Color getBgColor(const Image &image)
 {
