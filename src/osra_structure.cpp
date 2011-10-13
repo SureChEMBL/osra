@@ -1558,9 +1558,9 @@ int find_small_bonds(const potrace_path_t *p, vector<atom_t> &atom, vector<bond_
 }
 
 int resolve_bridge_bonds(vector<atom_t> &atom, int n_atom, vector<bond_t> &bond, int n_bond, double thickness,
-                         double avg_bond_length, const map<string, string> &superatom)
+                         double avg_bond_length, const map<string, string> &superatom, bool verbose)
 {
-  molecule_statistics_t molecule_statistics1 = caclulate_molecule_statistics(atom, bond, n_bond, avg_bond_length, superatom);
+  molecule_statistics_t molecule_statistics1 = caclulate_molecule_statistics(atom, bond, n_bond, avg_bond_length, superatom, verbose);
 
   for (int i = 0; i < n_atom; i++)
     if ((atom[i].exists) && (atom[i].label == " "))
@@ -1632,7 +1632,7 @@ int resolve_bridge_bonds(vector<atom_t> &atom, int n_atom, vector<bond_t> &bond,
                     else if (bond[c].b == bond[d].b)
                       bond[c].b = bond[d].a;
 
-                    molecule_statistics_t molecule_statistics2 = caclulate_molecule_statistics(atom, bond, n_bond, avg_bond_length, superatom);
+                    molecule_statistics_t molecule_statistics2 = caclulate_molecule_statistics(atom, bond, n_bond, avg_bond_length, superatom, verbose);
                     if (molecule_statistics1.fragments != molecule_statistics2.fragments ||
                         molecule_statistics1.rotors != molecule_statistics2.rotors ||
                         molecule_statistics1.rings56 - molecule_statistics2.rings56 == 2)

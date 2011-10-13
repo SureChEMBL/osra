@@ -90,7 +90,7 @@ double set_threshold(double threshold,int resolution)
 }
 
 int load_superatom_spelling_maps(map<string, string> &spelling,map<string, string> &superatom, const string &osra_dir,
-                                 const string &spelling_file,const string &superatom_file,bool verbose)
+                                 const string &spelling_file, const string &superatom_file, bool verbose)
 {
 // Loading the program data files into maps:
   if (!((spelling_file.length() != 0 && load_config_map(spelling_file, spelling))
@@ -267,7 +267,7 @@ void split_fragments_and_assemble_structure_record(vector<atom_t> &atom,int n_at
   if (real_atoms > MIN_A_COUNT && real_atoms < MAX_A_COUNT && real_bonds < MAX_A_COUNT && bond_max_type>0 && bond_max_type<5)
     {
       int num_frag;
-      num_frag = resolve_bridge_bonds(atom, n_atom, bond, n_bond, 2 * thickness, avg_bond_length, superatom);
+      num_frag = resolve_bridge_bonds(atom, n_atom, bond, n_bond, 2 * thickness, avg_bond_length, superatom, verbose);
       collapse_bonds(atom, bond, n_bond, avg_bond_length / 4);
       collapse_atoms(atom, bond, n_atom, n_bond, 3);
       remove_zero_bonds(bond, n_bond, atom);
@@ -283,7 +283,7 @@ void split_fragments_and_assemble_structure_record(vector<atom_t> &atom,int n_at
       for (unsigned int i = 0; i < fragments.size(); i++)
         {
           if (verbose)
-            cout << "Considering fragment #" << i << " " << fragments[i].x1 << "x" << fragments[i].y1 << "-" << fragments[i].x2 << "x"
+            cout << "Considering fragment #" << i + 1 << " " << fragments[i].x1 << "x" << fragments[i].y1 << "-" << fragments[i].x2 << "x"
                  << fragments[i].y2 << ", atoms: " << fragments[i].atom.size() << '.' << endl;
 
           if (fragments[i].atom.size() > MIN_A_COUNT)
@@ -315,6 +315,10 @@ void split_fragments_and_assemble_structure_record(vector<atom_t> &atom,int n_at
               coordinate_box.x2 = (int) ((double) page_scale * boxes[k].x1 + (double) page_scale * box_scale * fragments[i].x2);
               coordinate_box.y2 = (int) ((double) page_scale * boxes[k].y1 + (double) page_scale * box_scale * fragments[i].y2);
 
+              if (verbose)
+                cout << "Coordinate box: " << " " << coordinate_box.x1 << "x" << coordinate_box.y1 << "-" << coordinate_box.x2 << "x"
+                     << coordinate_box.y2 << "." << endl;
+
               string structure =
                 get_formatted_structure(frag_atom, frag_bond, n_bond, output_format, embedded_format,
                                         molecule_statistics, confidence,
@@ -322,11 +326,7 @@ void split_fragments_and_assemble_structure_record(vector<atom_t> &atom,int n_at
                                         show_avg_bond_length,
                                         show_resolution_guess ? &resolution : NULL,
                                         show_page ? &page_number : NULL,
-                                        show_coordinates ? &coordinate_box : NULL, superatom);
-
-              if (verbose)
-                cout << "Structure length: " << structure.length() << ", molecule fragments: " << molecule_statistics.fragments << '.' << endl;
-
+                                        show_coordinates ? &coordinate_box : NULL, superatom, verbose);
 
               if (molecule_statistics.fragments > 0 && molecule_statistics.fragments < MAX_FRAGMENTS && molecule_statistics.num_atoms>MIN_A_COUNT && molecule_statistics.num_bonds>0)
                 {
@@ -425,7 +425,7 @@ int osra_process_image(
 )
 {
   map<string, string> spelling, superatom;
-  int err = load_superatom_spelling_maps(spelling,superatom,osra_dir,spelling_file,superatom_file,verbose);
+  int err = load_superatom_spelling_maps(spelling, superatom, osra_dir, spelling_file, superatom_file, verbose);
   if (err != 0) return err;
 
   string type;
@@ -557,19 +557,7 @@ int osra_process_image(
         }
 
       if (verbose)
-        {
-          cout << "Input resolutions are ";
-          for (vector<int>::iterator it = select_resolution.begin();;)
-            {
-              cout << *it;
-
-              if (++it < select_resolution.end())
-                cout << ", ";
-              else
-                break;
-            }
-          cout << '.' << endl;
-        }
+        cout << "Input resolutions are " << select_resolution << endl;
 
       ColorGray bgColor = getBgColor(image);
       if (rotate != 0)
@@ -682,10 +670,10 @@ int osra_process_image(
 
                 n_atom = find_small_bonds(p, atom, bond, n_atom, &n_bond, max_area, avg_bond_length / 2, 5);
 
-                if (verbose)
-                  cout << "Number of atoms: " << n_atom << ", bonds: " << n_bond << ", chars: " << n_letters << " after find_small_bonds()" << endl;
-
                 find_old_aromatic_bonds(p, bond, n_bond, atom, n_atom, avg_bond_length);
+
+                if (verbose)
+                  cout << "Number of atoms: " << n_atom << ", bonds: " << n_bond << ", chars: " << n_letters << " after find_old_aromatic_bonds()" << endl;
 
                 double dist = 3.;
                 if (working_resolution < 150)

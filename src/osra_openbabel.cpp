@@ -35,134 +35,134 @@
 
 using namespace OpenBabel;
 
-int abbreviation_to_mol(OBMol &mol, int &n, int &bondn, const string &smiles_superatom)
+#define HYDROGEN_ATOMIC_NUM     1
+#define CARBON_ATOMIC_NUM       6
+#define OXYGEN_ATOMIC_NUM       8
+#define FLUORINE_ATOMIC_NUM     9
+#define CHLORINE_ATOMIC_NUM     17
+#define ARGON_ATOMIC_NUM        18
+#define BROMINE_ATOMIC_NUM      35
+#define IODINE_ATOMIC_NUM       53
+
+// Function: create_atom()
+//
+// For the atom represented by its OCR'ed label create a new atom in the given molecule.
+//
+// Parameters:
+//      mol - the current molecule
+//      atom - atom to add to molecule (will be updated)
+//      scale - scale factor / coordinates multiplier
+//      superatom - superatom dictionary, that maps atom labels to corresponding SMILES
+//      verbose - print debug information
+//
+// Returns:
+//      0 in case when no bonds have been added to molecule or the index of the first added bond
+//      
+int create_atom(OBMol &mol, atom_t &atom, double scale, const map<string, string> &superatom, bool verbose)
 {
-  OBMol mol1;
-  OBConversion conv;
-  OBAtom *atom, *a1;
-  OBBond *bond;
-
-  conv.SetInFormat("SMI");
-  conv.ReadString(&mol1, smiles_superatom);
-
-  a1 = mol1.GetFirstAtom();
-
-  if (a1 == NULL)
+  if (atom.label.empty() || atom.label == " ")
     {
-      cerr << "Unable to parse the SMILES " << smiles_superatom << '.' << endl << "That means:" << endl
-           << "(a) You have no /usr/lib/openbabel/x.x.x/smilesformat.so library installed. Install the format libraries / check http://openbabel.org/docs/dev/Installation/install.html#environment-variables" << endl
-           << "(b) The format libraries are installed, but do not correspond to /usr/lib/libopenbabel.so.y.y.y. Check they correspond to the same OpenBabel version." << endl
-           << "OSRA will produce unpredictable/wrong results." << endl;
-
-      return 0;
+      atom.anum = CARBON_ATOMIC_NUM;
     }
-
-  unsigned int anum = a1->GetAtomicNum();
-  int firstatom = a1->GetIdx();
-  int prevatms = mol.NumAtoms();
-  int numatms = mol1.NumAtoms();
-
-  for (unsigned int i = mol1.NumAtoms(); i >= 1; i--)
+  else
     {
-      atom = mol1.GetAtom(i);
-      if (atom != NULL)
+      // Lookup in superatom dictionary:
+      map<string, string>::const_iterator it = superatom.find(atom.label);
+
+      if (it != superatom.end())
         {
-          OBAtom *a = mol.CreateAtom();
-          a->SetAtomicNum(atom->GetAtomicNum());
-          a->SetFormalCharge(atom->GetFormalCharge());
-          a->SetIdx(mol.NumAtoms() + 1);
-          // This operation copies the given atom into new one before addition,
-          // so the caller is still responsible to free the memory:
-          mol.AddAtom(*a);
-          delete a;
-          n++;
+          // "superatom" case (e.g. "COOH")
+          const string &smiles_superatom = it->second;
+
+          OBConversion conv;
+          OBMol superatom_mol;
+
+          conv.SetInFormat("SMI");
+          conv.ReadString(&superatom_mol, smiles_superatom);
+
+          if (verbose)
+            cout << "Considering superatom " << atom.label << "->" << smiles_superatom <<
+                    " vector: " << atom.x * scale << "x" << -atom.y * scale << endl;
+
+          // This is the index of first atom in superatom in molecule:
+          atom.n = mol.NumAtoms() + 1;
+
+          OBAtomIterator atom_iter;
+
+          // Transfer all atoms from "superatom" molecule to current molecule.
+          for (OBAtom *atom = superatom_mol.BeginAtom(atom_iter); atom; atom = superatom_mol.NextAtom(atom_iter))
+            {
+              if (verbose)
+                cout << "Adding atom #" << mol.NumAtoms() + 1 << ", anum: " << atom->GetAtomicNum() << endl;
+
+              OBAtom *a = mol.NewAtom();
+
+              a->SetAtomicNum(atom->GetAtomicNum());
+              a->SetFormalCharge(atom->GetFormalCharge());
+            }
+
+          // Correct first atom meta-info:
+          OBAtom *first_superatom = mol.GetAtom(atom.n);
+
+          first_superatom->SetVector(atom.x * scale, -atom.y * scale, 0);
+
+          atom.anum = first_superatom->GetAtomicNum();
+
+          if (atom.anum == 0)
+            {
+              // Unknown atom?
+              AliasData* ad = new AliasData();
+              ad->SetAlias(atom.label);
+              ad->SetOrigin(external);
+              first_superatom->SetData(ad);
+            }
+
+          int first_bond_index = mol.NumBonds();
+
+          OBBondIterator bond_iter;
+
+          // Transfer all bonds from "superatom" molecule to current molecule:
+          for (OBBond *bond = superatom_mol.BeginBond(bond_iter); bond; bond = superatom_mol.NextBond(bond_iter))
+            {
+              if (verbose)
+                cout << "Adding bond #" << mol.NumBonds() << " " << bond->GetBeginAtomIdx() + atom.n - 1 << "->"
+                     << bond->GetEndAtomIdx() + atom.n - 1 << ", flags: " << bond->GetFlags() << endl;
+
+              mol.AddBond(bond->GetBeginAtomIdx() + atom.n - 1, bond->GetEndAtomIdx() + atom.n - 1,
+                          bond->GetBondOrder(), bond->GetFlags());
+            }
+
+          // Return the first bond index if at least one bond was added:
+          return first_bond_index == mol.NumBonds() ? 0 : first_bond_index;
         }
+
+      // If not found, lookup the atom number in periodic table of elements:
+      atom.anum = etab.GetAtomicNum(atom.label.c_str());
     }
 
-  for (unsigned int j = 0; j <= mol1.NumBonds(); j++)
+  atom.n = mol.NumAtoms() + 1;
+
+  if (verbose)
+    cout << "Creating atom #" << atom.n << " \"" << atom.label << "\", anum: " << atom.anum << endl;
+
+  OBAtom *a = mol.NewAtom();
+
+  a->SetAtomicNum(atom.anum);
+  a->SetVector(atom.x * scale, -atom.y * scale, 0);
+
+  if (atom.charge != 0)
+    a->SetFormalCharge(atom.charge);
+
+  if (atom.anum == 0)
     {
-      bond = mol1.GetBond(j);
-      if (bond != NULL)
-        {
-          int b1 = (numatms - bond->GetBeginAtomIdx() + 1) - firstatom + 1 + prevatms;
-          int b2 = (numatms - bond->GetEndAtomIdx() + 1) - firstatom + 1 + prevatms;
-          mol.AddBond(b1, b2, bond->GetBO(), bond->GetFlags());
-          bondn++;
-        }
+      // Unknown atom?
+      AliasData* ad = new AliasData();
+      ad->SetAlias(atom.label);
+      ad->SetOrigin(external);
+      a->SetData(ad);
     }
 
-  return (anum);
-}
-
-/*
-void mol_to_abbr() {
-	OBMol mol1, mol;
-	OBConversion conv;
-	OBAtom *atom, *a, *a1;
-	OBBond *bond;
-	int n = 1, bondn = 0;
-
-	conv.SetOutFormat("SMI");
-
-	addTHPO(&mol1, &n, &bondn);
-	a = mol1.CreateAtom();
-	a->SetAtomicNum(8);
-
-	// This operation copies the given atom into new one before addition,
-	// so the caller is still responsible to free the memory:
-	mol1.AddAtom(*a);
-	delete a;
-
-	a1 = mol1.GetFirstAtom();
-
-	int firstatom = a1->GetIdx();
-	int prevatms = mol.NumAtoms();
-	int numatms = mol1.NumAtoms();
-
-	for (unsigned int i = mol1.NumAtoms(); i >= 1; i--) {
-		atom = mol1.GetAtom(i);
-		if (atom != NULL) {
-			a = mol.CreateAtom();
-			a->SetAtomicNum(atom->GetAtomicNum());
-			a->SetFormalCharge(atom->GetFormalCharge());
-			a->SetIdx(mol.NumAtoms() + 1);
-			// This operation copies the given atom into new one before addition,
-			// so the caller is still responsible to free the memory:
-			mol.AddAtom(*a);
-			delete a;
-			n++;
-		}
-	}
-
-	for (unsigned int j = 0; j <= mol1.NumBonds(); j++) {
-		bond = mol1.GetBond(j);
-		if (bond != NULL) {
-			int b1 = (numatms - bond->GetBeginAtomIdx() + 1) - firstatom + 1 + prevatms;
-			int b2 = (numatms - bond->GetEndAtomIdx() + 1) - firstatom + 1 + prevatms;
-			mol.AddBond(b1, b2, bond->GetBO(), bond->GetFlags());
-			bondn++;
-		}
-	}
-	cout << conv.WriteString(&mol, true) << endl;
-	exit(0);
-}
-*/
-
-int get_atomic_num(const string &s, OBMol &mol, int &n, int &bondn, const map<string, string> &superatom)
-{
-
-  if (s.empty() || s == " ") return 6;
-  map<string, string>::const_iterator it = superatom.find(s);
-
-  if (it != superatom.end())
-    {
-      return (abbreviation_to_mol(mol, n, bondn, it->second));
-    }
-
-  int isotope;
-  int anum = etab.GetAtomicNum(s.c_str(), isotope);
-//  if (anum == 0) return(6);
-  return (anum);
+  return 0;
 }
 
 // Function: confidence_function()
@@ -216,17 +216,13 @@ double confidence_function(int C_Count, int N_Count, int O_Count, int F_Count, i
 //      generate_2D_coordinates - generate 2D coordinates for chemical groups
 //      confidence - confidence score (returned to the caller if provided)
 //      superatom - dictionary of superatom labels mapped to SMILES
-//
-// Returns:
-//      calculated molecule statistics
+//      verbose - print debug info
 void create_molecule(OBMol &mol, vector<atom_t> &atom, const vector<bond_t> &bond, int n_bond, double avg_bond_length, molecule_statistics_t &molecule_statistics,
-                     bool generate_2D_coordinates, double * const confidence, const map<string, string> &superatom)
+                     bool generate_2D_coordinates, double * const confidence, const map<string, string> &superatom, bool verbose)
 {
   string str;
-  int n = 1;
   double scale = CC_BOND_LENGTH / avg_bond_length;
   vector<int> atomN, bondN;
-  int bondn = 0;
   int anum;
 
   mol.SetDimension(2);
@@ -234,135 +230,49 @@ void create_molecule(OBMol &mol, vector<atom_t> &atom, const vector<bond_t> &bon
   for (int i = 0; i < n_bond; i++)
     if (bond[i].exists && i < MAX_ATOMS - 1 && bond[i].a < MAX_ATOMS - 1 && bond[i].b < MAX_ATOMS - 1)
       {
-        if (atom[bond[i].a].n == 0)
-          {
-            int oldn = n;
-            anum = get_atomic_num(atom[bond[i].a].label, mol, n, bondn, superatom);
-            if (oldn != n)
-              {
-                if (n != oldn+1)
-                  {
-                    atomN.push_back(n - 1);
-                    bondN.push_back(bondn);
-                  }
-                atom[bond[i].a].n = n - 1;
-                OBAtom *a = mol.GetAtom(n - 1);
-                a->SetVector(atom[bond[i].a].x * scale, -atom[bond[i].a].y * scale, 0);
-                if (anum == 0)
-                  {
-                    AliasData* ad = new AliasData();
-                    ad->SetAlias(atom[bond[i].a].label);
-                    ad->SetOrigin(external);
-                    a->SetData(ad);
-//                      ad->Expand(mol, anum);
-                  }
-              }
-            else
-              {
-                OBAtom *a = mol.CreateAtom();
-                a->SetAtomicNum(anum);
-                if (atom[bond[i].a].charge != 0)
-                  a->SetFormalCharge(atom[bond[i].a].charge);
-                a->SetVector(atom[bond[i].a].x * scale, -atom[bond[i].a].y * scale, 0);
-                if (anum == 0)
-                  {
-                    AliasData* ad = new AliasData();
-                    ad->SetAlias(atom[bond[i].a].label);
-                    ad->SetOrigin(external);
-                    a->SetData(ad);
-//                      ad->Expand(mol, anum); //Make chemically meaningful, if possible.
-                  }
-                // This operation copies the given atom into new one before addition,
-                // so the caller is still responsible to free the memory:
-                mol.AddAtom(*a);
-                delete a;
-                atom[bond[i].a].n = n;
-                n++;
-              }
-            atom[bond[i].a].anum = anum;
-          }
-        if (atom[bond[i].b].n == 0)
-          {
-            int oldn = n;
-            anum = get_atomic_num(atom[bond[i].b].label, mol, n, bondn, superatom);
-            if (oldn != n)
-              {
-                if (n != oldn+1)
-                  {
-                    atomN.push_back(n - 1);
-                    bondN.push_back(bondn);
-                  }
-                atom[bond[i].b].n = n - 1;
-                OBAtom *b = mol.GetAtom(n - 1);
-                b->SetVector(atom[bond[i].b].x * scale, -atom[bond[i].b].y * scale, 0);
-                if (anum == 0)
-                  {
-                    AliasData* ad = new AliasData();
-                    ad->SetAlias(atom[bond[i].b].label);
-                    ad->SetOrigin(external);
-                    b->SetData(ad);
-//                      ad->Expand(mol, anum);
-                  }
-              }
-            else
-              {
-                OBAtom *b = mol.CreateAtom();
-                b->SetAtomicNum(anum);
-                if (atom[bond[i].b].charge != 0)
-                  b->SetFormalCharge(atom[bond[i].b].charge);
-                b->SetVector(atom[bond[i].b].x * scale, -atom[bond[i].b].y * scale, 0);
-                if (anum == 0)
-                  {
-                    AliasData* ad = new AliasData();
-                    ad->SetAlias(atom[bond[i].b].label);
-                    ad->SetOrigin(external);
-                    b->SetData(ad);
-//                      ad->Expand(mol, anum); // Make chemically meaningful, if possible.
-                  }
-                // This operation copies the given atom into new one before addition,
-                // so the caller is still responsible to free the memory:
-                mol.AddAtom(*b);
-                delete b;
-                atom[bond[i].b].n = n;
-                n++;
-              }
-            atom[bond[i].b].anum = anum;
-          }
+        atom_t* bond_atoms[] = { &atom[bond[i].a], &atom[bond[i].b] };
 
-        if (bond[i].arom)
+        for (int j = 0; j < 2; j++)
+          if (bond_atoms[j]->n == 0)
+            {
+              if (create_atom(mol, *bond_atoms[j], scale, superatom, verbose) > 0)
+                {
+                  atomN.push_back(bond_atoms[j]->n);
+                  bondN.push_back(mol.NumBonds());
+                }
+            }
+
+        if (bond[i].hash)
           {
-            mol.AddBond(atom[bond[i].a].n, atom[bond[i].b].n, 5);
-            bondn++;
-          }
-        else if (bond[i].hash)
-          {
-            if (atom[bond[i].a].anum == 8 || atom[bond[i].a].anum == 1 || atom[bond[i].a].anum == 9
-                || atom[bond[i].a].anum == 53 || atom[bond[i].a].anum == 17 || atom[bond[i].a].anum == 35
-                || atom[bond[i].a].anum == 18 || atom[bond[i].a].terminal)
+            if (verbose)
+              cout << "Creating bond #" << mol.NumBonds() << " " << atom[bond[i].a].n << "<->"
+                   << atom[bond[i].b].n << ", flags: " << OB_HASH_BOND << endl;
+
+            if (atom[bond[i].a].anum == OXYGEN_ATOMIC_NUM || atom[bond[i].a].anum == HYDROGEN_ATOMIC_NUM || atom[bond[i].a].anum == FLUORINE_ATOMIC_NUM
+                || atom[bond[i].a].anum == IODINE_ATOMIC_NUM || atom[bond[i].a].anum == CHLORINE_ATOMIC_NUM || atom[bond[i].a].anum == BROMINE_ATOMIC_NUM
+                || atom[bond[i].a].anum == ARGON_ATOMIC_NUM || atom[bond[i].a].terminal)
               mol.AddBond(atom[bond[i].b].n, atom[bond[i].a].n, bond[i].type, OB_HASH_BOND);
             else
               mol.AddBond(atom[bond[i].a].n, atom[bond[i].b].n, bond[i].type, OB_HASH_BOND);
-            bondn++;
-          }
-        else if (bond[i].wedge)
-          {
-            mol.AddBond(atom[bond[i].a].n, atom[bond[i].b].n, bond[i].type, OB_WEDGE_BOND);
-            bondn++;
-          }
-        else if (bond[i].up)
-          {
-            mol.AddBond(atom[bond[i].a].n, atom[bond[i].b].n, bond[i].type, OB_TORUP_BOND);
-            bondn++;
-          }
-        else if (bond[i].down)
-          {
-            mol.AddBond(atom[bond[i].a].n, atom[bond[i].b].n, bond[i].type, OB_TORDOWN_BOND);
-            bondn++;
           }
         else
           {
-            mol.AddBond(atom[bond[i].a].n, atom[bond[i].b].n, bond[i].type);
-            bondn++;
+            int bond_flags = 0;
+
+            if (bond[i].arom)
+              bond_flags = OB_AROMATIC_BOND;
+            else if (bond[i].wedge)
+              bond_flags = OB_WEDGE_BOND;
+            else if (bond[i].up)
+              bond_flags = OB_TORUP_BOND;
+            else if (bond[i].down)
+              bond_flags = OB_TORDOWN_BOND;
+
+            if (verbose)
+              cout << "Creating bond #" << mol.NumBonds() << " " << atom[bond[i].a].n << "->"
+                   << atom[bond[i].b].n << ", flags: " << bond_flags << endl;
+
+            mol.AddBond(atom[bond[i].a].n, atom[bond[i].b].n, bond[i].type, bond_flags);
           }
       }
   mol.EndModify();
@@ -379,22 +289,20 @@ void create_molecule(OBMol &mol, vector<atom_t> &atom, const vector<bond_t> &bon
 
   // The logic below calculates the information both for molecule statistics and for confidence function:
 
+  OBBondIterator bond_iter;
+
   // This block modifies the molecule:
-  for (unsigned int j = 0; j <= mol.NumBonds(); j++)
+  for (OBBond *b = mol.BeginBond(bond_iter); b; b = mol.NextBond(bond_iter))
     {
-      OBBond *b = mol.GetBond(j);
-      if (b != NULL)
+      if (b->IsInRing())
         {
-          if (b->IsInRing())
-            {
-              // Clear any indication of "/" and "\" double bond stereochemistry:
-              b->UnsetUp();
-              b->UnsetDown();
-            }
-          else
-            // Clear all aromaticity information for the bond (affects "num_aromatic" variable below):
-            b->UnsetAromatic();
+          // Clear any indication of "/" and "\" double bond stereochemistry:
+          b->UnsetUp();
+          b->UnsetDown();
         }
+      else
+        // Clear all aromaticity information for the bond (affects "num_aromatic" variable below):
+        b->UnsetAromatic();
     }
 
   vector<int> Num_Rings(8, 0); // number of rings of the given size (e.g. "Num_Rings[2]" = number of rings of size 2)
@@ -435,9 +343,10 @@ void create_molecule(OBMol &mol, vector<atom_t> &atom, const vector<bond_t> &bon
       int R_Count = 0;
       int Xx_Count = 0;
 
-      for (unsigned int i = 1; i <= mol.NumAtoms(); i++)
+      OBAtomIterator atom_iter;
+
+      for (OBAtom *a = mol.BeginAtom(atom_iter); a; a = mol.NextAtom(atom_iter))
         {
-          OBAtom *a = mol.GetAtom(i);
           if (a->IsCarbon())
             C_Count++;
           else if (a->IsNitrogen())
@@ -446,11 +355,11 @@ void create_molecule(OBMol &mol, vector<atom_t> &atom, const vector<bond_t> &bon
             O_Count++;
           else if (a->IsSulfur())
             S_Count++;
-          else if (a->GetAtomicNum() == 9)
+          else if (a->GetAtomicNum() == FLUORINE_ATOMIC_NUM)
             F_Count++;
-          else if (a->GetAtomicNum() == 17)
+          else if (a->GetAtomicNum() == CHLORINE_ATOMIC_NUM)
             Cl_Count++;
-          else if (a->GetAtomicNum() == 35)
+          else if (a->GetAtomicNum() == BROMINE_ATOMIC_NUM)
             Br_Count++;
           else if (a->GetAtomicNum() == 0)
             {
@@ -469,6 +378,9 @@ void create_molecule(OBMol &mol, vector<atom_t> &atom, const vector<bond_t> &bon
 
   if (generate_2D_coordinates)
     {
+      if (verbose && !atomN.empty())
+        cout << "Generating 2D coordinates for atoms " << atomN << " and bonds " << bondN << endl;
+
       for (unsigned int i = 0; i < atomN.size(); i++)
         {
           groupRedraw(&mol, bondN[i], atomN[i], true);
@@ -476,28 +388,33 @@ void create_molecule(OBMol &mol, vector<atom_t> &atom, const vector<bond_t> &bon
     }
 }
 
-molecule_statistics_t caclulate_molecule_statistics(vector<atom_t> &atom, const vector<bond_t> &bond, int n_bond, double avg_bond_length, const map<string, string> &superatom)
+molecule_statistics_t caclulate_molecule_statistics(vector<atom_t> &atom, const vector<bond_t> &bond, int n_bond, double avg_bond_length, const map<string, string> &superatom, bool verbose)
 {
   molecule_statistics_t molecule_statistics;
+
   #pragma omp critical
   {
     OBMol mol;
-    create_molecule(mol, atom, bond, n_bond, avg_bond_length, molecule_statistics, false, NULL, superatom);
+    create_molecule(mol, atom, bond, n_bond, avg_bond_length, molecule_statistics, false, NULL, superatom, false);
     mol.Clear();
   }
+
+  if (verbose)
+    cout << "Molecule fragments: " << molecule_statistics.fragments << '.' << endl;
+
   return molecule_statistics;
 }
 
 const string get_formatted_structure(vector<atom_t> &atom, const vector<bond_t> &bond, int n_bond, const string &format, const string &embedded_format, molecule_statistics_t &molecule_statistics,
                                      double &confidence, bool show_confidence, double avg_bond_length, double scaled_avg_bond_length, bool show_avg_bond_length, const int * const resolution,
                                      const int * const page, const box_t * const surrounding_box,
-                                     const map<string, string> &superatom)
+                                     const map<string, string> &superatom, bool verbose)
 {
   ostringstream strstr;
   #pragma omp critical
   {
     OBMol mol;
-    create_molecule(mol, atom, bond, n_bond, avg_bond_length, molecule_statistics, format == "sdf", &confidence, superatom);
+    create_molecule(mol, atom, bond, n_bond, avg_bond_length, molecule_statistics, format == "sdf", &confidence, superatom, verbose);
 
     // Add hydrogens to the entire molecule to fill out implicit valence spots:
     mol.AddHydrogens(true, false); // polarOnly, correctForPh
@@ -505,10 +422,11 @@ const string get_formatted_structure(vector<atom_t> &atom, const vector<bond_t> 
     mol.FindChiralCenters();
 
     // Clear any indication of 2D "wedge" notation:
-    for (unsigned int j = 0; j <= mol.NumBonds(); j++)
+    OBBondIterator bond_iter;
+
+    for (OBBond *b = mol.BeginBond(bond_iter); b; b = mol.NextBond(bond_iter))
       {
-        OBBond *b = mol.GetBond(j);
-        if (b != NULL && !b->GetBeginAtom()->IsChiral() && !b->GetEndAtom()->IsChiral())
+        if (!b->GetBeginAtom()->IsChiral() && !b->GetEndAtom()->IsChiral())
           {
             //b->UnsetHash();
             b->UnsetWedge();
@@ -574,8 +492,9 @@ const string get_formatted_structure(vector<atom_t> &atom, const vector<bond_t> 
 
     if (!embedded_format.empty())
       {
-        OBConversion conv;
         string value;
+
+        OBConversion conv;
 
         conv.SetOutFormat(embedded_format.c_str());
 
@@ -621,12 +540,16 @@ const string get_formatted_structure(vector<atom_t> &atom, const vector<bond_t> 
         if (page)
           strstr << " " << *page;
         if (surrounding_box)
-          strstr << " "<<surrounding_box->x1 << 'x' << surrounding_box->y1 << '-' << surrounding_box->x2 << 'x' << surrounding_box->y2;
+          strstr << " "<< surrounding_box->x1 << 'x' << surrounding_box->y1 << '-' << surrounding_box->x2 << 'x' << surrounding_box->y2;
       }
 
     strstr << endl;
 
     mol.Clear();
   }
+
+  if (verbose)
+    cout << "Structure length: " << strstr.str().length() << ", molecule fragments: " << molecule_statistics.fragments << '.' << endl;
+
   return (strstr.str());
 }

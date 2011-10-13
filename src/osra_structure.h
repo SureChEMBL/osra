@@ -249,11 +249,12 @@ int find_small_bonds(const potrace_path_t *p, vector<atom_t> &atom, vector<bond_
 // thickness - bond thickness
 // avg_bond_length - average bond length
 // supertatom - superatom dictionary map
+// verbose - print debug info
 //
 // Returns:
 // The number of fragments
 int resolve_bridge_bonds(vector<atom_t> &atom, int n_atom, vector<bond_t> &bond, int n_bond, double thickness,
-                         double avg_bond_length, const map<string, string> &superatom);
+                         double avg_bond_length, const map<string, string> &superatom, bool verbose);
 
 // Function: collapse_atoms()
 //

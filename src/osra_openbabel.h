@@ -38,8 +38,6 @@ using namespace std;
 //
 
 
-
-
 //struct: molecule_statistics_s
 //      contains the statistical information about molecule used for analysis of recognition accuracy
 struct molecule_statistics_s
@@ -80,11 +78,12 @@ typedef struct molecule_statistics_s molecule_statistics_t;
 //      n_bond - total number of bonds
 //      avg_bond_length - average bond length as measured from the image (to be included into output if provided)
 //      superatom - dictionary of superatom labels mapped to SMILES
+//      verbose - print debug info
 //
 //  Returns:
 //      calculated molecule statistics
 molecule_statistics_t caclulate_molecule_statistics(vector<atom_t> &atom, const vector<bond_t> &bond, int n_bond,
-    double avg_bond_length, const map<string, string> &superatom);
+    double avg_bond_length, const map<string, string> &superatom, bool verbose);
 
 // Function: get_formatted_structure()
 //
@@ -107,11 +106,12 @@ molecule_statistics_t caclulate_molecule_statistics(vector<atom_t> &atom, const 
 //      page - page number (to be included into output if provided)
 //      surrounding_box - the coordinates of surrounding image box that contains the structure (to be included into output if provided)
 //      superatom - dictionary of superatom labels mapped to SMILES
+//      verbose - print debug info
 //
 //  Returns:
 //      string containing SMILES, SDF or other representation of the molecule
 const string get_formatted_structure(vector<atom_t> &atom, const vector<bond_t> &bond, int n_bond, const string &format, const string &second_format, molecule_statistics_t &molecule_statistics,
                                      double &confidence, bool show_confidence, double avg_bond_length, double scaled_avg_bond_length, bool show_avg_bond_length, const int * const resolution,
-                                     const int * const page, const box_t * const surrounding_box, const map<string, string> &superatom);
+                                     const int * const page, const box_t * const surrounding_box, const map<string, string> &superatom, bool verbose);
 
 #endif

@@ -513,9 +513,8 @@ AX_TRY_LINK([openbabel], [
 	mol.GetBond(0);
 	mol.GetFirstAtom();
 	mol.GetSSSR();
-	mol.AddAtom(atom);
+	mol.NewAtom();
 	mol.AddBond(0, 0, 0, 0);
-	mol.CreateAtom();
 	mol.AssignSpinMultiplicity(false);
 	mol.SetDimension(0);
 	mol.SetData(&label);
@@ -528,7 +527,7 @@ AX_TRY_LINK([openbabel], [
 	mol.EndModify();
 	mol.FindRingAtomsAndBonds();
 
-	bond.GetBO();
+	bond.GetBondOrder();
 	bond.GetFlags();
 	bond.SetBondOrder(0);
 	bond.IsInRing();

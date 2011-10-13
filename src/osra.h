@@ -28,7 +28,7 @@
 #define OSRA_H
 
 #include <string> // std:string
-#include <vector>
+#include <vector> // std::vector
 
 #include <Magick++.h> // Magick::Image, Magick::ColorGray
 
@@ -74,7 +74,7 @@ typedef struct atom_s atom_t;
 struct bond_s
 {
   // ints: a, b, type
-  //    starting atom, ending atom, bond type (single/doouble/triple)
+  //    starting atom, ending atom, bond type (1=single, 2=double, 3=triple)
   int a, b, type;
   // pointer: curve
   //    pointer to the curve found by Potrace
@@ -176,7 +176,13 @@ typedef struct bond_s bond_t;
 #define ERROR_SPELLING_FILE_IS_MISSING          -1
 #define ERROR_SUPERATOM_FILE_IS_MISSING         -2
 #define ERROR_OUTPUT_FILE_OPEN_FAILED           -3
+// This error code may be returned, if ImageMagic was not able to find the .mgk files.
+// Check that MAGICK_CONFIGURE_PATH points to the location of *.mgk configuration files (check here http://www.imagemagick.org/script/resources.php).
 #define ERROR_UNKNOWN_IMAGE_TYPE                -4
 #define ERROR_ILLEGAL_ARGUMENT_COMBINATION      -5
+// This error code usually means:
+// (a) You have no /usr/lib/openbabel/x.x.x/smilesformat.so library installed. Install the format libraries / check http://openbabel.org/docs/dev/Installation/install.html#environment-variables
+// (b) The format libraries are installed, but do not correspond to /usr/lib/libopenbabel.so.y.y.y. Check they correspond to the same OpenBabel version.
+#define ERROR_UNKNOWN_OPENBABEL_FORMAT          -6
 
 #endif
