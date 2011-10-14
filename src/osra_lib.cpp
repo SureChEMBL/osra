@@ -116,7 +116,7 @@ int load_superatom_spelling_maps(map<string, string> &spelling,map<string, strin
 }
 
 void create_thick_box(Image &orig_box,Image &thick_box,int &width,int &height,int &resolution,int &working_resolution,double &box_scale,
-                      ColorGray bgColor, double THRESHOLD_BOND, int res_iter, bool thick, bool jaggy)
+                      ColorGray bgColor, double THRESHOLD_BOND, int res_iter, bool &thick, bool jaggy)
 {
   if (resolution >= 300)
     {
