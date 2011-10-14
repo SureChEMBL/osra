@@ -685,7 +685,6 @@ with_ocrad_lib
 with_tesseract_include
 with_tesseract
 with_tesseract_lib
-with_cuneiform_source
 with_cuneiform_include
 with_cuneiform
 with_cuneiform_lib
@@ -1370,7 +1369,6 @@ Optional Packages:
                           http://code.google.com/p/tesseract-ocr/ (optional)
                           (default: "auto")
   --with-tesseract-lib    custom location of the library
-  --with-cuneiform-source Location of cuneiform library source files
   --with-cuneiform-include
                           Location of cuneiform.h header file
   --with-cuneiform        Enable optional support for Cuneiform (OCR system
@@ -4096,7 +4094,7 @@ if test "${enable_java}" == "yes"; then :
 
 	if test -n "${JAVA_HOME}"; then :
 
-		CPPFLAGS="-I${JAVA_HOME}/include -I${JAVA_HOME}/include/linux ${CPPFLAGS}"
+		CPPFLAGS="-I${JAVA_HOME}/include -I${JAVA_HOME}/include/linux -I${JAVA_HOME}/include/win32 ${CPPFLAGS}"
 
 fi
 	ac_fn_cxx_check_header_mongrel "$LINENO" "jni.h" "ac_cv_header_jni_h" "$ac_includes_default"
@@ -5063,13 +5061,6 @@ fi
 
 fi
 
-
-
-# Check whether --with-cuneiform-source was given.
-if test "${with_cuneiform_source+set}" = set; then :
-  withval=$with_cuneiform_source; CPPFLAGS="-I${withval}/cuneiform_src/Kern/hhh/ -I${withval}/cuneiform_src/Kern/h/ -I${withval}/cuneiform_src/Kern/hrk/ -I${withval}/cuneiform_src/Kern/puma/h/ -I${withval}/cuneiform_src/Kern/include/ -I${withval}/cuneiform_src/Kern/hdebug/ ${CPPFLAGS}"
-
-fi
 
 
 
@@ -6797,9 +6788,8 @@ main ()
 	mol.GetBond(0);
 	mol.GetFirstAtom();
 	mol.GetSSSR();
-	mol.AddAtom(atom);
+	mol.NewAtom();
 	mol.AddBond(0, 0, 0, 0);
-	mol.CreateAtom();
 	mol.AssignSpinMultiplicity(false);
 	mol.SetDimension(0);
 	mol.SetData(&label);
@@ -6812,7 +6802,7 @@ main ()
 	mol.EndModify();
 	mol.FindRingAtomsAndBonds();
 
-	bond.GetBO();
+	bond.GetBondOrder();
 	bond.GetFlags();
 	bond.SetBondOrder(0);
 	bond.IsInRing();
@@ -6907,9 +6897,8 @@ main ()
 	mol.GetBond(0);
 	mol.GetFirstAtom();
 	mol.GetSSSR();
-	mol.AddAtom(atom);
+	mol.NewAtom();
 	mol.AddBond(0, 0, 0, 0);
-	mol.CreateAtom();
 	mol.AssignSpinMultiplicity(false);
 	mol.SetDimension(0);
 	mol.SetData(&label);
@@ -6922,7 +6911,7 @@ main ()
 	mol.EndModify();
 	mol.FindRingAtomsAndBonds();
 
-	bond.GetBO();
+	bond.GetBondOrder();
 	bond.GetFlags();
 	bond.SetBondOrder(0);
 	bond.IsInRing();
@@ -7070,7 +7059,6 @@ fi
 fi
 
 	CPPFLAGS="`${GRAPHICS_MAGICK_CONFIG} --cppflags` ${CPPFLAGS}"
-	LDFLAGS="`${GRAPHICS_MAGICK_CONFIG} --ldflags` ${LDFLAGS}"
 
 	if test "${enable_static_linking:+set}" == "set"; then :
 
@@ -7747,7 +7735,7 @@ resolved_datadir=$resolved_datadir
 
 ac_config_headers="$ac_config_headers src/config.h"
 
-ac_config_files="$ac_config_files Makefile Makefile.inc doc/manual.sgml package/linux/osra.pc package/linux/debian/control package/linux/debian/rules package/linux/suse/osra.spec package/maven/pom.xml"
+ac_config_files="$ac_config_files Makefile Makefile.inc doc/manual.sgml package/linux/osra.pc package/linux/debian/control package/linux/debian/rules package/linux/suse/osra.spec pom.xml"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -8447,7 +8435,7 @@ do
     "package/linux/debian/control") CONFIG_FILES="$CONFIG_FILES package/linux/debian/control" ;;
     "package/linux/debian/rules") CONFIG_FILES="$CONFIG_FILES package/linux/debian/rules" ;;
     "package/linux/suse/osra.spec") CONFIG_FILES="$CONFIG_FILES package/linux/suse/osra.spec" ;;
-    "package/maven/pom.xml") CONFIG_FILES="$CONFIG_FILES package/maven/pom.xml" ;;
+    "pom.xml") CONFIG_FILES="$CONFIG_FILES pom.xml" ;;
 
   *) as_fn_error $? "invalid argument: \`$ac_config_target'" "$LINENO" 5 ;;
   esac
