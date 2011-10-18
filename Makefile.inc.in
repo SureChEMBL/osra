@@ -50,7 +50,7 @@ CXXFLAGS		:= @CXXFLAGS@
 CPPFLAGS		:= @CPPFLAGS@
 LDFLAGS			:= @LDFLAGS@
 # Important that this variable is re-evaluated each time when used: 
-LDSHAREDFLAGS	= @LDSHAREDFLAGS@
+LDSHAREDFLAGS		= @LDSHAREDFLAGS@
 
 EXEEXT			:= @EXEEXT@
 SHAREDEXT		:= @SHAREDEXT@

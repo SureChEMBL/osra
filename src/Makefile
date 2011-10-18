@@ -72,7 +72,7 @@ endif
 ifdef OSRA_JAVA
 libosra_java$(SHAREDEXT): CXXFLAGS += -fPIC -DOSRA_LIB -DOSRA_JAVA
 libosra_java$(SHAREDEXT): $(OBJ_JAVA)
-	$(LINK.cpp) -Wl,--kill-at $(LDSHAREDFLAGS) -o $@ $(OBJ_JAVA) $(LIBS)
+	$(LINK.cpp) $(LDSHAREDFLAGS) -o $@ $(OBJ_JAVA) $(LIBS)
 endif
 
 ifdef OSRA_ANDROID

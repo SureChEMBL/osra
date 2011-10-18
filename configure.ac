@@ -14,7 +14,9 @@ dnl
 dnl Library version. If library ABI changes, increase the major number.
 dnl
 
+dnl Increment if interfaces have been added, removed or changed:
 AC_SUBST([LIB_MAJOR_VERSION], [0])
+dnl Increment if source code has changed:
 AC_SUBST([LIB_MINOR_VERSION], [0])
 
 dnl
@@ -118,8 +120,8 @@ AC_ARG_ENABLE(
 	[profiling],
 	[AC_HELP_STRING([--enable-profiling], [Include verbose profiling/debugging information into the binary])],
 	[
-		LDFLAGS="${LDFLAGS} -pg"
-		CXXFLAGS="${CXXFLAGS} -Wall -g3 -pg"
+		LDFLAGS="-pg ${LDFLAGS}"
+		CXXFLAGS="-Wall -g3 -pg ${CXXFLAGS}"
 	],
 	[INSTALL_PROGRAM="${INSTALL_PROGRAM} -s"]
 )
@@ -153,9 +155,18 @@ AS_IF([test "${enable_java}" == "yes"], [
 	AS_IF([test -n "${JAVA_HOME}"], [
 		CPPFLAGS="-I${JAVA_HOME}/include -I${JAVA_HOME}/include/linux -I${JAVA_HOME}/include/win32 ${CPPFLAGS}"
 	])
+
+	dnl Fix for jlong definition in jni.h on Windows
+	AS_CASE(["$build_os"],
+		[cygwin | mingw], [
+			AC_DEFINE([__int64], [long long])
+		]
+	)
+
 	AC_CHECK_HEADER([jni.h], [
 		AC_TRY_COMPILE([
 			#include <stddef.h>
+			
 			#include <jni.h>
 		], [
 			JNIEnv *j_env;
@@ -236,12 +247,6 @@ AX_PROBE_OPTIONAL_LIBRARY(
 )
 
 dnl cuneiform library (optional)
-
-dnl AC_ARG_WITH(
-dnl	[cuneiform-source],
-dnl	[AC_HELP_STRING([--with-cuneiform-source], [Location of cuneiform library source files])],
-dnl	[CPPFLAGS="-I${withval}/cuneiform_src/Kern/hhh/ -I${withval}/cuneiform_src/Kern/h/ -I${withval}/cuneiform_src/Kern/hrk/ -I${withval}/cuneiform_src/Kern/puma/h/ -I${withval}/cuneiform_src/Kern/include/ -I${withval}/cuneiform_src/Kern/hdebug/ ${CPPFLAGS}"]
-dnl)	
 
 AC_ARG_WITH(
 	[cuneiform-include],
@@ -588,14 +593,14 @@ AS_IF([test "${enable_graphicsmagick_config:+set}" != "set"], [
 	])
 ])
 
-_AS_ECHO_LOG([CPPFLAGS="${CPPFLAGS}" LDFLAGS="${LDFLAGS}" LIBS="${LIBS}" after populated with GraphicsMagick++-config])
+_AS_ECHO_LOG([CPPFLAGS="${CPPFLAGS}" LIBS="${LIBS}" after populated with GraphicsMagick++-config])
 
 dnl We cannot move this check to the top, because includes for GraphicsMagick are defined only at this point:
 
 AX_PROBE_OBLIGATORY_LIBRARY(
 	[graphicsmagick],
 	[Magick++.h],
-	[],
+	[/usr/include/GraphicsMagick /usr/local/include/GraphicsMagick],
 	[custom location of Magick++.h from GraphicsMagick (image manipulation library), see http://www.graphicsmagick.org/]
 )
 
@@ -678,7 +683,7 @@ dnl
 dnl Generate Makefile, config.h, etc
 dnl
 
-dnl Compute the library version from the package version:
+dnl Compute the library patch version from the package version:
 AC_SUBST([LIB_PATCH_VERSION], [`echo ${PACKAGE_VERSION} | perl -ne '/(\d+)\.(\d+)\.(\d+)/ || die; printf "%d%02d%02d", $1, $2, $3;'`])
 
 AS_CASE(["$build_os"],
@@ -687,7 +692,7 @@ AS_CASE(["$build_os"],
 		AC_SUBST([SHAREDEXT], [.dylib])
 	],
 	[cygwin | mingw], [
-		AC_SUBST([LDSHAREDFLAGS], ['-shared -Wl,--out-implib,$@.a'])
+		AC_SUBST([LDSHAREDFLAGS], ['-shared -Wl,--kill-at -Wl,--out-implib,$@.a'])
 		AC_SUBST([SHAREDEXT], [.dll])
 	],
 	[*], [
