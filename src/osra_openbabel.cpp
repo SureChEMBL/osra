@@ -28,9 +28,10 @@
 #include <sstream> // std:ostringstream
 #include <iostream> // std::cerr
 
-#include "osra_common.h"
+#include "osra_common.h" // trim()
 #include "osra_openbabel.h"
 #include "osra.h"
+#include "osra_stl.h"
 #include "mcdlutil.h"
 
 using namespace OpenBabel;
@@ -44,6 +45,11 @@ using namespace OpenBabel;
 #define BROMINE_ATOMIC_NUM      35
 #define IODINE_ATOMIC_NUM       53
 
+// Look at this issue: https://sourceforge.net/tracker/?func=detail&aid=3425216&group_id=40728&atid=428740
+#define AROMATIC_BOND_ORDER     5
+
+#define NO_BONDS                -1
+
 // Function: create_atom()
 //
 // For the atom represented by its OCR'ed label create a new atom in the given molecule.
@@ -56,7 +62,8 @@ using namespace OpenBabel;
 //      verbose - print debug information
 //
 // Returns:
-//      0 in case when no bonds have been added to molecule or the index of the first added bond
+//      NO_BONDS in case when no bonds have been added to molecule
+//               or the index of the first added bond (zero-based) from which to calculate the coordinates
 //      
 int create_atom(OBMol &mol, atom_t &atom, double scale, const map<string, string> &superatom, bool verbose)
 {
@@ -82,7 +89,7 @@ int create_atom(OBMol &mol, atom_t &atom, double scale, const map<string, string
 
           if (verbose)
             cout << "Considering superatom " << atom.label << "->" << smiles_superatom <<
-                    " vector: " << atom.x * scale << "x" << -atom.y * scale << endl;
+                    " vector: " << atom.x * scale << "x" << -atom.y * scale << '.' << endl;
 
           // This is the index of first atom in superatom in molecule:
           atom.n = mol.NumAtoms() + 1;
@@ -90,15 +97,15 @@ int create_atom(OBMol &mol, atom_t &atom, double scale, const map<string, string
           OBAtomIterator atom_iter;
 
           // Transfer all atoms from "superatom" molecule to current molecule.
-          for (OBAtom *atom = superatom_mol.BeginAtom(atom_iter); atom; atom = superatom_mol.NextAtom(atom_iter))
+          for (OBAtom *a = superatom_mol.BeginAtom(atom_iter); a; a = superatom_mol.NextAtom(atom_iter))
             {
               if (verbose)
-                cout << "Adding atom #" << mol.NumAtoms() + 1 << ", anum: " << atom->GetAtomicNum() << endl;
+                cout << "Adding atom #" << mol.NumAtoms() + 1 << ", anum: " << a->GetAtomicNum() << endl;
 
-              OBAtom *a = mol.NewAtom();
+              OBAtom *new_atom = mol.NewAtom();
 
-              a->SetAtomicNum(atom->GetAtomicNum());
-              a->SetFormalCharge(atom->GetFormalCharge());
+              new_atom->SetAtomicNum(a->GetAtomicNum());
+              new_atom->SetFormalCharge(a->GetFormalCharge());
             }
 
           // Correct first atom meta-info:
@@ -122,18 +129,18 @@ int create_atom(OBMol &mol, atom_t &atom, double scale, const map<string, string
           OBBondIterator bond_iter;
 
           // Transfer all bonds from "superatom" molecule to current molecule:
-          for (OBBond *bond = superatom_mol.BeginBond(bond_iter); bond; bond = superatom_mol.NextBond(bond_iter))
+          for (OBBond *b = superatom_mol.BeginBond(bond_iter); b; b = superatom_mol.NextBond(bond_iter))
             {
               if (verbose)
-                cout << "Adding bond #" << mol.NumBonds() << " " << bond->GetBeginAtomIdx() + atom.n - 1 << "->"
-                     << bond->GetEndAtomIdx() + atom.n - 1 << ", flags: " << bond->GetFlags() << endl;
+                cout << "Adding bond #" << mol.NumBonds() << " " << b->GetBeginAtomIdx() + atom.n - 1 << "->" << b->GetEndAtomIdx() + atom.n - 1
+                     << ", order: " << b->GetBondOrder() << ", flags: " << b->GetFlags() << '.' << endl;
 
-              mol.AddBond(bond->GetBeginAtomIdx() + atom.n - 1, bond->GetEndAtomIdx() + atom.n - 1,
-                          bond->GetBondOrder(), bond->GetFlags());
+              mol.AddBond(b->GetBeginAtomIdx() + atom.n - 1, b->GetEndAtomIdx() + atom.n - 1,
+                          b->GetBondOrder(), b->GetFlags());
             }
 
           // Return the first bond index if at least one bond was added:
-          return first_bond_index == mol.NumBonds() ? 0 : first_bond_index;
+          return first_bond_index == mol.NumBonds() ? NO_BONDS : first_bond_index;
         }
 
       // If not found, lookup the atom number in periodic table of elements:
@@ -143,7 +150,7 @@ int create_atom(OBMol &mol, atom_t &atom, double scale, const map<string, string
   atom.n = mol.NumAtoms() + 1;
 
   if (verbose)
-    cout << "Creating atom #" << atom.n << " \"" << atom.label << "\", anum: " << atom.anum << endl;
+    cout << "Creating atom #" << atom.n << " \"" << atom.label << "\", anum: " << atom.anum << '.' << endl;
 
   OBAtom *a = mol.NewAtom();
 
@@ -162,7 +169,7 @@ int create_atom(OBMol &mol, atom_t &atom, double scale, const map<string, string
       a->SetData(ad);
     }
 
-  return 0;
+  return NO_BONDS;
 }
 
 // Function: confidence_function()
@@ -235,18 +242,19 @@ void create_molecule(OBMol &mol, vector<atom_t> &atom, const vector<bond_t> &bon
         for (int j = 0; j < 2; j++)
           if (bond_atoms[j]->n == 0)
             {
-              if (create_atom(mol, *bond_atoms[j], scale, superatom, verbose) > 0)
+              int bond_index;
+              if ((bond_index = create_atom(mol, *bond_atoms[j], scale, superatom, verbose)) != NO_BONDS)
                 {
                   atomN.push_back(bond_atoms[j]->n);
-                  bondN.push_back(mol.NumBonds());
+                  bondN.push_back(bond_index);
                 }
             }
 
         if (bond[i].hash)
           {
             if (verbose)
-              cout << "Creating bond #" << mol.NumBonds() << " " << atom[bond[i].a].n << "<->"
-                   << atom[bond[i].b].n << ", flags: " << OB_HASH_BOND << endl;
+              cout << "Creating hash bond #" << mol.NumBonds() << " " << atom[bond[i].a].n << "<->"
+                   << atom[bond[i].b].n << ", order: " << bond[i].type << ", flags: " << OB_HASH_BOND << '.' << endl;
 
             if (atom[bond[i].a].anum == OXYGEN_ATOMIC_NUM || atom[bond[i].a].anum == HYDROGEN_ATOMIC_NUM || atom[bond[i].a].anum == FLUORINE_ATOMIC_NUM
                 || atom[bond[i].a].anum == IODINE_ATOMIC_NUM || atom[bond[i].a].anum == CHLORINE_ATOMIC_NUM || atom[bond[i].a].anum == BROMINE_ATOMIC_NUM
@@ -255,13 +263,19 @@ void create_molecule(OBMol &mol, vector<atom_t> &atom, const vector<bond_t> &bon
             else
               mol.AddBond(atom[bond[i].a].n, atom[bond[i].b].n, bond[i].type, OB_HASH_BOND);
           }
+        if (bond[i].arom)
+          {
+            if (verbose)
+              cout << "Creating aromatic bond #" << mol.NumBonds() << " " << atom[bond[i].a].n << "->"
+                   << atom[bond[i].b].n << ", order: " << AROMATIC_BOND_ORDER << '.' << endl;
+
+            mol.AddBond(atom[bond[i].a].n, atom[bond[i].b].n, AROMATIC_BOND_ORDER);
+          }
         else
           {
             int bond_flags = 0;
 
-            if (bond[i].arom)
-              bond_flags = OB_AROMATIC_BOND;
-            else if (bond[i].wedge)
+            if (bond[i].wedge)
               bond_flags = OB_WEDGE_BOND;
             else if (bond[i].up)
               bond_flags = OB_TORUP_BOND;
@@ -270,7 +284,7 @@ void create_molecule(OBMol &mol, vector<atom_t> &atom, const vector<bond_t> &bon
 
             if (verbose)
               cout << "Creating bond #" << mol.NumBonds() << " " << atom[bond[i].a].n << "->"
-                   << atom[bond[i].b].n << ", flags: " << bond_flags << endl;
+                   << atom[bond[i].b].n << ", type: " << bond[i].type << ", flags: " << bond_flags << '.' << endl;
 
             mol.AddBond(atom[bond[i].a].n, atom[bond[i].b].n, bond[i].type, bond_flags);
           }
