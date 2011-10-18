@@ -48,8 +48,6 @@ using namespace OpenBabel;
 // Look at this issue: https://sourceforge.net/tracker/?func=detail&aid=3425216&group_id=40728&atid=428740
 #define AROMATIC_BOND_ORDER     5
 
-#define NO_BONDS                -1
-
 // Function: create_atom()
 //
 // For the atom represented by its OCR'ed label create a new atom in the given molecule.
@@ -62,10 +60,9 @@ using namespace OpenBabel;
 //      verbose - print debug information
 //
 // Returns:
-//      NO_BONDS in case when no bonds have been added to molecule
-//               or the index of the first added bond (zero-based) from which to calculate the coordinates
+//      true in case the given atom is superatom
 //      
-int create_atom(OBMol &mol, atom_t &atom, double scale, const map<string, string> &superatom, bool verbose)
+bool create_atom(OBMol &mol, atom_t &atom, double scale, const map<string, string> &superatom, bool verbose)
 {
   if (atom.label.empty() || atom.label == " ")
     {
@@ -139,8 +136,8 @@ int create_atom(OBMol &mol, atom_t &atom, double scale, const map<string, string
                           b->GetBondOrder(), b->GetFlags());
             }
 
-          // Return the first bond index if at least one bond was added:
-          return first_bond_index == mol.NumBonds() ? NO_BONDS : first_bond_index;
+          // If at least one bond was added, the "superatom" coordinates should be recalculated:
+          return first_bond_index != mol.NumBonds();
         }
 
       // If not found, lookup the atom number in periodic table of elements:
@@ -169,7 +166,7 @@ int create_atom(OBMol &mol, atom_t &atom, double scale, const map<string, string
       a->SetData(ad);
     }
 
-  return NO_BONDS;
+  return false;
 }
 
 // Function: confidence_function()
@@ -229,7 +226,8 @@ void create_molecule(OBMol &mol, vector<atom_t> &atom, const vector<bond_t> &bon
 {
   string str;
   double scale = CC_BOND_LENGTH / avg_bond_length;
-  vector<int> atomN, bondN;
+  // The indexes of "superatoms" and the bonds, that connect these superatoms to the molecule:
+  vector<int> super_atoms, super_bonds;
   int anum;
 
   mol.SetDimension(2);
@@ -242,11 +240,11 @@ void create_molecule(OBMol &mol, vector<atom_t> &atom, const vector<bond_t> &bon
         for (int j = 0; j < 2; j++)
           if (bond_atoms[j]->n == 0)
             {
-              int bond_index;
-              if ((bond_index = create_atom(mol, *bond_atoms[j], scale, superatom, verbose)) != NO_BONDS)
+              if (create_atom(mol, *bond_atoms[j], scale, superatom, verbose))
                 {
-                  atomN.push_back(bond_atoms[j]->n);
-                  bondN.push_back(bond_index);
+                  super_atoms.push_back(bond_atoms[j]->n);
+                  // The current bond (next to be added) connects the super atom (bond_atoms[j]) with the molecule:
+                  super_bonds.push_back(mol.NumBonds());
                 }
             }
 
@@ -392,12 +390,12 @@ void create_molecule(OBMol &mol, vector<atom_t> &atom, const vector<bond_t> &bon
 
   if (generate_2D_coordinates)
     {
-      if (verbose && !atomN.empty())
-        cout << "Generating 2D coordinates for atoms " << atomN << " and bonds " << bondN << endl;
+      if (verbose && !super_atoms.empty())
+        cout << "Generating 2D coordinates for atoms " << super_atoms << " and bonds " << super_bonds << endl;
 
-      for (unsigned int i = 0; i < atomN.size(); i++)
+      for (unsigned int i = 0; i < super_atoms.size(); i++)
         {
-          groupRedraw(&mol, bondN[i], atomN[i], true);
+          groupRedraw(&mol, super_bonds[i], super_atoms[i], true);
         }
     }
 }
