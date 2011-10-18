@@ -33,7 +33,6 @@ extern "C" {
 #include "osra_segment.h"
 
 #include <vector> // std::vector
-#include <iostream> // std::ostream
 
 // Defines necessary for potrace vectorization functions
 #define BM_WORDSIZE ((int)sizeof(potrace_word))
@@ -320,26 +319,3 @@ bool load_config_map(const string &file, map<string, string> &out);
 // True if box aa is higher or to the left of box bb.
 // False otherwise
 bool comp_boxes(const box_t &aa, const box_t &bb);
-
-// Function: operator<<()
-//
-// Helper template method to print vectors.
-namespace std
-{
-  template <class T>
-  std::ostream& operator<<(std::ostream &os, const std::vector<T> &v)
-  {
-    os << '[';
-    if (!v.empty())
-      {
-        typedef typename std::vector<T>::const_iterator const_iterator;
-
-        const_iterator last = v.end();
-        std::copy(v.begin(), --last, std::ostream_iterator<T>(os, ", "));
-        os << *last;
-      }
-    os << ']';
-
-    return os;
-  }
-}

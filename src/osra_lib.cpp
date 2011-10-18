@@ -54,6 +54,7 @@ extern "C" {
 #include "osra_ocr.h"
 #include "osra_openbabel.h"
 #include "osra_anisotropic.h"
+#include "osra_stl.h"
 #include "unpaper.h"
 #include "config.h" // DATA_DIR
 
@@ -316,7 +317,7 @@ void split_fragments_and_assemble_structure_record(vector<atom_t> &atom,int n_at
               coordinate_box.y2 = (int) ((double) page_scale * boxes[k].y1 + (double) page_scale * box_scale * fragments[i].y2);
 
               if (verbose)
-                cout << "Coordinate box: " << " " << coordinate_box.x1 << "x" << coordinate_box.y1 << "-" << coordinate_box.x2 << "x"
+                cout << "Coordinate box: " << coordinate_box.x1 << "x" << coordinate_box.y1 << "-" << coordinate_box.x2 << "x"
                      << coordinate_box.y2 << "." << endl;
 
               string structure =
@@ -657,7 +658,7 @@ int osra_process_image(
                                        THRESHOLD_BOND, max_font_width, max_font_height, real_font_width, real_font_height,verbose);
 
                 if (verbose)
-                  cout << "Number of atoms: " << n_atom << ", bonds: " << n_bond << ", chars: " << n_letters << " after find_atoms()" << endl;
+                  cout << "Number of atoms: " << n_atom << ", bonds: " << n_bond << ", " << n_letters << " letters: " << n_letters << " " << letters << " after find_atoms()" << endl;
 
                 double avg_bond_length = percentile75(bond, n_bond, atom);
 
@@ -673,7 +674,7 @@ int osra_process_image(
                 find_old_aromatic_bonds(p, bond, n_bond, atom, n_atom, avg_bond_length);
 
                 if (verbose)
-                  cout << "Number of atoms: " << n_atom << ", bonds: " << n_bond << ", chars: " << n_letters << " after find_old_aromatic_bonds()" << endl;
+                  cout << "Number of atoms: " << n_atom << ", bonds: " << n_bond << ", " << n_letters << "letters: " << letters << " after find_old_aromatic_bonds()" << endl;
 
                 double dist = 3.;
                 if (working_resolution < 150)
@@ -725,6 +726,9 @@ int osra_process_image(
                                              max_dist_double_bond, avg_bond_length, 3, 1);
 
                 n_label = assemble_labels(letters, n_letters, label);
+
+                if (verbose)
+                  cout << n_label << " labels: " << label << " after assemble_labels()" << endl;
 
                 remove_disconnected_atoms(atom, bond, n_atom, n_bond);
 
