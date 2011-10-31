@@ -24,35 +24,42 @@
 
 // Function: operator<<()
 //
-// Helper template method to print letters and labels.
+// Helper template method to print various object types.
 namespace std
 {
-  std::ostream& operator<<(std::ostream &os, const letters_t &letter)
-  {
-    os << "{letter char:" << letter.a << " x:" << letter.x << " y:" << letter.y << " r:" << letter.r << " free:" << letter.free << '}';
+std::ostream& operator<<(std::ostream &os, const letters_t &letter)
+{
+  os << "{letter char:" << letter.a << " x:" << letter.x << " y:" << letter.y << " r:" << letter.r << " free:" << letter.free << '}';
 
-    return os;
-  }
+  return os;
+}
 
-  std::ostream& operator<<(std::ostream &os, const label_t &label)
-  {
-    os << "{label s:" << label.a << " box:" << label.x1 << "x" << label.y1 << "-" << label.x2 << "x" << label.y2 << '}';
+std::ostream& operator<<(std::ostream &os, const label_t &label)
+{
+  os << "{label s:" << label.a << " box:" << label.x1 << "x" << label.y1 << "-" << label.x2 << "x" << label.y2 << '}';
 
-    return os;
-  }
+  return os;
+}
 
-  std::ostream& operator<<(std::ostream &os, const atom_t &atom)
-  {
-    os << "{atom label:" << atom.label << " x:" << atom.x << " y:" << atom.y << " n:" << atom.n << " anum:" << atom.anum << '}';
+std::ostream& operator<<(std::ostream &os, const atom_t &atom)
+{
+  os << "{atom label:" << atom.label << " x:" << atom.x << " y:" << atom.y << " n:" << atom.n << " anum:" << atom.anum << '}';
 
-    return os;
-  }
+  return os;
+}
 
-  std::ostream& operator<<(std::ostream &os, const bond_t &bond)
-  {
-    os << "{bond a:" << bond.a << " b:" << bond.b << " type:" << bond.type << " exists:" << bond.exists
-       << " arom:" << bond.arom << " hash:" << bond.hash << " wedge:" << bond.wedge << " up:" << bond.up << " down:" << bond.down<< '}';
+std::ostream& operator<<(std::ostream &os, const bond_t &bond)
+{
+  os << "{bond a:" << bond.a << " b:" << bond.b << " type:" << bond.type << " exists:" << bond.exists
+     << " arom:" << bond.arom << " hash:" << bond.hash << " wedge:" << bond.wedge << " up:" << bond.up << " down:" << bond.down<< '}';
 
-    return os;
-  }
+  return os;
+}
+
+std::ostream& operator<<(std::ostream &os, const fragment_t &fragment)
+{
+  os << "{fragment " << fragment.x1 << "x" << fragment.y1 << "-" << fragment.x2 << "x" << fragment.y2 << " atoms.size:" << fragment.atom.size() << '}';
+
+  return os;
+}
 }

@@ -29,34 +29,37 @@
 #include <iostream> // std::ostream
 
 #include "osra_labels.h"
+#include "osra_fragments.h"
 
 // Function: operator<<()
 //
 // Helper template method to print vectors.
 namespace std
 {
-  std::ostream& operator<<(std::ostream &os, const letters_t &letter);
+std::ostream& operator<<(std::ostream &os, const letters_t &letter);
 
-  std::ostream& operator<<(std::ostream &os, const label_t &label);
+std::ostream& operator<<(std::ostream &os, const label_t &label);
 
-  std::ostream& operator<<(std::ostream &os, const atom_t &atom);
+std::ostream& operator<<(std::ostream &os, const atom_t &atom);
 
-  std::ostream& operator<<(std::ostream &os, const bond_t &bond);
+std::ostream& operator<<(std::ostream &os, const bond_t &bond);
 
-  template <class T>
-  std::ostream& operator<<(std::ostream &os, const std::vector<T> &v)
-  {
-    os << '[';
-    if (!v.empty())
-      {
-        typedef typename std::vector<T>::const_iterator const_iterator;
+std::ostream& operator<<(std::ostream &os, const fragment_t &fragment);
 
-        const_iterator last = v.end();
-        std::copy(v.begin(), --last, std::ostream_iterator<T>(os, ", "));
-        os << *last;
-      }
-    os << ']';
+template <class T>
+std::ostream& operator<<(std::ostream &os, const std::vector<T> &v)
+{
+  os << '[';
+  if (!v.empty())
+    {
+      typedef typename std::vector<T>::const_iterator const_iterator;
 
-    return os;
-  }
+      const_iterator last = v.end();
+      std::copy(v.begin(), --last, std::ostream_iterator<T>(os, ", "));
+      os << *last;
+    }
+  os << ']';
+
+  return os;
+}
 }

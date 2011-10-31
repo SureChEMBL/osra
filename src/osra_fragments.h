@@ -24,6 +24,8 @@
 //
 // Declares operations on molecular fragments
 //
+#ifndef OSRA_FRAGMENTS_H
+#define OSRA_FRAGMENTS_H
 
 #include "osra.h"
 
@@ -96,3 +98,5 @@ vector<fragment_t> populate_fragments(const vector<vector<int> > &frags, const v
 // True if fragment aa is higher or to the left of fragment bb.
 // False otherwise.
 bool comp_fragments(const fragment_t &aa, const fragment_t &bb);
+
+#endif // OSRA_FRAGMENTS_H
