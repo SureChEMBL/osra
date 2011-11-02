@@ -8480,7 +8480,8 @@ int  groupRedraw(OBMol * pmol, int bondN, int atomN, bool atomNInGroup)
       dx*=f;
       dy*=f;
 
-      pmol->GetAtom(atomN)->SetVector(sm.getAtom(atomN)->rx+dx,sm.getAtom(atomN)->ry+dy,0.0); // tricky! first atomN in OBMol notation (1...), second - in MCDL notation (0...)
+      // tricky! first atomN in OBMol notation (1...), second - in MCDL notation (0...)
+      pmol->GetAtom(atomN+1)->SetVector(sm.getAtom(atomN)->rx+dx,sm.getAtom(atomN)->ry+dy,0.0);
       result=2;
       return result;
     };
