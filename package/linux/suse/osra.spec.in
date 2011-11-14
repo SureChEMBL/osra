@@ -20,8 +20,8 @@
 %define name		@PACKAGE_NAME@
 %define version		@PACKAGE_VERSION@
 
-%define builddep	glibc-devel, libstdc++45-devel, tclap >= 1.2, potrace-devel >= 1.8, gocr-devel >= 0.49, ocrad-devel >= 0.20, libopenbabel-devel >= 2.2, libGraphicsMagick++-devel >= 1.3.10, docbook-xsl-stylesheets => 1.74.0, libxslt
-%define binarydep	potrace-lib >= 1.8, libopenbabel3 >= 2.2, libGraphicsMagick++3 >= 1.3.10, %{name}-common = %{version}
+%define builddep	glibc-devel, libstdc++45-devel, tclap >= 1.2, potrace-devel >= 1.8, gocr-devel >= 0.49, ocrad-devel >= 0.20, libopenbabel-devel >= 2.2, libGraphicsMagick++-devel >= 1.3.10, cuneiform-devel => 1.1.0, tesseract-devel => 3.00, docbook-xsl-stylesheets => 1.74.0, libxslt
+%define binarydep	potrace-lib >= 1.8, libopenbabel3 >= 2.2, libGraphicsMagick++3 >= 1.3.10, cuneiform => 1.1.0, tesseract => 3.00, %{name}-common = %{version}
 
 Name:			%{name}
 BuildRequires:	%{builddep}
@@ -88,7 +88,7 @@ to develop applications on the top of OSRA.
 %build
 # See http://stackoverflow.com/questions/3113472/how-to-make-an-rpm-spec-that-installs-libraries-to-usr-lib-xor-usr-lib64-based
 # See http://www.rpm.org/api/4.4.2.2/config_macros.html
-%configure --enable-docs --enable-lib --enable-java --datadir=%{_datadir}/%{name} --docdir=%{_datadir}/doc/packages/%{name}
+%configure --enable-docs --enable-lib --enable-java --with-tesseract --with-cuneiform --datadir=%{_datadir}/%{name} --docdir=%{_datadir}/doc/packages/%{name}
 %__make
 
 %install
