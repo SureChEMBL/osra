@@ -91,8 +91,8 @@ install: $(TARGETS)
 ifdef OSRA_LIB
 	$(INSTALL_DIR) $(DESTDIR)$(libdir) $(DESTDIR)$(includedir) $(DESTDIR)$(libdir)/pkgconfig
 	$(INSTALL_PROGRAM) libosra$(SHAREDEXT) $(DESTDIR)$(libdir)/libosra$(SHAREDEXT).$(LIB_VERSION)
-	-$(LN_S) libosra$(SHAREDEXT).$(LIB_VERSION) $(DESTDIR)$(libdir)/libosra$(SHAREDEXT).$(LIB_MAJOR_VERSION)
-	-$(LN_S) libosra$(SHAREDEXT).$(LIB_MAJOR_VERSION) $(DESTDIR)$(libdir)/libosra$(SHAREDEXT)
+	$(LN_S) -f libosra$(SHAREDEXT).$(LIB_VERSION) $(DESTDIR)$(libdir)/libosra$(SHAREDEXT).$(LIB_MAJOR_VERSION)
+	$(LN_S) -f libosra$(SHAREDEXT).$(LIB_MAJOR_VERSION) $(DESTDIR)$(libdir)/libosra$(SHAREDEXT)
 	$(INSTALL_DATA) libosra.a $(DESTDIR)$(libdir)
 	$(INSTALL_DATA) osra_lib.h $(DESTDIR)$(includedir)
 	$(INSTALL_DATA) ../package/linux/osra.pc $(DESTDIR)$(libdir)/pkgconfig
@@ -100,8 +100,8 @@ endif
 ifdef OSRA_JAVA
 	$(INSTALL_DIR) $(DESTDIR)$(libdir)
 	$(INSTALL_PROGRAM) libosra_java$(SHAREDEXT) $(DESTDIR)$(libdir)/libosra_java$(SHAREDEXT).$(LIB_VERSION)
-	-$(LN_S) libosra_java$(SHAREDEXT).$(LIB_VERSION) $(DESTDIR)$(libdir)/libosra_java$(SHAREDEXT).$(LIB_MAJOR_VERSION)
-	-$(LN_S) libosra_java$(SHAREDEXT).$(LIB_MAJOR_VERSION) $(DESTDIR)$(libdir)/libosra_java$(SHAREDEXT)
+	$(LN_S) -f libosra_java$(SHAREDEXT).$(LIB_VERSION) $(DESTDIR)$(libdir)/libosra_java$(SHAREDEXT).$(LIB_MAJOR_VERSION)
+	$(LN_S) -f libosra_java$(SHAREDEXT).$(LIB_MAJOR_VERSION) $(DESTDIR)$(libdir)/libosra_java$(SHAREDEXT)
 endif
 
 # "install" and "make" tools auomatically autodetect the extension for executables, but "rm" needs extension correction.
