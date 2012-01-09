@@ -67,6 +67,14 @@ typedef struct molecule_statistics_s molecule_statistics_t;
 // Section: Functions
 //
 
+// Function: osra_openbabel_init()
+//
+// Performs OpenBabel library engine sanity check. Should be called at e.g. program startup.
+//
+// Returns:
+//      non-zero value in case of error
+int osra_openbabel_init();
+
 // Function: caclulate_molecule_statistics()
 //
 // Converts vectors of atoms and bonds into a molecular object and calculates the molecule statistics.
@@ -80,7 +88,7 @@ typedef struct molecule_statistics_s molecule_statistics_t;
 //      superatom - dictionary of superatom labels mapped to SMILES
 //      verbose - print debug info
 //
-//  Returns:
+// Returns:
 //      calculated molecule statistics
 molecule_statistics_t caclulate_molecule_statistics(vector<atom_t> &atom, const vector<bond_t> &bond, int n_bond,
     double avg_bond_length, const map<string, string> &superatom, bool verbose);

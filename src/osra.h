@@ -183,6 +183,7 @@ typedef struct bond_s bond_t;
 // This error code usually means:
 // (a) You have no /usr/lib/openbabel/x.x.x/smilesformat.so library installed. Install the format libraries / check http://openbabel.org/docs/dev/Installation/install.html#environment-variables
 // (b) The format libraries are installed, but do not correspond to /usr/lib/libopenbabel.so.y.y.y. Check they correspond to the same OpenBabel version.
+// (c) You need to preload OpenBabel e.g. using LD_PRELOAD=/usr/lib/libopenbabel.so
 #define ERROR_UNKNOWN_OPENBABEL_FORMAT          -6
 
 #endif

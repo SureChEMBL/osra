@@ -366,6 +366,8 @@ void split_fragments_and_assemble_structure_record(vector<atom_t> &atom,int n_at
 extern job_t *OCR_JOB;
 extern job_t *JOB;
 
+int global_init_state;
+
 // Function: osra_init()
 //
 // Initialises OSRA library. Should be called at e.g. program startup. This function is automatically called for both SO library and CLI utility.
@@ -377,6 +379,11 @@ void __attribute__ ((constructor)) osra_init()
   MagickLib::InitializeMagick(NULL);
 
   osra_ocr_init();
+
+  global_init_state = osra_openbabel_init();
+
+  if (global_init_state != 0)
+    cerr << "OpenBabel initialization failure." << endl;
 
   srand(1);
 }
@@ -425,6 +432,9 @@ int osra_process_image(
   const string &resize
 )
 {
+  if (global_init_state != 0)
+    return global_init_state;
+
   map<string, string> spelling, superatom;
   int err = load_superatom_spelling_maps(spelling, superatom, osra_dir, spelling_file, superatom_file, verbose);
   if (err != 0) return err;

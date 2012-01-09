@@ -48,6 +48,20 @@ using namespace OpenBabel;
 // Look at this issue: https://sourceforge.net/tracker/?func=detail&aid=3425216&group_id=40728&atid=428740
 #define AROMATIC_BOND_ORDER     5
 
+int osra_openbabel_init()
+{
+  OBConversion conv;
+  OBMol mol;
+
+  conv.SetInFormat("SMI");
+  conv.ReadString(&mol, "[*]");
+
+  if (mol.NumAtoms() == 0)
+    return ERROR_UNKNOWN_OPENBABEL_FORMAT;
+
+  return 0;
+}
+
 // Function: create_atom()
 //
 // For the atom represented by its OCR'ed label create a new atom in the given molecule.
