@@ -416,8 +416,8 @@ int osra_process_image(
   int do_unpaper,
   bool jaggy,
   bool adaptive_option,
-  const string &output_format,
-  const string &embedded_format,
+  string output_format,
+  string embedded_format,
   bool show_confidence,
   bool show_resolution_guess,
   bool show_page,
@@ -434,6 +434,9 @@ int osra_process_image(
 {
   if (global_init_state != 0)
     return global_init_state;
+
+  std::transform(output_format.begin(), output_format.end(), output_format.begin(), ::tolower);
+  std::transform(embedded_format.begin(), embedded_format.end(), embedded_format.begin(), ::tolower);
 
   map<string, string> spelling, superatom;
   int err = load_superatom_spelling_maps(spelling, superatom, osra_dir, spelling_file, superatom_file, verbose);
@@ -501,8 +504,8 @@ int osra_process_image(
 #endif
     }
 
-  if (!embedded_format.empty() && output_format != "sdf" && (embedded_format != "inchi" || embedded_format == "smi"
-      || embedded_format != "can"))
+  if (!embedded_format.empty() && !(output_format == "sdf" && (embedded_format == "inchi" || embedded_format == "smi"
+							       || embedded_format == "can")))
     {
       cerr << "Embedded format option is only possible if output format is SDF and option can have only inchi, smi, or can values." << endl;
       return ERROR_ILLEGAL_ARGUMENT_COMBINATION;
@@ -839,13 +842,13 @@ int osra_process_image(
   ostream &out_stream = outfile.is_open() ? outfile : cout;
 #endif
 
-#ifdef OSRA_ANDROID
+
   // For Andriod version we will find the structure with maximum confidence value, as the common usecase for Andriod is to analyse the
   // image (taken by embedded photo camera) that usually contains just one molecule:
   double max_confidence = -FLT_MAX;
   int l_index = 0;
   int i_index = 0;
-#endif
+
 
   int image_count = 0;
 
@@ -853,16 +856,16 @@ int osra_process_image(
     for (unsigned int i = 0; i < pages_of_structures[l].size(); i++)
       if (pages_of_avg_bonds[l][i] > min_bond && pages_of_avg_bonds[l][i] < max_bond)
         {
-#ifdef OSRA_ANDROID
-          if (pages_of_ind_conf[l][i] > max_confidence)
-            {
-              max_confidence = pages_of_ind_conf[l][i];
-              l_index = l;
-              i_index = i;
-            }
-#else
-          out_stream << pages_of_structures[l][i];
-#endif
+	  if (pages_of_ind_conf[l][i] > max_confidence)
+	    {
+	      max_confidence = pages_of_ind_conf[l][i];
+	      l_index = l;
+	      i_index = i;
+	    }
+	 
+	  if (output_format != "mol")
+	    out_stream << pages_of_structures[l][i];
+
           // Dump this structure into a separate file:
           if (!output_image_file_prefix.empty())
             {
@@ -881,10 +884,10 @@ int osra_process_image(
             }
         }
 
-#ifdef OSRA_ANDROID
   // Output the structure with maximum confidence value:
-  out_stream << pages_of_structures[l_index][i_index];
-#endif
+  if (output_format == "mol")
+    out_stream << pages_of_structures[l_index][i_index];
+
 
   out_stream.flush();
 
