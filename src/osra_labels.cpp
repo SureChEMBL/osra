@@ -374,94 +374,120 @@ int find_chars(const potrace_path_t * p, const Image &orig, vector<letters_t> &l
           int x2 = 0;
           int right = 0;
           int y2 = 0;
+	  int cx,cy;
           for (int i = 0; i < n; i++)
             {
               switch (tag[i])
                 {
                 case POTRACE_CORNER:
-                  if (c[i][1].x < left)
+		  cx = c[i][1].x;
+		  cy = c[i][1].y;
+		  if (cx<0) cx=0;
+		  if (cx>width) cx=width;
+		  if (cy<0) cy=0;
+		  if (cy>height) cy=height;
+
+                  if (cx < left)
                     {
-                      left = int(c[i][1].x);
-                      y1 = int(c[i][1].y);
+                      left = cx;
+                      y1 = cy;
                     }
-                  if (c[i][1].x > right)
+                  if (cx > right)
                     {
-                      right = int(c[i][1].x);
-                      y2 = int(c[i][1].y);
+                      right = cx;
+                      y2 = cy;
                     }
-                  if (c[i][1].y < top)
+                  if (cy < top)
                     {
-                      top = int(c[i][1].y);
-                      x1 = int(c[i][1].x);
+                      top = cy;
+                      x1 = cx;
                     }
-                  if (c[i][1].y > bottom)
+                  if (cy > bottom)
                     {
-                      bottom = int(c[i][1].y);
-                      x2 = int(c[i][1].x);
+                      bottom = cy;
+                      x2 = cx;
                     }
                   break;
                 case POTRACE_CURVETO:
-                  if (c[i][0].x < left)
+		  cx = c[i][0].x;
+		  cy = c[i][0].y;
+		  if (cx<0) cx=0;
+		  if (cx>width) cx=width;
+		  if (cy<0) cy=0;
+		  if (cy>height) cy=height;
+                  if (cx < left)
                     {
-                      left = int(c[i][0].x);
-                      y1 = int(c[i][0].y);
+                      left = cx;
+                      y1 = cy;
                     }
-                  if (c[i][0].x > right)
+                  if (cx > right)
                     {
-                      right = int(c[i][0].x);
-                      y2 = int(c[i][0].y);
+                      right = cx;
+                      y2 = cy;
                     }
-                  if (c[i][0].y < top)
+                  if (cy < top)
                     {
-                      top = int(c[i][0].y);
-                      x1 = int(c[i][0].x);
+                      top = cy;
+                      x1 = cx;
                     }
-                  if (c[i][0].y > bottom)
+                  if (cy > bottom)
                     {
-                      bottom = int(c[i][0].y);
-                      x2 = int(c[i][0].x);
+                      bottom = cy;
+                      x2 = cx;
                     }
-                  if (c[i][1].x < left)
+		  cx = c[i][1].x;
+		  cy = c[i][1].y;
+		  if (cx<0) cx=0;
+		  if (cx>width) cx=width;
+		  if (cy<0) cy=0;
+		  if (cy>height) cy=height;
+                  if (cx < left)
                     {
-                      left = int(c[i][1].x);
-                      y1 = int(c[i][1].y);
+                      left = cx;
+                      y1 = cy;
                     }
-                  if (c[i][1].x > right)
+                  if (cx > right)
                     {
-                      right = int(c[i][1].x);
-                      y2 = int(c[i][1].y);
+                      right = cx;
+                      y2 = cy;
                     }
-                  if (c[i][1].y < top)
+                  if (cy < top)
                     {
-                      top = int(c[i][1].y);
-                      x1 = int(c[i][1].x);
+                      top = cy;
+                      x1 = cx;
                     }
-                  if (c[i][1].y > bottom)
+                  if (cy > bottom)
                     {
-                      bottom = int(c[i][1].y);
-                      x2 = int(c[i][1].x);
+                      bottom = cy;
+                      x2 = cx;
                     }
                   break;
                 }
-              if (c[i][2].x < left)
+	      cx = c[i][2].x;
+	      cy = c[i][2].y;
+	      if (cx<0) cx=0;
+	      if (cx>width) cx=width;
+	      if (cy<0) cy=0;
+	      if (cy>height) cy=height;
+              if (cx < left)
                 {
-                  left = int(c[i][2].x);
-                  y1 = int(c[i][2].y);
+                  left = cx;
+                  y1 = cy;
                 }
-              if (c[i][2].x > right)
+              if (cx > right)
                 {
-                  right = int(c[i][2].x);
-                  y2 = int(c[i][2].y);
+                  right = cx;
+                  y2 = cy;
                 }
-              if (c[i][2].y < top)
+              if (cy < top)
                 {
-                  top = int(c[i][2].y);
-                  x1 = int(c[i][2].x);
+                  top = cy;
+                  x1 = cx;
                 }
-              if (c[i][2].y > bottom)
+              if (cy > bottom)
                 {
-                  bottom = int(c[i][2].y);
-                  x2 = int(c[i][2].x);
+                  bottom = cy;
+                  x2 = cx;
                 }
             }
 
@@ -789,94 +815,119 @@ int find_plus_minus(const potrace_path_t *p, vector<letters_t> &letters, vector<
           int x2 = 0;
           int right = 0;
           int y2 = 0;
+	  int cx,cy;
           for (int i = 0; i < n; i++)
             {
               switch (tag[i])
                 {
                 case POTRACE_CORNER:
-                  if (c[i][1].x < left)
+		  cx = c[i][1].x;
+		  cy = c[i][1].y;
+		  if (cx<0) cx=0;
+		  if (cx>width) cx=width;
+		  if (cy<0) cy=0;
+		  if (cy>height) cy=height;
+                  if (cx < left)
                     {
-                      left = int(c[i][1].x);
-                      y1 = int(c[i][1].y);
+                      left = cx;
+                      y1 = cy;
                     }
-                  if (c[i][1].x > right)
+                  if (cx > right)
                     {
-                      right = int(c[i][1].x);
-                      y2 = int(c[i][1].y);
+                      right = cx;
+                      y2 = cy;
                     }
-                  if (c[i][1].y < top)
+                  if (cy < top)
                     {
-                      top = int(c[i][1].y);
-                      x1 = int(c[i][1].x);
+                      top = cy;
+                      x1 = cx;
                     }
-                  if (c[i][1].y > bottom)
+                  if (cy > bottom)
                     {
-                      bottom = int(c[i][1].y);
-                      x2 = int(c[i][1].x);
+                      bottom = cy;
+                      x2 = cx;
                     }
                   break;
                 case POTRACE_CURVETO:
-                  if (c[i][0].x < left)
+		  cx = c[i][0].x;
+		  cy = c[i][0].y;
+		  if (cx<0) cx=0;
+		  if (cx>width) cx=width;
+		  if (cy<0) cy=0;
+		  if (cy>height) cy=height;
+                  if (cx < left)
                     {
-                      left = int(c[i][0].x);
-                      y1 = int(c[i][0].y);
+                      left = cx;
+                      y1 = cy;
                     }
-                  if (c[i][0].x > right)
+                  if (cx > right)
                     {
-                      right = int(c[i][0].x);
-                      y2 = int(c[i][0].y);
+                      right = cx;
+                      y2 = cy;
                     }
-                  if (c[i][0].y < top)
+                  if (cy < top)
                     {
-                      top = int(c[i][0].y);
-                      x1 = int(c[i][0].x);
+                      top = cy;
+                      x1 = cx;
                     }
-                  if (c[i][0].y > bottom)
+                  if (cy > bottom)
                     {
-                      bottom = int(c[i][0].y);
-                      x2 = int(c[i][0].x);
+                      bottom = cy;
+                      x2 = cx;
                     }
-                  if (c[i][1].x < left)
+		  cx = c[i][1].x;
+		  cy = c[i][1].y;
+		  if (cx<0) cx=0;
+		  if (cx>width) cx=width;
+		  if (cy<0) cy=0;
+		  if (cy>height) cy=height;
+                  if (cx < left)
                     {
-                      left = int(c[i][1].x);
-                      y1 = int(c[i][1].y);
+                      left = cx;
+                      y1 = cy;
                     }
-                  if (c[i][1].x > right)
+                  if (cx > right)
                     {
-                      right = int(c[i][1].x);
-                      y2 = int(c[i][1].y);
+                      right = cx;
+                      y2 = cy;
                     }
-                  if (c[i][1].y < top)
+                  if (cy < top)
                     {
-                      top = int(c[i][1].y);
-                      x1 = int(c[i][1].x);
+                      top = cy;
+                      x1 = cx;
                     }
-                  if (c[i][1].y > bottom)
+                  if (cy > bottom)
                     {
-                      bottom = int(c[i][1].y);
-                      x2 = int(c[i][1].x);
+                      bottom = cy;
+                      x2 = cx;
                     }
                   break;
                 }
-              if (c[i][2].x < left)
+	      cx = c[i][2].x;
+	      cy = c[i][2].y;
+	      if (cx<0) cx=0;
+	      if (cx>width) cx=width;
+	      if (cy<0) cy=0;
+	      if (cy>height) cy=height;
+              if (cx < left)
                 {
-                  left = int(c[i][2].x);
-                  y1 = int(c[i][2].y);
+                  left = cx;
+                  y1 = cy;
                 }
-              if (c[i][2].x > right)
+              if (cx > right)
                 {
-                  right = int(c[i][2].x);
-                  y2 = int(c[i][2].y);
+                  right = cx;
+                  y2 = cy;
                 }
-              if (c[i][2].y < top)
+              if (cy < top)
                 {
-                  top = int(c[i][2].y);
-                  x1 = int(c[i][2].x);
+                  top = cy;
+                  x1 = cx;
                 }
-              if (c[i][2].y > bottom)
+              if (cy > bottom)
                 {
-                  bottom = int(c[i][2].y);
-                  x2 = int(c[i][2].x);
+                  bottom = cy;
+                  x2 = cx;
                 }
             }
 

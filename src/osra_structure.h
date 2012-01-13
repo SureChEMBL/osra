@@ -190,10 +190,12 @@ void assign_charge(vector<atom_t> &atom, vector<bond_t> &bond, int n_atom, int n
 // atom - vector of atoms
 // bond - vector of bonds
 // n_bond - pointer to the number of bonds
+// width - image width
+// height - image height
 //
 // Returns:
 // number of atoms
-int find_atoms(const potrace_path_t *p, vector<atom_t> &atom, vector<bond_t> &bond, int *n_bond);
+int find_atoms(const potrace_path_t *p, vector<atom_t> &atom, vector<bond_t> &bond, int *n_bond,int width, int height);
 
 // Function: find_dashed_bonds()
 //

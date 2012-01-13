@@ -1003,7 +1003,7 @@ int find_bonds(vector<atom_t> &atom, vector<bond_t> &bond, int b_atom, int n_ato
 
 
 
-int find_atoms(const potrace_path_t *p, vector<atom_t> &atom, vector<bond_t> &bond, int *n_bond)
+int find_atoms(const potrace_path_t *p, vector<atom_t> &atom, vector<bond_t> &bond, int *n_bond,int width, int height)
 {
   int *tag, n_atom = 0;
   potrace_dpoint_t (*c)[3];
@@ -1019,6 +1019,11 @@ int find_atoms(const potrace_path_t *p, vector<atom_t> &atom, vector<bond_t> &bo
       atom.push_back(at);
       atom[n_atom].x = c[n - 1][2].x;
       atom[n_atom].y = c[n - 1][2].y;
+      if (atom[n_atom].x<0) atom[n_atom].x=0;
+      if (atom[n_atom].x>width) atom[n_atom].x=width;
+      if (atom[n_atom].y<0) atom[n_atom].y=0;
+      if (atom[n_atom].y>height) atom[n_atom].y=height;
+
       atom[n_atom].label = " ";
       atom[n_atom].exists = false;
       atom[n_atom].curve = p;
@@ -1040,6 +1045,11 @@ int find_atoms(const potrace_path_t *p, vector<atom_t> &atom, vector<bond_t> &bo
               atom.push_back(at1);
               atom[n_atom].x = c[i][1].x;
               atom[n_atom].y = c[i][1].y;
+	      if (atom[n_atom].x<0) atom[n_atom].x=0;
+	      if (atom[n_atom].x>width) atom[n_atom].x=width;
+	      if (atom[n_atom].y<0) atom[n_atom].y=0;
+	      if (atom[n_atom].y>height) atom[n_atom].y=height;
+
               atom[n_atom].label = " ";
               atom[n_atom].exists = false;
               atom[n_atom].curve = p;
@@ -1056,6 +1066,11 @@ int find_atoms(const potrace_path_t *p, vector<atom_t> &atom, vector<bond_t> &bo
               atom.push_back(at2);
               atom[n_atom].x = c[i][0].x;
               atom[n_atom].y = c[i][0].y;
+	      if (atom[n_atom].x<0) atom[n_atom].x=0;
+	      if (atom[n_atom].x>width) atom[n_atom].x=width;
+	      if (atom[n_atom].y<0) atom[n_atom].y=0;
+	      if (atom[n_atom].y>height) atom[n_atom].y=height;
+
               atom[n_atom].label = " ";
               atom[n_atom].exists = false;
               atom[n_atom].curve = p;
@@ -1070,6 +1085,11 @@ int find_atoms(const potrace_path_t *p, vector<atom_t> &atom, vector<bond_t> &bo
               atom.push_back(at3);
               atom[n_atom].x = c[i][1].x;
               atom[n_atom].y = c[i][1].y;
+	      if (atom[n_atom].x<0) atom[n_atom].x=0;
+	      if (atom[n_atom].x>width) atom[n_atom].x=width;
+	      if (atom[n_atom].y<0) atom[n_atom].y=0;
+	      if (atom[n_atom].y>height) atom[n_atom].y=height;
+
               atom[n_atom].label = " ";
               atom[n_atom].exists = false;
               atom[n_atom].curve = p;
@@ -1088,6 +1108,11 @@ int find_atoms(const potrace_path_t *p, vector<atom_t> &atom, vector<bond_t> &bo
               atom.push_back(at4);
               atom[n_atom].x = c[i][2].x;
               atom[n_atom].y = c[i][2].y;
+	      if (atom[n_atom].x<0) atom[n_atom].x=0;
+	      if (atom[n_atom].x>width) atom[n_atom].x=width;
+	      if (atom[n_atom].y<0) atom[n_atom].y=0;
+	      if (atom[n_atom].y>height) atom[n_atom].y=height;
+
               atom[n_atom].label = " ";
               atom[n_atom].exists = false;
               atom[n_atom].curve = p;
@@ -1200,6 +1225,8 @@ int find_dashed_bonds(const potrace_path_t *p, vector<atom_t> &atom, vector<bond
   potrace_dpoint_t (*c)[3];
   dash_t dot[100];
   vector<vector<int> > box(img.columns());
+  int width = img.columns();
+  int height = img.rows();
 
   for (unsigned int i = 0; i < img.columns(); i++)
     for (unsigned int j = 0; j < img.rows(); j++)
@@ -1212,12 +1239,18 @@ int find_dashed_bonds(const potrace_path_t *p, vector<atom_t> &atom, vector<bond
           n = p->curve.n;
           c = p->curve.c;
           int *tag = p->curve.tag;
-          dot[n_dot].x = c[n - 1][2].x;
-          dot[n_dot].y = c[n - 1][2].y;
-          double l = c[n - 1][2].x;
-          double r = c[n - 1][2].x;
-          double t = c[n - 1][2].y;
-          double b = c[n - 1][2].y;
+	  int cx =  c[n - 1][2].x;
+	  int cy =  c[n - 1][2].y;
+	  if (cx<0) cx=0;
+	  if (cx>width) cx=width;
+	  if (cy<0) cy=0;
+	  if (cy>height) cy=height;
+          dot[n_dot].x = cx;
+          dot[n_dot].y = cy;
+          double l = cx;
+          double r = cx;
+          double t = cy;
+          double b = cy;
           dot[n_dot].curve = p;
           dot[n_dot].free = true;
           int tot = 1;
@@ -1226,54 +1259,78 @@ int find_dashed_bonds(const potrace_path_t *p, vector<atom_t> &atom, vector<bond
               switch (tag[i])
                 {
                 case POTRACE_CORNER:
-                  dot[n_dot].x += c[i][1].x;
-                  dot[n_dot].y += c[i][1].y;
-                  if (c[i][1].x < l)
-                    l = c[i][1].x;
-                  if (c[i][1].x > r)
-                    r = c[i][1].x;
-                  if (c[i][1].y < t)
-                    t = c[i][1].y;
-                  if (c[i][1].x > b)
-                    b = c[i][1].y;
+		  cx = c[i][1].x;
+		  cy = c[i][1].y;
+		  if (cx<0) cx=0;
+		  if (cx>width) cx=width;
+		  if (cy<0) cy=0;
+		  if (cy>height) cy=height;
+                  dot[n_dot].x += cx;
+                  dot[n_dot].y += cy;
+                  if (cx < l)
+                    l = cx;
+                  if (cx > r)
+                    r = cx;
+                  if (cy < t)
+                    t = cy;
+                  if (cx > b)
+                    b = cy;
                   tot++;
                   break;
                 case POTRACE_CURVETO:
-                  dot[n_dot].x += c[i][0].x;
-                  dot[n_dot].y += c[i][0].y;
-                  if (c[i][0].x < l)
-                    l = c[i][0].x;
-                  if (c[i][0].x > r)
-                    r = c[i][0].x;
-                  if (c[i][0].y < t)
-                    t = c[i][0].y;
-                  if (c[i][0].x > b)
-                    b = c[i][0].y;
-                  dot[n_dot].x += c[i][1].x;
-                  dot[n_dot].y += c[i][1].y;
-                  if (c[i][1].x < l)
-                    l = c[i][1].x;
-                  if (c[i][1].x > r)
-                    r = c[i][1].x;
-                  if (c[i][1].y < t)
-                    t = c[i][1].y;
-                  if (c[i][1].x > b)
-                    b = c[i][1].y;
+		  cx = c[i][0].x;
+		  cy = c[i][0].y;
+		  if (cx<0) cx=0;
+		  if (cx>width) cx=width;
+		  if (cy<0) cy=0;
+		  if (cy>height) cy=height;
+                  dot[n_dot].x += cx;
+                  dot[n_dot].y += cy;
+                  if (cx < l)
+                    l = cx;
+                  if (cx > r)
+                    r = cx;
+                  if (cy < t)
+                    t = cy;
+                  if (cx > b)
+                    b = cy;
+		  cx = c[i][1].x;
+		  cy = c[i][1].y;
+		  if (cx<0) cx=0;
+		  if (cx>width) cx=width;
+		  if (cy<0) cy=0;
+		  if (cy>height) cy=height;
+                  dot[n_dot].x += cx;
+                  dot[n_dot].y += cy;
+                  if (cx < l)
+                    l = cx;
+                  if (cx > r)
+                    r = cx;
+                  if (cy < t)
+                    t = cy;
+                  if (cx > b)
+                    b = cy;
                   tot += 2;
                   break;
                 }
               if (i != n - 1)
                 {
-                  dot[n_dot].x += c[i][2].x;
-                  dot[n_dot].y += c[i][2].y;
-                  if (c[i][2].x < l)
-                    l = c[i][2].x;
-                  if (c[i][2].x > r)
-                    r = c[i][2].x;
-                  if (c[i][2].y < t)
-                    t = c[i][2].y;
-                  if (c[i][2].x > b)
-                    b = c[i][2].y;
+		  cx = c[i][2].x;
+		  cy = c[i][2].y;
+		  if (cx<0) cx=0;
+		  if (cx>width) cx=width;
+		  if (cy<0) cy=0;
+		  if (cy>height) cy=height;
+                  dot[n_dot].x += cx;
+                  dot[n_dot].y += cy;
+                  if (cx < l)
+                    l = cx;
+                  if (cx > r)
+                    r = cx;
+                  if (cy < t)
+                    t = cy;
+                  if (cx > b)
+                    b = cy;
                   tot++;
                 }
             }
