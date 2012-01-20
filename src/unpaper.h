@@ -40,4 +40,4 @@
 //
 // Returns:
 //      0 in case of success or non-zero error code otherwise
-int unpaper(Magick::Image &picture);
+int unpaper(Magick::Image &picture, double &radians, int &unpaper_dx, int &unpaper_dy);

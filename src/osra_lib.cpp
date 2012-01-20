@@ -243,10 +243,50 @@ potrace_state_t * const  raster_to_vector(Image &box,ColorGray bgColor, double T
   return(st);
 }
 
+void rotate_point(int &x, int &y, int midX, int midY, double rotation)
+{
+// create 2D rotation matrix
+  float sinval = sin(rotation); // no use of sincos()-function for compatibility, no performace bottleneck anymore anyway
+  float cosval = cos(rotation);
+  float m11 = cosval;
+  float m12 = sinval;
+  float m21 = -sinval;
+  float m22 = cosval;
+
+  int dX = x - midX;
+  int dY = y - midY;
+
+  int diffX = dX * m11 + dY * m21;
+  int diffY = dX * m12 + dY * m22;
+
+  x = midX+diffX;
+  y = midY+diffY;
+}
+
+void rotate_coordinate_box(box_t &coordinate_box,double rotation,int width,int height)
+{
+  int midX = width/2;
+  int midY = height/2;
+  int x1 = coordinate_box.x1;
+  int y1 = coordinate_box.y1;
+  int x2 = coordinate_box.x2;
+  int y2 = coordinate_box.y2;
+
+  rotate_point(x1,y1,midX,midY,rotation);
+  rotate_point(x2,y1,midX,midY,rotation);
+  rotate_point(x1,y2,midX,midY,rotation);
+  rotate_point(x2,y2,midX,midY,rotation);
+  
+  coordinate_box.x1 = min(x1,x2);
+  coordinate_box.x2 = max(x1,x2);
+  coordinate_box.y1 = min(y1,y2);
+  coordinate_box.y2 = max(y1,y2);
+}
+
 void split_fragments_and_assemble_structure_record(vector<atom_t> &atom,int n_atom, vector<bond_t>  &bond, int n_bond, const vector<box_t> &boxes,
-    int l,int k,int resolution,int res_iter, const string &output_image_file_prefix,Image &image,Image &orig_box,int real_font_width,int real_font_height,
-    double thickness, double avg_bond_length,const map<string, string> &superatom,int real_atoms, int real_bonds, int bond_max_type,
-    double box_scale, double page_scale,
+						   int l,int k,int resolution,int res_iter, const string &output_image_file_prefix,Image &image,Image &orig_box,int real_font_width,int real_font_height,
+						   double thickness, double avg_bond_length,const map<string, string> &superatom,int real_atoms, int real_bonds, int bond_max_type,
+						   double box_scale, double page_scale, double rotation, int unpaper_dx, int unpaper_dy,
     const string &output_format,
     const string &embedded_format,
     bool show_confidence,
@@ -311,10 +351,11 @@ void split_fragments_and_assemble_structure_record(vector<atom_t> &atom,int n_at
               molecule_statistics_t molecule_statistics;
               int page_number = l + 1;
               box_t coordinate_box;
-              coordinate_box.x1 = (int) ((double) page_scale * boxes[k].x1 + (double) page_scale * box_scale * fragments[i].x1);
-              coordinate_box.y1 = (int) ((double) page_scale * boxes[k].y1 + (double) page_scale * box_scale * fragments[i].y1);
-              coordinate_box.x2 = (int) ((double) page_scale * boxes[k].x1 + (double) page_scale * box_scale * fragments[i].x2);
-              coordinate_box.y2 = (int) ((double) page_scale * boxes[k].y1 + (double) page_scale * box_scale * fragments[i].y2);
+              coordinate_box.x1 = (int) (-(double)page_scale * unpaper_dx + (double) page_scale * boxes[k].x1 + (double) page_scale * box_scale * fragments[i].x1);
+              coordinate_box.y1 = (int) (-(double)page_scale * unpaper_dy + (double) page_scale * boxes[k].y1 + (double) page_scale * box_scale * fragments[i].y1);
+              coordinate_box.x2 = (int) (-(double)page_scale * unpaper_dx + (double) page_scale * boxes[k].x1 + (double) page_scale * box_scale * fragments[i].x2);
+              coordinate_box.y2 = (int) (-(double)page_scale * unpaper_dy + (double) page_scale * boxes[k].y1 + (double) page_scale * box_scale * fragments[i].y2);
+	      //rotate_coordinate_box(coordinate_box,rotation,image.columns(),image.rows());
 
               if (verbose)
                 cout << "Coordinate box: " << coordinate_box.x1 << "x" << coordinate_box.y1 << "-" << coordinate_box.x2 << "x"
@@ -580,9 +621,19 @@ int osra_process_image(
           image.rotate(rotate);
         }
 
+      double rotation = 0;
+      int unpaper_dx = 0;
+      int unpaper_dy = 0;
       for (int i = 0; i < do_unpaper; i++)
-        unpaper(image);
-
+	{
+	  double radians=0;
+	  int dx=0, dy=0;
+	  unpaper(image,radians,dx,dy);
+	  rotation +=radians;
+	  unpaper_dx +=dx;
+	  unpaper_dy +=dy;
+	}
+      
       // 0.1 is used for THRESHOLD_BOND here to allow for farther processing.
       list<list<list<point_t> > > clusters = find_segments(image, 0.1, bgColor, adaptive, verbose);
 
@@ -789,10 +840,10 @@ int osra_process_image(
                   cout << "Final number of atoms: " << real_atoms << ", bonds: " << real_bonds << ", chars: " << n_letters << '.' << endl;
 
                 split_fragments_and_assemble_structure_record(atom,n_atom,bond,n_bond,boxes,
-                    l,k,resolution,res_iter,output_image_file_prefix,image,orig_box,real_font_width,real_font_height,
-                    thickness,avg_bond_length,superatom,real_atoms,real_bonds,bond_max_type,
-                    box_scale,page_scale,output_format,embedded_format,show_confidence,show_resolution_guess,show_page,show_coordinates,show_avg_bond_length,
-                    array_of_structures,array_of_avg_bonds,array_of_ind_conf,array_of_images,total_boxes,total_confidence,verbose);
+							      l,k,resolution,res_iter,output_image_file_prefix,image,orig_box,real_font_width,real_font_height,
+							      thickness,avg_bond_length,superatom,real_atoms,real_bonds,bond_max_type,
+							      box_scale,page_scale,rotation,unpaper_dx,unpaper_dy,output_format,embedded_format,show_confidence,show_resolution_guess,show_page,show_coordinates,
+							      show_avg_bond_length,array_of_structures,array_of_avg_bonds,array_of_ind_conf,array_of_images,total_boxes,total_confidence,verbose);
 
                 if (st != NULL)
                   potrace_state_free(st);
