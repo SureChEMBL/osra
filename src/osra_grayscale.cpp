@@ -165,7 +165,8 @@ bool convert_to_gray(Image &image, bool invert, bool adaptive, bool verbose)
   Color t;
   ColorGray g;
   double a;
-
+ 
+ image.type(TrueColorMatteType);
   for (int i = 0; i < BG_PICK_POINTS; i++)
     {
       double a = (double) rand() / RAND_MAX;
