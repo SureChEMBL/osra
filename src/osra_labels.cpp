@@ -541,8 +541,8 @@ int find_chars(const potrace_path_t * p, const Image &orig, vector<letters_t> &l
                   letters_t lt;
                   letters.push_back(lt);
                   letters[n_letters].a = label;
-                  letters[n_letters].x = (left + right) / 2.0;
-                  letters[n_letters].y = (top + bottom) / 2.0;
+                  letters[n_letters].x = (left + right) / 2;
+                  letters[n_letters].y = (top + bottom) / 2;
                   letters[n_letters].r = distance(left, top, right, bottom) / 2;
                   if (right - left > real_font_width)
                     real_font_width = right - left;
@@ -574,8 +574,8 @@ int find_chars(const potrace_path_t * p, const Image &orig, vector<letters_t> &l
                   letters_t lt1;
                   letters.push_back(lt1);
                   letters[n_letters].a = label1;
-                  letters[n_letters].x = (left + right) / 2.0;
-                  letters[n_letters].y = (newtop + bottom) / 2.0;
+                  letters[n_letters].x = (left + right) / 2;
+                  letters[n_letters].y = (newtop + bottom) / 2;
                   letters[n_letters].r = distance(left, newtop, right, bottom) / 2;
                   if (right - left > real_font_width)
                     real_font_width = right - left;
@@ -588,8 +588,8 @@ int find_chars(const potrace_path_t * p, const Image &orig, vector<letters_t> &l
                   letters_t lt2;
                   letters.push_back(lt2);
                   letters[n_letters].a = label2;
-                  letters[n_letters].x = (left + right) / 2.0;
-                  letters[n_letters].y = (top + newbottom) / 2.0;
+                  letters[n_letters].x = (left + right) / 2;
+                  letters[n_letters].y = (top + newbottom) / 2;
                   letters[n_letters].r = distance(left, top, right, newbottom) / 2;
                   if (newbottom - top > real_font_height)
                     real_font_height = newbottom - top;
@@ -620,8 +620,8 @@ int find_chars(const potrace_path_t * p, const Image &orig, vector<letters_t> &l
                   letters_t lt1;
                   letters.push_back(lt1);
                   letters[n_letters].a = label1;
-                  letters[n_letters].x = (left + newright) / 2.0;
-                  letters[n_letters].y = (top + bottom) / 2.0;
+                  letters[n_letters].x = (left + newright) / 2;
+                  letters[n_letters].y = (top + bottom) / 2;
                   letters[n_letters].r = distance(left, top, newright, bottom) / 2;
                   if (newright - left > real_font_width)
                     real_font_width = newright - left;
@@ -634,8 +634,8 @@ int find_chars(const potrace_path_t * p, const Image &orig, vector<letters_t> &l
                   letters_t lt2;
                   letters.push_back(lt2);
                   letters[n_letters].a = label2;
-                  letters[n_letters].x = (newleft + right) / 2.0;
-                  letters[n_letters].y = (top + bottom) / 2.0;
+                  letters[n_letters].x = (newleft + right) / 2;
+                  letters[n_letters].y = (top + bottom) / 2;
                   letters[n_letters].r = distance(newleft, top, right, bottom) / 2;
                   if (right - newleft > real_font_width)
                     real_font_width = right - newleft;
@@ -777,8 +777,8 @@ int find_fused_chars(vector<bond_t> &bond, int n_bond, vector<atom_t> &atom, vec
                         letters_t lt;
                         letters.push_back(lt);
                         letters[n_letters].a = label;
-                        letters[n_letters].x = (left + right) / 2.0;
-                        letters[n_letters].y = (top + bottom) / 2.0;
+                        letters[n_letters].x = (left + right) / 2;
+                        letters[n_letters].y = (top + bottom) / 2;
                         letters[n_letters].r = distance(left, top, right, bottom) / 2;
                         letters[n_letters].free = true;
                         n_letters++;
@@ -973,8 +973,8 @@ int find_plus_minus(const potrace_path_t *p, vector<letters_t> &letters, vector<
                   letters_t lt;
                   letters.push_back(lt);
                   letters[n_letters].a = c;
-                  letters[n_letters].x = (left + right) / 2.0;
-                  letters[n_letters].y = (top + bottom) / 2.0;
+                  letters[n_letters].x = (left + right) / 2;
+                  letters[n_letters].y = (top + bottom) / 2;
                   letters[n_letters].r = distance(left, top, right, bottom) / 2;
                   letters[n_letters].free = true;
                   n_letters++;

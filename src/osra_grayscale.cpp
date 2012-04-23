@@ -166,7 +166,7 @@ bool convert_to_gray(Image &image, bool invert, bool adaptive, bool verbose)
   ColorGray g;
   double a;
  
- image.type(TrueColorMatteType);
+  image.type(TrueColorMatteType);
   for (int i = 0; i < BG_PICK_POINTS; i++)
     {
       double a = (double) rand() / RAND_MAX;
@@ -239,7 +239,7 @@ bool convert_to_gray(Image &image, bool invert, bool adaptive, bool verbose)
   double distance_between_peaks = (double)(peak2-peak1)/(num_bins-1);
   if (distance_between_peaks < THRESHOLD_GLOBAL) adaptive = true;
   if (max1 > max2 || invert)
-    invert = true;
+      invert = true;
 
   if (verbose)
     {
