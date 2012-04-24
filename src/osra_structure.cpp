@@ -1239,8 +1239,8 @@ int find_dashed_bonds(const potrace_path_t *p, vector<atom_t> &atom, vector<bond
           n = p->curve.n;
           c = p->curve.c;
           int *tag = p->curve.tag;
-	  int cx =  c[n - 1][2].x;
-	  int cy =  c[n - 1][2].y;
+	  double cx =  c[n - 1][2].x;
+	  double cy =  c[n - 1][2].y;
 	  if (cx<0) cx=0;
 	  if (cx>width) cx=width;
 	  if (cy<0) cy=0;
