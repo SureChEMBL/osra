@@ -128,6 +128,7 @@ Section /o "ChemBioOffice 12 plugin" chemoffice
  pil_exists:
  SetOutPath "$1\Scripts"
  File "plugins\chemoffice\Import Structures with OSRA.py"
+ AccessControl::GrantOnFile "$1\Scripts\Import Structures with OSRA.py" "(S-1-5-32-545)" "FullAccess"
  Push "$1\Scripts\Import Structures with OSRA.py" ; file to modify
  Push "dot_version=" ; string that a line must begin with *WS Sensitive*
  Push "dot_version='${DOT_VERSION}'" ; string to replace whole line with
