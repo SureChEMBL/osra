@@ -407,7 +407,7 @@ void split_fragments_and_assemble_structure_record(vector<atom_t> &atom,int n_at
 extern job_t *OCR_JOB;
 extern job_t *JOB;
 
-int global_init_state;
+//int global_init_state;
 
 // Function: osra_init()
 //
@@ -421,10 +421,10 @@ void __attribute__ ((constructor)) osra_init()
 
   osra_ocr_init();
 
-  global_init_state = osra_openbabel_init();
+ // global_init_state = osra_openbabel_init();
 
-  if (global_init_state != 0)
-    cerr << "OpenBabel initialization failure." << endl;
+  //if (global_init_state != 0)
+    //cerr << "OpenBabel initialization failure." << endl;
 
   srand(1);
 }
@@ -473,8 +473,8 @@ int osra_process_image(
   const string &resize
 )
 {
-  if (global_init_state != 0)
-    return global_init_state;
+  //if (global_init_state != 0)
+   // return global_init_state;
 
   std::transform(output_format.begin(), output_format.end(), output_format.begin(), ::tolower);
   std::transform(embedded_format.begin(), embedded_format.end(), embedded_format.begin(), ::tolower);
