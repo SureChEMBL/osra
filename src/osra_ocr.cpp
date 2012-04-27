@@ -107,6 +107,7 @@ char osra_gocr_ocr(job_t &gocr_job)
 {
   OCR_JOB = &gocr_job;
   JOB = &gocr_job;
+ // cout<<"Before gocr"<<endl;
   try
     {
       pgm2asc(&gocr_job);
@@ -114,7 +115,7 @@ char osra_gocr_ocr(job_t &gocr_job)
   catch (...)
     {
     }
-
+//cout<<"After gocr"<<endl;
   char *l = (char *) gocr_job.res.linelist.start.next->data;
 
   if (l != NULL && strlen(l) == 1 && isalnum(l[0]))
