@@ -30,12 +30,6 @@
 
 int main(int argc,
          char **argv
-#ifdef OSRA_ANDROID
-         ,
-         const char *image_data,
-         int image_length,
-         ostream &structure_output_stream
-#endif
         )
 {
   TCLAP::CmdLine cmd("OSRA: Optical Structure Recognition Application, created by Igor Filippov, 2007-2010", ' ',
@@ -118,13 +112,11 @@ int main(int argc,
   //
   // Input-output options
   //
-#ifndef OSRA_ANDROID
   TCLAP::UnlabeledValueArg<string> input_file_option("in", "input file", true, "", "filename");
   cmd.add(input_file_option);
 
   TCLAP::ValueArg<string> output_file_option("w", "write", "Write recognized structures to text file", false, "", "filename");
   cmd.add(output_file_option);
-#endif
 
   cmd.parse(argc, argv);
 
@@ -135,14 +127,8 @@ int main(int argc,
   string osra_dir = dirname(progname);
 
   int result = osra_process_image(
-#ifdef OSRA_ANDROID
-                 image_data,
-                 image_length,
-                 structure_output_stream,
-#else
                  input_file_option.getValue(),
                  output_file_option.getValue(),
-#endif
                  rotate_option.getValue(),
                  invert_option.getValue(),
                  resolution_option.getValue(),

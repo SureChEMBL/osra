@@ -37,54 +37,6 @@ typedef long long __int64;
 
 using namespace std;
 
-#ifdef OSRA_ANDROID
-int main(int argc, char **argv, const char *image_data, int image_length, ostream &structure_output_stream);
-
-extern "C" {
-  JNIEXPORT jstring JNICALL Java_cadd_osra_main_runosra_nativeosra(JNIEnv *j_env, jobject j_this, jobjectArray j_arr,
-      jbyteArray j_image_data);
-};
-
-JNIEXPORT jstring JNICALL Java_cadd_osra_main_runosra_nativeosra(JNIEnv *j_env, jobject j_this, jobjectArray j_arr,
-    jbyteArray j_image_data)
-{
-  int argc = j_env->GetArrayLength(j_arr);
-  char **argv = (char **) calloc(argc, sizeof(char*));
-
-  // Convert from Java UTF-16 string to UTF-8 string (assuming that all chars are ASCII):
-  for (int i = 0; i < argc; i++)
-    {
-      jstring j_str = (jstring) j_env->GetObjectArrayElement(j_arr, i);
-      argv[i] = j_env->GetStringUTFChars(j_str, NULL);
-    }
-
-  char *image_data = (char *) j_env->GetByteArrayElements(j_image_data, NULL);
-
-  int result = -1;
-  ostringstream structure_output_stream;
-
-  if (image_data != NULL)
-    {
-      result = main(argc, argv, image_data, j_env->GetArrayLength(j_image_data), structure_output_stream);
-
-      j_env->ReleaseByteArrayElements(j_image_data, (jbyte *) image_data, JNI_ABORT);
-    }
-
-  // Release resources:
-  for (int i = 0; i < argc; i++)
-    {
-      jstring j_str = (jstring) j_env->GetObjectArrayElement(j_arr, i);
-      j_env->ReleaseStringUTFChars(j_str, argv[i]);
-    }
-
-  free(argv);
-
-  if (result != 0)
-    return j_env->NewStringUTF("");
-
-  return j_env->NewStringUTF(structure_output_stream.str().c_str());
-}
-#endif
 
 #ifdef OSRA_JAVA
 #include "osra_lib.h"
