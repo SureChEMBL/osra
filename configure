@@ -6204,15 +6204,15 @@ fi
 
 	ax_link_dynamically=no
 
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for -ltesseract_api" >&5
-$as_echo_n "checking for -ltesseract_api... " >&6; }
-if ${ac_cv_lib_tesseract_api+:} false; then :
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for -ltesseract" >&5
+$as_echo_n "checking for -ltesseract... " >&6; }
+if ${ac_cv_lib_tesseract+:} false; then :
   $as_echo_n "(cached) " >&6
 else
 
 			{ LIBS_LIST=; unset LIBS_LIST;}
 
-			for ax_var in tesseract_api
+			for ax_var in tesseract
 do :
 
 				LIBS_LIST="-l${ax_var} ${LIBS_LIST}"
@@ -6251,16 +6251,16 @@ main ()
 }
 _ACEOF
 if ac_fn_cxx_try_link "$LINENO"; then :
-  ac_cv_lib_tesseract_api=yes
+  ac_cv_lib_tesseract=yes
 else
-  ac_cv_lib_tesseract_api=no
+  ac_cv_lib_tesseract=no
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
 
 						LIBS=${ax_try_link_save_LIBS}
 
-						if test "x$ac_cv_lib_tesseract_api" = xno; then :
+						if test "x$ac_cv_lib_tesseract" = xno; then :
 
 								if test "${enable_static_linking+set}" == "set" -a "${ac_gnu_ld}" == "yes"; then :
 
@@ -6292,7 +6292,7 @@ main ()
 _ACEOF
 if ac_fn_cxx_try_link "$LINENO"; then :
 
-						ac_cv_lib_tesseract_api=yes
+						ac_cv_lib_tesseract=yes
 						ax_link_dynamically=yes
 
 fi
@@ -6314,10 +6314,10 @@ ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
 
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_tesseract_api" >&5
-$as_echo "$ac_cv_lib_tesseract_api" >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_tesseract" >&5
+$as_echo "$ac_cv_lib_tesseract" >&6; }
 
-		if test "x$ac_cv_lib_tesseract_api" = xyes; then :
+		if test "x$ac_cv_lib_tesseract" = xyes; then :
 
 
 		$as_echo "#define HAVE_TESSERACT_LIB 1" >>confdefs.h
@@ -6326,7 +6326,7 @@ $as_echo "$ac_cv_lib_tesseract_api" >&6; }
 
 
 			cat >>confdefs.h <<_ACEOF
-#define HAVE_LIBTESSERACT_API 1
+#define HAVE_LIBTESSERACT 1
 _ACEOF
 
 
@@ -6334,7 +6334,7 @@ _ACEOF
   LIBS="-Wl,-static ${LIBS}"
 fi
 
-						for ax_var in tesseract_api
+						for ax_var in tesseract
 do :
 
 				(echo "${LIBS}" | grep -q -- "-l${ax_var} ") || LIBS="-l${ax_var} ${LIBS}"

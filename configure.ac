@@ -411,7 +411,7 @@ AS_IF([test "${ac_lib_tesseract}" == "yes"], [
 		AC_CHECK_LIB([tiff], [TIFFGetField], [], [ac_lib_tesseract=no])
 	])
 
-	AX_TRY_LINK([tesseract_api], [
+	AX_TRY_LINK([tesseract], [
 		#include <stddef.h>
 		#include <tesseract/baseapi.h>
 		using namespace tesseract;

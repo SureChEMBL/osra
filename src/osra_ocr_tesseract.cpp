@@ -38,7 +38,7 @@ tesseract::TessBaseAPI tess;
 
 void osra_tesseract_init()
 {
-  tess.Init(NULL, "eng", NULL, 0, false);
+  tess.Init(NULL, "eng", tesseract::OEM_DEFAULT, NULL, 0, NULL, NULL, false);
 }
 
 void osra_tesseract_destroy()
