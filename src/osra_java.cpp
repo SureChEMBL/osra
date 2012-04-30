@@ -95,7 +95,7 @@ extern "C" {
    * Method:    processImage
    * Signature: ([BLjava/io/Writer;Ljava/lang/String;Ljava/lang/String;ZZZ)I
    */
-  JNIEXPORT jint JNICALL Java_net_sf_osra_OsraLib_processImage(JNIEnv *, jclass, jbyteArray, jobject, jstring, jstring, jboolean, jboolean, jboolean);
+  JNIEXPORT jint JNICALL Java_net_sf_osra_OsraLib_processImage(JNIEnv *, jclass, jbyteArray, jobject, jint, jboolean,jint,jdouble,jint, jboolean, jboolean,jstring, jstring,  jboolean, jboolean,jboolean, jboolean, jboolean);
 
   /*
    * Class:     net_sf_osra_OsraLib
@@ -105,9 +105,23 @@ extern "C" {
   JNIEXPORT jstring JNICALL Java_net_sf_osra_OsraLib_getVersion(JNIEnv *, jclass);
 }
 
-JNIEXPORT jint JNICALL Java_net_sf_osra_OsraLib_processImage(JNIEnv *j_env, jclass j_class, jbyteArray j_image_data, jobject j_writer,
-    jstring j_output_format, jstring j_embedded_format,
-    jboolean j_output_confidence, jboolean j_output_coordinates, jboolean j_output_avg_bond_length)
+JNIEXPORT jint JNICALL Java_net_sf_osra_OsraLib_processImage(JNIEnv *j_env, jclass j_class, 
+							     jbyteArray j_image_data, 
+							     jobject j_writer,
+							     jint j_rotate,
+							     jboolean j_invert,
+							     jint j_input_resolution,
+							     jdouble j_threshold,
+							     jint j_do_unpaper,
+							     jboolean j_jaggy,
+							     jboolean j_adaptive_option,
+							     jstring j_output_format, 
+							     jstring j_embedded_format,
+							     jboolean j_output_confidence, 
+							     jboolean j_show_resolution_guess,
+							     jboolean j_show_page,
+							     jboolean j_output_coordinates, 
+							     jboolean j_output_avg_bond_length)
 {
   const char *output_format = j_env->GetStringUTFChars(j_output_format, NULL);
   const char *embedded_format = j_env->GetStringUTFChars(j_embedded_format, NULL);
@@ -122,25 +136,25 @@ JNIEXPORT jint JNICALL Java_net_sf_osra_OsraLib_processImage(JNIEnv *j_env, jcla
       ostringstream structure_output_stream;
 
       result = osra_process_image(
-                 image_data,
-                 j_env->GetArrayLength(j_image_data),
-                 structure_output_stream,
-                 0,
-                 false,
-                 0,
-                 0,
-                 0,
-                 false,
-                 false,
-                 output_format,
-                 embedded_format,
-                 j_output_confidence,
-                 false,
-                 false,
-                 j_output_coordinates,
-                 j_output_avg_bond_length,
-                 "."
-               );
+				  image_data,
+				  j_env->GetArrayLength(j_image_data),
+				  structure_output_stream,
+				  j_rotate,
+				  j_invert,
+				  j_input_resolution,
+				  j_threshold,
+				  j_do_unpaper,
+				  j_jaggy,
+				  j_adaptive_option,
+				  output_format,
+				  embedded_format,
+				  j_output_confidence,
+				  j_show_resolution_guess,
+				  j_show_page,
+				  j_output_coordinates,
+				  j_output_avg_bond_length,
+				  "."
+				  );
 
       j_env->ReleaseByteArrayElements(j_image_data, (jbyte *) image_data, JNI_ABORT);
 

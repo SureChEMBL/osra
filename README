@@ -116,7 +116,8 @@ following - libosra.so, libosra.dylib, or libosra.dll) by adding
 --enable-lib command-line option to ./configure
 
 libosra_java: set up JAVA_HOME environment variable and use --enable-java
-option to configure.
+option to configure. See addons/java/net/sf/osra/ and
+addons/lib_java_sample/net/sf/osra/ on examples of usage.
 
 Linux/Unix systems:
 
@@ -125,12 +126,12 @@ Unpack OSRA package. Starting with 1.3.7 the build process is simplified to the 
 make
 make install
 
-You can now optionally add Tesseract (2.0 for OSRA-1.3.7 and 3.0 for OSRA-1.3.8)  and Cuneiform OCR engines to OSRA. For Tesseract simply run configure with
---with-tesseract 
-assuming it's installed in a common location. For Cuneiform I used the following options:
-./configure --with-cuneiform --with-cuneiform-source=/home/igor/cuneiform-linux-1.0.0/ --with-cuneiform-include=/home/igor/cuneiform-linux-1.0.0/install/include/ --with-cuneiform-lib=/home/igor/cuneiform-linux-1.0.0/install/lib64/ 
-(the binary libraries and header files have been installed in /home/igor/cuneiform-linux-1.0.0/install/). The location of the source code is necessary because
-not all necessary headers are getting installed, unfortunately.
+You can now optionally add Tesseract (2.0 for OSRA-1.3.7 and 3.0 for OSRA-1.3.8)  and Cuneiform OCR engines to OSRA. For Tesseract simply run configure
+with:
+./configure --with-tesseract 
+assuming it's installed in a common location. For Cuneiform
+(cuneiform-linux-1.1.0) it is now simply:
+./configure --with-cuneiform 
 You might have to add the path to the libraries to LD_LIBRARY_PATH.
 
 Mac OS X:

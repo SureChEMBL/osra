@@ -15,7 +15,7 @@ dnl Library version. If library ABI changes, increase the major number.
 dnl
 
 dnl Increment if interfaces have been added, removed or changed:
-AC_SUBST([LIB_MAJOR_VERSION], [0])
+AC_SUBST([LIB_MAJOR_VERSION], [1])
 dnl Increment if source code has changed:
 AC_SUBST([LIB_MINOR_VERSION], [0])
 

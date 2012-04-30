@@ -3,7 +3,7 @@ LD		:= g++
 
 CXXFLAGS	:= -g3 -ggdb -O0 -DOSRA_LIB
 CPPFLAGS	:= -I../../src
-LDFLAGS		:= -L../../src
+LDFLAGS		:= -L../../src -L/usr/local/lib
 
 LIBS		:= -losra
 
@@ -14,7 +14,8 @@ LIBS		:= -losra
 OBJ			= lib_sample.o
 
 all: lib_sample
-	LD_LIBRARY_PATH=../../src ./lib_sample
+
+#	LD_LIBRARY_PATH=../../src ./lib_sample /usr/local/lib
 
 lib_sample: $(OBJ)
 	$(LD) $(LDFLAGS) -o $@ $(OBJ) $(LIBS)

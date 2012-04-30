@@ -105,21 +105,24 @@ ifdef OSRA_JAVA
 endif
 
 # "install" and "make" tools auomatically autodetect the extension for executables, but "rm" needs extension correction.
-# We also do not remove the SO symlinks, leaving them brocken:
 uninstall:
-	$(RM) -f \
+	-$(RM) -f \
 		$(DESTDIR)$(bindir)/osra$(EXEEXT) \
 		$(DESTDIR)$(libdir)/libosra$(SHAREDEXT).$(LIB_VERSION) \
+		$(DESTDIR)$(libdir)/libosra$(SHAREDEXT).$(LIB_MAJOR_VERSION) \
+		$(DESTDIR)$(libdir)/libosra$(SHAREDEXT) \
 		$(DESTDIR)$(libdir)/libosra.a \
 		$(DESTDIR)$(libdir)/libosra_java$(SHAREDEXT).$(LIB_VERSION) \
+		$(DESTDIR)$(libdir)/libosra_java$(SHAREDEXT).$(LIB_MAJOR_VERSION) \
+		$(DESTDIR)$(libdir)/libosra_java$(SHAREDEXT)
 		$(DESTDIR)$(includedir)/osra_lib.h \
 		$(DESTDIR)$(libdir)/pkgconfig/osra.pc
 
 clean:
-	$(RM) -f *.o osra$(EXEEXT) libosra*.*
+	-$(RM) -f *.o osra$(EXEEXT) libosra*.*
 
 distclean: clean
-	$(RM) -f config.h Makefile.dep
+	-$(RM) -f config.h Makefile.dep
 
 ../Makefile.inc: ../Makefile.inc.in ../config.status
 	cd .. && ./config.status
