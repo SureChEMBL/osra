@@ -1,6 +1,6 @@
                         OSRA: Optical Structure Recognition Application
 
-							Igor Filippov, 2007-2011
+							Igor Filippov, 2007-2012
 							igorf@helix.nih.gov
 
 
@@ -29,6 +29,13 @@ Plugins:
 Starting with version 1.3.7 plugins are available for download from http://osra.sourceforge.net;
 Plugins for ChemBioDraw and Symyx Draw are included in Windows installer; ChemAxon MarvinSketch
 supports OSRA starting with version 5.3.3.
+
+A perl script osra-pdf  is available in package/linux/ in the source distribution and for download on osra.sourceforge.net.  
+This is a script to run OSRA processing on images and PDF files with higher quality output than what is produced with the default options,
+It is expected to be useful mainly for PDF files. It works by running OSRA with multiple combinations of
+image processing options and automatically selecting and filtering for the best possible molecular structure. Be prepared 
+that it is much slower than a regular OSRA run. You can modify the option set or the filtering criteria to better suit your needs.
+OpenBabel perl binding are required to run this script.
 
 =============================================================================
 Dependencies:
@@ -118,23 +125,27 @@ following - libosra.so, libosra.dylib, or libosra.dll) by adding
 libosra_java: set up JAVA_HOME environment variable and use --enable-java
 option to configure. See addons/java/net/sf/osra/ and
 addons/lib_java_sample/net/sf/osra/ on examples of usage.
-
-Linux/Unix systems:
+If you're not getting any output try setting up LD_PRELOAD environment
+variable:
+LD_PRELOAD=/usr/local/lib/libopenbabel.so $JAVA_HOME/bin/java TestOsra
+(taken from openbabel-2.3.0/scripts/java/README).
+=========================================================================
+Compiling on Linux/Unix systems:
 
 Unpack OSRA package. Starting with 1.3.7 the build process is simplified to the common procedure:
 ./configure
 make
 make install
 
-You can now optionally add Tesseract (2.0 for OSRA-1.3.7 and 3.0 for OSRA-1.3.8)  and Cuneiform OCR engines to OSRA. For Tesseract simply run configure
+You can now optionally add Tesseract (2.0 for OSRA-1.3.7, 3.0 for OSRA-1.3.8, 3.01 for OSRA-1.3.9)  and Cuneiform OCR engines to OSRA. For Tesseract simply run configure
 with:
 ./configure --with-tesseract 
 assuming it's installed in a common location. For Cuneiform
 (cuneiform-linux-1.1.0) it is now simply:
 ./configure --with-cuneiform 
 You might have to add the path to the libraries to LD_LIBRARY_PATH.
-
-Mac OS X:
+==========================================================================
+Compiling on Mac OS X:
 To have static libraries install through MacPorts the following:
 libxml2, libiconv, zlib, bzip2, freetype, libpng, tiff, lcms, 
 jasper.
@@ -155,8 +166,8 @@ make install
 OSRA (static linking):
 ./configure --enable-static-linking --disable-graphicsmagick-config --with-graphicsmagick-include=/Users/igor/build/include/GraphicsMagick --with-graphicsmagick-lib=/Users/igor/build/lib
 make
-
-Windows:
+=============================================================================
+Compiling on Windows:
 It is possible to compile OSRA using either Cygwin or MinGW environment,
 however it appears that Cygwin-compiled executable runs about two orders of
 magnitude slower than a Linux version running on an equivalent class CPU.
