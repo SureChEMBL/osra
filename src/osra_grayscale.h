@@ -38,7 +38,7 @@ using namespace Magick;
 //
 // Detects the backgroun color of the image
 //
-// Parameters: 
+// Parameters:
 // image -  a reference to the image object
 //
 // Returns:

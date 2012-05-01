@@ -374,18 +374,18 @@ int find_chars(const potrace_path_t * p, const Image &orig, vector<letters_t> &l
           int x2 = 0;
           int right = 0;
           int y2 = 0;
-	  int cx,cy;
+          int cx,cy;
           for (int i = 0; i < n; i++)
             {
               switch (tag[i])
                 {
                 case POTRACE_CORNER:
-		  cx = c[i][1].x;
-		  cy = c[i][1].y;
-		  if (cx<0) cx=0;
-		  if (cx>width) cx=width;
-		  if (cy<0) cy=0;
-		  if (cy>height) cy=height;
+                  cx = c[i][1].x;
+                  cy = c[i][1].y;
+                  if (cx<0) cx=0;
+                  if (cx>width) cx=width;
+                  if (cy<0) cy=0;
+                  if (cy>height) cy=height;
 
                   if (cx < left)
                     {
@@ -409,12 +409,12 @@ int find_chars(const potrace_path_t * p, const Image &orig, vector<letters_t> &l
                     }
                   break;
                 case POTRACE_CURVETO:
-		  cx = c[i][0].x;
-		  cy = c[i][0].y;
-		  if (cx<0) cx=0;
-		  if (cx>width) cx=width;
-		  if (cy<0) cy=0;
-		  if (cy>height) cy=height;
+                  cx = c[i][0].x;
+                  cy = c[i][0].y;
+                  if (cx<0) cx=0;
+                  if (cx>width) cx=width;
+                  if (cy<0) cy=0;
+                  if (cy>height) cy=height;
                   if (cx < left)
                     {
                       left = cx;
@@ -435,12 +435,12 @@ int find_chars(const potrace_path_t * p, const Image &orig, vector<letters_t> &l
                       bottom = cy;
                       x2 = cx;
                     }
-		  cx = c[i][1].x;
-		  cy = c[i][1].y;
-		  if (cx<0) cx=0;
-		  if (cx>width) cx=width;
-		  if (cy<0) cy=0;
-		  if (cy>height) cy=height;
+                  cx = c[i][1].x;
+                  cy = c[i][1].y;
+                  if (cx<0) cx=0;
+                  if (cx>width) cx=width;
+                  if (cy<0) cy=0;
+                  if (cy>height) cy=height;
                   if (cx < left)
                     {
                       left = cx;
@@ -463,12 +463,12 @@ int find_chars(const potrace_path_t * p, const Image &orig, vector<letters_t> &l
                     }
                   break;
                 }
-	      cx = c[i][2].x;
-	      cy = c[i][2].y;
-	      if (cx<0) cx=0;
-	      if (cx>width) cx=width;
-	      if (cy<0) cy=0;
-	      if (cy>height) cy=height;
+              cx = c[i][2].x;
+              cy = c[i][2].y;
+              if (cx<0) cx=0;
+              if (cx>width) cx=width;
+              if (cy<0) cy=0;
+              if (cy>height) cy=height;
               if (cx < left)
                 {
                   left = cx;
@@ -815,18 +815,18 @@ int find_plus_minus(const potrace_path_t *p, vector<letters_t> &letters, vector<
           int x2 = 0;
           int right = 0;
           int y2 = 0;
-	  int cx,cy;
+          int cx,cy;
           for (int i = 0; i < n; i++)
             {
               switch (tag[i])
                 {
                 case POTRACE_CORNER:
-		  cx = c[i][1].x;
-		  cy = c[i][1].y;
-		  if (cx<0) cx=0;
-		  if (cx>width) cx=width;
-		  if (cy<0) cy=0;
-		  if (cy>height) cy=height;
+                  cx = c[i][1].x;
+                  cy = c[i][1].y;
+                  if (cx<0) cx=0;
+                  if (cx>width) cx=width;
+                  if (cy<0) cy=0;
+                  if (cy>height) cy=height;
                   if (cx < left)
                     {
                       left = cx;
@@ -849,12 +849,12 @@ int find_plus_minus(const potrace_path_t *p, vector<letters_t> &letters, vector<
                     }
                   break;
                 case POTRACE_CURVETO:
-		  cx = c[i][0].x;
-		  cy = c[i][0].y;
-		  if (cx<0) cx=0;
-		  if (cx>width) cx=width;
-		  if (cy<0) cy=0;
-		  if (cy>height) cy=height;
+                  cx = c[i][0].x;
+                  cy = c[i][0].y;
+                  if (cx<0) cx=0;
+                  if (cx>width) cx=width;
+                  if (cy<0) cy=0;
+                  if (cy>height) cy=height;
                   if (cx < left)
                     {
                       left = cx;
@@ -875,12 +875,12 @@ int find_plus_minus(const potrace_path_t *p, vector<letters_t> &letters, vector<
                       bottom = cy;
                       x2 = cx;
                     }
-		  cx = c[i][1].x;
-		  cy = c[i][1].y;
-		  if (cx<0) cx=0;
-		  if (cx>width) cx=width;
-		  if (cy<0) cy=0;
-		  if (cy>height) cy=height;
+                  cx = c[i][1].x;
+                  cy = c[i][1].y;
+                  if (cx<0) cx=0;
+                  if (cx>width) cx=width;
+                  if (cy<0) cy=0;
+                  if (cy>height) cy=height;
                   if (cx < left)
                     {
                       left = cx;
@@ -903,12 +903,12 @@ int find_plus_minus(const potrace_path_t *p, vector<letters_t> &letters, vector<
                     }
                   break;
                 }
-	      cx = c[i][2].x;
-	      cy = c[i][2].y;
-	      if (cx<0) cx=0;
-	      if (cx>width) cx=width;
-	      if (cy<0) cy=0;
-	      if (cy>height) cy=height;
+              cx = c[i][2].x;
+              cy = c[i][2].y;
+              if (cx<0) cx=0;
+              if (cx>width) cx=width;
+              if (cy<0) cy=0;
+              if (cy>height) cy=height;
               if (cx < left)
                 {
                   left = cx;

@@ -107,7 +107,7 @@ char osra_gocr_ocr(job_t &gocr_job)
 {
   OCR_JOB = &gocr_job;
   JOB = &gocr_job;
- // cout<<"Before gocr"<<endl;
+// cout<<"Before gocr"<<endl;
   try
     {
       pgm2asc(&gocr_job);

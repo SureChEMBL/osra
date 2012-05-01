@@ -101,7 +101,7 @@ typedef struct lbond_s lbond_t;
 // Parameters:
 // letters - a vector of recognized characters
 // n_letters - the number of recognized characters
-// label - a reference to the vector which will contain superatom labels 
+// label - a reference to the vector which will contain superatom labels
 //
 // Returns:
 // number of superatom labels
@@ -190,7 +190,7 @@ int clean_unrecognized_characters(vector<bond_t> &bond, int n_bond, const vector
 void remove_small_terminal_bonds(vector<bond_t> &bond, int n_bond, vector<atom_t> &atom, double avg);
 
 // Function: remove_small_bonds()
-// 
+//
 // Removes very small single bonds or replaces them, if stand-alone and next to a character and vertical
 // with a character "l"
 //

@@ -142,7 +142,7 @@ int double_triple_bonds(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, 
 //
 // Parameters:
 // atom - vector of atoms
-// letters - vector of characters 
+// letters - vector of characters
 // n_letters - number of characters
 // bond - vector of bonds
 // n_bond - number of bonds
@@ -168,7 +168,7 @@ void extend_terminal_bond_to_label(vector<atom_t> &atom, const vector<letters_t>
 void extend_terminal_bond_to_bonds(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, double avg, double maxh,double max_dist_double_bond);
 
 // Function: assign_charge()
-// 
+//
 // Assignes charges to atoms where recognized. <fix_atom_name()> is also called at the end.
 //
 // Parameters:
@@ -290,7 +290,7 @@ void collapse_bonds(vector<atom_t> &atom, const vector<bond_t> &bond, int n_bond
 // avg - average bond length
 //
 // Returns:
-// new value for n_bond 
+// new value for n_bond
 int fix_one_sided_bonds(vector<bond_t> &bond, int n_bond, const vector<atom_t> &atom, double thickness, double avg);
 
 // Function: find_wedge_bonds()

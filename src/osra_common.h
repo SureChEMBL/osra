@@ -101,7 +101,7 @@ double bond_length(const vector<bond_t> &bond, int i, const vector<atom_t> &atom
 
 // Function: delete_curve()
 //
-// Deletes atoms and bonds which belong to a give curve 
+// Deletes atoms and bonds which belong to a give curve
 //
 // Parameters:
 // atom - vector of atom_t objects in molecule
@@ -159,7 +159,7 @@ bool detect_curve(vector<bond_t> &bond, int n_bond, const potrace_path_t * const
 bool terminal_bond(int a, int b, const vector<bond_t> &bond, int n_bond);
 
 // Function: bm_new()
-// 
+//
 // Reserves space for Potrace object for image vectorization
 //
 // Parameters:
@@ -261,7 +261,7 @@ double distance_from_bond_x_b(double x0, double y0, double x1, double y1, double
 double percentile75(const vector<bond_t> &bond, int n_bond, const vector<atom_t> &atom);
 
 // Function: count_pages()
-// 
+//
 // Counts the number of pages in a specified image file
 //
 // Parameters:
@@ -308,7 +308,7 @@ int count_bonds(const vector<bond_t> &bond, int n_bond, int &bond_max_type);
 bool load_config_map(const string &file, map<string, string> &out);
 
 // Function: comp_boxes()
-// 
+//
 // Box coordinate comparison function used for sorting molecule-containing boxes
 // in a top-down left-to-right order
 //

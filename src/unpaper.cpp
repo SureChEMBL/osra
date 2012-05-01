@@ -4007,12 +4007,12 @@ int unpaper(Magick::Image &picture, double &radians, int &unpaper_dx, int &unpap
                 {
                   applyMasks(preMask, preMaskCount, maskColor, &sheet);
                 }
-	  
+
 
               // -------------------------------------------------------
               // --- process image data                              ---
               // -------------------------------------------------------
-	      
+
               // stretch
               if ((stretchSize[WIDTH] != -1) || (stretchSize[HEIGHT] != -1))
                 {
@@ -4067,11 +4067,11 @@ int unpaper(Magick::Image &picture, double &radians, int &unpaper_dx, int &unpap
 
 
               // handle sheet layout
-	      
+
               // LAYOUT_SINGLE
               if (layout == LAYOUT_SINGLE)
                 {
-		  // This affect horizontal displacement
+                  // This affect horizontal displacement
                   // set middle of sheet as single starting point for mask detection
                   if (pointCount == 0)   // no manual settings, use auto-values
                     {
@@ -4079,7 +4079,7 @@ int unpaper(Magick::Image &picture, double &radians, int &unpaper_dx, int &unpap
                       point[pointCount][Y] = sheet.height / 2;
                       pointCount++;
                     }
-		  
+
                   if (maskScanMaximum[WIDTH] == -1)
                     {
                       maskScanMaximum[WIDTH] = sheet.width;
@@ -4089,7 +4089,7 @@ int unpaper(Magick::Image &picture, double &radians, int &unpaper_dx, int &unpap
                       maskScanMaximum[HEIGHT] = sheet.height;
                     }
                   // avoid inner half of the sheet to be blackfilter-detectable
-		  
+
                   if (blackfilterExcludeCount == 0)   // no manual settings, use auto-values
                     {
                       blackfilterExclude[blackfilterExcludeCount][LEFT] = sheet.width / 4;
@@ -4098,7 +4098,7 @@ int unpaper(Magick::Image &picture, double &radians, int &unpaper_dx, int &unpap
                       blackfilterExclude[blackfilterExcludeCount][BOTTOM] = sheet.height / 2 + sheet.height / 4;
                       blackfilterExcludeCount++;
                     }
-		  // This affects vertical displacement
+                  // This affects vertical displacement
                   // set single outside border to start scanning for final border-scan
                   if (outsideBorderscanMaskCount == 0)   // no manual settings, use auto-values
                     {
@@ -4108,7 +4108,7 @@ int unpaper(Magick::Image &picture, double &radians, int &unpaper_dx, int &unpap
                       outsideBorderscanMask[0][TOP] = 0;
                       outsideBorderscanMask[0][BOTTOM] = sheet.height - 1;
                     }
-		  
+
                   // LAYOUT_DOUBLE
                 }
               else if (layout == LAYOUT_DOUBLE)
@@ -4178,7 +4178,7 @@ int unpaper(Magick::Image &picture, double &radians, int &unpaper_dx, int &unpap
                   maskScanMaximum[HEIGHT] = sheet.height;
                 }
 
-	      
+
               // pre-wipe
               if (!isExcluded(nr, noWipeMultiIndex, noWipeMultiIndexCount, ignoreMultiIndex, ignoreMultiIndexCount))
                 {
@@ -4216,7 +4216,7 @@ int unpaper(Magick::Image &picture, double &radians, int &unpaper_dx, int &unpap
                 {
                   maskCount = detectMasks(mask, maskValid, point, pointCount, maskScanDirections, maskScanSize, maskScanDepth, maskScanStep, maskScanThreshold, maskScanMinimum, maskScanMaximum, &sheet);
                 }
-    
+
               /* seems to remove borders when not necessary!!!
                           // permamently apply masks
                           if (maskCount > 0) {
@@ -4262,7 +4262,7 @@ int unpaper(Magick::Image &picture, double &radians, int &unpaper_dx, int &unpap
 
                       // for rotation detection, original buffer is used (not qpixels)
                       saveDebug("./_before-deskew-detect.pnm", &originalSheet);
-		      radians = 0;
+                      radians = 0;
                       rotation = - detectRotation(deskewScanEdges, deskewScanRange, deskewScanStep, deskewScanSize, deskewScanDepth, deskewScanDeviation, mask[i][LEFT], mask[i][TOP], mask[i][RIGHT], mask[i][BOTTOM], &originalSheet);
                       saveDebug("./_after-deskew-detect.pnm", &originalSheet);
 
@@ -4273,8 +4273,8 @@ int unpaper(Magick::Image &picture, double &radians, int &unpaper_dx, int &unpap
 
                           // copy area to rotate into rSource
                           copyImageArea(mask[i][LEFT]*q, mask[i][TOP]*q, rect.width, rect.height, &sheet, 0, 0, &rect);
-			  
-			  radians = degreesToRadians(rotation);
+
+                          radians = degreesToRadians(rotation);
                           // rotate
                           rotate(radians, &rect, &rectTarget);
 
@@ -4309,11 +4309,11 @@ int unpaper(Magick::Image &picture, double &radians, int &unpaper_dx, int &unpap
                   // center masks on the sheet, according to their page position
                   for (i = 0; i < maskCount; i++)
                     {
-		      int dx=0;
-		      int dy=0;
+                      int dx=0;
+                      int dy=0;
                       centerMask(point[i][X], point[i][Y], mask[i][LEFT], mask[i][TOP], mask[i][RIGHT], mask[i][BOTTOM], &sheet, dx, dy);
-		      unpaper_dx +=dx;
-		      unpaper_dy +=dy;
+                      unpaper_dx +=dx;
+                      unpaper_dy +=dy;
                     }
                 }
 
@@ -4343,11 +4343,11 @@ int unpaper(Magick::Image &picture, double &radians, int &unpaper_dx, int &unpap
                       // border-centering
                       if (!isExcluded(nr, noBorderAlignMultiIndex, noBorderAlignMultiIndexCount, ignoreMultiIndex, ignoreMultiIndexCount))
                         {
-			  int dx=0;
-			  int dy=0;
+                          int dx=0;
+                          int dy=0;
                           alignMask(autoborderMask[i], outsideBorderscanMask[i], borderAlign, borderAlignMargin, &sheet,dx,dy);
-			  unpaper_dx +=dx;
-			  unpaper_dy +=dy;
+                          unpaper_dx +=dx;
+                          unpaper_dy +=dy;
                         }
                     }
                 }

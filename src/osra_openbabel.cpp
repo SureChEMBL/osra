@@ -75,7 +75,7 @@ int osra_openbabel_init()
 //
 // Returns:
 //      true in case the given atom is superatom
-//      
+//
 bool create_atom(OBMol &mol, atom_t &atom, double scale, const map<string, string> &superatom, bool verbose)
 {
   if (atom.label.empty() || atom.label == " ")
@@ -100,7 +100,7 @@ bool create_atom(OBMol &mol, atom_t &atom, double scale, const map<string, strin
 
           if (verbose)
             cout << "Considering superatom " << atom.label << "->" << smiles_superatom <<
-                    " vector: " << atom.x * scale << "x" << -atom.y * scale << '.' << endl;
+                 " vector: " << atom.x * scale << "x" << -atom.y * scale << '.' << endl;
 
           // This is the index of first atom in superatom in molecule:
           atom.n = mol.NumAtoms() + 1;
