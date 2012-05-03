@@ -53,6 +53,7 @@ extern "C" {
 #include "osra_lib.h"
 #include "osra_ocr.h"
 #include "osra_openbabel.h"
+#include "osra_reaction.h"
 #include "osra_anisotropic.h"
 #include "osra_stl.h"
 #include "unpaper.h"
@@ -287,7 +288,7 @@ void split_fragments_and_assemble_structure_record(vector<atom_t> &atom,int n_at
     int l,int k,int resolution,int res_iter, const string &output_image_file_prefix,Image &image,Image &orig_box,int real_font_width,int real_font_height,
     double thickness, double avg_bond_length,const map<string, string> &superatom,int real_atoms, int real_bonds, int bond_max_type,
     double box_scale, double page_scale, double rotation, int unpaper_dx, int unpaper_dy,
-    const string &output_format,
+    string output_format,
     const string &embedded_format,
     bool show_confidence,
     bool show_resolution_guess,
@@ -360,6 +361,8 @@ void split_fragments_and_assemble_structure_record(vector<atom_t> &atom,int n_at
               if (verbose)
                 cout << "Coordinate box: " << coordinate_box.x1 << "x" << coordinate_box.y1 << "-" << coordinate_box.x2 << "x"
                      << coordinate_box.y2 << "." << endl;
+	      if (output_format == "ck" || output_format == "cmlr" || output_format == "rsmi" || output_format == "rxn")
+		output_format = "mol";
 
               string structure =
                 get_formatted_structure(frag_atom, frag_bond, n_bond, output_format, embedded_format,
@@ -904,37 +907,43 @@ int osra_process_image(
   int image_count = 0;
 
   for (int l = 0; l < page; l++)
-    for (unsigned int i = 0; i < pages_of_structures[l].size(); i++)
-      if (pages_of_avg_bonds[l][i] > min_bond && pages_of_avg_bonds[l][i] < max_bond)
-        {
-          if (pages_of_ind_conf[l][i] > max_confidence)
-            {
-              max_confidence = pages_of_ind_conf[l][i];
-              l_index = l;
-              i_index = i;
-            }
+    {
+      for (unsigned int i = 0; i < pages_of_structures[l].size(); i++)
+	if (pages_of_avg_bonds[l][i] > min_bond && pages_of_avg_bonds[l][i] < max_bond)
+	  {
+	    if (pages_of_ind_conf[l][i] > max_confidence)
+	      {
+		max_confidence = pages_of_ind_conf[l][i];
+		l_index = l;
+		i_index = i;
+	      }
+	    
+	    if (output_format != "mol" && !(output_format == "ck" || output_format == "cmlr" || output_format == "rsmi" || output_format == "rxn"))
+	      out_stream << pages_of_structures[l][i];
 
-          if (output_format != "mol")
-            out_stream << pages_of_structures[l][i];
-
-          // Dump this structure into a separate file:
-          if (!output_image_file_prefix.empty())
-            {
-              ostringstream fname;
-              fname << output_image_file_prefix << image_count << ".png";
-              image_count++;
-              if (fname.str() != "")
-                {
-                  Image tmp = pages_of_images[l][i];
-                  if (resize != "")
-                    {
-                      tmp.scale(resize);
-                    }
-                  tmp.write(fname.str());
-                }
-            }
-        }
-
+	    // Dump this structure into a separate file:
+	    if (!output_image_file_prefix.empty())
+	      {
+		ostringstream fname;
+		fname << output_image_file_prefix << image_count << ".png";
+		image_count++;
+		if (fname.str() != "")
+		  {
+		    Image tmp = pages_of_images[l][i];
+		    if (resize != "")
+		      {
+			tmp.scale(resize);
+		      }
+		    tmp.write(fname.str());
+		  }
+	      }
+	  }
+       if (output_format == "ck" || output_format == "cmlr" || output_format == "rsmi" || output_format == "rxn")
+	 {
+	   string reaction = convert_page_to_reaction(pages_of_structures[l],output_format);
+	   out_stream << reaction;
+	 }
+    }
   // Output the structure with maximum confidence value:
   if (output_format == "mol")
     out_stream << pages_of_structures[l_index][i_index];
