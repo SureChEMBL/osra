@@ -29,6 +29,8 @@
 #include <openbabel/obconversion.h>
 #include <openbabel/reaction.h>
 
+#include "osra_reaction.h"
+
 using namespace OpenBabel;
 using namespace std;
 
@@ -48,23 +50,30 @@ string convert_page_to_reaction(const vector<string> &page_of_structures, const 
 {
   string reaction;
   OBConversion conv;
-  conv.SetInAndOutFormats("mol",output_format.c_str());
+  conv.SetInAndOutFormats(SUBSTITUTE_REACTION_FORMAT,output_format.c_str());
   ostringstream strstr;
-
-  if (page_of_structures.size() > 1)
+  int n = page_of_structures.size();
+  if (n > 1)
     {
-      OBReaction *react =  new OBReaction; // OBReaction doesn't seem to have a desctructor!!! 
-      OBMol reactant;
-      conv.ReadString(&reactant, page_of_structures[0]);
-      react->AddReactant(shared_ptr<OBMol>(&reactant));
-      OBMol product;
-      conv.ReadString(&product, page_of_structures[1]);
-      react->AddProduct(shared_ptr<OBMol>(&product));
-      strstr << conv.WriteString(react, true);
+      OBReaction react;
+      shared_ptr<OBMol> reactant(new OBMol);
+      conv.ReadString(reactant.get(), page_of_structures[0]);
+      react.AddReactant(reactant);
+      shared_ptr<OBMol> product(new OBMol);
+      conv.ReadString(product.get(), page_of_structures[n-1]);
+      react.AddProduct(product);
+      shared_ptr<OBMol> transition(new OBMol);
+      for (int i=1; i<n-1;i++)
+	{
+	  conv.ReadString(transition.get(), page_of_structures[i]);
+	    react.SetTransitionState(transition);
+	  //	  react.AddAgent(transition);
+	}
+      strstr << conv.WriteString(&react, true);
       reaction = strstr.str();
-      reactant.Clear();
-      product.Clear();
-      //delete react;
+      transition.get()->Clear();
+      reactant.get()->Clear();
+      product.get()->Clear();
     }
 
   return(reaction);

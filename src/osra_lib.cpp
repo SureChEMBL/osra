@@ -284,24 +284,39 @@ void rotate_coordinate_box(box_t &coordinate_box,double rotation,int width,int h
   coordinate_box.y2 = max(y1,y2);
 }
 
-void split_fragments_and_assemble_structure_record(vector<atom_t> &atom,int n_atom, vector<bond_t>  &bond, int n_bond, const vector<box_t> &boxes,
-    int l,int k,int resolution,int res_iter, const string &output_image_file_prefix,Image &image,Image &orig_box,int real_font_width,int real_font_height,
-    double thickness, double avg_bond_length,const map<string, string> &superatom,int real_atoms, int real_bonds, int bond_max_type,
-    double box_scale, double page_scale, double rotation, int unpaper_dx, int unpaper_dy,
-    string output_format,
-    const string &embedded_format,
-    bool show_confidence,
-    bool show_resolution_guess,
-    bool show_page,
-    bool show_coordinates,
-    bool show_avg_bond_length,
-    vector<vector<string> > &array_of_structures,
-    vector<vector<double> > &array_of_avg_bonds,
-    vector<vector<double> > &array_of_ind_conf,
-    vector<vector<Image> > &array_of_images,
-    int &total_boxes,
-    double &total_confidence,
-    bool verbose)
+void split_fragments_and_assemble_structure_record(vector<atom_t> &atom,
+						   int n_atom, 
+						   vector<bond_t>  &bond, 
+						   int n_bond, 
+						   const vector<box_t> &boxes,
+						   int l,int k,
+						   int resolution,
+						   int res_iter, 
+						   const string &output_image_file_prefix,
+						   Image &image,
+						   Image &orig_box,
+						   int real_font_width,int real_font_height,
+						   double thickness, 
+						   double avg_bond_length,
+						   const map<string, string> &superatom,
+						   int real_atoms, int real_bonds, 
+						   int bond_max_type,
+						   double box_scale, double page_scale, double rotation, int unpaper_dx, int unpaper_dy,
+						   string output_format,
+						   const string &embedded_format,
+						   bool is_reaction,
+						   bool show_confidence,
+						   bool show_resolution_guess,
+						   bool show_page,
+						   bool show_coordinates,
+						   bool show_avg_bond_length,
+						   vector<vector<string> > &array_of_structures,
+						   vector<vector<double> > &array_of_avg_bonds,
+						   vector<vector<double> > &array_of_ind_conf,
+						   vector<vector<Image> > &array_of_images,
+						   int &total_boxes,
+						   double &total_confidence,
+						   bool verbose)
 {
   vector<atom_t> frag_atom;
   vector<bond_t> frag_bond;
@@ -361,8 +376,8 @@ void split_fragments_and_assemble_structure_record(vector<atom_t> &atom,int n_at
               if (verbose)
                 cout << "Coordinate box: " << coordinate_box.x1 << "x" << coordinate_box.y1 << "-" << coordinate_box.x2 << "x"
                      << coordinate_box.y2 << "." << endl;
-	      if (output_format == "ck" || output_format == "cmlr" || output_format == "rsmi" || output_format == "rxn")
-		output_format = "mol";
+	      if (is_reaction)
+		output_format = SUBSTITUTE_REACTION_FORMAT;
 
               string structure =
                 get_formatted_structure(frag_atom, frag_bond, n_bond, output_format, embedded_format,
@@ -554,6 +569,9 @@ int osra_process_image(
       cerr << "Embedded format option is only possible if output format is SDF and option can have only inchi, smi, or can values." << endl;
       return ERROR_ILLEGAL_ARGUMENT_COMBINATION;
     }
+  bool is_reaction = false;
+  if (output_format == "cmlr" || output_format == "rsmi")
+    is_reaction = true;
 
 #ifdef OSRA_LIB
   int page = 1;
@@ -843,10 +861,10 @@ int osra_process_image(
                   cout << "Final number of atoms: " << real_atoms << ", bonds: " << real_bonds << ", chars: " << n_letters << '.' << endl;
 
                 split_fragments_and_assemble_structure_record(atom,n_atom,bond,n_bond,boxes,
-                    l,k,resolution,res_iter,output_image_file_prefix,image,orig_box,real_font_width,real_font_height,
-                    thickness,avg_bond_length,superatom,real_atoms,real_bonds,bond_max_type,
-                    box_scale,page_scale,rotation,unpaper_dx,unpaper_dy,output_format,embedded_format,show_confidence,show_resolution_guess,show_page,show_coordinates,
-                    show_avg_bond_length,array_of_structures,array_of_avg_bonds,array_of_ind_conf,array_of_images,total_boxes,total_confidence,verbose);
+							      l,k,resolution,res_iter,output_image_file_prefix,image,orig_box,real_font_width,real_font_height,
+							      thickness,avg_bond_length,superatom,real_atoms,real_bonds,bond_max_type,
+							      box_scale,page_scale,rotation,unpaper_dx,unpaper_dy,output_format,embedded_format,is_reaction,show_confidence,show_resolution_guess,show_page,show_coordinates,
+							      show_avg_bond_length,array_of_structures,array_of_avg_bonds,array_of_ind_conf,array_of_images,total_boxes,total_confidence,verbose);
 
                 if (st != NULL)
                   potrace_state_free(st);
@@ -918,7 +936,7 @@ int osra_process_image(
 		i_index = i;
 	      }
 	    
-	    if (output_format != "mol" && !(output_format == "ck" || output_format == "cmlr" || output_format == "rsmi" || output_format == "rxn"))
+	    if (output_format != "mol" && !is_reaction)
 	      out_stream << pages_of_structures[l][i];
 
 	    // Dump this structure into a separate file:
@@ -938,7 +956,7 @@ int osra_process_image(
 		  }
 	      }
 	  }
-       if (output_format == "ck" || output_format == "cmlr" || output_format == "rsmi" || output_format == "rxn")
+      if (is_reaction)
 	 {
 	   string reaction = convert_page_to_reaction(pages_of_structures[l],output_format);
 	   out_stream << reaction;

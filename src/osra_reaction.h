@@ -25,6 +25,9 @@
 // Defines functions dealing with generating a reaction type output
 //
 
+#define SUBSTITUTE_REACTION_FORMAT "mol"
+
+
 //
 // Section: Functions
 //
@@ -40,4 +43,4 @@
 // Returns:
 //      resulting reaction in the format set up by output_format parameter
 //
-string convert_page_to_reaction(const vector<string> &page_of_structures, const string &output_format);
+std::string convert_page_to_reaction(const std::vector<std::string> &page_of_structures, const std::string &output_format);
