@@ -530,9 +530,24 @@ void find_arrows_pluses(const vector<vector<point_t> > &margins)
 	    if (hist[k]>3) low=false;
 	  if (low)
 	    {
-	      if (peaks.size() == 2 && double(values[0])/values[1]>1.3 && fabs(len/2 - fabs(peaks[1]-peaks[0]))<=1)  // only two peaks are present at 180 degrees and at least 1.3 times height difference
+	      if (peaks.size() == 2 && double(values[0])/values[1]>1.3 && abs(len/2 - abs(peaks[1]-peaks[0]))<=1)  // only two peaks are present at 180 degrees and at least 1.3 times height difference
 		{
 		  // we found an arrow!
+		}
+	      if (peaks.size() == 4  && double(values[1])/values[0]>0.9   && double(values[2])/values[0]>0.9 && double(values[3])/values[0]>0.9)
+		{
+		  bool first=false, second=false, third=false, fourth=false;
+		  for (int j=0; j<4; j++)
+		    {
+		      if (peaks[j] <= 1 || peaks[j] >=len-2) first=true;
+		      if (abs(len/4-peaks[j])<=1) second=true;
+		      if (abs(len/2-peaks[j])<=1) third=true;
+		      if (abs(3*len/4-peaks[j])<=1) fourth=true;
+		    }
+		  if (first && second && third && fourth)
+		    {
+		      // we found a plus!
+		    }
 		}
 	    }
 	}
