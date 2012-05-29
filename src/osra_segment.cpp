@@ -460,7 +460,87 @@ int locate_max_entropy(const vector<vector<int> > &features, unsigned int max_ar
   return (start_b);
 }
 
-list<list<list<point_t> > > find_segments(const Image &image, double threshold, const ColorGray &bgColor, bool adaptive, bool verbose)
+
+void find_arrows_pluses(const vector<vector<point_t> > &margins)
+{
+  const int len=50;
+  for (int i=0; i<margins.size(); i++)
+    {
+      vector<int> hist(len,0);
+      point_t center;
+      center.x=0; center.y=0;
+      int l=margins[i].size();
+      for (int j=0; j<l; j++)
+	{
+	  center.x += margins[i][j].x;
+	  center.y += margins[i][j].y;
+	}
+      center.x /=l;  // Find the center of mass for the segment margin
+      center.y /=l;
+      for (int j=0; j<l; j++)
+	{
+	  int dx = margins[i][j].x-center.x;
+	  int dy = margins[i][j].y-center.y;
+	  double r=(double)sqrt(dx*dx+dy*dy);
+	  double theta=0.;
+	  if (dx!=0 || dy!=0)
+	    theta = atan2(dy,dx);
+
+	  int bin = (theta+M_PI)*len/(2*M_PI);
+	  if (bin>=len) bin -= len;
+	  hist[bin]++;          // build a histogram of occurencies in polar coordinates
+	}
+      int top_pos=0;
+      int top_value=0;
+      for (int k=0; k<len;k++)
+	if (hist[k]>=top_value)
+	  {
+	    top_pos=k;                       // find the position of the highest peak
+	    top_value=hist[k];
+	  }
+      if (top_value>5)
+	{
+	  vector<int> peaks(1,top_pos);
+	  vector<int> values(1,top_value);
+	  for (int k=1; k<len;k++)
+	    {
+	      int pos=k+top_pos;
+	      if (pos>=len) pos -= len;
+	      int after=pos+1;
+	      int before=pos-1;
+	      if (after>=len) after -=len;
+	      if (before<0) before +=len;
+	      if (hist[before]<hist[pos] && hist[after]<hist[pos] && hist[pos]>=top_value/2)  // find all peaks at least half as high as the top-most
+		{
+		  peaks.push_back(pos);
+		  values.push_back(hist[pos]);
+		}
+	    }
+	  
+	  for (int j=0; j<peaks.size(); j++)          // check outside of the peaks is essentially zero
+	    for (int k=peaks[j]-2; k<=peaks[j]+2; k++)
+	    {
+	      int kk=k;
+	      if (kk<0) kk += len;
+	      if (kk>=len) kk -=len;
+	      hist[kk]=0;
+	    }
+	  bool low=true;
+	  for(int k=0; k<len; k++)
+	    if (hist[k]>3) low=false;
+	  if (low)
+	    {
+	      if (peaks.size() == 2 && double(values[0])/values[1]>1.3 && fabs(len/2 - fabs(peaks[1]-peaks[0]))<=1)  // only two peaks are present at 180 degrees and at least 1.3 times height difference
+		{
+		  // we found an arrow!
+		}
+	    }
+	}
+    }
+  //  exit(0);
+}
+
+list<list<list<point_t> > > find_segments(const Image &image, double threshold, const ColorGray &bgColor, bool adaptive, bool is_reaction, bool verbose)
 {
   vector<list<point_t> > segments;
   vector<vector<point_t> > margins;
@@ -478,6 +558,8 @@ list<list<list<point_t> > > find_segments(const Image &image, double threshold, 
       segments.clear();
       margins.clear();
     }
+  if (is_reaction)
+    find_arrows_pluses(margins);
 
   remove_separators(segments, margins, SEPARATOR_ASPECT, SEPARATOR_AREA);
 

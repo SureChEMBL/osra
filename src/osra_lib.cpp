@@ -656,7 +656,7 @@ int osra_process_image(
         }
 
       // 0.1 is used for THRESHOLD_BOND here to allow for farther processing.
-      list<list<list<point_t> > > clusters = find_segments(image, 0.1, bgColor, adaptive, verbose);
+      list<list<list<point_t> > > clusters = find_segments(image, 0.1, bgColor, adaptive, is_reaction, verbose);
 
       if (verbose)
         cout << "Number of clusters: " << clusters.size() << '.' << endl;

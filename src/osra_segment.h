@@ -74,11 +74,12 @@ typedef struct box_s box_t;
 // threshold - black-white binarization threshold
 // bgColor - background color
 // adaptive - flag set if adaptive thresholding has been used in grayscale conversion
+// is_reaction - flag set if we're looking for reaction-specific symbols (arrows, plus signs etc.)
 // verbose - flag set for verbose reporting
 //
 // Returns:
 // A list of clusters, each of which is a list of  connected segments each of which is a list of points
-list<list<list<point_t> > > find_segments(const Image &image, double threshold, const ColorGray &bgColor, bool adaptive, bool verbose);
+list<list<list<point_t> > > find_segments(const Image &image, double threshold, const ColorGray &bgColor, bool adaptive, bool is_reaction, bool verbose);
 
 // Function: prune_clusters()
 //
