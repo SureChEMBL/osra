@@ -460,36 +460,45 @@ int locate_max_entropy(const vector<vector<int> > &features, unsigned int max_ar
   return (start_b);
 }
 
+template<class T>
+void build_hist(const T &seg, vector<int> &hist, const int len)
+{
+  int l=seg.size();
+  typename T::const_iterator j;
+  point_t center;
+  center.x=0; center.y=0;
+  for (j=seg.begin(); j!=seg.end(); j++)
+    {
+      center.x += j->x;
+      center.y += j->y;
+    }
+  center.x /=l;  // Find the center of mass for the segment margin
+  center.y /=l;
+  for (j=seg.begin(); j!=seg.end(); j++)
+    {
+      int dx = j->x-center.x;
+      int dy = j->y-center.y;
+      double r=(double)sqrt(dx*dx+dy*dy);
+      double theta=0.;
+      if (dx!=0 || dy!=0)
+	theta = atan2(dy,dx);
+      int bin = (theta+M_PI)*len/(2*M_PI);
+      if (bin>=len) bin -= len;
+      hist[bin]++;          // build a histogram of occurencies in polar coordinates
+    }
+}
 
-void find_arrows_pluses(const vector<vector<point_t> > &margins)
+void find_arrows_pluses(const vector<vector<point_t> > &margins, const vector<list<point_t> > &segments)
 {
   const int len=50;
   for (int i=0; i<margins.size(); i++)
     {
       vector<int> hist(len,0);
-      point_t center;
-      center.x=0; center.y=0;
-      int l=margins[i].size();
-      for (int j=0; j<l; j++)
-	{
-	  center.x += margins[i][j].x;
-	  center.y += margins[i][j].y;
-	}
-      center.x /=l;  // Find the center of mass for the segment margin
-      center.y /=l;
-      for (int j=0; j<l; j++)
-	{
-	  int dx = margins[i][j].x-center.x;
-	  int dy = margins[i][j].y-center.y;
-	  double r=(double)sqrt(dx*dx+dy*dy);
-	  double theta=0.;
-	  if (dx!=0 || dy!=0)
-	    theta = atan2(dy,dx);
+      if (segments[i].size()>100)
+	build_hist(margins[i],hist,len);
+      else
+	build_hist(segments[i],hist,len);
 
-	  int bin = (theta+M_PI)*len/(2*M_PI);
-	  if (bin>=len) bin -= len;
-	  hist[bin]++;          // build a histogram of occurencies in polar coordinates
-	}
       int top_pos=0;
       int top_value=0;
       for (int k=0; k<len;k++)
@@ -498,6 +507,7 @@ void find_arrows_pluses(const vector<vector<point_t> > &margins)
 	    top_pos=k;                       // find the position of the highest peak
 	    top_value=hist[k];
 	  }
+
       if (top_value>5)
 	{
 	  vector<int> peaks(1,top_pos);
@@ -533,8 +543,12 @@ void find_arrows_pluses(const vector<vector<point_t> > &margins)
 	      if (peaks.size() == 2 && double(values[0])/values[1]>1.3 && abs(len/2 - abs(peaks[1]-peaks[0]))<=1)  // only two peaks are present at 180 degrees and at least 1.3 times height difference
 		{
 		  // we found an arrow!
+		  if (peaks[0]>len/8 && peaks[0]<7*len/8)
+		    {
+		      // the arrow is pointing backwards
+		    }
 		}
-	      if (peaks.size() == 4  && double(values[1])/values[0]>0.9   && double(values[2])/values[0]>0.9 && double(values[3])/values[0]>0.9)
+	      if (peaks.size() == 4  && double(values[1])/values[0]>0.8   && double(values[2])/values[0]>0.8 && double(values[3])/values[0]>0.8)
 		{
 		  bool first=false, second=false, third=false, fourth=false;
 		  for (int j=0; j<4; j++)
@@ -552,7 +566,7 @@ void find_arrows_pluses(const vector<vector<point_t> > &margins)
 	    }
 	}
     }
-  //  exit(0);
+  //    exit(0);
 }
 
 list<list<list<point_t> > > find_segments(const Image &image, double threshold, const ColorGray &bgColor, bool adaptive, bool is_reaction, bool verbose)
@@ -574,7 +588,7 @@ list<list<list<point_t> > > find_segments(const Image &image, double threshold, 
       margins.clear();
     }
   if (is_reaction)
-    find_arrows_pluses(margins);
+    find_arrows_pluses(margins,segments);
 
   remove_separators(segments, margins, SEPARATOR_ASPECT, SEPARATOR_AREA);
 
