@@ -314,6 +314,7 @@ void split_fragments_and_assemble_structure_record(vector<atom_t> &atom,
 						   vector<vector<double> > &array_of_avg_bonds,
 						   vector<vector<double> > &array_of_ind_conf,
 						   vector<vector<Image> > &array_of_images,
+						   vector<vector<box_t> > &array_of_boxes,
 						   int &total_boxes,
 						   double &total_confidence,
 						   bool verbose)
@@ -366,12 +367,16 @@ void split_fragments_and_assemble_structure_record(vector<atom_t> &atom,
               double confidence = 0;
               molecule_statistics_t molecule_statistics;
               int page_number = l + 1;
-              box_t coordinate_box;
+              box_t coordinate_box,rel_box;
               coordinate_box.x1 = (int) (-(double)page_scale * unpaper_dx + (double) page_scale * boxes[k].x1 + (double) page_scale * box_scale * fragments[i].x1);
               coordinate_box.y1 = (int) (-(double)page_scale * unpaper_dy + (double) page_scale * boxes[k].y1 + (double) page_scale * box_scale * fragments[i].y1);
               coordinate_box.x2 = (int) (-(double)page_scale * unpaper_dx + (double) page_scale * boxes[k].x1 + (double) page_scale * box_scale * fragments[i].x2);
               coordinate_box.y2 = (int) (-(double)page_scale * unpaper_dy + (double) page_scale * boxes[k].y1 + (double) page_scale * box_scale * fragments[i].y2);
               //rotate_coordinate_box(coordinate_box,rotation,image.columns(),image.rows());
+	      rel_box.x1 = (int)((double)boxes[k].x1 + (double) box_scale * fragments[i].x1);
+	      rel_box.y1 = (int)((double)boxes[k].y1 + (double) box_scale * fragments[i].y1);
+	      rel_box.x2 = (int)((double)boxes[k].x2 + (double) box_scale * fragments[i].x2);
+	      rel_box.y2 = (int)((double)boxes[k].y2 + (double) box_scale * fragments[i].y2);
 
               if (verbose)
                 cout << "Coordinate box: " << coordinate_box.x1 << "x" << coordinate_box.y1 << "-" << coordinate_box.x2 << "x"
@@ -393,6 +398,7 @@ void split_fragments_and_assemble_structure_record(vector<atom_t> &atom,
                   array_of_structures[res_iter].push_back(structure);
                   array_of_avg_bonds[res_iter].push_back(page_scale * box_scale * avg_bond_length);
                   array_of_ind_conf[res_iter].push_back(confidence);
+		  array_of_boxes[res_iter].push_back(rel_box);
                   total_boxes++;
                   total_confidence += confidence;
                   if (!output_image_file_prefix.empty())
@@ -583,6 +589,7 @@ int osra_process_image(
   vector<vector<Image> > pages_of_images(page, vector<Image> (0));
   vector<vector<double> > pages_of_avg_bonds(page, vector<double> (0));
   vector<vector<double> > pages_of_ind_conf(page, vector<double> (0));
+  vector<vector<box_t> > pages_of_boxes(page, vector<box_t> (0));
 
   int total_structure_count = 0;
 
@@ -620,6 +627,7 @@ int osra_process_image(
       vector<vector<double> > array_of_avg_bonds(num_resolutions), array_of_ind_conf(num_resolutions);
       vector<double> array_of_confidence(num_resolutions, -FLT_MAX);
       vector<vector<Image> > array_of_images(num_resolutions);
+      vector<vector<box_t> > array_of_boxes(num_resolution);
 
       set_select_resolution(select_resolution,input_resolution);
 
@@ -655,8 +663,9 @@ int osra_process_image(
           unpaper_dy +=dy;
         }
 
+      vector<arrow_t> arrows;
       // 0.1 is used for THRESHOLD_BOND here to allow for farther processing.
-      list<list<list<point_t> > > clusters = find_segments(image, 0.1, bgColor, adaptive, is_reaction, verbose);
+      list<list<list<point_t> > > clusters = find_segments(image, 0.1, bgColor, adaptive, is_reaction, arrows, verbose);
 
       if (verbose)
         cout << "Number of clusters: " << clusters.size() << '.' << endl;
@@ -864,7 +873,7 @@ int osra_process_image(
 							      l,k,resolution,res_iter,output_image_file_prefix,image,orig_box,real_font_width,real_font_height,
 							      thickness,avg_bond_length,superatom,real_atoms,real_bonds,bond_max_type,
 							      box_scale,page_scale,rotation,unpaper_dx,unpaper_dy,output_format,embedded_format,is_reaction,show_confidence,show_resolution_guess,show_page,show_coordinates,
-							      show_avg_bond_length,array_of_structures,array_of_avg_bonds,array_of_ind_conf,array_of_images,total_boxes,total_confidence,verbose);
+							      show_avg_bond_length,array_of_structures,array_of_avg_bonds,array_of_ind_conf,array_of_images,array_of_boxes,total_boxes,total_confidence,verbose);
 
                 if (st != NULL)
                   potrace_state_free(st);
@@ -893,6 +902,7 @@ int osra_process_image(
               pages_of_images[l].push_back(array_of_images[max_res][i]);
             pages_of_avg_bonds[l].push_back(array_of_avg_bonds[max_res][i]);
             pages_of_ind_conf[l].push_back(array_of_ind_conf[max_res][i]);
+	    pages_of_boxes[l].push_back(array_of_boxes[max_res][i]);
             total_structure_count++;
           }
       }

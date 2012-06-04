@@ -461,11 +461,10 @@ int locate_max_entropy(const vector<vector<int> > &features, unsigned int max_ar
 }
 
 template<class T>
-void build_hist(const T &seg, vector<int> &hist, const int len)
+void build_hist(const T &seg, vector<int> &hist, const int len, int &top_pos, int &top_value,point_t &head,point_t &tail, point_t &center)
 {
   int l=seg.size();
   typename T::const_iterator j;
-  point_t center;
   center.x=0; center.y=0;
   for (j=seg.begin(); j!=seg.end(); j++)
     {
@@ -485,28 +484,45 @@ void build_hist(const T &seg, vector<int> &hist, const int len)
       int bin = (theta+M_PI)*len/(2*M_PI);
       if (bin>=len) bin -= len;
       hist[bin]++;          // build a histogram of occurencies in polar coordinates
+      if (hist[bin]>=top_value)
+	  {
+	    top_pos = bin;                       // find the position of the highest peak
+	    top_value = hist[bin];
+	    head.x =  j->x;
+	    head.y -  j->y;
+	  }
+    }
+  double r_max=0;
+  for (j=seg.begin(); j!=seg.end(); j++)
+    {
+      int dx = j->x-head.x;
+      int dy = j->y-head.y;
+      double r=(double)sqrt(dx*dx+dy*dy);
+      if (r>r_max)
+	{
+	  r_max = r;
+	  tail.x = j->x;
+	  tail.y = j->y;
+	}
     }
 }
 
-void find_arrows_pluses(const vector<vector<point_t> > &margins, const vector<list<point_t> > &segments)
+void find_arrows_pluses(vector<vector<point_t> > &margins, vector<list<point_t> > &segments, vector<arrow_t> &arrows)
 {
   const int len=50;
+  vector < vector < vector < point_t > >::iterator> margins_to_delete;
+  vector < vector<list<point_t> >::iterator > segments_to_delete; 
   for (int i=0; i<margins.size(); i++)
     {
       vector<int> hist(len,0);
-      if (segments[i].size()>100)
-	build_hist(margins[i],hist,len);
-      else
-	build_hist(segments[i],hist,len);
-
       int top_pos=0;
       int top_value=0;
-      for (int k=0; k<len;k++)
-	if (hist[k]>=top_value)
-	  {
-	    top_pos=k;                       // find the position of the highest peak
-	    top_value=hist[k];
-	  }
+      point_t head, tail,center;
+
+      if (segments[i].size()>100)
+	build_hist(margins[i],hist,len,top_pos,top_value,head,tail,center);
+      else
+	build_hist(segments[i],hist,len,top_pos,top_value,head,tail,center);
 
       if (top_value>5)
 	{
@@ -543,10 +559,12 @@ void find_arrows_pluses(const vector<vector<point_t> > &margins, const vector<li
 	      if (peaks.size() == 2 && double(values[0])/values[1]>1.3 && abs(len/2 - abs(peaks[1]-peaks[0]))<=1)  // only two peaks are present at 180 degrees and at least 1.3 times height difference
 		{
 		  // we found an arrow!
-		  if (peaks[0]>len/8 && peaks[0]<7*len/8)
-		    {
-		      // the arrow is pointing backwards
-		    }
+		  arrow_t arrow;
+		  arrow.head = head;
+		  arrow.tail = tail;
+		  arrows.push_back(arrow);
+		  margins_to_delete.push_back(margins.begin()+i);
+		  segments_to_delete.push_back(segments.begin()+i);
 		}
 	      if (peaks.size() == 4  && double(values[1])/values[0]>0.8   && double(values[2])/values[0]>0.8 && double(values[3])/values[0]>0.8)
 		{
@@ -561,15 +579,22 @@ void find_arrows_pluses(const vector<vector<point_t> > &margins, const vector<li
 		  if (first && second && third && fourth)
 		    {
 		      // we found a plus!
+		      pluses.push_back(center);
 		    }
 		}
 	    }
 	}
     }
+  for (int i=0; i<margins_to_delete.size(); i++)
+    {
+      margins.erase(margins_to_delete[i]);
+      segments.erase(segments_to_delete[i]);
+    }
+  
   //    exit(0);
 }
 
-list<list<list<point_t> > > find_segments(const Image &image, double threshold, const ColorGray &bgColor, bool adaptive, bool is_reaction, bool verbose)
+list<list<list<point_t> > > find_segments(const Image &image, double threshold, const ColorGray &bgColor, bool adaptive, bool is_reaction, vector<arrow_t> &arrows, bool verbose)
 {
   vector<list<point_t> > segments;
   vector<vector<point_t> > margins;
@@ -588,7 +613,7 @@ list<list<list<point_t> > > find_segments(const Image &image, double threshold, 
       margins.clear();
     }
   if (is_reaction)
-    find_arrows_pluses(margins,segments);
+    find_arrows_pluses(margins,segments,arrows);
 
   remove_separators(segments, margins, SEPARATOR_ASPECT, SEPARATOR_AREA);
 

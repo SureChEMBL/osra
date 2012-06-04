@@ -34,8 +34,6 @@
 using namespace OpenBabel;
 using namespace std;
 
-
-// Function: convert_page_to_reaction(
 //
 // Create a reaction representation for input vector of structures
 //
@@ -46,35 +44,152 @@ using namespace std;
 // Returns:
 //      resulting reaction in the format set up by output_format parameter
 //
-string convert_page_to_reaction(const vector<string> &page_of_structures, const string &output_format)
+string convert_page_to_reaction(const vector<string> &page_of_structures, const string &output_format, const vector <int> &reactants, const vector <int> &products)
 {
   string reaction;
   OBConversion conv;
   conv.SetInAndOutFormats(SUBSTITUTE_REACTION_FORMAT,output_format.c_str());
   ostringstream strstr;
-  int n = page_of_structures.size();
-  if (n > 1)
+  
+  OBReaction react;
+  for (int j=0; j<reactants[k].size(); j++)
     {
-      OBReaction react;
       shared_ptr<OBMol> reactant(new OBMol);
-      conv.ReadString(reactant.get(), page_of_structures[0]);
+      conv.ReadString(reactant.get(), page_of_structures[reactants[k][j]]);
       react.AddReactant(reactant);
-      shared_ptr<OBMol> product(new OBMol);
-      conv.ReadString(product.get(), page_of_structures[n-1]);
-      react.AddProduct(product);
-      shared_ptr<OBMol> transition(new OBMol);
-      for (int i=1; i<n-1;i++)
-	{
-	  conv.ReadString(transition.get(), page_of_structures[i]);
-	    react.SetTransitionState(transition);
-	  //	  react.AddAgent(transition);
-	}
-      strstr << conv.WriteString(&react, true);
-      reaction = strstr.str();
-      transition.get()->Clear();
-      reactant.get()->Clear();
-      product.get()->Clear();
     }
+  for (int j=0; j<products[k].size(); j++)
+    {
+      shared_ptr<OBMol> product(new OBMol);
+      conv.ReadString(product.get(), page_of_structures[products[k][j]]);
+      react.AddProduct(product);
+    }
+  //	  react.AddAgent(transition);
+  strstr << conv.WriteString(&react, true);
+  reaction = strstr.str();
 
   return(reaction);
+}
+
+bool arrows_head_to_tail(const arrow_t &a, const arrow_t &b)
+{
+  if (a.head.x < b.tail.x)
+    return (true);
+  if (a.head.y < b.tail.y)
+    return (true);
+  return (false);
+}
+
+double distance_from_box(const point_t &p, const box_t &b)
+{
+  double r1 = distance(p.x,p.y,b.x1,b.y1);
+  double r2 = distance(p.x,p.y,b.x1,b.y2);
+  double r3 = distance(p.x,p.y,b.x2,b.y1);
+  double r4 = distance(p.x,p.y,b.x2,b.y2);
+  return(min(min(r1,r2),min(r3,r4)));
+}
+
+bool comp_structures(const pair<int,box_t> &a, const pair<int,box_t> &b)
+{
+  if (a.second.y2 < b.second.y1)
+    return (true);
+  if (a.second.x2 < b.second.x1)
+    return (true);
+  return (false);
+}
+
+void arrange_reactions(vector<arrow_t> &arrows, const vector<box_t> &page_of_boxes, const vector<point_t> &pluses)
+{
+  vector < vector<pair<int,box_t> > > before(arrows.size()+1);
+  // arrange arrows in head to tail fashion
+  sort(arrows.begin(), arrows.end(), arrows_head_to_tail);
+  // arrange structures to best fit between arrows
+  for (int i=0; i<page_of_boxes.size(); i++)
+    {
+      double rt = FLT_MAX;
+      int j_tail=0;
+      double rh = FLT_MAX;
+      int j_head=0;
+      for (int j=0; j<arrows.size(); j++)
+	{
+	  double r = distance_from_box(arrows[j].tail, page_of_boxes[i]);
+	  if (r<rt)
+	    {
+	      rt = r;
+	      j_tail = j;
+	    }
+	  r = distance_from_box(arrows[j].head, page_of_boxes[i]);
+	  if (r<rh)
+	    {
+	      rh = r;
+	      j_head = j;
+	    }
+	}
+
+      if (rt<rh)
+	before[j_tail].push_back(make_pair(i,page_of_boxes[i]));
+      else
+	before[j_head+1].push_back(make_pair(i,page_of_boxes[i]));
+
+    }
+
+  for (int i=0; i<before.size(); i++)
+    sort(before[i].begin(),before[i].end(),comp_structures);
+
+  vector < vector <bool> > is_plus(page_of_boxes.size(), vector <bool> (page_of_boxes.size(), false));
+  // arrange plus signs between boxes
+  for (int i=0; i<before.size(); i++)
+    for (int j=1; j<before[i].size(); j++)
+      {
+	int k = before[i][j].first;
+	int l = before[i][j-1].first;
+	box_t b=before[i][j].second;
+	box_t a=before[i][j-1].second;
+	for (int m=0; m<pluses.size(); m++)
+	  {
+	    double d=distance_from_bond_y((a.x1+a.x2)/2,(a.y1+a.y2)/2,(b.x1+b.x2)/2,(b.y1+b.y2)/2,pluses[m].x, pluses[m].y);
+	    if (fabs(d)<min(a.y2-a.y1,b.y2-b.y1)/4 && pluses[m].x>a.x2 && pluses[m].x<b.x1)
+	      {
+		is_plus[k][l] = true;
+		is_plus[l][k] = true;
+	      }
+	  }
+      }
+
+  // extract reactions, if any
+  for (int i=0; i<arrows.size(); i++)
+    {
+      vector <int> r,p;
+      int ii = before[i].size()-1;
+      if (ii>=0)
+	r.push_back(before[i][ii].first);
+      for (int j=before[i].size()-2; j>=0; j--)
+	{
+	  int k = before[i][j].first;
+	  int l = before[i][j+1].first;
+	  if (is_plus[k][l])
+	    r.push_back(k);
+	  else
+	    break;
+	}
+      if (!before[i+1].empty())
+	{
+	  p.push_back(before[i+1][0].first);
+	  for (int j=1; j<before[i+1].size(); j++)
+	    {
+	      int k = before[i+1][j].first;
+	      int l = before[i+1][j-1].first;
+	      if (is_plus[k][l])
+		p.push_back(k);
+	      else
+		break;
+	    }
+	}
+      if (!r.empty() && !p.empty())
+	{
+	  string result=convert_page_to_reaction(page_of_structures,output_format, r,p);
+	  if (!result.empty())
+	    results.push_back(result);
+	}
+    }
 }

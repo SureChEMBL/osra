@@ -61,6 +61,19 @@ struct box_s
 //      defines box_t type based on box_s struct
 typedef struct box_s box_t;
 
+// struct: arrow_s
+// coordinates of tail and head of an arrow
+struct arrow_s
+{
+  // point_t: tail, head
+  // tail and head of an arrow as points
+  point_t tail,head;
+};
+// typedef: arrow_t
+// defines arrow_t type based on arrow_s struct
+typedef struct arrow_s arrow_t;
+
+
 //
 // Section: Functions
 //
