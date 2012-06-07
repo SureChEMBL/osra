@@ -590,6 +590,8 @@ int osra_process_image(
   vector<vector<double> > pages_of_avg_bonds(page, vector<double> (0));
   vector<vector<double> > pages_of_ind_conf(page, vector<double> (0));
   vector<vector<box_t> > pages_of_boxes(page, vector<box_t> (0));
+  vector<vector<arrow_t> > arrows(page, vector<arrow_t>(0));
+  vector<vector<point_t> > pluses(page, vector<point_t>(0));
 
   int total_structure_count = 0;
 
@@ -627,7 +629,7 @@ int osra_process_image(
       vector<vector<double> > array_of_avg_bonds(num_resolutions), array_of_ind_conf(num_resolutions);
       vector<double> array_of_confidence(num_resolutions, -FLT_MAX);
       vector<vector<Image> > array_of_images(num_resolutions);
-      vector<vector<box_t> > array_of_boxes(num_resolution);
+      vector<vector<box_t> > array_of_boxes(num_resolutions);
 
       set_select_resolution(select_resolution,input_resolution);
 
@@ -663,9 +665,8 @@ int osra_process_image(
           unpaper_dy +=dy;
         }
 
-      vector<arrow_t> arrows;
       // 0.1 is used for THRESHOLD_BOND here to allow for farther processing.
-      list<list<list<point_t> > > clusters = find_segments(image, 0.1, bgColor, adaptive, is_reaction, arrows, verbose);
+      list<list<list<point_t> > > clusters = find_segments(image, 0.1, bgColor, adaptive, is_reaction, arrows[l], pluses[l], verbose);
 
       if (verbose)
         cout << "Number of clusters: " << clusters.size() << '.' << endl;
@@ -966,10 +967,12 @@ int osra_process_image(
 		  }
 	      }
 	  }
-      if (is_reaction)
+      if (is_reaction && !arrows[l].empty())
 	 {
-	   string reaction = convert_page_to_reaction(pages_of_structures[l],output_format);
-	   out_stream << reaction;
+	   vector<string> reactions;
+	   arrange_reactions(arrows[l], pages_of_boxes[l], pluses[l], reactions,pages_of_structures[l],output_format);
+	   for (int k=0; k<reactions.size(); k++)
+	     out_stream << reactions[k]<<endl;
 	 }
     }
   // Output the structure with maximum confidence value:

@@ -29,7 +29,9 @@
 #include <openbabel/obconversion.h>
 #include <openbabel/reaction.h>
 
+#include "osra_segment.h"
 #include "osra_reaction.h"
+#include "osra_common.h"
 
 using namespace OpenBabel;
 using namespace std;
@@ -52,16 +54,16 @@ string convert_page_to_reaction(const vector<string> &page_of_structures, const 
   ostringstream strstr;
   
   OBReaction react;
-  for (int j=0; j<reactants[k].size(); j++)
+  for (int j=0; j<reactants.size(); j++)
     {
       shared_ptr<OBMol> reactant(new OBMol);
-      conv.ReadString(reactant.get(), page_of_structures[reactants[k][j]]);
+      conv.ReadString(reactant.get(), page_of_structures[reactants[j]]);
       react.AddReactant(reactant);
     }
-  for (int j=0; j<products[k].size(); j++)
+  for (int j=0; j<products.size(); j++)
     {
       shared_ptr<OBMol> product(new OBMol);
-      conv.ReadString(product.get(), page_of_structures[products[k][j]]);
+      conv.ReadString(product.get(), page_of_structures[products[j]]);
       react.AddProduct(product);
     }
   //	  react.AddAgent(transition);
@@ -82,11 +84,7 @@ bool arrows_head_to_tail(const arrow_t &a, const arrow_t &b)
 
 double distance_from_box(const point_t &p, const box_t &b)
 {
-  double r1 = distance(p.x,p.y,b.x1,b.y1);
-  double r2 = distance(p.x,p.y,b.x1,b.y2);
-  double r3 = distance(p.x,p.y,b.x2,b.y1);
-  double r4 = distance(p.x,p.y,b.x2,b.y2);
-  return(min(min(r1,r2),min(r3,r4)));
+  return(distance(p.x,p.y,(b.x1+b.x2)/2,(b.y1+b.y2)/2));
 }
 
 bool comp_structures(const pair<int,box_t> &a, const pair<int,box_t> &b)
@@ -98,7 +96,8 @@ bool comp_structures(const pair<int,box_t> &a, const pair<int,box_t> &b)
   return (false);
 }
 
-void arrange_reactions(vector<arrow_t> &arrows, const vector<box_t> &page_of_boxes, const vector<point_t> &pluses)
+void arrange_reactions(vector<arrow_t> &arrows, const vector<box_t> &page_of_boxes, const vector<point_t> &pluses, vector<string> &results,
+		       const vector<string> &page_of_structures, const string &output_format)
 {
   vector < vector<pair<int,box_t> > > before(arrows.size()+1);
   // arrange arrows in head to tail fashion
@@ -125,7 +124,6 @@ void arrange_reactions(vector<arrow_t> &arrows, const vector<box_t> &page_of_box
 	      j_head = j;
 	    }
 	}
-
       if (rt<rh)
 	before[j_tail].push_back(make_pair(i,page_of_boxes[i]));
       else
@@ -133,8 +131,23 @@ void arrange_reactions(vector<arrow_t> &arrows, const vector<box_t> &page_of_box
 
     }
 
+
+  // products can be on the next line
+  for (int i=1; i<before.size(); i++)
+    {
+      if (before[i].empty())
+	for (int j=0; j<before[i-1].size(); j++)
+	  if (before[i-1][j].second.y1 > arrows[i-1].head.y)
+	  {
+	    before[i].push_back(before[i-1][j]);
+	    before[i-1][j].first=-1;
+	  }
+    }
+
+
   for (int i=0; i<before.size(); i++)
     sort(before[i].begin(),before[i].end(),comp_structures);
+
 
   vector < vector <bool> > is_plus(page_of_boxes.size(), vector <bool> (page_of_boxes.size(), false));
   // arrange plus signs between boxes
@@ -143,15 +156,26 @@ void arrange_reactions(vector<arrow_t> &arrows, const vector<box_t> &page_of_box
       {
 	int k = before[i][j].first;
 	int l = before[i][j-1].first;
-	box_t b=before[i][j].second;
-	box_t a=before[i][j-1].second;
-	for (int m=0; m<pluses.size(); m++)
+	if (k>=0 && l>=0)
 	  {
-	    double d=distance_from_bond_y((a.x1+a.x2)/2,(a.y1+a.y2)/2,(b.x1+b.x2)/2,(b.y1+b.y2)/2,pluses[m].x, pluses[m].y);
-	    if (fabs(d)<min(a.y2-a.y1,b.y2-b.y1)/4 && pluses[m].x>a.x2 && pluses[m].x<b.x1)
+	    box_t b=before[i][j].second;
+	    box_t a=before[i][j-1].second;
+	    for (int m=0; m<pluses.size(); m++)
 	      {
-		is_plus[k][l] = true;
-		is_plus[l][k] = true;
+		double d=distance_from_bond_y((a.x1+a.x2)/2,(a.y1+a.y2)/2,(b.x1+b.x2)/2,(b.y1+b.y2)/2,pluses[m].x, pluses[m].y);
+		if (fabs(d)<min(a.y2-a.y1,b.y2-b.y1)/4 && pluses[m].x>a.x2 && pluses[m].x<b.x1)
+		  {
+		    is_plus[k][l] = true;
+		    is_plus[l][k] = true;
+		  }
+		// after plus things can be on the next line
+		d = pluses[m].y - (a.y2 + a.y1)/2;
+		if (pluses[m].x>a.x2 && fabs(d)<(a.y2-a.y1)/4 && b.y1>a.y2)
+		  {
+		    is_plus[k][l] = true;
+		    is_plus[l][k] = true;
+		  }
+		
 	      }
 	  }
       }
@@ -161,30 +185,38 @@ void arrange_reactions(vector<arrow_t> &arrows, const vector<box_t> &page_of_box
     {
       vector <int> r,p;
       int ii = before[i].size()-1;
-      if (ii>=0)
+      if (ii>=0 && before[i][ii].first>=0)
 	r.push_back(before[i][ii].first);
       for (int j=before[i].size()-2; j>=0; j--)
 	{
 	  int k = before[i][j].first;
 	  int l = before[i][j+1].first;
-	  if (is_plus[k][l])
-	    r.push_back(k);
-	  else
-	    break;
-	}
-      if (!before[i+1].empty())
-	{
-	  p.push_back(before[i+1][0].first);
-	  for (int j=1; j<before[i+1].size(); j++)
+	  if (k>=0 && l>=0)
 	    {
-	      int k = before[i+1][j].first;
-	      int l = before[i+1][j-1].first;
 	      if (is_plus[k][l])
-		p.push_back(k);
+		r.push_back(k);
 	      else
 		break;
 	    }
 	}
+      if (!before[i+1].empty())
+	{
+	  if (before[i+1][0].first>=0)
+	    p.push_back(before[i+1][0].first);
+	  for (int j=1; j<before[i+1].size(); j++)
+	    {
+	      int k = before[i+1][j].first;
+	      int l = before[i+1][j-1].first;
+	      if (k>=0 && l>=0)
+		{
+		  if (is_plus[k][l])
+		    p.push_back(k);
+		  else
+		    break;
+		}
+	    }
+	}
+
       if (!r.empty() && !p.empty())
 	{
 	  string result=convert_page_to_reaction(page_of_structures,output_format, r,p);

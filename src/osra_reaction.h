@@ -32,15 +32,19 @@
 // Section: Functions
 //
 
-// Function: convert_page_to_reaction(
+// Function: arrange_reactions
 //
 // Create a reaction representation for input vector of structures
 //
 // Parameters:
+//      arrows - a vector of arrow_t objects representing arrows found during segmentation
+//      page_of_boxes - a vector of box_t objects representing bounding boxes of molecules
+//      pluses - a vector of plus sing centers
+//      results - a vector of strings to represent output results
 //      page_of_structures - input vector of reactants, intermediates and products
 //      output_format - format of the returned result, i.e. rsmi or cmlr
 //
-// Returns:
-//      resulting reaction in the format set up by output_format parameter
-//
-std::string convert_page_to_reaction(const std::vector<std::string> &page_of_structures, const std::string &output_format);
+
+
+void arrange_reactions(vector<arrow_t> &arrows, const vector<box_t> &page_of_boxes, const vector<point_t> &pluses, vector<string> &results,
+		       const vector<string> &page_of_structures, const string &output_format);
