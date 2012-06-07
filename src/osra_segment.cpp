@@ -573,7 +573,7 @@ void find_arrows_pluses(vector<vector<point_t> > &margins, vector<list<point_t> 
 
 	  if (low)
 	    {
-	      if (peaks.size() == 2 && double(values[0])/values[1]>1.3 && abs(len/2 - abs(peaks[1]-peaks[0]))<=1)  // only two peaks are present at 180 degrees and at least 1.3 times height difference
+	      if (peaks.size() == 2 && double(values[0])/values[1]>1.5 && abs(len/2 - abs(peaks[1]-peaks[0]))<=1)  // only two peaks are present at 180 degrees and at least 1.3 times height difference
 		{
 		  // we found an arrow!
 		  arrow_t arrow;

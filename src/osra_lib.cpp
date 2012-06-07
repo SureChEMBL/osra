@@ -375,8 +375,8 @@ void split_fragments_and_assemble_structure_record(vector<atom_t> &atom,
               //rotate_coordinate_box(coordinate_box,rotation,image.columns(),image.rows());
 	      rel_box.x1 = (int)((double)boxes[k].x1 + (double) box_scale * fragments[i].x1);
 	      rel_box.y1 = (int)((double)boxes[k].y1 + (double) box_scale * fragments[i].y1);
-	      rel_box.x2 = (int)((double)boxes[k].x2 + (double) box_scale * fragments[i].x2);
-	      rel_box.y2 = (int)((double)boxes[k].y2 + (double) box_scale * fragments[i].y2);
+	      rel_box.x2 = (int)((double)boxes[k].x1 + (double) box_scale * fragments[i].x2);
+	      rel_box.y2 = (int)((double)boxes[k].y1 + (double) box_scale * fragments[i].y2);
 
               if (verbose)
                 cout << "Coordinate box: " << coordinate_box.x1 << "x" << coordinate_box.y1 << "-" << coordinate_box.x2 << "x"

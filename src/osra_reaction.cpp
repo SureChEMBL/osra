@@ -163,14 +163,14 @@ void arrange_reactions(vector<arrow_t> &arrows, const vector<box_t> &page_of_box
 	    for (int m=0; m<pluses.size(); m++)
 	      {
 		double d=distance_from_bond_y((a.x1+a.x2)/2,(a.y1+a.y2)/2,(b.x1+b.x2)/2,(b.y1+b.y2)/2,pluses[m].x, pluses[m].y);
-		if (fabs(d)<min(a.y2-a.y1,b.y2-b.y1)/4 && pluses[m].x>a.x2 && pluses[m].x<b.x1)
+		if (fabs(d)<min(a.y2-a.y1,b.y2-b.y1)/2 && pluses[m].x>a.x2 && pluses[m].x<b.x1)
 		  {
 		    is_plus[k][l] = true;
 		    is_plus[l][k] = true;
 		  }
 		// after plus things can be on the next line
 		d = pluses[m].y - (a.y2 + a.y1)/2;
-		if (pluses[m].x>a.x2 && fabs(d)<(a.y2-a.y1)/4 && b.y1>a.y2)
+		if (pluses[m].x>a.x2 && fabs(d)<(a.y2-a.y1)/2 && b.y1>a.y2)
 		  {
 		    is_plus[k][l] = true;
 		    is_plus[l][k] = true;
@@ -185,9 +185,12 @@ void arrange_reactions(vector<arrow_t> &arrows, const vector<box_t> &page_of_box
     {
       vector <int> r,p;
       int ii = before[i].size()-1;
+      while (ii>=0 && before[i][ii].first<0) ii--;
+
       if (ii>=0 && before[i][ii].first>=0)
 	r.push_back(before[i][ii].first);
-      for (int j=before[i].size()-2; j>=0; j--)
+
+      for (int j=ii-1; j>=0; j--)
 	{
 	  int k = before[i][j].first;
 	  int l = before[i][j+1].first;
@@ -197,13 +200,18 @@ void arrange_reactions(vector<arrow_t> &arrows, const vector<box_t> &page_of_box
 		r.push_back(k);
 	      else
 		break;
+
 	    }
 	}
+
       if (!before[i+1].empty())
 	{
-	  if (before[i+1][0].first>=0)
-	    p.push_back(before[i+1][0].first);
-	  for (int j=1; j<before[i+1].size(); j++)
+	  ii = 0;
+	  while (ii<before[i+1].size() && before[i+1][0].first<0) ii++;
+
+	  if (ii<before[i+1].size() && before[i+1][ii].first>=0)
+	    p.push_back(before[i+1][ii].first);
+	  for (int j=ii+1; j<before[i+1].size(); j++)
 	    {
 	      int k = before[i+1][j].first;
 	      int l = before[i+1][j-1].first;
