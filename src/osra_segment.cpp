@@ -667,6 +667,66 @@ void find_arrows_pluses(vector<vector<point_t> > &margins, vector<list<point_t> 
   
 }
 
+void find_agent_strings(vector<vector<point_t> > &margins,vector<list<point_t> > &segments, vector<arrow_t> &arrows)
+{
+  vector<vector<vector<point_t> > > agent_margins(arrows.size(),vector<vector<point_t> >(0));
+  vector<vector<list<point_t> > > agents(arrows.size(),vector<list<point_t> >(0));
+  for (int i=0; i<arrows.size(); i++)
+    {
+      vector < vector < vector < point_t > >::iterator> margins_to_delete;
+      vector < vector<list<point_t> >::iterator > segments_to_delete; 
+      double l=distance(arrows[i].tail.x,arrows[i].tail.y,arrows[i].head.x,arrows[i].head.y);
+      bool found=false;
+      for (int j=0; j<margins.size(); j++)
+	{
+	  bool close=false;
+	  bool within=true;
+	  for (int k=0; k<margins[j].size(); k++)
+	    { 
+	      if (fabs(distance_from_bond_y(arrows[i].tail.x,arrows[i].tail.y,arrows[i].head.x,arrows[i].head.y,margins[j][k].x,margins[j][k].y))<MAX_FONT_HEIGHT) close=true;
+	      double d=distance_from_bond_x_a(arrows[i].tail.x,arrows[i].tail.y,arrows[i].head.x,arrows[i].head.y,margins[j][k].x,margins[j][k].y);
+	      if (d<0 || d>l) within=false;
+	    }
+	  if (close && within)
+	    {
+	      agents[i].push_back(segments[j]);
+	      agent_margins[i].push_back(margins[j]);
+	      margins_to_delete.push_back(margins.begin()+j);
+	      segments_to_delete.push_back(segments.begin()+j);
+	      found=true;
+	    }
+	}
+
+      while (found)
+	{
+	  found=false;
+	  for (int ii=0; ii<margins_to_delete.size(); ii++)
+	    {
+	      margins.erase(margins_to_delete[ii]);
+	      segments.erase(segments_to_delete[ii]);
+	    }
+	  margins_to_delete.clear();
+	  segments_to_delete.clear();
+	  for (int j=0; j<margins.size(); j++)
+	      {
+		bool close=false;
+		for (int m=0; m<agent_margins[i].size(); m++)
+		  for (int k=0; k<margins[j].size(); k++)
+		    for (int p=0; p<agent_margins[i][m].size(); p++)
+		      if (distance(agent_margins[i][m][p].x,agent_margins[i][m][p].y,margins[j][k].x,margins[j][k].y)<MAX_FONT_HEIGHT/2) close=true;
+		if (close)
+		  {
+		    agents[i].push_back(segments[j]);
+		    agent_margins[i].push_back(margins[j]);
+		    margins_to_delete.push_back(margins.begin()+j);
+		    segments_to_delete.push_back(segments.begin()+j);
+		    found=true;
+		  }
+	      }
+	}
+    }
+}
+
 list<list<list<point_t> > > find_segments(const Image &image, double threshold, const ColorGray &bgColor, bool adaptive, bool is_reaction, vector<arrow_t> &arrows, vector<point_t> &pluses, bool verbose)
 {
   vector<list<point_t> > segments;
@@ -686,7 +746,10 @@ list<list<list<point_t> > > find_segments(const Image &image, double threshold, 
       margins.clear();
     }
   if (is_reaction)
-    find_arrows_pluses(margins,segments,arrows, pluses);
+    {
+      find_arrows_pluses(margins,segments,arrows, pluses);
+      find_agent_strings(margins,segments,arrows);
+    }
 
   remove_separators(segments, margins, SEPARATOR_ASPECT, SEPARATOR_AREA);
 
