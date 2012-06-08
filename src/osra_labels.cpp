@@ -534,7 +534,7 @@ int find_chars(const potrace_path_t * p, const Image &orig, vector<letters_t> &l
             {
 
               char label = 0;
-              label = get_atom_label(orig, bgColor, left, top, right, bottom, THRESHOLD, (right + left) / 2, top, verbose);
+              label = get_atom_label(orig, bgColor, left, top, right, bottom, THRESHOLD, (right + left) / 2, top, false, verbose);
 
               if (label != 0)
                 {
@@ -564,10 +564,10 @@ int find_chars(const potrace_path_t * p, const Image &orig, vector<letters_t> &l
               char label1 = 0;
               int newtop = (top + bottom) / 2;
               label1 = get_atom_label(orig, bgColor, left, newtop, right, bottom, THRESHOLD, (right + left) / 2,
-                                      newtop, verbose);
+                                      newtop, false, verbose);
               char label2 = 0;
               int newbottom = (top + bottom) / 2;
-              label2 = get_atom_label(orig, bgColor, left, top, right, newbottom, THRESHOLD, (right + left) / 2, top, verbose);
+              label2 = get_atom_label(orig, bgColor, left, top, right, newbottom, THRESHOLD, (right + left) / 2, top, false, verbose);
               if ((label1 != 0) && (label2 != 0))
                 {
                   //cout << label1 << label2 << endl;
@@ -609,11 +609,11 @@ int find_chars(const potrace_path_t * p, const Image &orig, vector<letters_t> &l
               char label1 = 0;
               int newright = (left + right) / 2;
               label1 = get_atom_label(orig, bgColor, left, top, newright, bottom, THRESHOLD, (left + newright) / 2,
-                                      top, verbose);
+                                      top, false, verbose);
               char label2 = 0;
               int newleft = (left + right) / 2;
               label2 = get_atom_label(orig, bgColor, newleft, top, right, bottom, THRESHOLD, (newleft + right) / 2,
-                                      top, verbose);
+                                      top, false, verbose);
               if ((label1 != 0) && (label2 != 0))
                 {
                   //cout << label1 << label2 << endl;
@@ -758,7 +758,7 @@ int find_fused_chars(vector<bond_t> &bond, int n_bond, vector<atom_t> &atom, vec
                 else
                   {
                     label = get_atom_label(orig, bgColor, left, top, right, bottom, THRESHOLD, (left + right) / 2,
-                                           top, verbose);
+                                           top, false, verbose);
                   }
                 if ((label != 0 && label != 'P' && label != 'p' && label != 'F' && label != 'X' && label != 'Y'
                      && label != 'n' && label != 'F' && label != 'U' && label != 'u' && label != 'h') || dummy

@@ -33,7 +33,8 @@
 #include "osra.h"
 #include "osra_common.h"
 #include "osra_segment.h"
-
+#include "osra_labels.h"
+#include "osra_ocr.h"
 
 unsigned int distance_between_points(const point_t &p1, const point_t &p2)
 {
@@ -667,12 +668,51 @@ void find_arrows_pluses(vector<vector<point_t> > &margins, vector<list<point_t> 
   
 }
 
-void find_agent_strings(vector<vector<point_t> > &margins,vector<list<point_t> > &segments, vector<arrow_t> &arrows)
+void ocr_agent_strings(const vector<list<point_t> >  &agents,const Image &image, double threshold, const ColorGray &bgColor, bool verbose)
+{ 
+  vector<letters_t> letters;
+  for (int i=0; i<agents.size(); i++)
+    {
+      int left=INT_MAX;
+      int right=0;
+      int top=INT_MAX;
+      int bottom=0;
+      for (list<point_t>::const_iterator a=agents[i].begin(); a!=agents[i].end(); a++)
+	{
+	  if (a->x<left) left=a->x;
+	  if (a->x>right) right=a->x;
+	  if (a->y<top) top=a->y;
+	  if (a->y>bottom) bottom=a->y;
+	}
+      if ((bottom - top) <= 2*MAX_FONT_HEIGHT && (right - left) <= 2*MAX_FONT_WIDTH && (bottom - top) > MIN_FONT_HEIGHT)
+            {
+              char label = 0;
+              label = get_atom_label(image, bgColor, left, top, right, bottom, threshold, (right + left) / 2, top, true, verbose);
+              if (label != 0)
+                {
+                  letters_t lt;
+		  lt.a=label;
+		  lt.x = (left + right) / 2;
+		  lt.y  = (top + bottom) / 2;
+		  lt.r  = distance(left, top, right, bottom) / 2;
+		  lt.free = true;
+                  letters.push_back(lt);
+		}
+	    }
+    }
+  vector<label_t> label;
+  assemble_labels(letters, letters.size(), label);
+  for (int i=0; i<label.size(); i++)
+    cout<<label[i].a<<endl;
+}
+
+void find_agent_strings(vector<vector<point_t> > &margins,vector<list<point_t> > &segments, vector<arrow_t> &arrows, const Image &image, double threshold, const ColorGray &bgColor, bool verbose)
 {
-  vector<vector<vector<point_t> > > agent_margins(arrows.size(),vector<vector<point_t> >(0));
-  vector<vector<list<point_t> > > agents(arrows.size(),vector<list<point_t> >(0));
   for (int i=0; i<arrows.size(); i++)
     {
+      vector<vector<point_t> >  agent_margins;
+      vector<list<point_t> >  agents;
+
       vector < vector < vector < point_t > >::iterator> margins_to_delete;
       vector < vector<list<point_t> >::iterator > segments_to_delete; 
       double l=distance(arrows[i].tail.x,arrows[i].tail.y,arrows[i].head.x,arrows[i].head.y);
@@ -689,8 +729,8 @@ void find_agent_strings(vector<vector<point_t> > &margins,vector<list<point_t> >
 	    }
 	  if (close && within)
 	    {
-	      agents[i].push_back(segments[j]);
-	      agent_margins[i].push_back(margins[j]);
+	      agents.push_back(segments[j]);
+	      agent_margins.push_back(margins[j]);
 	      margins_to_delete.push_back(margins.begin()+j);
 	      segments_to_delete.push_back(segments.begin()+j);
 	      found=true;
@@ -710,20 +750,21 @@ void find_agent_strings(vector<vector<point_t> > &margins,vector<list<point_t> >
 	  for (int j=0; j<margins.size(); j++)
 	      {
 		bool close=false;
-		for (int m=0; m<agent_margins[i].size(); m++)
+		for (int m=0; m<agent_margins.size(); m++)
 		  for (int k=0; k<margins[j].size(); k++)
-		    for (int p=0; p<agent_margins[i][m].size(); p++)
-		      if (distance(agent_margins[i][m][p].x,agent_margins[i][m][p].y,margins[j][k].x,margins[j][k].y)<MAX_FONT_HEIGHT/2) close=true;
+		    for (int p=0; p<agent_margins[m].size(); p++)
+		      if (distance(agent_margins[m][p].x,agent_margins[m][p].y,margins[j][k].x,margins[j][k].y)<MAX_FONT_HEIGHT/2) close=true;
 		if (close)
 		  {
-		    agents[i].push_back(segments[j]);
-		    agent_margins[i].push_back(margins[j]);
+		    agents.push_back(segments[j]);
+		    agent_margins.push_back(margins[j]);
 		    margins_to_delete.push_back(margins.begin()+j);
 		    segments_to_delete.push_back(segments.begin()+j);
 		    found=true;
 		  }
 	      }
 	}
+      ocr_agent_strings(agents,image,threshold,bgColor,verbose);
     }
 }
 
@@ -748,7 +789,7 @@ list<list<list<point_t> > > find_segments(const Image &image, double threshold, 
   if (is_reaction)
     {
       find_arrows_pluses(margins,segments,arrows, pluses);
-      find_agent_strings(margins,segments,arrows);
+      find_agent_strings(margins,segments,arrows,image,threshold,bgColor,verbose);
     }
 
   remove_separators(segments, margins, SEPARATOR_ASPECT, SEPARATOR_AREA);

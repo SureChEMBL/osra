@@ -153,7 +153,7 @@ char osra_ocrad_ocr(const OCRAD_Pixmap * const ocrad_pixmap, const string &char_
   OCRAD_close(ocrad_res);
 
   // TODO: Why line should have 0 or 1 characters? Give examples...
-  if (line.length() > 2 || !isalnum(result) || char_filter.find(result, 0) == string::npos)
+  if (line.length() > 2 || !isalnum(result) || (!char_filter.empty() && char_filter.find(result, 0) == string::npos))
     return UNKNOWN_CHAR;
 
   return result;
@@ -198,7 +198,7 @@ char osra_cuneiform_ocr(Magick::Image &cuneiform_img, const string &char_filter)
   // As we have initialized the image with two identical samples, it is expected that they go in the string
   // one after another, or separated by space (e.g. "ZZ\n" or "Z Z\n").
   if (((str[0] == str[1] && isspace(str[2])) || (str[0] == str[2] && str[1] == ' ')) && isalnum(str[0])
-      && char_filter.find(str[0], 0) != string::npos)
+      && (char_filter.empty() || char_filter.find(str[0], 0) != string::npos))
     return str[0];
 
   return UNKNOWN_CHAR;
@@ -206,7 +206,7 @@ char osra_cuneiform_ocr(Magick::Image &cuneiform_img, const string &char_filter)
 #endif
 
 char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int x1, int y1, int x2, int y2,
-                    double THRESHOLD, int dropx, int dropy, bool verbose)
+                    double THRESHOLD, int dropx, int dropy, bool no_filtering, bool verbose)
 {
   char c = UNKNOWN_CHAR;
 
@@ -276,6 +276,7 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
 
     // The list of all characters, that can be recognised as atom label:
     string char_filter = "oOcCnNHFsSBuUgMeEXYZRPp23456789AmTh";
+    if (no_filtering) char_filter.clear();
 
     job_init(&gocr_job);
     job_init_image(&gocr_job);
@@ -287,7 +288,10 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
     gocr_job.src.p.y = height;
     gocr_job.src.p.bpp = 1;
     gocr_job.src.p.p = pixmap;
-    gocr_job.cfg.cfilter = (char*) char_filter.c_str();
+    if (char_filter.empty())
+      gocr_job.cfg.cfilter = (char*)NULL;
+    else
+      gocr_job.cfg.cfilter = (char*) char_filter.c_str();
 
     struct OCRAD_Pixmap *ocrad_pixmap = new OCRAD_Pixmap();
     unsigned char *ocrad_bitmap = (unsigned char *) malloc(width * height);

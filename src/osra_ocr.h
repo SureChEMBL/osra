@@ -63,7 +63,7 @@ void osra_ocr_destroy();
 // Returns:
 //      recognized character or 0
 char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int x1, int y1, int x2, int y2,
-                    double THRESHOLD, int dropx, int dropy, bool verbose);
+                    double THRESHOLD, int dropx, int dropy, bool no_filtering, bool verbose);
 
 // Function: fix_atom_name()
 //
