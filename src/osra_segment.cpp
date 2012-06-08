@@ -523,6 +523,59 @@ void build_hist(const T &seg, vector<int> &hist, const int len, int &top_pos, in
     }
 }
 
+bool bulge(const point_t tail, const point_t head, const list<point_t> & seg)
+{
+  bool r = false;
+  vector<int> y(max(abs(head.x-tail.x),abs(head.y-tail.y))+1,0);
+  int n=y.size();
+  if (n<10) return false;
+
+  bool horizontal = false;
+  if (abs(head.x-tail.x)>abs(head.y-tail.y)) horizontal = true;
+  int top=0;
+  int pos=0;
+  for (list<point_t>::const_iterator p=seg.begin(); p!=seg.end(); p++)
+    {
+      int d;
+      if (horizontal)
+	d=abs(p->x-tail.x);
+      else
+	d=abs(p->y-tail.y);
+      if (d<n)
+	{
+	  y[d]++;
+	  if (y[d]>top)
+	    {
+	      top = y[d];
+	      pos = d;
+	    }
+	}
+    }
+  
+  /*  for (int i=0; i<n; i++)
+    cout<<y[i]<<" ";
+    cout<<endl;*/
+
+  double avg=0;
+  for (int i=0; i<0.75*n; i++)
+    avg +=y[i];
+  avg /=int(0.75*n);
+
+  bool flat = true;
+  for (int i=0; i<0.75*n; i++)
+    if (fabs(y[i]-avg)>2) flat = false;
+  bool left = true;
+  for (int i=pos-1; i>=0.75*n; i--)
+    if (y[i]>y[i+1]) left=false;
+  bool right = true;
+  for (int i=pos+1; i<n; i++)
+    if (y[i]>y[i-1]) right=false;
+  bool peak = true;
+  if (top<1.5*avg || top-avg<2 || n-pos<3) peak = false;
+  return flat && left && right && peak;
+}
+
+
 void find_arrows_pluses(vector<vector<point_t> > &margins, vector<list<point_t> > &segments, vector<arrow_t> &arrows, vector<point_t> &pluses)
 {
   const int len=50;
@@ -573,15 +626,19 @@ void find_arrows_pluses(vector<vector<point_t> > &margins, vector<list<point_t> 
 
 	  if (low)
 	    {
-	      if (peaks.size() == 2 && double(values[0])/values[1]>1.5 && abs(len/2 - abs(peaks[1]-peaks[0]))<=1)  // only two peaks are present at 180 degrees and at least 1.3 times height difference
+	      if (peaks.size() == 2   && abs(len/2 - abs(peaks[1]-peaks[0]))<=1)  // only two peaks are present at 180 degrees and at least 1.3 times height difference
 		{
-		  // we found an arrow!
-		  arrow_t arrow;
-		  arrow.head = head;
-		  arrow.tail = tail;
-		  arrows.push_back(arrow);
-		  margins_to_delete.push_back(margins.begin()+i);
-		  segments_to_delete.push_back(segments.begin()+i);
+		  if (bulge(tail,head,segments[i]))
+		    {
+		      // we found an arrow!
+		      //cout<<tail.x<<" "<<tail.y<<" "<<head.x<<" "<<head.y<<endl;
+		      arrow_t arrow;
+		      arrow.head = head;
+		      arrow.tail = tail;
+		      arrows.push_back(arrow);
+		      margins_to_delete.push_back(margins.begin()+i);
+		      segments_to_delete.push_back(segments.begin()+i);
+		    }
 		}
 	      if (peaks.size() == 4  && double(values[1])/values[0]>0.8   && double(values[2])/values[0]>0.8 && double(values[3])/values[0]>0.8)
 		{
