@@ -68,6 +68,7 @@ struct arrow_s
   // point_t: tail, head
   // tail and head of an arrow as points
   point_t tail,head;
+  string agent;
 };
 // typedef: arrow_t
 // defines arrow_t type based on arrow_s struct

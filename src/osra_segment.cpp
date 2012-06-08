@@ -580,8 +580,6 @@ bool bulge(const point_t tail, const point_t head, const list<point_t> & seg)
 void find_arrows_pluses(vector<vector<point_t> > &margins, vector<list<point_t> > &segments, vector<arrow_t> &arrows, vector<point_t> &pluses)
 {
   const int len=50;
-  vector < vector < vector < point_t > >::iterator> margins_to_delete;
-  vector < vector<list<point_t> >::iterator > segments_to_delete; 
   for (int i=0; i<margins.size(); i++)
     {
       vector<int> hist(len,0);
@@ -637,8 +635,8 @@ void find_arrows_pluses(vector<vector<point_t> > &margins, vector<list<point_t> 
 		      arrow.head = head;
 		      arrow.tail = tail;
 		      arrows.push_back(arrow);
-		      margins_to_delete.push_back(margins.begin()+i);
-		      segments_to_delete.push_back(segments.begin()+i);
+		      margins[i].clear();
+		      segments[i].clear();
 		    }
 		}
 	      if (peaks.size() == 4  && double(values[1])/values[0]>0.8   && double(values[2])/values[0]>0.8 && double(values[3])/values[0]>0.8)
@@ -660,16 +658,33 @@ void find_arrows_pluses(vector<vector<point_t> > &margins, vector<list<point_t> 
 	    }
 	}
     }
-  for (int i=0; i<margins_to_delete.size(); i++)
+  vector<vector<point_t> >::iterator k = margins.begin();
+  while (k!=margins.end())
     {
-      margins.erase(margins_to_delete[i]);
-      segments.erase(segments_to_delete[i]);
+      if (k->empty()) k = margins.erase(k);
+      else k++;
+    }
+ vector<list<point_t> >::iterator l = segments.begin();
+  while (l!=segments.end())
+    {
+      if (l->empty()) l = segments.erase(l);
+      else l++;
     }
   
 }
 
-void ocr_agent_strings(const vector<list<point_t> >  &agents,const Image &image, double threshold, const ColorGray &bgColor, bool verbose)
+bool comp_labels(const label_t &left, const label_t &right)
+{
+  if (left.x2 < right.x1)
+    return (true);
+  if (max(left.y1,left.y2) < min(right.y1,right.y2))
+    return (true);
+  return (false);
+}
+
+string ocr_agent_strings(const vector<list<point_t> >  &agents,const Image &image, double threshold, const ColorGray &bgColor, bool verbose)
 { 
+  string agent_string;
   vector<letters_t> letters;
   for (int i=0; i<agents.size(); i++)
     {
@@ -697,24 +712,28 @@ void ocr_agent_strings(const vector<list<point_t> >  &agents,const Image &image,
 		  lt.r  = distance(left, top, right, bottom) / 2;
 		  lt.free = true;
                   letters.push_back(lt);
+		  //cout<<label<<" "<<lt.x<<"  "<<lt.y<<endl;
 		}
 	    }
     }
   vector<label_t> label;
   assemble_labels(letters, letters.size(), label);
+  sort(label.begin(),label.end(),comp_labels);
+  
   for (int i=0; i<label.size(); i++)
-    cout<<label[i].a<<endl;
+    if (!label[i].a.empty())
+      agent_string += " "+label[i].a;
+  return (agent_string);
 }
 
-void find_agent_strings(vector<vector<point_t> > &margins,vector<list<point_t> > &segments, vector<arrow_t> &arrows, const Image &image, double threshold, const ColorGray &bgColor, bool verbose)
+void find_agent_strings(vector<vector<point_t> > &margins,vector<list<point_t> > &segments, vector<arrow_t> &arrows, 
+			const Image &image, double threshold, const ColorGray &bgColor, bool verbose)
 {
   for (int i=0; i<arrows.size(); i++)
     {
       vector<vector<point_t> >  agent_margins;
       vector<list<point_t> >  agents;
 
-      vector < vector < vector < point_t > >::iterator> margins_to_delete;
-      vector < vector<list<point_t> >::iterator > segments_to_delete; 
       double l=distance(arrows[i].tail.x,arrows[i].tail.y,arrows[i].head.x,arrows[i].head.y);
       bool found=false;
       for (int j=0; j<margins.size(); j++)
@@ -731,8 +750,8 @@ void find_agent_strings(vector<vector<point_t> > &margins,vector<list<point_t> >
 	    {
 	      agents.push_back(segments[j]);
 	      agent_margins.push_back(margins[j]);
-	      margins_to_delete.push_back(margins.begin()+j);
-	      segments_to_delete.push_back(segments.begin()+j);
+	      margins[j].clear();
+	      segments[j].clear();
 	      found=true;
 	    }
 	}
@@ -740,35 +759,43 @@ void find_agent_strings(vector<vector<point_t> > &margins,vector<list<point_t> >
       while (found)
 	{
 	  found=false;
-	  for (int ii=0; ii<margins_to_delete.size(); ii++)
+
+	  vector<vector<point_t> >::iterator k = margins.begin();
+	  while (k!=margins.end())
 	    {
-	      margins.erase(margins_to_delete[ii]);
-	      segments.erase(segments_to_delete[ii]);
+	      if (k->empty()) k = margins.erase(k);
+	      else k++;
 	    }
-	  margins_to_delete.clear();
-	  segments_to_delete.clear();
+	  vector<list<point_t> >::iterator l = segments.begin();
+	  while (l!=segments.end())
+	    {
+	      if (l->empty()) l = segments.erase(l);
+	      else l++;
+	    }
+
 	  for (int j=0; j<margins.size(); j++)
-	      {
-		bool close=false;
-		for (int m=0; m<agent_margins.size(); m++)
-		  for (int k=0; k<margins[j].size(); k++)
-		    for (int p=0; p<agent_margins[m].size(); p++)
-		      if (distance(agent_margins[m][p].x,agent_margins[m][p].y,margins[j][k].x,margins[j][k].y)<MAX_FONT_HEIGHT/2) close=true;
-		if (close)
-		  {
-		    agents.push_back(segments[j]);
-		    agent_margins.push_back(margins[j]);
-		    margins_to_delete.push_back(margins.begin()+j);
-		    segments_to_delete.push_back(segments.begin()+j);
-		    found=true;
-		  }
-	      }
+	    {
+	      bool close=false;
+	      for (int m=0; m<agent_margins.size(); m++)
+		for (int k=0; k<margins[j].size(); k++)
+		  for (int p=0; p<agent_margins[m].size(); p++)
+		    if (distance(agent_margins[m][p].x,agent_margins[m][p].y,margins[j][k].x,margins[j][k].y)<MAX_FONT_HEIGHT/2) close=true;
+	      if (close)
+		{
+		  agents.push_back(segments[j]);
+		  agent_margins.push_back(margins[j]);
+		  margins[j].clear();
+		  segments[j].clear();
+		  found=true;
+		}
+	    }
 	}
-      ocr_agent_strings(agents,image,threshold,bgColor,verbose);
+      arrows[i].agent=ocr_agent_strings(agents,image,threshold,bgColor,verbose);
     }
 }
 
-list<list<list<point_t> > > find_segments(const Image &image, double threshold, const ColorGray &bgColor, bool adaptive, bool is_reaction, vector<arrow_t> &arrows, vector<point_t> &pluses, bool verbose)
+list<list<list<point_t> > > find_segments(const Image &image, double threshold, const ColorGray &bgColor, bool adaptive, bool is_reaction, vector<arrow_t> &arrows, vector<point_t> &pluses,
+					  bool verbose)
 {
   vector<list<point_t> > segments;
   vector<vector<point_t> > margins;

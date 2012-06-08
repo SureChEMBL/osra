@@ -46,7 +46,7 @@ using namespace std;
 // Returns:
 //      resulting reaction in the format set up by output_format parameter
 //
-string convert_page_to_reaction(const vector<string> &page_of_structures, const string &output_format, const vector <int> &reactants, const vector <int> &products)
+string convert_page_to_reaction(const vector<string> &page_of_structures, const string &output_format, const vector <int> &reactants, const vector <int> &products, string value)
 {
   string reaction;
   OBConversion conv;
@@ -67,7 +67,18 @@ string convert_page_to_reaction(const vector<string> &page_of_structures, const 
       react.AddProduct(product);
     }
   //	  react.AddAgent(transition);
+
+  trim(value);
+  if (!value.empty())
+    {
+      OBPairData *label = new OBPairData;
+      label->SetAttribute("OSRA_REACTION_AGENT");
+      label->SetValue(value.c_str());
+      react.SetData(label);
+    }
   strstr << conv.WriteString(&react, true);
+  if (output_format == "rsmi" && !strstr.str().empty())
+    strstr << " " << value;
   reaction = strstr.str();
 
   return(reaction);
@@ -97,7 +108,7 @@ bool comp_structures(const pair<int,box_t> &a, const pair<int,box_t> &b)
 }
 
 void arrange_reactions(vector<arrow_t> &arrows, const vector<box_t> &page_of_boxes, const vector<point_t> &pluses, vector<string> &results,
-		       const vector<string> &page_of_structures, const string &output_format)
+		       const vector<string> &page_of_structures,  const string &output_format)
 {
   vector < vector<pair<int,box_t> > > before(arrows.size()+1);
   // arrange arrows in head to tail fashion
@@ -227,7 +238,8 @@ void arrange_reactions(vector<arrow_t> &arrows, const vector<box_t> &page_of_box
 
       if (!r.empty() && !p.empty())
 	{
-	  string result=convert_page_to_reaction(page_of_structures,output_format, r,p);
+	  string result=convert_page_to_reaction(page_of_structures,output_format, r, p, arrows[i].agent);
+	  trim(result);
 	  if (!result.empty())
 	    results.push_back(result);
 	}
