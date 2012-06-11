@@ -177,7 +177,7 @@ void arrange_reactions(vector<arrow_t> &arrows, const vector<box_t> &page_of_box
 		}
 	    }
 	}
-      if (rh<FLT_MAX || rt<FLT_MAX && !agent_structure)
+      if ((rh<FLT_MAX || rt<FLT_MAX) && !agent_structure)
 	{
 	  if (rt<rh)
 	    before[j_tail].push_back(make_pair(i,page_of_boxes[i]));
