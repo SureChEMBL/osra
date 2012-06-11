@@ -84,6 +84,17 @@ string convert_page_to_reaction(const vector<string> &page_of_structures, const 
   return(reaction);
 }
 
+string convert_to_smiles_agent_structure(string structure)
+{
+  OBConversion conv;
+  conv.SetInAndOutFormats(SUBSTITUTE_REACTION_FORMAT,"smi");
+  string result;
+  OBMol mol;
+  if (conv.ReadString(&mol,structure))
+    result = conv.WriteString(&mol,true);
+  return result;
+}
+
 void linear_arrow_sort(vector<arrow_t> &arrows)
 {
   point_t start;
@@ -137,11 +148,20 @@ void arrange_reactions(vector<arrow_t> &arrows, const vector<box_t> &page_of_box
       int j_tail=0;
       double rh = FLT_MAX;
       int j_head=0;
-
+      bool agent_structure = false;
       for (int j=0; j<arrows.size(); j++)
 	{
 	  double r = distance_from_box(arrows[j].tail, page_of_boxes[i]);
 	  double ry = distance_from_bond_y(arrows[j].tail.x,arrows[j].tail.y,arrows[j].head.x,arrows[j].head.y,(page_of_boxes[i].x2+page_of_boxes[i].x1)/2,(page_of_boxes[i].y2+page_of_boxes[i].y1)/2);
+	  double l = distance(arrows[j].tail.x,arrows[j].tail.y,arrows[j].head.x,arrows[j].head.y);
+	  double rx = distance_from_bond_x_a(arrows[j].tail.x,arrows[j].tail.y,arrows[j].head.x,arrows[j].head.y,(page_of_boxes[i].x2+page_of_boxes[i].x1)/2,(page_of_boxes[i].y2+page_of_boxes[i].y1)/2);
+	  double cr = distance((page_of_boxes[i].x2+page_of_boxes[i].x1)/2,(page_of_boxes[i].y2+page_of_boxes[i].y1)/2,(arrows[j].tail.x+arrows[j].head.x)/2,(arrows[j].tail.y+arrows[j].head.y)/2);
+	  if (rx>0 && rx<l && cr<max(page_of_boxes[i].x2-page_of_boxes[i].x1, page_of_boxes[i].y2-page_of_boxes[i].y1))
+	    {
+	      agent_structure = true;
+	      arrows[j].agent += convert_to_smiles_agent_structure(page_of_structures[i]);
+	      break;
+	    }
 	  if (fabs(ry)<min(page_of_boxes[i].x2-page_of_boxes[i].x1, page_of_boxes[i].y2-page_of_boxes[i].y1))
 	    {
 	      if (r<rt)
@@ -157,7 +177,7 @@ void arrange_reactions(vector<arrow_t> &arrows, const vector<box_t> &page_of_box
 		}
 	    }
 	}
-      if (rh<FLT_MAX || rt<FLT_MAX)
+      if (rh<FLT_MAX || rt<FLT_MAX && !agent_structure)
 	{
 	  if (rt<rh)
 	    before[j_tail].push_back(make_pair(i,page_of_boxes[i]));
