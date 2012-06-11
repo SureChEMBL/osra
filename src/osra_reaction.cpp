@@ -77,20 +77,34 @@ string convert_page_to_reaction(const vector<string> &page_of_structures, const 
       react.SetData(label);
     }
   strstr << conv.WriteString(&react, true);
-  if (output_format == "rsmi" && !strstr.str().empty())
+  if (output_format == "rsmi" && !strstr.str().empty() && !value.empty())
     strstr << " " << value;
   reaction = strstr.str();
 
   return(reaction);
 }
 
-bool arrows_head_to_tail(const arrow_t &a, const arrow_t &b)
+void linear_arrow_sort(vector<arrow_t> &arrows)
 {
-  if (a.head.x < b.tail.x)
-    return (true);
-  if (a.head.y < b.tail.y)
-    return (true);
-  return (false);
+  point_t start;
+  start.x=0;
+  start.y=0;
+  vector<arrow_t> new_arrows;
+  while (!arrows.empty())
+    {
+      double d=FLT_MAX;
+      int closest=0;
+      for (int i=0; i<arrows.size(); i++)
+	if (distance(start.x,start.y,arrows[i].tail.x,arrows[i].tail.y)<d)
+	  {
+	    d = distance(start.x,start.y,arrows[i].tail.x,arrows[i].tail.y);
+	    closest = i;
+	  }
+      new_arrows.push_back(arrows[closest]);
+      start=arrows[closest].head;
+      arrows.erase(arrows.begin()+closest);
+    }
+  arrows = new_arrows;
 }
 
 double distance_from_box(const point_t &p, const box_t &b)
@@ -112,7 +126,10 @@ void arrange_reactions(vector<arrow_t> &arrows, const vector<box_t> &page_of_box
 {
   vector < vector<pair<int,box_t> > > before(arrows.size()+1);
   // arrange arrows in head to tail fashion
-  sort(arrows.begin(), arrows.end(), arrows_head_to_tail);
+  linear_arrow_sort(arrows);
+  //for (int i=0; i<arrows.size(); i++)
+  //  cout<<arrows[i].tail.x<<","<<arrows[i].tail.y<<" "<<arrows[i].head.x<<","<<arrows[i].head.y<<endl;
+
   // arrange structures to best fit between arrows
   for (int i=0; i<page_of_boxes.size(); i++)
     {
@@ -120,25 +137,33 @@ void arrange_reactions(vector<arrow_t> &arrows, const vector<box_t> &page_of_box
       int j_tail=0;
       double rh = FLT_MAX;
       int j_head=0;
+
       for (int j=0; j<arrows.size(); j++)
 	{
 	  double r = distance_from_box(arrows[j].tail, page_of_boxes[i]);
-	  if (r<rt)
+	  double ry = distance_from_bond_y(arrows[j].tail.x,arrows[j].tail.y,arrows[j].head.x,arrows[j].head.y,(page_of_boxes[i].x2+page_of_boxes[i].x1)/2,(page_of_boxes[i].y2+page_of_boxes[i].y1)/2);
+	  if (fabs(ry)<min(page_of_boxes[i].x2-page_of_boxes[i].x1, page_of_boxes[i].y2-page_of_boxes[i].y1))
 	    {
-	      rt = r;
-	      j_tail = j;
-	    }
-	  r = distance_from_box(arrows[j].head, page_of_boxes[i]);
-	  if (r<rh)
-	    {
-	      rh = r;
-	      j_head = j;
+	      if (r<rt)
+		{
+		  rt = r;
+		  j_tail = j;
+		}
+	      r = distance_from_box(arrows[j].head, page_of_boxes[i]);
+	      if (r<rh)
+		{
+		  rh = r;
+		  j_head = j;
+		}
 	    }
 	}
-      if (rt<rh)
-	before[j_tail].push_back(make_pair(i,page_of_boxes[i]));
-      else
-	before[j_head+1].push_back(make_pair(i,page_of_boxes[i]));
+      if (rh<FLT_MAX || rt<FLT_MAX)
+	{
+	  if (rt<rh)
+	    before[j_tail].push_back(make_pair(i,page_of_boxes[i]));
+	  else
+	    before[j_head+1].push_back(make_pair(i,page_of_boxes[i]));
+	}
 
     }
 

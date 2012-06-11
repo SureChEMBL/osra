@@ -492,6 +492,7 @@ void build_hist(const T &seg, vector<int> &hist, const int len, int &top_pos, in
 	    top_value = hist[bin];
 	  }
     }
+
   double r_max=0;
   for (j=seg.begin(); j!=seg.end(); j++)
     {
@@ -509,7 +510,7 @@ void build_hist(const T &seg, vector<int> &hist, const int len, int &top_pos, in
 	  r_max = r;
 	}
     }
-      
+
   r_max=0;
   for (j=seg.begin(); j!=seg.end(); j++)
     {
@@ -529,6 +530,7 @@ bool bulge(const point_t tail, const point_t head, const list<point_t> & seg)
   bool r = false;
   vector<int> y(max(abs(head.x-tail.x),abs(head.y-tail.y))+1,0);
   int n=y.size();
+
   if (n<10) return false;
 
   bool horizontal = false;
@@ -572,7 +574,8 @@ bool bulge(const point_t tail, const point_t head, const list<point_t> & seg)
   for (int i=pos+1; i<n; i++)
     if (y[i]>y[i-1]) right=false;
   bool peak = true;
-  if (top<1.5*avg || top-avg<2 || n-pos<3) peak = false;
+  if (top<1.5*avg || top-avg<2 || n-pos<3 || top-y[n-1]<2) peak = false;
+
   return flat && left && right && peak;
 }
 
@@ -610,52 +613,56 @@ void find_arrows_pluses(vector<vector<point_t> > &margins, vector<list<point_t> 
 		  values.push_back(hist[pos]);
 		}
 	    }
-	  
-	  for (int j=0; j<peaks.size(); j++)          // check outside of the peaks is essentially zero
-	    for (int k=peaks[j]-2; k<=peaks[j]+2; k++)
-	    {
-	      int kk=k;
-	      if (kk<0) kk += len;
-	      if (kk>=len) kk -=len;
-	      hist[kk]=0;
-	    }
-	  bool low=true;
-	  for(int k=0; k<len; k++)
-	    if (hist[k]>3) low=false;
 
-	  if (low)
+	  if (peaks.size() == 2   && abs(len/2 - abs(peaks[1]-peaks[0]))<=1)  // only two peaks are present at 180 degrees 
 	    {
-	      if (peaks.size() == 2   && abs(len/2 - abs(peaks[1]-peaks[0]))<=1)  // only two peaks are present at 180 degrees and at least 1.3 times height difference
+	      bool ba=bulge(tail,head,segments[i]);
+	      bool bb=bulge(head,tail,segments[i]);
+	      
+	      if (ba || bb)
 		{
-		  if (bulge(tail,head,segments[i]))
+		  // we found an arrow!
+		  arrow_t arrow;
+		  arrow.head = head;
+		  arrow.tail = tail;
+		  if (bb)
 		    {
-		      // we found an arrow!
-		      //cout<<tail.x<<" "<<tail.y<<" "<<head.x<<" "<<head.y<<endl;
-		      arrow_t arrow;
-		      arrow.head = head;
-		      arrow.tail = tail;
-		      arrows.push_back(arrow);
-		      margins[i].clear();
-		      segments[i].clear();
+		      arrow.head = tail;
+		      arrow.tail = head;
 		    }
-		}
-	      if (peaks.size() == 4  && double(values[1])/values[0]>0.8   && double(values[2])/values[0]>0.8 && double(values[3])/values[0]>0.8)
-		{
-		  bool first=false, second=false, third=false, fourth=false;
-		  for (int j=0; j<4; j++)
-		    {
-		      if (peaks[j] <= 1 || peaks[j] >=len-2) first=true;
-		      if (abs(len/4-peaks[j])<=1) second=true;
-		      if (abs(len/2-peaks[j])<=1) third=true;
-		      if (abs(3*len/4-peaks[j])<=1) fourth=true;
-		    }
-		  if (first && second && third && fourth)
-		    {
-		      // we found a plus!
-		      pluses.push_back(center);
-		    }
+		  arrows.push_back(arrow);
+		  margins[i].clear();
+		  segments[i].clear();
 		}
 	    }
+	  if (peaks.size() == 4  && double(values[1])/values[0]>0.8   && double(values[2])/values[0]>0.8 && double(values[3])/values[0]>0.8)
+	    {
+	      bool first=false, second=false, third=false, fourth=false;
+	      for (int j=0; j<4; j++)
+		{
+		  if (peaks[j] <= 1 || peaks[j] >=len-2) first=true;
+		  if (abs(len/4-peaks[j])<=1) second=true;
+		  if (abs(len/2-peaks[j])<=1) third=true;
+		  if (abs(3*len/4-peaks[j])<=1) fourth=true;
+		}
+	      for (int j=0; j<peaks.size(); j++)          // check outside of the peaks is essentially zero
+		for (int k=peaks[j]-2; k<=peaks[j]+2; k++)
+		  {
+		    int kk=k;
+		    if (kk<0) kk += len;
+		    if (kk>=len) kk -=len;
+		    hist[kk]=0;
+		  }
+	      bool low=true;
+	      for(int k=0; k<len; k++)
+		if (hist[k]>3) low=false;
+	      if (first && second && third && fourth && low)
+		{
+		  // we found a plus!
+		  pluses.push_back(center);
+		}
+	    }
+	  
 	}
     }
   vector<vector<point_t> >::iterator k = margins.begin();
@@ -742,9 +749,10 @@ void find_agent_strings(vector<vector<point_t> > &margins,vector<list<point_t> >
 	  bool within=true;
 	  for (int k=0; k<margins[j].size(); k++)
 	    { 
-	      if (fabs(distance_from_bond_y(arrows[i].tail.x,arrows[i].tail.y,arrows[i].head.x,arrows[i].head.y,margins[j][k].x,margins[j][k].y))<MAX_FONT_HEIGHT) close=true;
-	      double d=distance_from_bond_x_a(arrows[i].tail.x,arrows[i].tail.y,arrows[i].head.x,arrows[i].head.y,margins[j][k].x,margins[j][k].y);
-	      if (d<0 || d>l) within=false;
+	      //     if (fabs(distance_from_bond_y(arrows[i].tail.x,arrows[i].tail.y,arrows[i].head.x,arrows[i].head.y,margins[j][k].x,margins[j][k].y))<MAX_FONT_HEIGHT) close=true;
+	      //double d=distance_from_bond_x_a(arrows[i].tail.x,arrows[i].tail.y,arrows[i].head.x,arrows[i].head.y,margins[j][k].x,margins[j][k].y);
+	      //if (d<0 || d>l) within=false;
+	      if (fabs(distance((arrows[i].tail.x+arrows[i].head.x)/2,(arrows[i].tail.y+arrows[i].head.y)/2,margins[j][k].x,margins[j][k].y))<MAX_FONT_HEIGHT) close=true;
 	    }
 	  if (close && within)
 	    {
