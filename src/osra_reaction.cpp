@@ -297,7 +297,7 @@ void arrange_reactions(vector<arrow_t> &arrows, const vector<box_t> &page_of_box
 	    for (int m=0; m<pluses.size(); m++)
 	      {
 		double d=distance_from_bond_y((a.x1+a.x2)/2,(a.y1+a.y2)/2,(b.x1+b.x2)/2,(b.y1+b.y2)/2,pluses[m].x, pluses[m].y);
-		if (fabs(d)<min(a.y2-a.y1,b.y2-b.y1)/2 && pluses[m].x>a.x2 && pluses[m].x<b.x1)
+		if (fabs(d)<min(a.y2-a.y1,b.y2-b.y1)/2 && ((pluses[m].x>a.x2 && pluses[m].x<b.x1) ||  (pluses[m].x>b.x2 && pluses[m].x<a.x1)))
 		  {
 		    is_plus[k][l] = true;
 		    is_plus[l][k] = true;
