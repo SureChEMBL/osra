@@ -630,6 +630,7 @@ void find_arrows_pluses(vector<vector<point_t> > &margins, vector<list<point_t> 
 		      arrow.head = tail;
 		      arrow.tail = head;
 		    }
+		  // cout<<arrow.tail.x<<" "<<arrow.tail.y<<" "<<arrow.head.x<<" "<<arrow.head.y<<endl;
 		  arrows.push_back(arrow);
 		  margins[i].clear();
 		  segments[i].clear();
