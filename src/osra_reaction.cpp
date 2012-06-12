@@ -138,6 +138,18 @@ void linear_arrow_sort(vector<arrow_t> &arrows)
   arrows = new_arrows;
 }
 
+void check_the_last_arrow_linebreak(vector<arrow_t> &arrows,const vector<box_t> &page_of_boxes)
+{
+  if (arrows.back().head.x>arrows.back().tail.x && abs(arrows.back().head.y-arrows.back().tail.y)<5)
+    {
+      bool linebreak = true;
+      for (int i=0; i<page_of_boxes.size(); i++)
+	if (page_of_boxes[i].x1 > arrows.back().tail.x && page_of_boxes[i].y1 < arrows.back().head.y && page_of_boxes[i].y2 > arrows.back().head.y)
+	  linebreak = false;
+      arrows.back().linebreak = linebreak;
+    }
+}
+
 double distance_from_box(const point_t &p, const box_t &b)
 {
   return(distance(p.x,p.y,(b.x1+b.x2)/2,(b.y1+b.y2)/2));
@@ -203,8 +215,9 @@ void arrange_reactions(vector<arrow_t> &arrows, const vector<box_t> &page_of_box
   vector < vector<int> > before(arrows.size()+1);
   // arrange arrows in head to tail fashion
   linear_arrow_sort(arrows);
-  //  for (int i=0; i<arrows.size(); i++)
-  // cout<<arrows[i].tail.x<<","<<arrows[i].tail.y<<" "<<arrows[i].head.x<<","<<arrows[i].head.y<<" "<<arrows[i].linebreak<<endl;
+  check_the_last_arrow_linebreak(arrows,page_of_boxes);
+  //   for (int i=0; i<arrows.size(); i++)
+  //cout<<arrows[i].tail.x<<","<<arrows[i].tail.y<<" "<<arrows[i].head.x<<","<<arrows[i].head.y<<" "<<arrows[i].linebreak<<endl;
 
   // arrange structures to best fit between arrows
   for (int i=0; i<page_of_boxes.size(); i++)
