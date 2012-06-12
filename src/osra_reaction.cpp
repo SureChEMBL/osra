@@ -105,15 +105,35 @@ void linear_arrow_sort(vector<arrow_t> &arrows)
     {
       double d=FLT_MAX;
       int closest=0;
+      bool found = false;
       for (int i=0; i<arrows.size(); i++)
-	if (distance(start.x,start.y,arrows[i].tail.x,arrows[i].tail.y)<d)
-	  {
-	    d = distance(start.x,start.y,arrows[i].tail.x,arrows[i].tail.y);
-	    closest = i;
-	  }
-      new_arrows.push_back(arrows[closest]);
-      start=arrows[closest].head;
-      arrows.erase(arrows.begin()+closest);
+	{
+	  bool linebreak = false;
+	  if (!new_arrows.empty())
+	    linebreak = arrows[i].head.x>arrows[i].tail.x && new_arrows.back().head.x>new_arrows.back().tail.x 
+	      && abs(arrows[i].head.y-arrows[i].tail.y)<5  && abs(new_arrows.back().head.y-new_arrows.back().tail.y)<5
+	      && min(arrows[i].head.y,arrows[i].tail.y)-max(new_arrows.back().head.y,new_arrows.back().tail.y)>MAX_FONT_HEIGHT;
+	  
+	  if (distance(start.x,start.y,arrows[i].tail.x,arrows[i].tail.y)<d && (!linebreak || new_arrows.back().linebreak))
+	    {
+	      d = distance(start.x,start.y,arrows[i].tail.x,arrows[i].tail.y);
+	      closest = i;
+	      found = true;
+	    }
+	}
+      if (found)
+	{
+	  new_arrows.push_back(arrows[closest]);
+	  start=arrows[closest].head;
+	  arrows.erase(arrows.begin()+closest);
+	}
+      else
+	{
+	  start.x = 0;
+	  start.y = 0;
+	  if (!new_arrows.empty())
+	    new_arrows.back().linebreak = true;
+	}
     }
   arrows = new_arrows;
 }
@@ -150,6 +170,8 @@ void sort_boxes_from_arrows(const vector<arrow_t> &arrows,  vector < vector<int>
   for (int i=1; i<before.size(); i++)
     {
       p = arrows[i-1].head;
+      if (arrows[i-1].linebreak)
+	p = arrows[i].tail;
       while (!before[i].empty())
 	{
 	  double d = FLT_MAX;
@@ -166,20 +188,23 @@ void sort_boxes_from_arrows(const vector<arrow_t> &arrows,  vector < vector<int>
 	  p.y = (page_of_boxes[jj].y1+page_of_boxes[jj].y2)/2;
 	  before[i].erase(before[i].begin()+min_j);
 	}
+      if (arrows[i-1].linebreak)
+	reverse(t.begin(),t.end());
       before[i] = t;
       t.clear();
     }
 }
 
+
+
 void arrange_reactions(vector<arrow_t> &arrows, const vector<box_t> &page_of_boxes, const vector<point_t> &pluses, vector<string> &results,
 		       const vector<string> &page_of_structures,  const string &output_format)
 {
   vector < vector<int> > before(arrows.size()+1);
-  vector<int> leftover;
   // arrange arrows in head to tail fashion
   linear_arrow_sort(arrows);
-  //for (int i=0; i<arrows.size(); i++)
-  //  cout<<arrows[i].tail.x<<","<<arrows[i].tail.y<<" "<<arrows[i].head.x<<","<<arrows[i].head.y<<endl;
+  //  for (int i=0; i<arrows.size(); i++)
+  // cout<<arrows[i].tail.x<<","<<arrows[i].tail.y<<" "<<arrows[i].head.x<<","<<arrows[i].head.y<<" "<<arrows[i].linebreak<<endl;
 
   // arrange structures to best fit between arrows
   for (int i=0; i<page_of_boxes.size(); i++)
@@ -225,19 +250,24 @@ void arrange_reactions(vector<arrow_t> &arrows, const vector<box_t> &page_of_box
 	    before[j_head+1].push_back(i);
 	}
       else if (!agent_structure)
-	leftover.push_back(i);
+	{
+	  double rh = FLT_MAX;
+	  int j_head=0;
+	  for (int j=0; j<arrows.size(); j++)
+	    if (arrows[j].linebreak)
+	      {
+		double r = page_of_boxes[i].y1-arrows[j].head.y;
+		if (r>0 && r<rh)
+		  {
+		    rh = r;
+		    j_head = j;
+		  }
+	      }	
+	  if (rh<FLT_MAX)
+	    before[j_head+1].push_back(i);
+	}
     }
 
-   // products can be on the next line
-  for (int i=0; i<leftover.size(); i++)
-    {
-      int j=0;
-      while (j<arrows.size() && max(arrows[j].tail.y,arrows[j].head.y)<page_of_boxes[leftover[i]].y1)  
-	j++;
-      if (j<before.size() && before[j].empty())
-	before[j].push_back(leftover[i]);
-    }
-	
   sort_boxes_from_arrows(arrows,before,page_of_boxes);
 
   vector < vector <bool> > is_plus(page_of_boxes.size(), vector <bool> (page_of_boxes.size(), false));

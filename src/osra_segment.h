@@ -69,6 +69,7 @@ struct arrow_s
   // tail and head of an arrow as points
   point_t tail,head;
   string agent;
+  bool linebreak;
 };
 // typedef: arrow_t
 // defines arrow_t type based on arrow_s struct
