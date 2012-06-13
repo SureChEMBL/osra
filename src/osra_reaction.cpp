@@ -112,7 +112,8 @@ void linear_arrow_sort(vector<arrow_t> &arrows)
 	  if (!new_arrows.empty())
 	    linebreak = arrows[i].head.x>arrows[i].tail.x && new_arrows.back().head.x>new_arrows.back().tail.x 
 	      && abs(arrows[i].head.y-arrows[i].tail.y)<5  && abs(new_arrows.back().head.y-new_arrows.back().tail.y)<5
-	      && min(arrows[i].head.y,arrows[i].tail.y)-max(new_arrows.back().head.y,new_arrows.back().tail.y)>MAX_FONT_HEIGHT;
+	      && min(arrows[i].head.y,arrows[i].tail.y)-max(new_arrows.back().head.y,new_arrows.back().tail.y)>MAX_FONT_HEIGHT
+	      && arrows[i].tail.x<new_arrows.back().head.x;
 	  
 	  if (distance(start.x,start.y,arrows[i].tail.x,arrows[i].tail.y)<d && (!linebreak || new_arrows.back().linebreak))
 	    {
@@ -120,6 +121,12 @@ void linear_arrow_sort(vector<arrow_t> &arrows)
 	      closest = i;
 	      found = true;
 	    }
+	}
+      bool pagebreak = false;
+      if (found && d>MAX_DISTANCE_BETWEEN_ARROWS && !new_arrows.empty() && !new_arrows.back().linebreak)  // here MAX_DISTANCE should be adaptable?
+	{
+	  found = false;
+	  pagebreak = true;
 	}
       if (found)
 	{
@@ -132,7 +139,11 @@ void linear_arrow_sort(vector<arrow_t> &arrows)
 	  start.x = 0;
 	  start.y = 0;
 	  if (!new_arrows.empty())
-	    new_arrows.back().linebreak = true;
+	    {
+	      new_arrows.back().linebreak = true;
+	      if (!pagebreak)
+		start.y = max(new_arrows.back().tail.y,new_arrows.back().head.y);
+	    }
 	}
     }
   arrows = new_arrows;
@@ -144,7 +155,8 @@ void check_the_last_arrow_linebreak(vector<arrow_t> &arrows,const vector<box_t> 
     {
       bool linebreak = true;
       for (int i=0; i<page_of_boxes.size(); i++)
-	if (page_of_boxes[i].x1 > arrows.back().tail.x && page_of_boxes[i].y1 < arrows.back().head.y && page_of_boxes[i].y2 > arrows.back().head.y)
+	if (page_of_boxes[i].x1 > arrows.back().head.x && page_of_boxes[i].x1 - arrows.back().head.x < MAX_DISTANCE_BETWEEN_ARROWS
+	    && page_of_boxes[i].y1 < arrows.back().head.y && page_of_boxes[i].y2 > arrows.back().head.y)
 	  linebreak = false;
       arrows.back().linebreak = linebreak;
     }
@@ -152,7 +164,46 @@ void check_the_last_arrow_linebreak(vector<arrow_t> &arrows,const vector<box_t> 
 
 double distance_from_box(const point_t &p, const box_t &b)
 {
-  return(distance(p.x,p.y,(b.x1+b.x2)/2,(b.y1+b.y2)/2));
+  if (p.x < b.x1 && p.y < b.y1)  return(distance(p.x,p.y,b.x1,b.y1));
+  if (p.x > b.x1 && p.x < b.x2 && p.y < b.y1)  return(b.y1-p.y);
+  if (p.x > b.x2 && p.y < b.y1)  return(distance(p.x,p.y,b.x2,b.y1));
+  if (p.x < b.x1 && p.y > b.y1 && p.y < b.y2)  return(b.x1-p.x);
+  if (p.x > b.x2 && p.y > b.y1 && p.y < b.y2)  return(p.x-b.x2);
+if (p.x < b.x1 && p.y > b.y2)  return(distance(p.x,p.y,b.x1,b.y2));
+if (p.x > b.x1 && p.x < b.x2 && p.y > b.y2)  return(p.y-b.y2);
+if (p.x > b.x2 && p.y > b.y2)  return(distance(p.x,p.y,b.x2,b.y2));
+return 0;
+}
+
+double distance_between_boxes(const box_t &a, const box_t &b)
+{
+  point_t p;
+  p.x = a.x1;
+  p.y = a.y1;
+  double dab = distance_from_box(p,b);
+  p.x = a.x1;
+  p.y = a.y2;
+ dab = min(dab,distance_from_box(p,b));
+  p.x = a.x2;
+  p.y = a.y1;
+  dab = min(dab,distance_from_box(p,b));
+  p.x = a.x2;
+  p.y = a.y2;
+  dab = min(dab,distance_from_box(p,b));
+
+  p.x = b.x1;
+  p.y = b.y1;
+  dab = min(dab,distance_from_box(p,a));
+  p.x = b.x2;
+  p.y = b.y1;
+  dab = min(dab,distance_from_box(p,a));
+  p.x = b.x1;
+  p.y = b.y2;
+  dab = min(dab,distance_from_box(p,a));
+  p.x = b.x2;
+  p.y = b.y2;
+  dab = min(dab,distance_from_box(p,a));
+  return(dab);
 }
 
 void sort_boxes_from_arrows(const vector<arrow_t> &arrows,  vector < vector<int> > &before, const vector<box_t> &page_of_boxes)
@@ -171,9 +222,17 @@ void sort_boxes_from_arrows(const vector<arrow_t> &arrows,  vector < vector<int>
 	    min_j = j;
 	  }
       int jj = before[0][min_j];
-      t.push_back(jj);
-      p.x = (page_of_boxes[jj].x1+page_of_boxes[jj].x2)/2;
-      p.y = (page_of_boxes[jj].y1+page_of_boxes[jj].y2)/2;
+      if (!t.empty())
+	{
+	  int ii = t.back();
+	  d = distance_between_boxes(page_of_boxes[ii],page_of_boxes[jj]);
+	}
+      if (d<MAX_DISTANCE_BETWEEN_ARROWS)
+	{
+	  t.push_back(jj);
+	  p.x = (page_of_boxes[jj].x1+page_of_boxes[jj].x2)/2;
+	  p.y = (page_of_boxes[jj].y1+page_of_boxes[jj].y2)/2;
+	}
       before[0].erase(before[0].begin()+min_j);
     }
   reverse(t.begin(),t.end());
@@ -195,9 +254,22 @@ void sort_boxes_from_arrows(const vector<arrow_t> &arrows,  vector < vector<int>
 		min_j = j;
 	      }
 	  int jj = before[i][min_j];
-	  t.push_back(jj);
-	  p.x = (page_of_boxes[jj].x1+page_of_boxes[jj].x2)/2;
-	  p.y = (page_of_boxes[jj].y1+page_of_boxes[jj].y2)/2;
+	  if (!t.empty())
+	    {
+	      int ii = t.back();
+	      d = distance_between_boxes(page_of_boxes[ii],page_of_boxes[jj]);
+	    }
+	  if (t.empty() && arrows[i-1].linebreak && i==before.size()-1)
+	    {
+	      int ii = before[i-1].back();
+	      d = fabs(page_of_boxes[jj].y1 - page_of_boxes[ii].y2);
+	    }
+	  if (d<MAX_DISTANCE_BETWEEN_ARROWS)
+	    {
+	      t.push_back(jj);
+	      p.x = (page_of_boxes[jj].x1+page_of_boxes[jj].x2)/2;
+	      p.y = (page_of_boxes[jj].y1+page_of_boxes[jj].y2)/2;
+	    }
 	  before[i].erase(before[i].begin()+min_j);
 	}
       if (arrows[i-1].linebreak)
@@ -216,7 +288,7 @@ void arrange_reactions(vector<arrow_t> &arrows, const vector<box_t> &page_of_box
   // arrange arrows in head to tail fashion
   linear_arrow_sort(arrows);
   check_the_last_arrow_linebreak(arrows,page_of_boxes);
-  //   for (int i=0; i<arrows.size(); i++)
+  //  for (int i=0; i<arrows.size(); i++)
   //cout<<arrows[i].tail.x<<","<<arrows[i].tail.y<<" "<<arrows[i].head.x<<","<<arrows[i].head.y<<" "<<arrows[i].linebreak<<endl;
 
   // arrange structures to best fit between arrows
@@ -255,7 +327,7 @@ void arrange_reactions(vector<arrow_t> &arrows, const vector<box_t> &page_of_box
 		}
 	    }
 	}
-      if ((rh<FLT_MAX || rt<FLT_MAX) && !agent_structure)
+      if ((rh<FLT_MAX|| rt<FLT_MAX) && !agent_structure)
 	{
 	  if (rt<rh)
 	    before[j_tail].push_back(i);
@@ -280,8 +352,10 @@ void arrange_reactions(vector<arrow_t> &arrows, const vector<box_t> &page_of_box
 	    before[j_head+1].push_back(i);
 	}
     }
-
+ 
+      
   sort_boxes_from_arrows(arrows,before,page_of_boxes);
+
 
   vector < vector <bool> > is_plus(page_of_boxes.size(), vector <bool> (page_of_boxes.size(), false));
   // arrange plus signs between boxes
@@ -304,7 +378,7 @@ void arrange_reactions(vector<arrow_t> &arrows, const vector<box_t> &page_of_box
 		  }
 		// after plus things can be on the next line
 		d = pluses[m].y - (a.y2 + a.y1)/2;
-		if (pluses[m].x>a.x2 && fabs(d)<(a.y2-a.y1)/2 && b.y1>a.y2)
+		if (pluses[m].x>a.x2 && fabs(d)<(a.y2-a.y1)/2 && b.y1>a.y2 && pluses[m].x-a.x2<MAX_DISTANCE_BETWEEN_ARROWS)
 		  {
 		    is_plus[k][l] = true;
 		    is_plus[l][k] = true;

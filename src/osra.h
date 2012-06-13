@@ -163,6 +163,7 @@ typedef struct bond_s bond_t;
 #define MAX_DIST 50
 #define MAX_AREA_RATIO 50
 #define SINGLE_IMAGE_DIST 1000
+#define MAX_DISTANCE_BETWEEN_ARROWS 200
 #define THRESHOLD_LEVEL 4
 #define TEXT_LINE_SIZE 8
 #define PARTS_IN_MARGIN 2
