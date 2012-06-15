@@ -122,12 +122,7 @@ void linear_arrow_sort(vector<arrow_t> &arrows)
 	      found = true;
 	    }
 	}
-      bool pagebreak = false;
-      if (found && d>MAX_DISTANCE_BETWEEN_ARROWS && !new_arrows.empty() && !new_arrows.back().linebreak)  // here MAX_DISTANCE should be adaptable?
-	{
-	  found = false;
-	  pagebreak = true;
-	}
+     
       if (found)
 	{
 	  new_arrows.push_back(arrows[closest]);
@@ -141,8 +136,7 @@ void linear_arrow_sort(vector<arrow_t> &arrows)
 	  if (!new_arrows.empty())
 	    {
 	      new_arrows.back().linebreak = true;
-	      if (!pagebreak)
-		start.y = max(new_arrows.back().tail.y,new_arrows.back().head.y);
+	      start.y = max(new_arrows.back().tail.y,new_arrows.back().head.y);
 	    }
 	}
     }
@@ -285,9 +279,66 @@ void arrange_reactions(vector<arrow_t> &arrows, const vector<box_t> &page_of_box
 		       const vector<string> &page_of_structures,  const string &output_format)
 {
   vector < vector<int> > before(arrows.size()+1);
+  if (arrows.empty() || page_of_boxes.empty()) return;
+
+  // Find average distance between nearest arrows and standard deviation
+  vector<arrow_t> arrows_by_closest;
+  vector<double> dist_arrows;
+  double avg_dist_arrow=0, avg_dist_arrow_squared=0, std_dev_arrow=0;
+  int n_arrows = arrows.size();
+  point_t start;
+  start.x=0;
+  start.y=0;
+  
+  while (!arrows.empty())
+    {
+      double d = FLT_MAX;
+      int min_i=0;
+      for (int i=0; i<arrows.size(); i++)
+	if (d>min(distance(start.x,start.y,arrows[i].head.x,arrows[i].head.y),distance(start.x,start.y,arrows[i].tail.x,arrows[i].tail.y)))
+	  {
+	    d = min(distance(start.x,start.y,arrows[i].head.x,arrows[i].head.y),distance(start.x,start.y,arrows[i].tail.x,arrows[i].tail.y));
+	    min_i = i;
+	  }
+      arrows_by_closest.push_back(arrows[min_i]);
+      dist_arrows.push_back(d);
+      start = arrows[min_i].head;
+      avg_dist_arrow += d;
+      avg_dist_arrow_squared +=d*d;
+      arrows.erase(arrows.begin()+min_i);
+    }
+  avg_dist_arrow /= n_arrows;
+  avg_dist_arrow_squared /= n_arrows;
+  std_dev_arrow = sqrt(avg_dist_arrow_squared - avg_dist_arrow*avg_dist_arrow);
+
+  // Break arrows into close-knit groups
+  vector < vector <arrow_t> > arrow_groups;
+  int i=0;
+  while (i<n_arrows)
+    {
+      vector <arrow_t> group;
+      group.push_back(arrows_by_closest[i]);
+      i++;
+      while (i<n_arrows && dist_arrows[i]<avg_dist_arrow+2*std_dev_arrow)
+	{
+	  group.push_back(arrows_by_closest[i]);
+	  i++;
+	}
+      arrow_groups.push_back(group);
+    }
+
   // arrange arrows in head to tail fashion
-  linear_arrow_sort(arrows);
-  check_the_last_arrow_linebreak(arrows,page_of_boxes);
+  for (int i=0; i<arrow_groups.size(); i++)
+    {
+      linear_arrow_sort(arrow_groups[i]);
+      check_the_last_arrow_linebreak(arrow_groups[i],page_of_boxes);
+    }
+  // combine groups into a flat list of arrows
+  arrows.clear();
+  for (int i=0; i<arrow_groups.size(); i++)
+    for (int j=0; j<arrow_groups[i].size(); j++)
+      arrows.push_back(arrow_groups[i][j]);
+
   //  for (int i=0; i<arrows.size(); i++)
   //cout<<arrows[i].tail.x<<","<<arrows[i].tail.y<<" "<<arrows[i].head.x<<","<<arrows[i].head.y<<" "<<arrows[i].linebreak<<endl;
 
