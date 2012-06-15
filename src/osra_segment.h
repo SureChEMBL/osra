@@ -70,6 +70,8 @@ struct arrow_s
   point_t tail,head;
   string agent;
   bool linebreak;
+  bool reversible;
+  bool remove;
 };
 // typedef: arrow_t
 // defines arrow_t type based on arrow_s struct

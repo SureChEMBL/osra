@@ -46,7 +46,7 @@ using namespace std;
 // Returns:
 //      resulting reaction in the format set up by output_format parameter
 //
-string convert_page_to_reaction(const vector<string> &page_of_structures, const string &output_format, const vector <int> &reactants, const vector <int> &products, string value)
+string convert_page_to_reaction(const vector<string> &page_of_structures, const string &output_format, const vector <int> &reactants, const vector <int> &products, string value, bool reversible)
 {
   string reaction;
   OBConversion conv;
@@ -67,6 +67,7 @@ string convert_page_to_reaction(const vector<string> &page_of_structures, const 
       react.AddProduct(product);
     }
   //	  react.AddAgent(transition);
+  if (reversible) react.SetReversible(true);
 
   trim(value);
   if (!value.empty())
@@ -112,8 +113,8 @@ void linear_arrow_sort(vector<arrow_t> &arrows)
 	  if (!new_arrows.empty())
 	    linebreak = arrows[i].head.x>arrows[i].tail.x && new_arrows.back().head.x>new_arrows.back().tail.x 
 	      && abs(arrows[i].head.y-arrows[i].tail.y)<5  && abs(new_arrows.back().head.y-new_arrows.back().tail.y)<5
-	      && min(arrows[i].head.y,arrows[i].tail.y)-max(new_arrows.back().head.y,new_arrows.back().tail.y)>MAX_FONT_HEIGHT
-	      && arrows[i].tail.x<new_arrows.back().head.x;
+	      && min(arrows[i].head.y,arrows[i].tail.y)-max(new_arrows.back().head.y,new_arrows.back().tail.y)>MAX_FONT_HEIGHT;
+	      //&& arrows[i].tail.x<new_arrows.back().head.x;
 	  
 	  if (distance(start.x,start.y,arrows[i].tail.x,arrows[i].tail.y)<d && (!linebreak || new_arrows.back().linebreak))
 	    {
@@ -153,6 +154,68 @@ void check_the_last_arrow_linebreak(vector<arrow_t> &arrows,const vector<box_t> 
 	    && page_of_boxes[i].y1 < arrows.back().head.y && page_of_boxes[i].y2 > arrows.back().head.y)
 	  linebreak = false;
       arrows.back().linebreak = linebreak;
+    }
+}
+
+void mark_reversible(vector<arrow_t> &arrows)
+{
+  if (arrows.size()<2) return;
+  for (int i=0; i<arrows.size(); i++)
+    for (int j=i+1; j<arrows.size(); j++)
+      if (angle4(arrows[i].tail.x,arrows[i].tail.y,arrows[i].head.x,arrows[i].head.y,
+		 arrows[j].tail.x,arrows[j].tail.y,arrows[j].head.x,arrows[j].head.y)<-D_T_TOLERANCE)
+      {
+	double d1=distance_from_bond_y(arrows[i].tail.x,arrows[i].tail.y,arrows[i].head.x,arrows[i].head.y,arrows[j].tail.x,arrows[j].tail.y);
+	double d2=distance_from_bond_y(arrows[i].tail.x,arrows[i].tail.y,arrows[i].head.x,arrows[i].head.y,arrows[j].head.x,arrows[j].head.y);
+	if (max(fabs(d1),fabs(d2))<2*MAX_FONT_HEIGHT)
+	  {
+	    
+	    double l = distance(arrows[i].tail.x,arrows[i].tail.y,arrows[i].head.x,arrows[i].head.y);
+	    double l1 = distance_from_bond_x_a(arrows[i].tail.x,arrows[i].tail.y,arrows[i].head.x,arrows[i].head.y,arrows[j].tail.x,arrows[j].tail.y);
+	    double l2 = distance_from_bond_x_a(arrows[i].tail.x,arrows[i].tail.y,arrows[i].head.x,arrows[i].head.y,arrows[j].head.x,arrows[j].head.y);
+	    if (fabs(l-l1)<5 && fabs(l2)<5)
+	      {
+		double x1=0,y1=0, x2=1,y2=1;
+		if (i>0)
+		  {
+		    x1=arrows[i-1].tail.x;
+		    y1=arrows[i-1].tail.y;
+		    int k = i+1;
+		    while (k<arrows.size() && k==j) k++;
+		    if (k==arrows.size())
+		      {
+			x2=arrows[i-1].head.x;
+			y2=arrows[i-1].head.y;
+		      }
+		    else 
+		      {
+			x1=arrows[i-1].head.x;
+			y1=arrows[i-1].head.y;
+			x2=arrows[k].tail.x;
+			y2=arrows[k].tail.y;
+		      }
+		  }
+		double a1 = angle4(x1,y1,x2,y2,arrows[i].tail.x,arrows[i].tail.y,arrows[i].head.x,arrows[i].head.y);
+		double a2 = angle4(x1,y1,x2,y2,arrows[j].tail.x,arrows[j].tail.y,arrows[j].head.x,arrows[j].head.y);
+		if (a1>a2)
+		  {
+		    arrows[i].reversible = true;
+		    arrows[j].remove=true;
+		  }
+		else
+		  {
+		    arrows[j].reversible = true;
+		    arrows[i].remove=true;
+		  }
+	      }
+	  }
+      }
+      
+  vector<arrow_t>::iterator i=arrows.begin();
+  while (i!=arrows.end())
+    {
+      if (i->remove) i=arrows.erase(i);
+      else i++;
     }
 }
 
@@ -311,6 +374,11 @@ void arrange_reactions(vector<arrow_t> &arrows, const vector<box_t> &page_of_box
   avg_dist_arrow_squared /= n_arrows;
   std_dev_arrow = sqrt(avg_dist_arrow_squared - avg_dist_arrow*avg_dist_arrow);
 
+  mark_reversible(arrows_by_closest);
+
+  // for (int i=0; i<arrows_by_closest.size(); i++)
+  //cout<<arrows_by_closest[i].tail.x<<","<<arrows_by_closest[i].tail.y<<" "<<arrows_by_closest[i].head.x<<","<<arrows_by_closest[i].head.y<<" "<<arrows_by_closest[i].reversible<<endl;
+
   // Break arrows into close-knit groups
   vector < vector <arrow_t> > arrow_groups;
   int i=0;
@@ -339,8 +407,6 @@ void arrange_reactions(vector<arrow_t> &arrows, const vector<box_t> &page_of_box
     for (int j=0; j<arrow_groups[i].size(); j++)
       arrows.push_back(arrow_groups[i][j]);
 
-  //  for (int i=0; i<arrows.size(); i++)
-  //cout<<arrows[i].tail.x<<","<<arrows[i].tail.y<<" "<<arrows[i].head.x<<","<<arrows[i].head.y<<" "<<arrows[i].linebreak<<endl;
 
   // arrange structures to best fit between arrows
   for (int i=0; i<page_of_boxes.size(); i++)
@@ -355,9 +421,13 @@ void arrange_reactions(vector<arrow_t> &arrows, const vector<box_t> &page_of_box
 	  double r = distance_from_box(arrows[j].tail, page_of_boxes[i]);
 	  double ry = distance_from_bond_y(arrows[j].tail.x,arrows[j].tail.y,arrows[j].head.x,arrows[j].head.y,(page_of_boxes[i].x2+page_of_boxes[i].x1)/2,(page_of_boxes[i].y2+page_of_boxes[i].y1)/2);
 	  double l = distance(arrows[j].tail.x,arrows[j].tail.y,arrows[j].head.x,arrows[j].head.y);
-	  double rx = distance_from_bond_x_a(arrows[j].tail.x,arrows[j].tail.y,arrows[j].head.x,arrows[j].head.y,(page_of_boxes[i].x2+page_of_boxes[i].x1)/2,(page_of_boxes[i].y2+page_of_boxes[i].y1)/2);
+	  double rx1 = distance_from_bond_x_a(arrows[j].tail.x,arrows[j].tail.y,arrows[j].head.x,arrows[j].head.y,page_of_boxes[i].x1,page_of_boxes[i].y1);
+	  double rx2 = distance_from_bond_x_a(arrows[j].tail.x,arrows[j].tail.y,arrows[j].head.x,arrows[j].head.y,page_of_boxes[i].x1,page_of_boxes[i].y2);
+	  double rx3 = distance_from_bond_x_a(arrows[j].tail.x,arrows[j].tail.y,arrows[j].head.x,arrows[j].head.y,page_of_boxes[i].x2,page_of_boxes[i].y1);
+	  double rx4 = distance_from_bond_x_a(arrows[j].tail.x,arrows[j].tail.y,arrows[j].head.x,arrows[j].head.y,page_of_boxes[i].x2,page_of_boxes[i].y2);
 	  double cr = distance((page_of_boxes[i].x2+page_of_boxes[i].x1)/2,(page_of_boxes[i].y2+page_of_boxes[i].y1)/2,(arrows[j].tail.x+arrows[j].head.x)/2,(arrows[j].tail.y+arrows[j].head.y)/2);
-	  if (rx>0 && rx<l && cr<max(page_of_boxes[i].x2-page_of_boxes[i].x1, page_of_boxes[i].y2-page_of_boxes[i].y1))
+	  if (rx1>=0 && rx1<=l && rx2>=0 && rx2<=l && rx3>=0 && rx3<=l && rx4>=0 && rx4<=l && 
+	      cr<max(page_of_boxes[i].x2-page_of_boxes[i].x1, page_of_boxes[i].y2-page_of_boxes[i].y1))
 	    {
 	      agent_structure = true;
 	      arrows[j].agent += convert_to_smiles_agent_structure(page_of_structures[i]);
@@ -378,6 +448,7 @@ void arrange_reactions(vector<arrow_t> &arrows, const vector<box_t> &page_of_box
 		}
 	    }
 	}
+
       if ((rh<FLT_MAX|| rt<FLT_MAX) && !agent_structure)
 	{
 	  if (rt<rh)
@@ -404,7 +475,13 @@ void arrange_reactions(vector<arrow_t> &arrows, const vector<box_t> &page_of_box
 	}
     }
  
-      
+	      /*for (int i=0; i<before.size(); i++)
+    {
+      for (int j=0; j<before[i].size(); j++)
+	cout<<before[i][j]<<" ";
+      cout<<endl;
+      }*/
+
   sort_boxes_from_arrows(arrows,before,page_of_boxes);
 
 
@@ -486,7 +563,7 @@ void arrange_reactions(vector<arrow_t> &arrows, const vector<box_t> &page_of_box
 
       if (!r.empty() && !p.empty())
 	{
-	  string result=convert_page_to_reaction(page_of_structures,output_format, r, p, arrows[i].agent);
+	  string result=convert_page_to_reaction(page_of_structures,output_format, r, p, arrows[i].agent,arrows[i].reversible);
 	  trim(result);
 	  if (!result.empty())
 	    results.push_back(result);

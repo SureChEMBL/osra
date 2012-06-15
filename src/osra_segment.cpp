@@ -555,20 +555,22 @@ bool bulge(const point_t tail, const point_t head, const list<point_t> & seg)
 	}
     }
   
-  /*  for (int i=0; i<n; i++)
+  /*    for (int i=0; i<n; i++)
     cout<<y[i]<<" ";
-    cout<<endl;*/
+    cout<<endl;
+  */
+  int midpoint = min(int(0.75*n),pos-3);
 
   double avg=0;
-  for (int i=0; i<0.75*n; i++)
+  for (int i=0; i<midpoint; i++)
     avg +=y[i];
-  avg /=int(0.75*n);
+  avg /=int(midpoint);
 
   bool flat = true;
-  for (int i=0; i<0.75*n; i++)
+  for (int i=0; i<midpoint; i++)
     if (fabs(y[i]-avg)>2) flat = false;
   bool left = true;
-  for (int i=pos-1; i>=0.75*n; i--)
+  for (int i=pos-1; i>=midpoint; i--)
     if (y[i]>y[i+1]) left=false;
   bool right = true;
   for (int i=pos+1; i<n; i++)
@@ -618,7 +620,6 @@ void find_arrows_pluses(vector<vector<point_t> > &margins, vector<list<point_t> 
 	    {
 	      bool ba=bulge(tail,head,segments[i]);
 	      bool bb=bulge(head,tail,segments[i]);
-	      
 	      if (ba || bb)
 		{
 		  // we found an arrow!
@@ -632,6 +633,8 @@ void find_arrows_pluses(vector<vector<point_t> > &margins, vector<list<point_t> 
 		    }
 		  // cout<<arrow.tail.x<<" "<<arrow.tail.y<<" "<<arrow.head.x<<" "<<arrow.head.y<<endl;
 		  arrow.linebreak = false;
+		  arrow.reversible = false;
+		  arrow.remove = false;
 		  arrows.push_back(arrow);
 		  margins[i].clear();
 		  segments[i].clear();
