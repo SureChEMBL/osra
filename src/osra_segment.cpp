@@ -615,6 +615,7 @@ void find_arrows_pluses(vector<vector<point_t> > &margins, vector<list<point_t> 
 		  values.push_back(hist[pos]);
 		}
 	    }
+	  
 
 	  if (peaks.size() == 2   && abs(len/2 - abs(peaks[1]-peaks[0]))<=1)  // only two peaks are present at 180 degrees 
 	    {
@@ -640,7 +641,7 @@ void find_arrows_pluses(vector<vector<point_t> > &margins, vector<list<point_t> 
 		  segments[i].clear();
 		}
 	    }
-	  if (peaks.size() == 4  && double(values[1])/values[0]>0.8   && double(values[2])/values[0]>0.8 && double(values[3])/values[0]>0.8)
+	  if (peaks.size() == 4  && (double(values[1])/values[0]>0.8 || values[0]-values[1]<=2)  && (double(values[2])/values[0]>0.8  || values[0]-values[1]<=2) && (double(values[3])/values[0]>0.8 || values[0]-values[1]<=2))
 	    {
 	      bool first=false, second=false, third=false, fourth=false;
 	      for (int j=0; j<4; j++)

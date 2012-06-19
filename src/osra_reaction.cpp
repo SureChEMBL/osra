@@ -321,10 +321,8 @@ void sort_boxes_from_arrows(const vector<arrow_t> &arrows,  vector < vector<int>
       if (!arrows[i-1].linebreak)
 	t1 = sort_boxes_one_by_one(arrows[i-1].head,before[i],page_of_boxes);
       else
-	{
-	  t1 = sort_boxes_one_by_one(arrows[i-1].tail,before[i],page_of_boxes,&before[i-1]);
-	  reverse(t1.begin(),t1.end());
-	}
+	t1 = sort_boxes_one_by_one(arrows[i-1].tail,before[i],page_of_boxes,&before[i-1]);
+
       vector<int> t2=sort_boxes_one_by_one(arrows[i].tail,before[i],page_of_boxes);
       reverse(t2.begin(),t2.end());
       set<int> d(t1.begin(),t1.end());
@@ -512,8 +510,6 @@ void arrange_reactions(vector<arrow_t> &arrows, const vector<box_t> &page_of_box
 
   //   for (int i=0; i<arrows.size(); i++)
   // cout<<arrows[i].tail.x<<","<<arrows[i].tail.y<<" "<<arrows[i].head.x<<","<<arrows[i].head.y<<" "<<arrows[i].linebreak<<endl;
-    for (int m=0; m<pluses.size(); m++)
-      cout<<pluses[m].x<<" "<<pluses[m].y<<endl;
 
  
   vector < vector <bool> > is_plus(page_of_boxes.size(), vector <bool> (page_of_boxes.size(), false));
