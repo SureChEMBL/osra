@@ -72,10 +72,11 @@ string convert_page_to_reaction(const vector<string> &page_of_structures, const 
   trim(value);
   if (!value.empty())
     {
-      OBPairData *label = new OBPairData;
-      label->SetAttribute("OSRA_REACTION_AGENT");
-      label->SetValue(value.c_str());
-      react.SetData(label);
+      //      OBPairData *label = new OBPairData;
+      //      label->SetAttribute("OSRA_REACTION_AGENT");
+      //      label->SetValue(value.c_str());
+      //      react.SetData(label);
+      react.SetComment(value);
     }
   strstr << conv.WriteString(&react, true);
   if (output_format == "rsmi" && !strstr.str().empty() && !value.empty())
@@ -270,18 +271,18 @@ vector<int>  sort_boxes_one_by_one(point_t p,  vector<int> b, const vector<box_t
     {
       double d = FLT_MAX;
       int min_j = 0;
-      if (t.empty() && a!=NULL)
+      if (t.empty() && a!=NULL && !a->empty())
 	{
+	  int ii = a->back();
 	  for (int j=0; j<b.size(); j++)
 	    {
 	      int jj = b[j];
-	      if (d>page_of_boxes[jj].x1 && page_of_boxes[jj].y1-page_of_boxes[a->back()].y2<MAX_DISTANCE_BETWEEN_ARROWS && page_of_boxes[jj].y1>page_of_boxes[a->back()].y2)
+	      if (d > distance_between_boxes(page_of_boxes[ii],page_of_boxes[jj]))
 		{
-		  d=page_of_boxes[jj].x1;
+		  d = distance_between_boxes(page_of_boxes[ii],page_of_boxes[jj]);
 		  min_j = j;
 		}
 	    }
-	  d = page_of_boxes[min_j].y1-page_of_boxes[a->back()].y2;
 	  a=NULL;
 	}
       else
@@ -321,7 +322,27 @@ void sort_boxes_from_arrows(const vector<arrow_t> &arrows,  vector < vector<int>
       if (!arrows[i-1].linebreak)
 	t1 = sort_boxes_one_by_one(arrows[i-1].head,before[i],page_of_boxes);
       else
-	t1 = sort_boxes_one_by_one(arrows[i-1].tail,before[i],page_of_boxes,&before[i-1]);
+	{
+	  t1 = sort_boxes_one_by_one(arrows[i-1].tail,before[i],page_of_boxes,&before[i-1]);
+	  vector<int> t3;
+	  while (!t1.empty())
+	    {
+	      double d=FLT_MAX;
+	      int min_k=0;
+	      for (int k=0; k<t1.size(); k++)
+		{
+		  int kk=t1[k];
+		  if (d>page_of_boxes[kk].x1)
+		    {
+		      d = page_of_boxes[kk].x1;
+		      min_k=k;
+		    }
+		}
+	      t3.push_back(t1[min_k]);
+	      t1.erase(t1.begin()+min_k);
+	    }
+	  t1 = t3;
+	}
 
       vector<int> t2=sort_boxes_one_by_one(arrows[i].tail,before[i],page_of_boxes);
       reverse(t2.begin(),t2.end());

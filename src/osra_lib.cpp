@@ -557,7 +557,7 @@ int osra_process_image(
 #endif
 
   if (input_resolution == 0 && (type == "PDF" || type == "PS"))
-    input_resolution = 150;
+    input_resolution = 300;
 
   if (show_coordinates && rotate != 0)
     {
