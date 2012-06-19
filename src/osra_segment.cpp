@@ -555,9 +555,9 @@ bool bulge(const point_t tail, const point_t head, const list<point_t> & seg)
 	}
     }
   
-  /*    for (int i=0; i<n; i++)
-    cout<<y[i]<<" ";
-    cout<<endl;
+  /*for (int i=0; i<n; i++)
+   cout<<y[i]<<" ";
+  cout<<endl;
   */
   int midpoint = min(int(0.75*n),pos-3);
 
@@ -571,12 +571,15 @@ bool bulge(const point_t tail, const point_t head, const list<point_t> & seg)
     if (fabs(y[i]-avg)>2) flat = false;
   bool left = true;
   for (int i=pos-1; i>=midpoint; i--)
-    if (y[i]>y[i+1]) left=false;
+    if (y[i]>y[i+1]+2) 
+      left=false;
   bool right = true;
   for (int i=pos+1; i<n; i++)
-    if (y[i]>y[i-1]) right=false;
+    if (y[i]>y[i-1]+2) right=false;
   bool peak = true;
-  if (top<1.5*avg || top-avg<2 || n-pos<3 || top-y[n-1]<2) peak = false;
+  if (top<1.5*avg || top-avg<2 || n-pos<3 || top-y[n-1]<2 || pos<n/2 || pos<5) peak = false;
+
+  //    cout<<flat<<" "<<left<<" "<<right<<" "<<peak<<" "<<pos<<endl;
 
   return flat && left && right && peak;
 }
@@ -617,10 +620,12 @@ void find_arrows_pluses(vector<vector<point_t> > &margins, vector<list<point_t> 
 	    }
 	  
 
+
 	  if (peaks.size() == 2   && abs(len/2 - abs(peaks[1]-peaks[0]))<=1)  // only two peaks are present at 180 degrees 
 	    {
 	      bool ba=bulge(tail,head,segments[i]);
 	      bool bb=bulge(head,tail,segments[i]);
+	      //	      cout<<tail.x<<" "<<tail.y<<" "<<ba<<" "<<bb<<endl;
 	      if (ba || bb)
 		{
 		  // we found an arrow!
@@ -632,7 +637,7 @@ void find_arrows_pluses(vector<vector<point_t> > &margins, vector<list<point_t> 
 		      arrow.head = tail;
 		      arrow.tail = head;
 		    }
-		  // cout<<arrow.tail.x<<" "<<arrow.tail.y<<" "<<arrow.head.x<<" "<<arrow.head.y<<endl;
+		  //cout<<arrow.tail.x<<" "<<arrow.tail.y<<" "<<arrow.head.x<<" "<<arrow.head.y<<endl;
 		  arrow.linebreak = false;
 		  arrow.reversible = false;
 		  arrow.remove = false;

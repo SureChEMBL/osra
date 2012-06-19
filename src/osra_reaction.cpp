@@ -511,6 +511,12 @@ void arrange_reactions(vector<arrow_t> &arrows, const vector<box_t> &page_of_box
       // arrange structures to best fit between arrows
       vector < vector<int> > before_group(arrow_groups[i].size()+1);
       arrange_structures_between_arrows(arrow_groups[i],before_group,page_of_boxes,page_of_structures);
+      //for (int ii=0;ii<before_group.size(); ii++)
+      //{
+      //for (int j=0; j<before_group[ii].size(); j++)
+      //	cout<<before_group[ii][j]<<" ";
+      //cout<<endl;
+      // }
       sort_boxes_from_arrows(arrow_groups[i],before_group,page_of_boxes);
 
       for (int j=0; j<arrow_groups[i].size(); j++)
@@ -529,9 +535,10 @@ void arrange_reactions(vector<arrow_t> &arrows, const vector<box_t> &page_of_box
 
     }
 
-  //   for (int i=0; i<arrows.size(); i++)
-  // cout<<arrows[i].tail.x<<","<<arrows[i].tail.y<<" "<<arrows[i].head.x<<","<<arrows[i].head.y<<" "<<arrows[i].linebreak<<endl;
+  //  for (int i=0; i<arrows.size(); i++)
+    // cout<<arrows[i].tail.x<<","<<arrows[i].tail.y<<" "<<arrows[i].head.x<<","<<arrows[i].head.y<<" "<<arrows[i].linebreak<<endl;
 
+  
  
   vector < vector <bool> > is_plus(page_of_boxes.size(), vector <bool> (page_of_boxes.size(), false));
   // arrange plus signs between boxes
