@@ -535,8 +535,7 @@ bool bulge(const point_t tail, const point_t head, const list<point_t> & seg)
 
   bool horizontal = false;
   if (abs(head.x-tail.x)>abs(head.y-tail.y)) horizontal = true;
-  int top=0;
-  int pos=0;
+
   for (list<point_t>::const_iterator p=seg.begin(); p!=seg.end(); p++)
     {
       int d;
@@ -544,17 +543,18 @@ bool bulge(const point_t tail, const point_t head, const list<point_t> & seg)
 	d=abs(p->x-tail.x);
       else
 	d=abs(p->y-tail.y);
-      if (d<n)
-	{
-	  y[d]++;
-	  if (y[d]>top)
-	    {
-	      top = y[d];
-	      pos = d;
-	    }
-	}
+      if (d<n) y[d]++;
     }
-  
+
+  int top=0;
+  int pos=0;
+  for (int i=0; i<n; i++)
+    if (y[i]>top)
+      {
+	top = y[i];
+	pos = i;
+      }
+
   /*for (int i=0; i<n; i++)
    cout<<y[i]<<" ";
   cout<<endl;
@@ -569,6 +569,7 @@ bool bulge(const point_t tail, const point_t head, const list<point_t> & seg)
   bool flat = true;
   for (int i=0; i<midpoint; i++)
     if (fabs(y[i]-avg)>2) flat = false;
+
   bool left = true;
   for (int i=pos-1; i>=midpoint; i--)
     if (y[i]>y[i+1]+2) 
@@ -579,7 +580,7 @@ bool bulge(const point_t tail, const point_t head, const list<point_t> & seg)
   bool peak = true;
   if (top<1.5*avg || top-avg<2 || n-pos<3 || top-y[n-1]<2 || pos<n/2 || pos<5) peak = false;
 
-  //    cout<<flat<<" "<<left<<" "<<right<<" "<<peak<<" "<<pos<<endl;
+  //cout<<flat<<" "<<left<<" "<<right<<" "<<peak<<" "<<pos<<endl;
 
   return flat && left && right && peak;
 }
@@ -625,7 +626,7 @@ void find_arrows_pluses(vector<vector<point_t> > &margins, vector<list<point_t> 
 	    {
 	      bool ba=bulge(tail,head,segments[i]);
 	      bool bb=bulge(head,tail,segments[i]);
-	      //	      cout<<tail.x<<" "<<tail.y<<" "<<ba<<" "<<bb<<endl;
+	      //cout<<tail.x<<" "<<tail.y<<" "<<ba<<" "<<bb<<endl;
 	      if (ba || bb)
 		{
 		  // we found an arrow!
