@@ -284,7 +284,7 @@ void  sort_boxes_one_by_one(vector<int> &b, const vector<int> &a, const vector<b
 	    d = distance_between_boxes(p,page_of_boxes[j]);
 	    min_j = j;
 	  }
-      if (d<FLT_MAX)
+      if (d<MAX_DISTANCE_BETWEEN_ARROWS)
 	{
 	  b.push_back(min_j);
 	  p = page_of_boxes[min_j];
@@ -403,15 +403,20 @@ void arrange_plus_sings_between_boxes(const vector < vector<int> > &before,const
 	    box_t b = page_of_boxes[k];
 	    for (int m=0; m<pluses.size(); m++)
 	      {
-		double d=distance_from_bond_y((a.x1+a.x2)/2,(a.y1+a.y2)/2,(b.x1+b.x2)/2,(b.y1+b.y2)/2,pluses[m].x, pluses[m].y);
-		if (fabs(d)<min(a.y2-a.y1,b.y2-b.y1)/2 && ((pluses[m].x>a.x2 && pluses[m].x<b.x1) ||  (pluses[m].x>b.x2 && pluses[m].x<a.x1)))
+		//double d=distance_from_bond_y((a.x1+a.x2)/2,(a.y1+a.y2)/2,(b.x1+b.x2)/2,(b.y1+b.y2)/2,pluses[m].x, pluses[m].y);
+		if (pluses[m].y>max(a.y1,b.y1) && pluses[m].y<min(a.y2,b.y2) && ((pluses[m].x>a.x2 && pluses[m].x<b.x1) ||  (pluses[m].x>b.x2 && pluses[m].x<a.x1)))
 		  {
 		    is_plus[k][l] = true;
 		    is_plus[l][k] = true;
 		  }
 		// after plus things can be on the next line
-		d = pluses[m].y - (a.y2 + a.y1)/2;
-		if (pluses[m].x>a.x2 && fabs(d)<(a.y2-a.y1)/2 && b.y1>a.y2 && pluses[m].x-a.x2<MAX_DISTANCE_BETWEEN_ARROWS)
+		//d = pluses[m].y - (a.y2 + a.y1)/2;
+		if (pluses[m].x>a.x2 &&  pluses[m].y>a.y1 && pluses[m].y<a.y2 && b.y1>a.y2 && pluses[m].x-a.x2<MAX_DISTANCE_BETWEEN_ARROWS && b.y1-a.y2<MAX_DISTANCE_BETWEEN_ARROWS)
+		  {
+		    is_plus[k][l] = true;
+		    is_plus[l][k] = true;
+		  }
+		if (pluses[m].x>b.x2 &&  pluses[m].y>b.y1 && pluses[m].y<b.y2 && a.y1>b.y2 && pluses[m].x-b.x2<MAX_DISTANCE_BETWEEN_ARROWS && a.y1-b.y2<MAX_DISTANCE_BETWEEN_ARROWS)
 		  {
 		    is_plus[k][l] = true;
 		    is_plus[l][k] = true;
@@ -533,9 +538,33 @@ void arrange_reactions(vector<arrow_t> &arrows, const vector<box_t> &page_of_box
      }*/
   
  
-  vector < vector <bool> > is_plus(page_of_boxes.size(), vector <bool> (page_of_boxes.size(), false));
-  arrange_plus_sings_between_boxes(before,page_of_boxes,pluses, is_plus);
-  arrange_plus_sings_between_boxes(after,page_of_boxes,pluses, is_plus);
+  vector < vector <bool> > is_plus_before(page_of_boxes.size(), vector <bool> (page_of_boxes.size(), false));
+  arrange_plus_sings_between_boxes(before,page_of_boxes,pluses, is_plus_before);
+ vector < vector <bool> > is_plus_after(page_of_boxes.size(), vector <bool> (page_of_boxes.size(), false));
+  arrange_plus_sings_between_boxes(after,page_of_boxes,pluses, is_plus_after);
+
+  /* for (int ii=0;ii<before.size(); ii++)
+   {
+     for (int j=0; j<before[ii].size(); j++)
+       {
+	 cout<<before[ii][j];
+	 if (j<before[ii].size()-1 && is_plus_before[before[ii][j]][before[ii][j+1]])
+	   cout<<"+";
+	 else
+	   cout<<" ";
+       }
+     cout<<">>> ";
+     for (int j=0; j<after[ii].size(); j++)
+       {
+	 cout<<after[ii][j];
+	 if (j<after[ii].size()-1 && is_plus_after[after[ii][j]][after[ii][j+1]])
+	   cout<<"+";
+	 else
+	   cout<<" ";
+       }
+
+     cout<<endl;
+     }*/
 
   // extract reactions, if any
   for (int i=0; i<arrows.size(); i++)
@@ -553,7 +582,7 @@ void arrange_reactions(vector<arrow_t> &arrows, const vector<box_t> &page_of_box
 	  int l = before[i][j+1];
 	  if (k>=0 && l>=0)
 	    {
-	      if (is_plus[k][l])
+	      if (is_plus_before[k][l])
 		r.push_back(k);
 	      else
 		break;
@@ -573,7 +602,7 @@ void arrange_reactions(vector<arrow_t> &arrows, const vector<box_t> &page_of_box
 	      int l = after[i][j-1];
 	      if (k>=0 && l>=0)
 		{
-		  if (is_plus[k][l])
+		  if (is_plus_after[k][l])
 		    p.push_back(k);
 		  else
 		    break;
