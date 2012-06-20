@@ -265,34 +265,42 @@ double distance_between_boxes(const box_t &a, const box_t &b)
   return(dab);
 }
 
-void  sort_boxes_one_by_one(vector<int> &b, vector<box_t> page_of_boxes)
+void  sort_boxes_one_by_one(vector<int> &b, const vector<int> &a, const vector<box_t> &page_of_boxes)
 {
   box_t p=page_of_boxes[b[0]];
-  page_of_boxes.erase(page_of_boxes.begin()+b[0]);
 
-  while (!page_of_boxes.empty())
+  set<int> existing;
+  existing.insert(b[0]);
+  existing.insert(a[0]);
+  bool found = true;
+  while (found)
     {
+      found  = false;
       double d = FLT_MAX;
       int min_j = 0;    
       for (int j=0; j<page_of_boxes.size(); j++)
-	if (d > distance_between_boxes(p,page_of_boxes[j]))
+	if (d > distance_between_boxes(p,page_of_boxes[j]) && existing.find(j) == existing.end())
 	  {
 	    d = distance_between_boxes(p,page_of_boxes[j]);
 	    min_j = j;
 	  }
-      b.push_back(min_j);
-      p = page_of_boxes[min_j];
-      page_of_boxes.erase(page_of_boxes.begin()+min_j);
+      if (d<FLT_MAX)
+	{
+	  b.push_back(min_j);
+	  p = page_of_boxes[min_j];
+	  found = true;
+	  existing.insert(min_j);
+	}
     }
 }
 
-void sort_boxes_from_arrows(vector < vector<int> > &before, const vector<box_t> &page_of_boxes, bool behind)
+void sort_boxes_from_arrows(vector < vector<int> > &before, const vector < vector<int> > &after,const vector<box_t> &page_of_boxes, bool behind)
 {
  
   for (int i=0; i<before.size(); i++)
-    if (!before[i].empty())
+    if (!before[i].empty() && !after[i].empty())
     {
-      sort_boxes_one_by_one(before[i],page_of_boxes);
+      sort_boxes_one_by_one(before[i],after[i],page_of_boxes);
       if (behind)
 	reverse(before[i].begin(),before[i].end());
     }
@@ -486,9 +494,20 @@ void arrange_reactions(vector<arrow_t> &arrows, const vector<box_t> &page_of_box
       vector < vector<int> > after_group(arrow_groups[i].size());
       arrange_structures_between_arrows_after(arrow_groups[i],after_group,before_group,page_of_boxes,page_of_structures);
     
-      sort_boxes_from_arrows(before_group,page_of_boxes,true);
-      sort_boxes_from_arrows(after_group,page_of_boxes,false);
 
+
+      sort_boxes_from_arrows(before_group,after_group,page_of_boxes,true);
+      sort_boxes_from_arrows(after_group,before_group,page_of_boxes,false);
+      /*for (int ii=0;ii<before_group.size(); ii++)
+   {
+     for (int j=0; j<before_group[ii].size(); j++)
+    	cout<<before_group[ii][j]<<" ";
+     cout<<">>> ";
+     for (int j=0; j<after_group[ii].size(); j++)
+    	cout<<after_group[ii][j]<<" ";
+     cout<<endl;
+   }
+      */
       for (int j=0; j<arrow_groups[i].size(); j++)
 	arrows.push_back(arrow_groups[i][j]);
 
@@ -501,12 +520,17 @@ void arrange_reactions(vector<arrow_t> &arrows, const vector<box_t> &page_of_box
 
   //for (int i=0; i<arrows.size(); i++)
     //cout<<arrows[i].tail.x<<","<<arrows[i].tail.y<<" "<<arrows[i].head.x<<","<<arrows[i].head.y<<" "<<arrows[i].linebreak<<endl;
-  //for (int ii=0;ii<before.size(); ii++)
-  // {
-  //   for (int j=0; j<before[ii].size(); j++)
-  //  	cout<<before[ii][j]<<" ";
-  //   cout<<endl;
-  // }
+  //for (int i=0; i<pluses.size(); i++)
+    //    cout<<pluses[i].x<<" "<<pluses[i].y<<endl;
+  /*for (int ii=0;ii<before.size(); ii++)
+   {
+     for (int j=0; j<before[ii].size(); j++)
+    	cout<<before[ii][j]<<" ";
+     cout<<">>> ";
+     for (int j=0; j<after[ii].size(); j++)
+    	cout<<after[ii][j]<<" ";
+     cout<<endl;
+     }*/
   
  
   vector < vector <bool> > is_plus(page_of_boxes.size(), vector <bool> (page_of_boxes.size(), false));
