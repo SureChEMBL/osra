@@ -11,7 +11,7 @@
 $OSRA = "/usr/local/bin/osra";
 @options = (['','-j'],
 	    ['', '-u 1','-u 2'],
-	    ['', '-r 300']
+	    ['', '-r 150']
 	    );
 
 use List::Util qw[min max];
