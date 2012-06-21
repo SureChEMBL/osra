@@ -347,6 +347,7 @@ void arrange_structures_between_arrows_after(vector<arrow_t> &arrows,  vector < 
       double rh = FLT_MAX;
       int i_min=0;
       int previous_top = INT_MAX;
+      int previous_bottom = INT_MAX;
       point_t p=arrows[j].head;
       if (arrows[j].linebreak)	p.x=0;
       if (before[j].empty()) continue;
@@ -368,11 +369,12 @@ void arrange_structures_between_arrows_after(vector<arrow_t> &arrows,  vector < 
 	      if (arrows[j].linebreak)
 		{
 		  if (page_of_boxes[i].y1>box_before.y2 && page_of_boxes[i].y1-box_before.y2<MAX_DISTANCE_BETWEEN_ARROWS 
-		  && (r<rh || page_of_boxes[i].y2<previous_top))
+		  && ((r<rh && page_of_boxes[i].y1<previous_bottom) || page_of_boxes[i].y2<previous_top))
 		    {
 		      rh = r;
 		      i_min = i;
 		      previous_top = page_of_boxes[i].y1;
+		      previous_bottom = page_of_boxes[i].y2;
 		    }
 		}
 	      else if  (fabs(ry)<min(page_of_boxes[i].x2-page_of_boxes[i].x1, page_of_boxes[i].y2-page_of_boxes[i].y1)  && r<rh)
