@@ -223,14 +223,14 @@ void mark_reversible(vector<arrow_t> &arrows)
 
 double distance_from_box(const point_t &p, const box_t &b)
 {
-  if (p.x < b.x1 && p.y < b.y1)  return(distance(p.x,p.y,b.x1,b.y1));
+  if (p.x <= b.x1 && p.y <= b.y1)  return(distance(p.x,p.y,b.x1,b.y1));
   if (p.x > b.x1 && p.x < b.x2 && p.y < b.y1)  return(b.y1-p.y);
-  if (p.x > b.x2 && p.y < b.y1)  return(distance(p.x,p.y,b.x2,b.y1));
+  if (p.x >= b.x2 && p.y <= b.y1)  return(distance(p.x,p.y,b.x2,b.y1));
   if (p.x < b.x1 && p.y > b.y1 && p.y < b.y2)  return(b.x1-p.x);
   if (p.x > b.x2 && p.y > b.y1 && p.y < b.y2)  return(p.x-b.x2);
-if (p.x < b.x1 && p.y > b.y2)  return(distance(p.x,p.y,b.x1,b.y2));
+if (p.x <= b.x1 && p.y >= b.y2)  return(distance(p.x,p.y,b.x1,b.y2));
 if (p.x > b.x1 && p.x < b.x2 && p.y > b.y2)  return(p.y-b.y2);
-if (p.x > b.x2 && p.y > b.y2)  return(distance(p.x,p.y,b.x2,b.y2));
+if (p.x >= b.x2 && p.y >= b.y2)  return(distance(p.x,p.y,b.x2,b.y2));
 return 0;
 }
 
@@ -346,6 +346,7 @@ void arrange_structures_between_arrows_after(vector<arrow_t> &arrows,  vector < 
     {
       double rh = FLT_MAX;
       int i_min=0;
+      int previous_top = INT_MAX;
       point_t p=arrows[j].head;
       if (arrows[j].linebreak)	p.x=0;
       if (before[j].empty()) continue;
@@ -366,10 +367,12 @@ void arrange_structures_between_arrows_after(vector<arrow_t> &arrows,  vector < 
 	    {
 	      if (arrows[j].linebreak)
 		{
-		  if (page_of_boxes[i].y1>box_before.y2 && page_of_boxes[i].y1-box_before.y2<MAX_DISTANCE_BETWEEN_ARROWS && r<rh)
+		  if (page_of_boxes[i].y1>box_before.y2 && page_of_boxes[i].y1-box_before.y2<MAX_DISTANCE_BETWEEN_ARROWS 
+		  && (r<rh || page_of_boxes[i].y2<previous_top))
 		    {
 		      rh = r;
 		      i_min = i;
+		      previous_top = page_of_boxes[i].y1;
 		    }
 		}
 	      else if  (fabs(ry)<min(page_of_boxes[i].x2-page_of_boxes[i].x1, page_of_boxes[i].y2-page_of_boxes[i].y1)  && r<rh)
@@ -382,7 +385,7 @@ void arrange_structures_between_arrows_after(vector<arrow_t> &arrows,  vector < 
 
       if (arrows[j].linebreak)
 	{
-	  if (rh<FLT_MAX && page_of_boxes[i_min].y1>box_before.y2 && page_of_boxes[i_min].y1-box_before.y2<MAX_DISTANCE_BETWEEN_ARROWS)
+	  if (rh<FLT_MAX && previous_top<INT_MAX && page_of_boxes[i_min].y1>box_before.y2 && page_of_boxes[i_min].y1-box_before.y2<MAX_DISTANCE_BETWEEN_ARROWS)
 	    after[j].push_back(i_min);
 	}
       else if (rh<MAX_DISTANCE_BETWEEN_ARROWS)
@@ -416,11 +419,11 @@ void arrange_plus_sings_between_boxes(const vector < vector<int> > &before,const
 		    is_plus[k][l] = true;
 		    is_plus[l][k] = true;
 		  }
-		if (pluses[m].x>b.x2 &&  pluses[m].y>b.y1 && pluses[m].y<b.y2 && a.y1>b.y2 && pluses[m].x-b.x2<MAX_DISTANCE_BETWEEN_ARROWS && a.y1-b.y2<MAX_DISTANCE_BETWEEN_ARROWS)
+		/*if (pluses[m].x>b.x2 &&  pluses[m].y>b.y1 && pluses[m].y<b.y2 && a.y1>b.y2 && pluses[m].x-b.x2<MAX_DISTANCE_BETWEEN_ARROWS && a.y1-b.y2<MAX_DISTANCE_BETWEEN_ARROWS)
 		  {
 		    is_plus[k][l] = true;
 		    is_plus[l][k] = true;
-		  }
+		  }*/
 		
 	      }
 	  }
@@ -543,7 +546,7 @@ void arrange_reactions(vector<arrow_t> &arrows, const vector<box_t> &page_of_box
  vector < vector <bool> > is_plus_after(page_of_boxes.size(), vector <bool> (page_of_boxes.size(), false));
   arrange_plus_sings_between_boxes(after,page_of_boxes,pluses, is_plus_after);
 
-  /* for (int ii=0;ii<before.size(); ii++)
+/*   for (int ii=0;ii<before.size(); ii++)
    {
      for (int j=0; j<before[ii].size(); j++)
        {
