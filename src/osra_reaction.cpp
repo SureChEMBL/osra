@@ -265,13 +265,16 @@ double distance_between_boxes(const box_t &a, const box_t &b)
   return(dab);
 }
 
-void  sort_boxes_one_by_one(vector<int> &b, const vector<int> &a, const vector<box_t> &page_of_boxes)
+void  sort_boxes_one_by_one(vector<int> &b, const vector<int> &a, const vector<box_t> &page_of_boxes, bool behind)
 {
   box_t p=page_of_boxes[b[0]];
 
   set<int> existing;
   existing.insert(b[0]);
-  existing.insert(a[0]);
+  if (behind)
+    existing.insert(a[0]);
+  else
+    existing.insert(a.back());
   bool found = true;
   while (found)
     {
@@ -300,7 +303,7 @@ void sort_boxes_from_arrows(vector < vector<int> > &before, const vector < vecto
   for (int i=0; i<before.size(); i++)
     if (!before[i].empty() && !after[i].empty())
     {
-      sort_boxes_one_by_one(before[i],after[i],page_of_boxes);
+      sort_boxes_one_by_one(before[i],after[i],page_of_boxes,behind);
       if (behind)
 	reverse(before[i].begin(),before[i].end());
     }
