@@ -49,21 +49,21 @@ using namespace std;
 string convert_page_to_reaction(const vector<string> &page_of_structures, const string &output_format, const vector <int> &reactants, const vector <int> &products, string value, bool reversible)
 {
   string reaction;
-  OBConversion conv;
-  conv.SetInAndOutFormats(SUBSTITUTE_REACTION_FORMAT,output_format.c_str());
+  OBConversion *conv=new OBConversion;
+  conv->SetInAndOutFormats(SUBSTITUTE_REACTION_FORMAT,output_format.c_str());
   ostringstream strstr;
   
   OBReaction react;
   for (int j=0; j<reactants.size(); j++)
     {
       shared_ptr<OBMol> reactant(new OBMol);
-      conv.ReadString(reactant.get(), page_of_structures[reactants[j]]);
+      conv->ReadString(reactant.get(), page_of_structures[reactants[j]]);
       react.AddReactant(reactant);
     }
   for (int j=0; j<products.size(); j++)
     {
       shared_ptr<OBMol> product(new OBMol);
-      conv.ReadString(product.get(), page_of_structures[products[j]]);
+      conv->ReadString(product.get(), page_of_structures[products[j]]);
       react.AddProduct(product);
     }
   //	  react.AddAgent(transition);
@@ -78,11 +78,11 @@ string convert_page_to_reaction(const vector<string> &page_of_structures, const 
       //      react.SetData(label);
       react.SetComment(value);
     }
-  strstr << conv.WriteString(&react, true);
+  strstr << conv->WriteString(&react, true);
   if (output_format == "rsmi" && !strstr.str().empty() && !value.empty())
     strstr << " " << value;
   reaction = strstr.str();
-
+//  delete conv;
   return(reaction);
 }
 

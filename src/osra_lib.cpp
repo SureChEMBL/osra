@@ -576,7 +576,7 @@ int osra_process_image(
       return ERROR_ILLEGAL_ARGUMENT_COMBINATION;
     }
   bool is_reaction = false;
-  if (output_format == "cmlr" || output_format == "rsmi")
+  if (output_format == "cmlr" || output_format == "rsmi" || output_format =="rxn")
     is_reaction = true;
 
 #ifdef OSRA_LIB

@@ -440,7 +440,7 @@ const string get_formatted_structure(vector<atom_t> &atom, const vector<bond_t> 
   #pragma omp critical
   {
     OBMol mol;
-    create_molecule(mol, atom, bond, n_bond, avg_bond_length, molecule_statistics, format == "sdf", &confidence, superatom, verbose);
+    create_molecule(mol, atom, bond, n_bond, avg_bond_length, molecule_statistics, format == "sdf" || format == "mol" || format == "sd" || format == "mdl", &confidence, superatom, verbose);
 
     // Add hydrogens to the entire molecule to fill out implicit valence spots:
     mol.AddHydrogens(true, false); // polarOnly, correctForPh
