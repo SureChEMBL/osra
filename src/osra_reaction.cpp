@@ -72,17 +72,19 @@ string convert_page_to_reaction(const vector<string> &page_of_structures, const 
   trim(value);
   if (!value.empty())
     {
-      //      OBPairData *label = new OBPairData;
-      //      label->SetAttribute("OSRA_REACTION_AGENT");
-      //      label->SetValue(value.c_str());
-      //      react.SetData(label);
-      react.SetComment(value);
+            OBPairData *label = new OBPairData;
+            label->SetAttribute("OSRA_REACTION_AGENT");
+            label->SetValue(value.c_str());
+            react.SetData(label);
+//      react.SetComment(value);
+      react.SetTitle(value);
     }
   strstr << conv->WriteString(&react, true);
-  if (output_format == "rsmi" && !strstr.str().empty() && !value.empty())
-    strstr << " " << value;
+//  if (output_format == "rsmi" && !strstr.str().empty() && !value.empty())
+  //  strstr << " " << value;
   reaction = strstr.str();
-//  delete conv;
+  if (output_format != "rxn") // rxn format seems to have a double-free problem
+    delete conv;
   return(reaction);
 }
 
