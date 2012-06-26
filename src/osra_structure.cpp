@@ -660,12 +660,20 @@ void extend_terminal_bond_to_label(vector<atom_t> &atom, const vector<letters_t>
                 atom[bond[j].a].label = toupper(letters[l2].a);
                 atom[bond[j].a].x = letters[l2].x;
                 atom[bond[j].a].y = letters[l2].y;
+		atom[bond[j].a].min_x = letters[l2].min_x;
+		atom[bond[j].a].min_y = letters[l2].min_y;
+		atom[bond[j].a].max_x = letters[l2].max_x;
+		atom[bond[j].a].max_y = letters[l2].max_y;
               }
             else if (found1)
               {
                 atom[bond[j].a].label = label[l1].a;
                 atom[bond[j].a].x = (label[l1].x1 + label[l1].x2) / 2;
                 atom[bond[j].a].y = (label[l1].y1 + label[l1].y2) / 2;
+		atom[bond[j].a].min_x = label[l1].min_x;
+		atom[bond[j].a].min_y = label[l1].min_y;
+		atom[bond[j].a].max_x = label[l1].max_x;
+		atom[bond[j].a].max_y = label[l1].max_y;
               }
           }
         if (not_corner_b)
@@ -722,12 +730,20 @@ void extend_terminal_bond_to_label(vector<atom_t> &atom, const vector<letters_t>
                 atom[bond[j].b].label = toupper(letters[l2].a);
                 atom[bond[j].b].x = letters[l2].x;
                 atom[bond[j].b].y = letters[l2].y;
+		atom[bond[j].b].min_x = letters[l2].min_x;
+		atom[bond[j].b].min_y = letters[l2].min_y;
+		atom[bond[j].b].max_x = letters[l2].max_x;
+		atom[bond[j].b].max_y = letters[l2].max_y;
               }
             else if (found1)
               {
                 atom[bond[j].b].label = label[l1].a;
                 atom[bond[j].b].x = (label[l1].x1 + label[l1].x2) / 2;
                 atom[bond[j].b].y = (label[l1].y1 + label[l1].y2) / 2;
+		atom[bond[j].b].min_x = label[l1].min_x;
+		atom[bond[j].b].min_y = label[l1].min_y;
+		atom[bond[j].b].max_x = label[l1].max_x;
+		atom[bond[j].b].max_y = label[l1].max_y;
               }
           }
       }
@@ -1743,6 +1759,11 @@ void collapse_atoms(vector<atom_t> &atom, vector<bond_t> &bond, int n_atom, int 
                 atom[j].exists = false;
                 atom[i].x = (atom[i].x + atom[j].x) / 2;
                 atom[i].y = (atom[i].y + atom[j].y) / 2;
+		atom[i].min_x = min(atom[i].min_x,atom[j].min_x);
+		atom[i].min_y = min(atom[i].min_y,atom[j].min_y);
+		atom[i].max_x = max(atom[i].max_x,atom[j].max_x);
+		atom[i].max_y = max(atom[i].max_y,atom[j].max_y);
+
                 if (atom[j].label != " " && atom[i].label == " ")
                   atom[i].label = atom[j].label;
                 for (int k = 0; k < n_bond; k++)

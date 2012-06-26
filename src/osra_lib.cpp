@@ -368,19 +368,19 @@ void split_fragments_and_assemble_structure_record(vector<atom_t> &atom,
               molecule_statistics_t molecule_statistics;
               int page_number = l + 1;
               box_t coordinate_box,rel_box;
-	      if (fragments.size()>1)
+	      // if (fragments.size()>1)
 		{
-		  coordinate_box.x1 = (int) (-(double)page_scale * unpaper_dx + (double) page_scale * boxes[k].x1 + (double) page_scale * box_scale * fragments[i].x1);
-		  coordinate_box.y1 = (int) (-(double)page_scale * unpaper_dy + (double) page_scale * boxes[k].y1 + (double) page_scale * box_scale * fragments[i].y1);
-		  coordinate_box.x2 = (int) (-(double)page_scale * unpaper_dx + (double) page_scale * boxes[k].x1 + (double) page_scale * box_scale * fragments[i].x2);
-		  coordinate_box.y2 = (int) (-(double)page_scale * unpaper_dy + (double) page_scale * boxes[k].y1 + (double) page_scale * box_scale * fragments[i].y2);
+		  coordinate_box.x1 = (int) (-(double)page_scale * unpaper_dx + (double) page_scale * boxes[k].x1 + (double) page_scale * box_scale * fragments[i].x1 - (double) page_scale * FRAME);
+		  coordinate_box.y1 = (int) (-(double)page_scale * unpaper_dy + (double) page_scale * boxes[k].y1 + (double) page_scale * box_scale * fragments[i].y1 - (double) page_scale * FRAME);
+		  coordinate_box.x2 = (int) (-(double)page_scale * unpaper_dx + (double) page_scale * boxes[k].x1 + (double) page_scale * box_scale * fragments[i].x2 - (double) page_scale * FRAME);
+		  coordinate_box.y2 = (int) (-(double)page_scale * unpaper_dy + (double) page_scale * boxes[k].y1 + (double) page_scale * box_scale * fragments[i].y2 - (double) page_scale * FRAME);
 		  //rotate_coordinate_box(coordinate_box,rotation,image.columns(),image.rows());
-		  rel_box.x1 = (int)((double)boxes[k].x1 + (double) box_scale * fragments[i].x1);
-		  rel_box.y1 = (int)((double)boxes[k].y1 + (double) box_scale * fragments[i].y1);
-		  rel_box.x2 = (int)((double)boxes[k].x1 + (double) box_scale * fragments[i].x2);
-		  rel_box.y2 = (int)((double)boxes[k].y1 + (double) box_scale * fragments[i].y2);
+		  rel_box.x1 = (int)((double)boxes[k].x1 + (double) box_scale * fragments[i].x1 - FRAME);
+		  rel_box.y1 = (int)((double)boxes[k].y1 + (double) box_scale * fragments[i].y1 - FRAME);
+		  rel_box.x2 = (int)((double)boxes[k].x1 + (double) box_scale * fragments[i].x2 - FRAME);
+		  rel_box.y2 = (int)((double)boxes[k].y1 + (double) box_scale * fragments[i].y2 - FRAME);
 		}
-	      else
+		/* else
 		{
 		  coordinate_box.x1 = (int) (-(double)page_scale * unpaper_dx + (double) page_scale * boxes[k].x1);
 		  coordinate_box.y1 = (int) (-(double)page_scale * unpaper_dy + (double) page_scale * boxes[k].y1);
@@ -391,7 +391,7 @@ void split_fragments_and_assemble_structure_record(vector<atom_t> &atom,
 		  rel_box.y1 = boxes[k].y1;
 		  rel_box.x2 = boxes[k].x2;
 		  rel_box.y2 = boxes[k].y2;
-		}
+		  }*/
 
               if (verbose)
                 cout << "Coordinate box: " << coordinate_box.x1 << "x" << coordinate_box.y1 << "-" << coordinate_box.x2 << "x"
@@ -420,10 +420,10 @@ void split_fragments_and_assemble_structure_record(vector<atom_t> &atom,
                     {
                       Image tmp = image;
                       Geometry geometry =
-                        (fragments.size() > 1) ? Geometry(box_scale * fragments[i].x2 - box_scale * fragments[i].x1 + 4 * real_font_width, //
-                                                          box_scale * fragments[i].y2 - box_scale * fragments[i].y1 + 4 * real_font_height, //
-                                                          boxes[k].x1 + box_scale * fragments[i].x1 - FRAME - 2 * real_font_width, //
-                                                          boxes[k].y1 + box_scale * fragments[i].y1 - FRAME - 2 * real_font_height)
+                        (fragments.size() > 1) ? Geometry(box_scale * fragments[i].x2 - box_scale * fragments[i].x1, //
+                                                          box_scale * fragments[i].y2 - box_scale * fragments[i].y1, //
+                                                          boxes[k].x1 + box_scale * fragments[i].x1 - FRAME , //
+                                                          boxes[k].y1 + box_scale * fragments[i].y1 - FRAME )
                         : Geometry(boxes[k].x2 - boxes[k].x1, boxes[k].y2 - boxes[k].y1, boxes[k].x1, boxes[k].y1);
 
                       try

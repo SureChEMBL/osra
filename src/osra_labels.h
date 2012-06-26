@@ -43,6 +43,9 @@ struct letters_s
   // double: x,y,r
   // coordinates of the center and radius of the circumscribing circle
   double x, y, r;
+  // int: min_x, min_y, max_x, max_y
+  // box coordinates
+  int min_x, min_y,max_x,max_y;
   // char: a
   // character
   char a;
@@ -61,6 +64,9 @@ struct label_s
   // doubles: x1,y1, x2, y2, r1, r2
   // central coordinates and circumradii for the first and last characters
   double x1, y1, r1, x2, y2, r2;
+  // int: min_x, min_y, max_x, max_y
+  // box coordinates
+  int min_x, min_y,max_x,max_y;
   // string: a
   // atomic label string
   string a;

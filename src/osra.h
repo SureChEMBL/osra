@@ -64,6 +64,9 @@ struct atom_s
   // int: charge
   //    electric charge on the atom
   int charge;
+  // int: min_x, min_y, max_x, max_y
+  // box coordinates
+  int min_x, min_y,max_x,max_y;
 };
 // typedef: atom_t
 //      defines atom_t type based on atom_s struct
