@@ -368,15 +368,30 @@ void split_fragments_and_assemble_structure_record(vector<atom_t> &atom,
               molecule_statistics_t molecule_statistics;
               int page_number = l + 1;
               box_t coordinate_box,rel_box;
-              coordinate_box.x1 = (int) (-(double)page_scale * unpaper_dx + (double) page_scale * boxes[k].x1 + (double) page_scale * box_scale * fragments[i].x1);
-              coordinate_box.y1 = (int) (-(double)page_scale * unpaper_dy + (double) page_scale * boxes[k].y1 + (double) page_scale * box_scale * fragments[i].y1);
-              coordinate_box.x2 = (int) (-(double)page_scale * unpaper_dx + (double) page_scale * boxes[k].x1 + (double) page_scale * box_scale * fragments[i].x2);
-              coordinate_box.y2 = (int) (-(double)page_scale * unpaper_dy + (double) page_scale * boxes[k].y1 + (double) page_scale * box_scale * fragments[i].y2);
-              //rotate_coordinate_box(coordinate_box,rotation,image.columns(),image.rows());
-	      rel_box.x1 = (int)((double)boxes[k].x1 + (double) box_scale * fragments[i].x1);
-	      rel_box.y1 = (int)((double)boxes[k].y1 + (double) box_scale * fragments[i].y1);
-	      rel_box.x2 = (int)((double)boxes[k].x1 + (double) box_scale * fragments[i].x2);
-	      rel_box.y2 = (int)((double)boxes[k].y1 + (double) box_scale * fragments[i].y2);
+	      if (fragments.size()>1)
+		{
+		  coordinate_box.x1 = (int) (-(double)page_scale * unpaper_dx + (double) page_scale * boxes[k].x1 + (double) page_scale * box_scale * fragments[i].x1);
+		  coordinate_box.y1 = (int) (-(double)page_scale * unpaper_dy + (double) page_scale * boxes[k].y1 + (double) page_scale * box_scale * fragments[i].y1);
+		  coordinate_box.x2 = (int) (-(double)page_scale * unpaper_dx + (double) page_scale * boxes[k].x1 + (double) page_scale * box_scale * fragments[i].x2);
+		  coordinate_box.y2 = (int) (-(double)page_scale * unpaper_dy + (double) page_scale * boxes[k].y1 + (double) page_scale * box_scale * fragments[i].y2);
+		  //rotate_coordinate_box(coordinate_box,rotation,image.columns(),image.rows());
+		  rel_box.x1 = (int)((double)boxes[k].x1 + (double) box_scale * fragments[i].x1);
+		  rel_box.y1 = (int)((double)boxes[k].y1 + (double) box_scale * fragments[i].y1);
+		  rel_box.x2 = (int)((double)boxes[k].x1 + (double) box_scale * fragments[i].x2);
+		  rel_box.y2 = (int)((double)boxes[k].y1 + (double) box_scale * fragments[i].y2);
+		}
+	      else
+		{
+		  coordinate_box.x1 = (int) (-(double)page_scale * unpaper_dx + (double) page_scale * boxes[k].x1);
+		  coordinate_box.y1 = (int) (-(double)page_scale * unpaper_dy + (double) page_scale * boxes[k].y1);
+		  coordinate_box.x2 = (int) (-(double)page_scale * unpaper_dx + (double) page_scale * boxes[k].x2);
+		  coordinate_box.y2 = (int) (-(double)page_scale * unpaper_dy + (double) page_scale * boxes[k].y2);
+		  //rotate_coordinate_box(coordinate_box,rotation,image.columns(),image.rows());
+		  rel_box.x1 = boxes[k].x1;
+		  rel_box.y1 = boxes[k].y1;
+		  rel_box.x2 = boxes[k].x2;
+		  rel_box.y2 = boxes[k].y2;
+		}
 
               if (verbose)
                 cout << "Coordinate box: " << coordinate_box.x1 << "x" << coordinate_box.y1 << "-" << coordinate_box.x2 << "x"
