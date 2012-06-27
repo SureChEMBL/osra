@@ -27,6 +27,7 @@
 
 #include <float.h> // FLT_MAX
 #include <limits.h> // INT_MAX
+#include <iostream> // std::ostream, std::cout
 
 #include "osra.h"
 #include "osra_common.h"
@@ -197,6 +198,7 @@ vector<fragment_t> populate_fragments(const vector<vector<int> > &frags, const v
 	      f.y1 = atom[frags[i][j]].min_y;
 	    if (atom[frags[i][j]].max_y > f.y2)
 	      f.y2 = atom[frags[i][j]].max_y;
+	    //	    std::cout<<atom[frags[i][j]].label<<" "<<f.x1<<" "<<f.y1<<" "<<f.x2<<" "<<f.y2<<std::endl;
 	  }
       r.push_back(f);
     }

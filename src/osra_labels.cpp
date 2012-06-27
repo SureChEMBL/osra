@@ -26,6 +26,8 @@
 //
 #include <math.h> // fabs(double)
 #include <float.h> // FLT_MAX
+#include <limits.h> // INT_MAX
+#include <iostream> // std::ostream, std::cout
 
 #include "osra_common.h"
 #include "osra_ocr.h"
@@ -97,7 +99,7 @@ int remove_small_bonds(vector<bond_t> &bond, int n_bond, const vector<atom_t> &a
 	    letters[n_letters].min_x = min(atom[bond[i].a].x,atom[bond[i].b].x);
 	    letters[n_letters].max_x = max(atom[bond[i].b].x,atom[bond[i].b].x);
 	    letters[n_letters].min_y = min(atom[bond[i].a].y,atom[bond[i].b].y);
-	    letters[n_letters].max_x = max(atom[bond[i].a].y,atom[bond[i].b].y);
+	    letters[n_letters].max_y = max(atom[bond[i].a].y,atom[bond[i].b].y);
             letters[n_letters].free = true;
             n_letters++;
             if (n_letters >= MAX_ATOMS)
@@ -136,6 +138,7 @@ int assemble_labels(vector<letters_t> &letters, int n_letters, vector<label_t> &
 
   for (int i = 0; i < n_letters; i++)
     {
+      //      cout<<letters[i].a<<" "<<letters[i].min_x<<" "<<letters[i].min_y<<" "<<letters[i].max_x<<" "<<letters[i].max_y<<endl;
       for (int j = i + 1; j < n_letters; j++)
         if ((distance(letters[i].x, letters[i].y, letters[j].x, letters[j].y) < 2 * max(letters[i].r, letters[j].r)
              && (((fabs(letters[i].y - letters[j].y) < min(letters[i].r, letters[j].r))) || ((fabs(letters[i].y
@@ -179,14 +182,17 @@ int assemble_labels(vector<letters_t> &letters, int n_letters, vector<label_t> &
         label[n_label].a += letters[lbond[i].b].a;
         label[n_label].n.push_back(lbond[i].a);
         label[n_label].n.push_back(lbond[i].b);
+	label[n_label].min_x =  min(letters[lbond[i].a].min_x, letters[lbond[i].b].min_x);
+	label[n_label].min_y =  min(letters[lbond[i].a].min_y,letters[lbond[i].b].min_y);
+	label[n_label].max_x =  max(letters[lbond[i].a].max_x, letters[lbond[i].b].max_x);
+	label[n_label].max_y =  max(letters[lbond[i].a].max_y,letters[lbond[i].b].max_y);
+
         if (!isdigit(letters[lbond[i].a].a) && letters[lbond[i].a].a != '-' && letters[lbond[i].a].a != '+'
             && !found_left)
           {
             label[n_label].x1 = letters[lbond[i].a].x;
             label[n_label].y1 = letters[lbond[i].a].y;
             label[n_label].r1 = letters[lbond[i].a].r;
-	    label[n_label].min_x =  letters[lbond[i].a].min_x;
-	    label[n_label].min_y =  letters[lbond[i].a].min_y;
             found_left = true;
           }
         if (!isdigit(letters[lbond[i].b].a) && letters[lbond[i].b].a != '-' && letters[lbond[i].b].a != '+'
@@ -195,8 +201,6 @@ int assemble_labels(vector<letters_t> &letters, int n_letters, vector<label_t> &
             label[n_label].x1 = letters[lbond[i].b].x;
             label[n_label].y1 = letters[lbond[i].b].y;
             label[n_label].r1 = letters[lbond[i].b].r;
-	    label[n_label].min_x =  letters[lbond[i].b].min_x;
-	    label[n_label].min_y =  letters[lbond[i].b].min_y;
             found_left = true;
           }
         if (!isdigit(letters[lbond[i].a].a) && letters[lbond[i].a].a != '-' && letters[lbond[i].a].a != '+')
@@ -204,16 +208,12 @@ int assemble_labels(vector<letters_t> &letters, int n_letters, vector<label_t> &
             label[n_label].x2 = letters[lbond[i].a].x;
             label[n_label].y2 = letters[lbond[i].a].y;
             label[n_label].r2 = letters[lbond[i].a].r;
-	    label[n_label].max_x =  letters[lbond[i].a].max_x;
-	    label[n_label].max_y =  letters[lbond[i].a].max_y;
           }
         if (!isdigit(letters[lbond[i].b].a) && letters[lbond[i].b].a != '-' && letters[lbond[i].b].a != '+')
           {
             label[n_label].x2 = letters[lbond[i].b].x;
             label[n_label].y2 = letters[lbond[i].b].y;
             label[n_label].r2 = letters[lbond[i].b].r;
-	    label[n_label].max_x =  letters[lbond[i].b].max_x;
-	    label[n_label].max_y =  letters[lbond[i].b].max_y;
           }
         lbond[i].exists = false;
         int last = lbond[i].b;
@@ -221,6 +221,10 @@ int assemble_labels(vector<letters_t> &letters, int n_letters, vector<label_t> &
           if ((lbond[j].exists) && (lbond[j].a == last))
             {
               label[n_label].a += letters[lbond[j].b].a;
+	      label[n_label].min_x =  min(label[n_label].min_x, letters[lbond[j].b].min_x);
+	      label[n_label].min_y =  min(label[n_label].min_y,letters[lbond[j].b].min_y);
+	      label[n_label].max_x =  max(label[n_label].max_x, letters[lbond[j].b].max_x);
+	      label[n_label].max_y =  max(label[n_label].max_y,letters[lbond[j].b].max_y);
               label[n_label].n.push_back(lbond[j].b);
               if (!isdigit(letters[lbond[j].a].a) && letters[lbond[j].a].a != '-' && letters[lbond[j].a].a != '+'
                   && !found_left)
@@ -228,8 +232,6 @@ int assemble_labels(vector<letters_t> &letters, int n_letters, vector<label_t> &
                   label[n_label].x1 = letters[lbond[j].a].x;
                   label[n_label].y1 = letters[lbond[j].a].y;
                   label[n_label].r1 = letters[lbond[j].a].r;
-		  label[n_label].min_x =  letters[lbond[j].a].min_x;
-		  label[n_label].min_y =  letters[lbond[j].a].min_y;
                   found_left = true;
                 }
               if (!isdigit(letters[lbond[j].b].a) && letters[lbond[j].b].a != '-' && letters[lbond[j].b].a != '+'
@@ -238,8 +240,6 @@ int assemble_labels(vector<letters_t> &letters, int n_letters, vector<label_t> &
                   label[n_label].x1 = letters[lbond[j].b].x;
                   label[n_label].y1 = letters[lbond[j].b].y;
                   label[n_label].r1 = letters[lbond[j].b].r;
-		  label[n_label].min_x =  letters[lbond[j].b].min_x;
-		  label[n_label].min_y =  letters[lbond[j].b].min_y;
                   found_left = true;
                 }
               if (!isdigit(letters[lbond[j].a].a) && letters[lbond[j].a].a != '-' && letters[lbond[j].a].a != '+')
@@ -247,16 +247,12 @@ int assemble_labels(vector<letters_t> &letters, int n_letters, vector<label_t> &
                   label[n_label].x2 = letters[lbond[j].a].x;
                   label[n_label].y2 = letters[lbond[j].a].y;
                   label[n_label].r2 = letters[lbond[j].a].r;
-		  label[n_label].max_x =  letters[lbond[j].a].max_x;
-		  label[n_label].max_y =  letters[lbond[j].a].max_y;
                 }
               if (!isdigit(letters[lbond[j].b].a) && letters[lbond[j].b].a != '-' && letters[lbond[j].b].a != '+')
                 {
                   label[n_label].x2 = letters[lbond[j].b].x;
                   label[n_label].y2 = letters[lbond[j].b].y;
                   label[n_label].r2 = letters[lbond[j].b].r;
-		  label[n_label].max_x =  letters[lbond[j].b].max_x;
-		  label[n_label].max_y =  letters[lbond[j].b].max_y;
                 }
               last = lbond[j].b;
               lbond[j].exists = false;
@@ -295,12 +291,19 @@ int assemble_labels(vector<letters_t> &letters, int n_letters, vector<label_t> &
           label[n_label].a = "";
           label[n_label].x1 = FLT_MAX;
           label[n_label].x2 = 0;
-
+	  label[n_label].min_x = INT_MAX;
+	  label[n_label].min_y = INT_MAX;
+	  label[n_label].max_x = 0;
+	  label[n_label].max_y = 0;
           for (unsigned int j = 0; j < label[i].n.size(); j++)
             {
               if (letters[label[i].n[j]].y > cy)
                 {
                   label[i].a += letters[label[i].n[j]].a;
+		  label[i].min_x =  min(label[i].min_x, letters[label[i].n[j]].min_x);
+		  label[i].min_y =  min(label[i].min_y,letters[label[i].n[j]].min_y);
+		  label[i].max_x =  max(label[i].max_x, letters[label[i].n[j]].max_x);
+		  label[i].max_y =  max(label[i].max_y,letters[label[i].n[j]].max_y);
                   if (isalpha(letters[label[i].n[j]].a))
                     {
                       if (letters[label[i].n[j]].x < label[i].x1)
@@ -308,22 +311,22 @@ int assemble_labels(vector<letters_t> &letters, int n_letters, vector<label_t> &
                           label[i].x1 = letters[label[i].n[j]].x;
                           label[i].y1 = letters[label[i].n[j]].y;
                           label[i].r1 = letters[label[i].n[j]].r;
-			  label[i].min_x = letters[label[i].n[j]].min_x;
-			  label[i].min_y = letters[label[i].n[j]].min_y;
                         }
                       if (letters[label[i].n[j]].x > label[i].x2)
                         {
                           label[i].x2 = letters[label[i].n[j]].x;
                           label[i].y2 = letters[label[i].n[j]].y;
                           label[i].r2 = letters[label[i].n[j]].r;
-			  label[i].max_x = letters[label[i].n[j]].max_x;
-			  label[i].max_y = letters[label[i].n[j]].max_y;
                         }
                     }
                 }
               else
                 {
                   label[n_label].a += letters[label[i].n[j]].a;
+		  label[n_label].min_x =  min(label[n_label].min_x, letters[label[i].n[j]].min_x);
+		  label[n_label].min_y =  min(label[n_label].min_y,letters[label[i].n[j]].min_y);
+		  label[n_label].max_x =  max(label[n_label].max_x, letters[label[i].n[j]].max_x);
+		  label[n_label].max_y =  max(label[n_label].max_y,letters[label[i].n[j]].max_y);
                   if (isalpha(letters[label[i].n[j]].a))
                     {
                       if (letters[label[i].n[j]].x < label[n_label].x1)
@@ -331,16 +334,12 @@ int assemble_labels(vector<letters_t> &letters, int n_letters, vector<label_t> &
                           label[n_label].x1 = letters[label[i].n[j]].x;
                           label[n_label].y1 = letters[label[i].n[j]].y;
                           label[n_label].r1 = letters[label[i].n[j]].r;
-			  label[n_label].min_x = letters[label[i].n[j]].min_x;
-			  label[n_label].min_y = letters[label[i].n[j]].min_y;
                         }
                       if (letters[label[i].n[j]].x > label[n_label].x2)
                         {
                           label[n_label].x2 = letters[label[i].n[j]].x;
                           label[n_label].y2 = letters[label[i].n[j]].y;
                           label[n_label].r2 = letters[label[i].n[j]].r;
-			  label[n_label].max_x = letters[label[i].n[j]].max_x;
-			  label[n_label].max_y = letters[label[i].n[j]].max_y;
                         }
                     }
                 }
@@ -351,6 +350,7 @@ int assemble_labels(vector<letters_t> &letters, int n_letters, vector<label_t> &
 
   for (int i = 0; i < n_label; i++)
     {
+      //cout<<label[i].a<<" "<<label[i].min_x<<" "<<label[i].min_y<<" "<<label[i].max_x<<" "<<label[i].max_y<<endl;
       bool cont = true;
       string charges = "";
       while (cont)
@@ -575,7 +575,7 @@ int find_chars(const potrace_path_t * p, const Image &orig, vector<letters_t> &l
 		  letters[n_letters].min_x = left;
 		  letters[n_letters].max_x = right;
 		  letters[n_letters].min_y = top;
-		  letters[n_letters].max_x = bottom;
+		  letters[n_letters].max_y = bottom;
                   if (right - left > real_font_width)
                     real_font_width = right - left;
                   if (bottom - top > real_font_height)
@@ -612,7 +612,7 @@ int find_chars(const potrace_path_t * p, const Image &orig, vector<letters_t> &l
 		  letters[n_letters].min_x = left;
 		  letters[n_letters].max_x = right;
 		  letters[n_letters].min_y = newtop;
-		  letters[n_letters].max_x = bottom;
+		  letters[n_letters].max_y = bottom;
                   if (right - left > real_font_width)
                     real_font_width = right - left;
                   if (bottom - newtop > real_font_height)
@@ -630,7 +630,7 @@ int find_chars(const potrace_path_t * p, const Image &orig, vector<letters_t> &l
 		  letters[n_letters].min_x = left;
 		  letters[n_letters].max_x = right;
 		  letters[n_letters].min_y = top;
-		  letters[n_letters].max_x = newbottom;
+		  letters[n_letters].max_y = newbottom;
                   if (newbottom - top > real_font_height)
                     real_font_height = newbottom - top;
                   letters[n_letters].free = true;
@@ -666,7 +666,7 @@ int find_chars(const potrace_path_t * p, const Image &orig, vector<letters_t> &l
 		  letters[n_letters].min_x = left;
 		  letters[n_letters].max_x = newright;
 		  letters[n_letters].min_y = top;
-		  letters[n_letters].max_x = bottom;
+		  letters[n_letters].max_y = bottom;
                   if (newright - left > real_font_width)
                     real_font_width = newright - left;
                   if (bottom - top > real_font_height)
@@ -684,7 +684,7 @@ int find_chars(const potrace_path_t * p, const Image &orig, vector<letters_t> &l
 		  letters[n_letters].min_x = newleft;
 		  letters[n_letters].max_x = right;
 		  letters[n_letters].min_y = top;
-		  letters[n_letters].max_x = bottom;
+		  letters[n_letters].max_y = bottom;
                   if (right - newleft > real_font_width)
                     real_font_width = right - newleft;
                   letters[n_letters].free = true;
@@ -828,10 +828,10 @@ int find_fused_chars(vector<bond_t> &bond, int n_bond, vector<atom_t> &atom, vec
                         letters[n_letters].x = (left + right) / 2;
                         letters[n_letters].y = (top + bottom) / 2;
                         letters[n_letters].r = distance(left, top, right, bottom) / 2;
-			letters[n_letters].min_x = left;
-			letters[n_letters].max_x = right;
-			letters[n_letters].min_y = top;
-			letters[n_letters].max_x = bottom;
+			letters[n_letters].min_x = l;
+			letters[n_letters].max_x = r;
+			letters[n_letters].min_y = t;
+			letters[n_letters].max_y = b;
                         letters[n_letters].free = true;
                         n_letters++;
                         if (n_letters >= MAX_ATOMS)
@@ -1031,7 +1031,7 @@ int find_plus_minus(const potrace_path_t *p, vector<letters_t> &letters, vector<
 		  letters[n_letters].min_x = left;
 		  letters[n_letters].max_x = right;
 		  letters[n_letters].min_y = top;
-		  letters[n_letters].max_x = bottom;
+		  letters[n_letters].max_y = bottom;
                   letters[n_letters].free = true;
                   n_letters++;
                   if (n_letters >= MAX_ATOMS)
@@ -1116,7 +1116,7 @@ int clean_unrecognized_characters(vector<bond_t> &bond, int n_bond, const vector
 	    letters[n_letters].min_x = l;
 	    letters[n_letters].max_x = r;
 	    letters[n_letters].min_y = t;
-	    letters[n_letters].max_x = b;
+	    letters[n_letters].max_y = b;
             letters[n_letters].free = true;
             n_letters++;
             if (n_letters >= MAX_ATOMS)
