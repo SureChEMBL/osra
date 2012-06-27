@@ -1166,7 +1166,13 @@ void remove_small_terminal_bonds(vector<bond_t> &bond, int n_bond, vector<atom_t
                                 dashed = true;
                             }
                         if (!dashed)
-                          atom[bond[j].b].label = "Xx";
+			  {
+			    atom[bond[j].b].label = "Xx";
+			    atom[bond[j].b].min_x = min(atom[bond[j].b].x,atom[bond[j].a].x);
+			    atom[bond[j].b].min_y = min(atom[bond[j].b].y,atom[bond[j].a].y);
+			    atom[bond[j].b].max_x = max(atom[bond[j].b].x,atom[bond[j].a].x);
+			    atom[bond[j].b].max_y = max(atom[bond[j].b].y,atom[bond[j].a].y);
+			  }
                       }
                   }
               }
@@ -1197,7 +1203,13 @@ void remove_small_terminal_bonds(vector<bond_t> &bond, int n_bond, vector<atom_t
                                 dashed = true;
                             }
                         if (!dashed)
-                          atom[bond[j].a].label = "Xx";
+			  {
+			    atom[bond[j].a].label = "Xx";
+			    atom[bond[j].a].min_x = min(atom[bond[j].b].x,atom[bond[j].a].x);
+			    atom[bond[j].a].min_y = min(atom[bond[j].b].y,atom[bond[j].a].y);
+			    atom[bond[j].a].max_x = max(atom[bond[j].b].x,atom[bond[j].a].x);
+			    atom[bond[j].a].max_y = max(atom[bond[j].b].y,atom[bond[j].a].y);
+			  }
                       }
                   }
               }
