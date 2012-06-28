@@ -762,13 +762,6 @@ int osra_process_image(
                 potrace_state_t * const  st = raster_to_vector(box,bgColor,THRESHOLD_BOND,width,height,working_resolution);
                 potrace_path_t const * const p = st->plist;
                 n_atom = find_atoms(p, atom, bond, &n_bond,width,height);
-		for (int a=0; a<n_atom; a++)
-		  {
-		    atom[a].min_x = atom[a].x;
-		    atom[a].max_x = atom[a].x;
-		    atom[a].min_y = atom[a].y;
-		    atom[a].max_y = atom[a].y;
-		  }
                 int real_font_width, real_font_height;
                 n_letters = find_chars(p, orig_box, letters, atom, bond, n_atom, n_bond, height, width, bgColor,
                                        THRESHOLD_BOND, max_font_width, max_font_height, real_font_width, real_font_height,verbose);
