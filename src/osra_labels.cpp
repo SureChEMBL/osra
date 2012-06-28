@@ -96,10 +96,10 @@ int remove_small_bonds(vector<bond_t> &bond, int n_bond, const vector<atom_t> &a
             letters[n_letters].x = (atom[bond[i].a].x + atom[bond[i].b].x) / 2;
             letters[n_letters].y = (atom[bond[i].a].y + atom[bond[i].b].y) / 2;
             letters[n_letters].r = bond_length(bond, i, atom) / 2;
-	    letters[n_letters].min_x = min(atom[bond[i].a].x,atom[bond[i].b].x);
-	    letters[n_letters].max_x = max(atom[bond[i].b].x,atom[bond[i].b].x);
-	    letters[n_letters].min_y = min(atom[bond[i].a].y,atom[bond[i].b].y);
-	    letters[n_letters].max_y = max(atom[bond[i].a].y,atom[bond[i].b].y);
+	    letters[n_letters].min_x = min(atom[bond[i].a].min_x,atom[bond[i].b].min_x);
+	    letters[n_letters].max_x = max(atom[bond[i].b].max_x,atom[bond[i].b].max_x);
+	    letters[n_letters].min_y = min(atom[bond[i].a].min_y,atom[bond[i].b].min_y);
+	    letters[n_letters].max_y = max(atom[bond[i].a].max_y,atom[bond[i].b].max_y);
             letters[n_letters].free = true;
             n_letters++;
             if (n_letters >= MAX_ATOMS)
@@ -138,7 +138,7 @@ int assemble_labels(vector<letters_t> &letters, int n_letters, vector<label_t> &
 
   for (int i = 0; i < n_letters; i++)
     {
-      //      cout<<letters[i].a<<" "<<letters[i].min_x<<" "<<letters[i].min_y<<" "<<letters[i].max_x<<" "<<letters[i].max_y<<endl;
+      //            cout<<letters[i].a<<" "<<letters[i].min_x<<" "<<letters[i].min_y<<" "<<letters[i].max_x<<" "<<letters[i].max_y<<endl;
       for (int j = i + 1; j < n_letters; j++)
         if ((distance(letters[i].x, letters[i].y, letters[j].x, letters[j].y) < 2 * max(letters[i].r, letters[j].r)
              && (((fabs(letters[i].y - letters[j].y) < min(letters[i].r, letters[j].r))) || ((fabs(letters[i].y
@@ -1118,6 +1118,7 @@ int clean_unrecognized_characters(vector<bond_t> &bond, int n_bond, const vector
 	    letters[n_letters].min_y = t;
 	    letters[n_letters].max_y = b;
             letters[n_letters].free = true;
+	    // cout<<n_letters<<" "<<l<<" "<<t<<" "<<r<<" "<<b<<endl;
             n_letters++;
             if (n_letters >= MAX_ATOMS)
               n_letters--;
@@ -1149,10 +1150,10 @@ void remove_small_terminal_bonds(vector<bond_t> &bond, int n_bond, vector<atom_t
                     if (atom[bond[j].a].label != " ")
 		      {
 			atom[bond[j].b].label = atom[bond[j].a].label;
-			atom[bond[j].b].min_x = atom[bond[j].a].min_x;
-			atom[bond[j].b].min_y = atom[bond[j].a].min_y;
-			atom[bond[j].b].max_x = atom[bond[j].a].max_x;
-			atom[bond[j].b].max_y = atom[bond[j].a].max_y;
+			atom[bond[j].b].min_x = min(atom[bond[j].b].min_x,atom[bond[j].a].min_x);
+			atom[bond[j].b].min_y = min(atom[bond[j].b].min_y,atom[bond[j].a].min_y);
+			atom[bond[j].b].max_x = max(atom[bond[j].b].max_x,atom[bond[j].a].max_x);
+			atom[bond[j].b].max_y = max(atom[bond[j].b].max_y,atom[bond[j].a].max_y);
 		      }
                     else
                       {
@@ -1168,10 +1169,10 @@ void remove_small_terminal_bonds(vector<bond_t> &bond, int n_bond, vector<atom_t
                         if (!dashed)
 			  {
 			    atom[bond[j].b].label = "Xx";
-			    atom[bond[j].b].min_x = min(atom[bond[j].b].x,atom[bond[j].a].x);
-			    atom[bond[j].b].min_y = min(atom[bond[j].b].y,atom[bond[j].a].y);
-			    atom[bond[j].b].max_x = max(atom[bond[j].b].x,atom[bond[j].a].x);
-			    atom[bond[j].b].max_y = max(atom[bond[j].b].y,atom[bond[j].a].y);
+			    atom[bond[j].b].min_x = min(atom[bond[j].b].min_x,atom[bond[j].a].min_x);
+			    atom[bond[j].b].min_y = min(atom[bond[j].b].min_y,atom[bond[j].a].min_y);
+			    atom[bond[j].b].max_x = max(atom[bond[j].b].max_x,atom[bond[j].a].max_x);
+			    atom[bond[j].b].max_y = max(atom[bond[j].b].max_y,atom[bond[j].a].max_y);
 			  }
                       }
                   }
@@ -1186,10 +1187,10 @@ void remove_small_terminal_bonds(vector<bond_t> &bond, int n_bond, vector<atom_t
                     if (atom[bond[j].b].label != " ")
 		      {
 			atom[bond[j].a].label = atom[bond[j].b].label;
-			atom[bond[j].a].min_x = atom[bond[j].b].min_x;
-			atom[bond[j].a].min_y = atom[bond[j].b].min_y;
-			atom[bond[j].a].max_x = atom[bond[j].b].max_x;
-			atom[bond[j].a].max_y = atom[bond[j].b].max_y;
+			atom[bond[j].a].min_x = min(atom[bond[j].b].min_x,atom[bond[j].a].min_x);
+			atom[bond[j].a].min_y = min(atom[bond[j].b].min_y,atom[bond[j].a].min_y);
+			atom[bond[j].a].max_x = max(atom[bond[j].b].max_x,atom[bond[j].a].max_x);
+			atom[bond[j].a].max_y = max(atom[bond[j].b].max_y,atom[bond[j].a].max_y);
 		      }
                     else
                       {
@@ -1205,10 +1206,10 @@ void remove_small_terminal_bonds(vector<bond_t> &bond, int n_bond, vector<atom_t
                         if (!dashed)
 			  {
 			    atom[bond[j].a].label = "Xx";
-			    atom[bond[j].a].min_x = min(atom[bond[j].b].x,atom[bond[j].a].x);
-			    atom[bond[j].a].min_y = min(atom[bond[j].b].y,atom[bond[j].a].y);
-			    atom[bond[j].a].max_x = max(atom[bond[j].b].x,atom[bond[j].a].x);
-			    atom[bond[j].a].max_y = max(atom[bond[j].b].y,atom[bond[j].a].y);
+			    atom[bond[j].a].min_x = min(atom[bond[j].b].min_x,atom[bond[j].a].min_x);
+			    atom[bond[j].a].min_y = min(atom[bond[j].b].min_y,atom[bond[j].a].min_y);
+			    atom[bond[j].a].max_x = max(atom[bond[j].b].max_x,atom[bond[j].a].max_x);
+			    atom[bond[j].a].max_y = max(atom[bond[j].b].max_y,atom[bond[j].a].max_y);
 			  }
                       }
                   }

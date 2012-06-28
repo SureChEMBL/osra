@@ -175,19 +175,6 @@ vector<fragment_t> populate_fragments(const vector<vector<int> > &frags, const v
       f.y2 = 0;
 
       for (unsigned j = 0; j < frags[i].size(); j++)
-	if (atom[frags[i][j]].label == " ")
-	  {
-	    f.atom.push_back(frags[i][j]);
-	    if ((int) atom[frags[i][j]].x < f.x1)
-	      f.x1 = (int) atom[frags[i][j]].x;
-	    if ((int) atom[frags[i][j]].x > f.x2)
-	      f.x2 = (int) atom[frags[i][j]].x;
-	    if ((int) atom[frags[i][j]].y < f.y1)
-	      f.y1 = (int) atom[frags[i][j]].y;
-	    if ((int) atom[frags[i][j]].y > f.y2)
-	      f.y2 = (int) atom[frags[i][j]].y;
-	  }
-	else
 	  {
 	    f.atom.push_back(frags[i][j]);
 	    if (atom[frags[i][j]].min_x < f.x1)
@@ -198,7 +185,8 @@ vector<fragment_t> populate_fragments(const vector<vector<int> > &frags, const v
 	      f.y1 = atom[frags[i][j]].min_y;
 	    if (atom[frags[i][j]].max_y > f.y2)
 	      f.y2 = atom[frags[i][j]].max_y;
-	    //	    std::cout<<atom[frags[i][j]].label<<" "<<f.x1<<" "<<f.y1<<" "<<f.x2<<" "<<f.y2<<std::endl;
+	    //cout<<"Atoms2: "<<atom[frags[i][j]].min_x<<" "<<atom[frags[i][j]].min_y<<" "<<atom[frags[i][j]].max_x<<" "<<atom[frags[i][j]].max_y<<endl;
+	    //std::cout<<"Fragment2: "<<atom[frags[i][j]].label<<" "<<f.x1<<" "<<f.y1<<" "<<f.x2<<" "<<f.y2<<std::endl;
 	  }
       r.push_back(f);
     }

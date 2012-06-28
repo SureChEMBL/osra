@@ -1759,6 +1759,7 @@ void collapse_atoms(vector<atom_t> &atom, vector<bond_t> &bond, int n_atom, int 
                 atom[j].exists = false;
                 atom[i].x = (atom[i].x + atom[j].x) / 2;
                 atom[i].y = (atom[i].y + atom[j].y) / 2;
+
 		atom[i].min_x = min(atom[i].min_x,atom[j].min_x);
 		atom[i].min_y = min(atom[i].min_y,atom[j].min_y);
 		atom[i].max_x = max(atom[i].max_x,atom[j].max_x);

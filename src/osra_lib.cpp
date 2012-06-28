@@ -368,7 +368,7 @@ void split_fragments_and_assemble_structure_record(vector<atom_t> &atom,
               molecule_statistics_t molecule_statistics;
               int page_number = l + 1;
               box_t coordinate_box,rel_box;
-	      // if (fragments.size()>1)
+	       if (fragments.size()>1)
 		{
 		  coordinate_box.x1 = (int) (-(double)page_scale * unpaper_dx + (double) page_scale * boxes[k].x1 + (double) page_scale * box_scale * fragments[i].x1 - (double) page_scale * FRAME);
 		  coordinate_box.y1 = (int) (-(double)page_scale * unpaper_dy + (double) page_scale * boxes[k].y1 + (double) page_scale * box_scale * fragments[i].y1 - (double) page_scale * FRAME);
@@ -380,7 +380,7 @@ void split_fragments_and_assemble_structure_record(vector<atom_t> &atom,
 		  rel_box.x2 = (int)((double)boxes[k].x1 + (double) box_scale * fragments[i].x2 - FRAME);
 		  rel_box.y2 = (int)((double)boxes[k].y1 + (double) box_scale * fragments[i].y2 - FRAME);
 		}
-		/* else
+		else
 		{
 		  coordinate_box.x1 = (int) (-(double)page_scale * unpaper_dx + (double) page_scale * boxes[k].x1);
 		  coordinate_box.y1 = (int) (-(double)page_scale * unpaper_dy + (double) page_scale * boxes[k].y1);
@@ -391,7 +391,7 @@ void split_fragments_and_assemble_structure_record(vector<atom_t> &atom,
 		  rel_box.y1 = boxes[k].y1;
 		  rel_box.x2 = boxes[k].x2;
 		  rel_box.y2 = boxes[k].y2;
-		  }*/
+		  }
 
               if (verbose)
                 cout << "Coordinate box: " << coordinate_box.x1 << "x" << coordinate_box.y1 << "-" << coordinate_box.x2 << "x"
@@ -762,7 +762,13 @@ int osra_process_image(
                 potrace_state_t * const  st = raster_to_vector(box,bgColor,THRESHOLD_BOND,width,height,working_resolution);
                 potrace_path_t const * const p = st->plist;
                 n_atom = find_atoms(p, atom, bond, &n_bond,width,height);
-
+		for (int a=0; a<n_atom; a++)
+		  {
+		    atom[a].min_x = atom[a].x;
+		    atom[a].max_x = atom[a].x;
+		    atom[a].min_y = atom[a].y;
+		    atom[a].max_y = atom[a].y;
+		  }
                 int real_font_width, real_font_height;
                 n_letters = find_chars(p, orig_box, letters, atom, bond, n_atom, n_bond, height, width, bgColor,
                                        THRESHOLD_BOND, max_font_width, max_font_height, real_font_width, real_font_height,verbose);
@@ -836,11 +842,13 @@ int osra_process_image(
                                              max_dist_double_bond, avg_bond_length, 3, 1);
 
                 n_label = assemble_labels(letters, n_letters, label);
+		
 
                 if (verbose)
                   cout << n_label << " labels: " << label << " after assemble_labels()" << endl;
 
                 remove_disconnected_atoms(atom, bond, n_atom, n_bond);
+	
 
                 collapse_atoms(atom, bond, n_atom, n_bond, thickness);
 
@@ -854,8 +862,12 @@ int osra_process_image(
 
                 collapse_double_bonds(bond, n_bond, atom, max_dist_double_bond);
 
+	
+
                 extend_terminal_bond_to_label(atom, letters, n_letters, bond, n_bond, label, n_label, avg_bond_length / 2,
                                               thickness, max_dist_double_bond);
+
+
 
                 remove_disconnected_atoms(atom, bond, n_atom, n_bond);
                 collapse_atoms(atom, bond, n_atom, n_bond, thickness);
@@ -868,13 +880,18 @@ int osra_process_image(
 
                 extend_terminal_bond_to_bonds(atom, bond, n_bond, avg_bond_length, 2 * thickness, max_dist_double_bond);
 
+
+
                 collapse_atoms(atom, bond, n_atom, n_bond, 3);
+
+
                 remove_zero_bonds(bond, n_bond, atom);
                 flatten_bonds(bond, n_bond, atom, 3);
                 remove_zero_bonds(bond, n_bond, atom);
+	
                 n_letters = clean_unrecognized_characters(bond, n_bond, atom, real_font_height, real_font_width, 0,
                             letters, n_letters);
-
+	
                 assign_charge(atom, bond, n_atom, n_bond, spelling, superatom, debug);
                 find_up_down_bonds(bond, n_bond, atom, thickness);
                 int real_atoms = count_atoms(atom, n_atom);
