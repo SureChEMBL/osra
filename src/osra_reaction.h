@@ -46,5 +46,5 @@
 //
 
 
-void arrange_reactions(vector<arrow_t> &arrows, const vector<box_t> &page_of_boxes, const vector<point_t> &pluses, vector<string> &results,
+void arrange_reactions(vector<arrow_t> &arrows, const vector<box_t> &page_of_boxes, const vector<plus_t> &pluses, vector<string> &results, vector<box_t> &rbox,
 		       const vector<string> &page_of_structures, const string &output_format);

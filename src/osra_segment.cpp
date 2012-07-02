@@ -462,15 +462,23 @@ int locate_max_entropy(const vector<vector<int> > &features, unsigned int max_ar
 }
 
 template<class T>
-void build_hist(const T &seg, vector<int> &hist, const int len, int &top_pos, int &top_value,point_t &head,point_t &tail, point_t &center)
+void build_hist(const T &seg, vector<int> &hist, const int len, int &top_pos, int &top_value,point_t &head,point_t &tail, point_t &center, int &min_x, int &min_y, int &max_x, int &max_y)
 {
   int l=seg.size();
   typename T::const_iterator j;
   center.x=0; center.y=0;
+  min_x = INT_MAX;
+  min_y = INT_MAX;
+  max_x = 0;
+  max_y = 0;
   for (j=seg.begin(); j!=seg.end(); j++)
     {
       center.x += j->x;
       center.y += j->y;
+      min_x = min(min_x, j->x);
+      min_y = min(min_y, j->y);
+      max_x = max(max_x, j->x);
+      max_y = max(max_y, j->y);
     }
   center.x /=l;  // Find the center of mass for the segment margin
   center.y /=l;
@@ -586,7 +594,7 @@ bool bulge(const point_t tail, const point_t head, const list<point_t> & seg)
 }
 
 
-void find_arrows_pluses(vector<vector<point_t> > &margins, vector<list<point_t> > &segments, vector<arrow_t> &arrows, vector<point_t> &pluses)
+void find_arrows_pluses(vector<vector<point_t> > &margins, vector<list<point_t> > &segments, vector<arrow_t> &arrows, vector<plus_t> &pluses)
 {
   const int len=50;
   for (int i=0; i<margins.size(); i++)
@@ -595,11 +603,12 @@ void find_arrows_pluses(vector<vector<point_t> > &margins, vector<list<point_t> 
       int top_pos=0;
       int top_value=0;
       point_t head, tail,center;
+      int min_x, min_y, max_x, max_y;
 
       if (segments[i].size()>1000)
-	build_hist(margins[i],hist,len,top_pos,top_value,head,tail,center);
+	build_hist(margins[i],hist,len,top_pos,top_value,head,tail,center,min_x, min_y, max_x, max_y);
       else
-	build_hist(segments[i],hist,len,top_pos,top_value,head,tail,center);
+	build_hist(segments[i],hist,len,top_pos,top_value,head,tail,center,min_x, min_y, max_x, max_y);
 
       if (top_value>5)
 	{
@@ -642,6 +651,10 @@ void find_arrows_pluses(vector<vector<point_t> > &margins, vector<list<point_t> 
 		  arrow.linebreak = false;
 		  arrow.reversible = false;
 		  arrow.remove = false;
+		  arrow.min_x = min_x;
+		  arrow.min_y = min_y;
+		  arrow.max_x = max_x;
+		  arrow.max_y = max_y;
 		  arrows.push_back(arrow);
 		  margins[i].clear();
 		  segments[i].clear();
@@ -671,7 +684,13 @@ void find_arrows_pluses(vector<vector<point_t> > &margins, vector<list<point_t> 
 	      if (first && second && third && fourth && low)
 		{
 		  // we found a plus!
-		  pluses.push_back(center);
+		  plus_t plus;
+		  plus.center = center;
+		  plus.min_x = min_x;
+		  plus.min_y = min_y;
+		  plus.max_x = max_x;
+		  plus.max_y = max_y;
+		  pluses.push_back(plus);
 		}
 	    }
 	  
@@ -814,7 +833,7 @@ void find_agent_strings(vector<vector<point_t> > &margins,vector<list<point_t> >
     }
 }
 
-list<list<list<point_t> > > find_segments(const Image &image, double threshold, const ColorGray &bgColor, bool adaptive, bool is_reaction, vector<arrow_t> &arrows, vector<point_t> &pluses,
+list<list<list<point_t> > > find_segments(const Image &image, double threshold, const ColorGray &bgColor, bool adaptive, bool is_reaction, vector<arrow_t> &arrows, vector<plus_t> &pluses,
 					  bool verbose)
 {
   vector<list<point_t> > segments;

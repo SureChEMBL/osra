@@ -400,7 +400,7 @@ void arrange_structures_between_arrows_after(vector<arrow_t> &arrows,  vector < 
     }
 }
 
-void arrange_plus_sings_between_boxes(const vector < vector<int> > &before,const vector<box_t> &page_of_boxes,const vector<point_t> &pluses, vector < vector <bool> > &is_plus)
+void arrange_plus_sings_between_boxes(const vector < vector<int> > &before,const vector<box_t> &page_of_boxes,const vector<plus_t> &pluses, vector < vector <int> > &is_plus)
 {
   for (int i=0; i<before.size(); i++)
     for (int j=1; j<before[i].size(); j++)
@@ -414,17 +414,17 @@ void arrange_plus_sings_between_boxes(const vector < vector<int> > &before,const
 	    for (int m=0; m<pluses.size(); m++)
 	      {
 		//double d=distance_from_bond_y((a.x1+a.x2)/2,(a.y1+a.y2)/2,(b.x1+b.x2)/2,(b.y1+b.y2)/2,pluses[m].x, pluses[m].y);
-		if (pluses[m].y>max(a.y1,b.y1) && pluses[m].y<min(a.y2,b.y2) && ((pluses[m].x>a.x2 && pluses[m].x<b.x1) ||  (pluses[m].x>b.x2 && pluses[m].x<a.x1)))
+		if (pluses[m].center.y>max(a.y1,b.y1) && pluses[m].center.y<min(a.y2,b.y2) && ((pluses[m].center.x>a.x2 && pluses[m].center.x<b.x1) ||  (pluses[m].center.x>b.x2 && pluses[m].center.x<a.x1)))
 		  {
-		    is_plus[k][l] = true;
-		    is_plus[l][k] = true;
+		    is_plus[k][l] = m;
+		    is_plus[l][k] = m;
 		  }
 		// after plus things can be on the next line
 		//d = pluses[m].y - (a.y2 + a.y1)/2;
-		if (pluses[m].x>a.x2 &&  pluses[m].y>a.y1 && pluses[m].y<a.y2 && b.y1>a.y2 && pluses[m].x-a.x2<MAX_DISTANCE_BETWEEN_ARROWS && b.y1-a.y2<MAX_DISTANCE_BETWEEN_ARROWS)
+		if (pluses[m].center.x>a.x2 &&  pluses[m].center.y>a.y1 && pluses[m].center.y<a.y2 && b.y1>a.y2 && pluses[m].center.x-a.x2<MAX_DISTANCE_BETWEEN_ARROWS && b.y1-a.y2<MAX_DISTANCE_BETWEEN_ARROWS)
 		  {
-		    is_plus[k][l] = true;
-		    is_plus[l][k] = true;
+		    is_plus[k][l] = m;
+		    is_plus[l][k] = m;
 		  }
 		/*if (pluses[m].x>b.x2 &&  pluses[m].y>b.y1 && pluses[m].y<b.y2 && a.y1>b.y2 && pluses[m].x-b.x2<MAX_DISTANCE_BETWEEN_ARROWS && a.y1-b.y2<MAX_DISTANCE_BETWEEN_ARROWS)
 		  {
@@ -438,7 +438,7 @@ void arrange_plus_sings_between_boxes(const vector < vector<int> > &before,const
 }
 
 
-void arrange_reactions(vector<arrow_t> &arrows, const vector<box_t> &page_of_boxes, const vector<point_t> &pluses, vector<string> &results,
+void arrange_reactions(vector<arrow_t> &arrows, const vector<box_t> &page_of_boxes, const vector<plus_t> &pluses, vector<string> &results, vector<box_t> &rbox,
 		       const vector<string> &page_of_structures,  const string &output_format)
 {
   vector < vector<int> > before;
@@ -548,9 +548,9 @@ void arrange_reactions(vector<arrow_t> &arrows, const vector<box_t> &page_of_box
      }*/
   
  
-  vector < vector <bool> > is_plus_before(page_of_boxes.size(), vector <bool> (page_of_boxes.size(), false));
+  vector < vector <int> > is_plus_before(page_of_boxes.size(), vector <int> (page_of_boxes.size(), -1));
   arrange_plus_sings_between_boxes(before,page_of_boxes,pluses, is_plus_before);
- vector < vector <bool> > is_plus_after(page_of_boxes.size(), vector <bool> (page_of_boxes.size(), false));
+ vector < vector <int> > is_plus_after(page_of_boxes.size(), vector <int> (page_of_boxes.size(), -1));
   arrange_plus_sings_between_boxes(after,page_of_boxes,pluses, is_plus_after);
 
 /*   for (int ii=0;ii<before.size(); ii++)
@@ -580,11 +580,24 @@ void arrange_reactions(vector<arrow_t> &arrows, const vector<box_t> &page_of_box
   for (int i=0; i<arrows.size(); i++)
     {
       vector <int> r,p;
+      box_t box;
+      box.x1 = arrows[i].min_x;
+      box.y1 = arrows[i].min_y;
+      box.x2 = arrows[i].max_x;
+      box.y2 = arrows[i].max_y;
+
       int ii = before[i].size()-1;
       while (ii>=0 && before[i][ii]<0) ii--;
 
       if (ii>=0 && before[i][ii]>=0)
-	r.push_back(before[i][ii]);
+	{
+	  int k = before[i][ii];
+	  r.push_back(k);
+	  box.x1 = min(box.x1,page_of_boxes[k].x1);
+	  box.y1 = min(box.y1,page_of_boxes[k].y1);
+	  box.x2 = max(box.x2,page_of_boxes[k].x2);
+	  box.y2 = max(box.y2,page_of_boxes[k].y2);
+	}
 
       for (int j=ii-1; j>=0; j--)
 	{
@@ -592,8 +605,20 @@ void arrange_reactions(vector<arrow_t> &arrows, const vector<box_t> &page_of_box
 	  int l = before[i][j+1];
 	  if (k>=0 && l>=0)
 	    {
-	      if (is_plus_before[k][l])
-		r.push_back(k);
+	      int m = is_plus_before[k][l];
+	      if (m>=0)
+		{
+		  r.push_back(k);
+		  box.x1 = min(box.x1,page_of_boxes[k].x1);
+		  box.y1 = min(box.y1,page_of_boxes[k].y1);
+		  box.x2 = max(box.x2,page_of_boxes[k].x2);
+		  box.y2 = max(box.y2,page_of_boxes[k].y2);
+
+		  box.x1 = min(box.x1,pluses[m].min_x);
+		  box.y1 = min(box.y1,pluses[m].min_y);
+		  box.x2 = max(box.x2,pluses[m].max_x);
+		  box.y2 = max(box.y2,pluses[m].max_y);
+		}
 	      else
 		break;
 	    }
@@ -605,15 +630,34 @@ void arrange_reactions(vector<arrow_t> &arrows, const vector<box_t> &page_of_box
 	  while (ii<after[i].size() && after[i][ii]<0) ii++;
 
 	  if (ii<after[i].size() && after[i][ii]>=0)
-	    p.push_back(after[i][ii]);
+	    {
+	      int k = after[i][ii];
+	      p.push_back(k);
+	      box.x1 = min(box.x1,page_of_boxes[k].x1);
+	      box.y1 = min(box.y1,page_of_boxes[k].y1);
+	      box.x2 = max(box.x2,page_of_boxes[k].x2);
+	      box.y2 = max(box.y2,page_of_boxes[k].y2);
+	    }
 	  for (int j=ii+1; j<after[i].size(); j++)
 	    {
 	      int k = after[i][j];
 	      int l = after[i][j-1];
 	      if (k>=0 && l>=0)
 		{
-		  if (is_plus_after[k][l])
-		    p.push_back(k);
+		  int m = is_plus_after[k][l];
+		  if (m>=0)
+		    {
+		      p.push_back(k);
+		      box.x1 = min(box.x1,page_of_boxes[k].x1);
+		      box.y1 = min(box.y1,page_of_boxes[k].y1);
+		      box.x2 = max(box.x2,page_of_boxes[k].x2);
+		      box.y2 = max(box.y2,page_of_boxes[k].y2);
+
+		      box.x1 = min(box.x1,pluses[m].min_x);
+		      box.y1 = min(box.y1,pluses[m].min_y);
+		      box.x2 = max(box.x2,pluses[m].max_x);
+		      box.y2 = max(box.y2,pluses[m].max_y);
+		    }
 		  else
 		    break;
 		}
@@ -625,7 +669,10 @@ void arrange_reactions(vector<arrow_t> &arrows, const vector<box_t> &page_of_box
 	  string result=convert_page_to_reaction(page_of_structures,output_format, r, p, arrows[i].agent,arrows[i].reversible);
 	  trim(result);
 	  if (!result.empty())
-	    results.push_back(result);
+	    {
+	      results.push_back(result);
+	      rbox.push_back(box);
+	    }
 	}
     }
 }

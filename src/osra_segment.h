@@ -68,6 +68,7 @@ struct arrow_s
   // point_t: tail, head
   // tail and head of an arrow as points
   point_t tail,head;
+  int min_x,min_y,max_x,max_y;
   string agent;
   bool linebreak;
   bool reversible;
@@ -77,6 +78,12 @@ struct arrow_s
 // defines arrow_t type based on arrow_s struct
 typedef struct arrow_s arrow_t;
 
+struct plus_s
+{
+  point_t center;
+   int min_x,min_y,max_x,max_y;
+};
+typedef struct plus_s plus_t;
 
 //
 // Section: Functions
@@ -98,7 +105,7 @@ typedef struct arrow_s arrow_t;
 //
 // Returns:
 // A list of clusters, each of which is a list of  connected segments each of which is a list of points
-list<list<list<point_t> > > find_segments(const Image &image, double threshold, const ColorGray &bgColor, bool adaptive, bool is_reaction, vector<arrow_t> &arrows, vector<point_t> &pluses, bool verbose);
+list<list<list<point_t> > > find_segments(const Image &image, double threshold, const ColorGray &bgColor, bool adaptive, bool is_reaction, vector<arrow_t> &arrows, vector<plus_t> &pluses, bool verbose);
 
 // Function: prune_clusters()
 //

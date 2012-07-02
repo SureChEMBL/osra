@@ -419,21 +419,24 @@ void split_fragments_and_assemble_structure_record(vector<atom_t> &atom,
                   if (!output_image_file_prefix.empty())
                     {
                       Image tmp = image;
-                      Geometry geometry =
-                        (fragments.size() > 1) ? Geometry(box_scale * fragments[i].x2 - box_scale * fragments[i].x1, //
-                                                          box_scale * fragments[i].y2 - box_scale * fragments[i].y1, //
-                                                          boxes[k].x1 + box_scale * fragments[i].x1 - FRAME , //
-                                                          boxes[k].y1 + box_scale * fragments[i].y1 - FRAME )
-                        : Geometry(boxes[k].x2 - boxes[k].x1, boxes[k].y2 - boxes[k].y1, boxes[k].x1, boxes[k].y1);
-
-                      try
-                        {
-                          tmp.crop(geometry);
-                        }
-                      catch (...)
-                        {
-                          tmp = orig_box;
-                        }
+		      if (!is_reaction)
+			{
+			  Geometry geometry =
+			    (fragments.size() > 1) ? Geometry(box_scale * fragments[i].x2 - box_scale * fragments[i].x1, //
+							      box_scale * fragments[i].y2 - box_scale * fragments[i].y1, //
+							      boxes[k].x1 + box_scale * fragments[i].x1 - FRAME , //
+							      boxes[k].y1 + box_scale * fragments[i].y1 - FRAME )
+			    : Geometry(boxes[k].x2 - boxes[k].x1, boxes[k].y2 - boxes[k].y1, boxes[k].x1, boxes[k].y1);
+			  
+			  try
+			    {
+			      tmp.crop(geometry);
+			    }
+			  catch (...)
+			    {
+			      tmp = orig_box;
+			    }
+			}
 
                       array_of_images[res_iter].push_back(tmp);
                     }
@@ -606,7 +609,7 @@ int osra_process_image(
   vector<vector<double> > pages_of_ind_conf(page, vector<double> (0));
   vector<vector<box_t> > pages_of_boxes(page, vector<box_t> (0));
   vector<vector<arrow_t> > arrows(page, vector<arrow_t>(0));
-  vector<vector<point_t> > pluses(page, vector<point_t>(0));
+  vector<vector<plus_t> > pluses(page, vector<plus_t>(0));
 
   int total_structure_count = 0;
 
@@ -973,36 +976,75 @@ int osra_process_image(
 	      }
 	    
 	    if (output_format != "mol" && !is_reaction)
-	      out_stream << pages_of_structures[l][i];
-
-	    // Dump this structure into a separate file:
-	    if (!output_image_file_prefix.empty())
 	      {
-		ostringstream fname;
-		fname << output_image_file_prefix << image_count << ".png";
-		image_count++;
-		if (fname.str() != "")
+		out_stream << pages_of_structures[l][i];
+
+		// Dump this structure into a separate file:
+		if (!output_image_file_prefix.empty())
 		  {
-		    Image tmp = pages_of_images[l][i];
-		    if (resize != "")
+		    ostringstream fname;
+		    fname << output_image_file_prefix << image_count << ".png";
+		    image_count++;
+		    if (fname.str() != "")
 		      {
-			tmp.scale(resize);
+			Image tmp = pages_of_images[l][i];
+			if (resize != "")
+			  {
+			    tmp.scale(resize);
+			  }
+			tmp.write(fname.str());
 		      }
-		    tmp.write(fname.str());
 		  }
 	      }
 	  }
       if (is_reaction && !arrows[l].empty())
 	 {
 	   vector<string> reactions;
-	   arrange_reactions(arrows[l], pages_of_boxes[l], pluses[l], reactions,pages_of_structures[l],output_format);
+	   vector<box_t> rbox;
+	   arrange_reactions(arrows[l], pages_of_boxes[l], pluses[l], reactions, rbox, pages_of_structures[l],output_format);
 	   for (int k=0; k<reactions.size(); k++)
-	     out_stream << reactions[k]<<endl;
+	     {
+	       out_stream << reactions[k]<<endl;
+
+	       if (!output_image_file_prefix.empty())
+		 {
+		   ostringstream fname;
+		   fname << output_image_file_prefix << image_count << ".png";
+		   image_count++;
+		   if (fname.str() != "")
+		     {
+		       Image tmp = pages_of_images[l][k];
+		       Geometry geometry = Geometry(rbox[k].x2 - rbox[k].x1, rbox[k].y2 - rbox[k].y1, rbox[k].x1, rbox[k].y1);
+		       tmp.crop(geometry);
+		       if (resize != "")
+			 {
+			   tmp.scale(resize);
+			 }
+		       tmp.write(fname.str());
+		     }
+		 }
+	     }
 	 }
     }
   // Output the structure with maximum confidence value:
   if (output_format == "mol")
-    out_stream << pages_of_structures[l_index][i_index];
+    {
+      out_stream << pages_of_structures[l_index][i_index];
+      if (!output_image_file_prefix.empty())
+	{
+	  ostringstream fname;
+	  fname << output_image_file_prefix  << ".png";
+	  if (fname.str() != "")
+	    {
+	      Image tmp = pages_of_images[l_index][i_index];
+	      if (resize != "")
+		{
+		  tmp.scale(resize);
+		}
+	      tmp.write(fname.str());
+	    }
+	}
+    }
 
 
   out_stream.flush();
