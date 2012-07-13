@@ -444,7 +444,6 @@ void arrange_reactions(vector<arrow_t> &arrows, const vector<box_t> &page_of_box
   vector < vector<int> > before;
   vector < vector<int> > after;
   if (arrows.empty() || page_of_boxes.empty()) return;
-
   // Find average distance between nearest arrows and standard deviation
   vector<arrow_t> arrows_by_closest;
   vector<double> dist_arrows;
@@ -453,7 +452,7 @@ void arrange_reactions(vector<arrow_t> &arrows, const vector<box_t> &page_of_box
   point_t start;
   start.x=0;
   start.y=0;
-  
+
   while (!arrows.empty())
     {
       double d = FLT_MAX;

@@ -700,7 +700,6 @@ int osra_process_image(
       fclose(stderr);
       OpenBabel::obErrorLog.StopLogging();
 
-
       for (int res_iter = 0; res_iter < num_resolutions; res_iter++)
         {
           int total_boxes = 0;

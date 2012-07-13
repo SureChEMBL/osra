@@ -567,8 +567,10 @@ bool bulge(const point_t tail, const point_t head, const list<point_t> & seg)
    cout<<y[i]<<" ";
   cout<<endl;
   */
+  if (pos<3) return false;
   int midpoint = min(int(0.75*n),pos-3);
-
+  if (midpoint<0) return false;
+ 
   double avg=0;
   for (int i=0; i<midpoint; i++)
     avg +=y[i];
@@ -628,8 +630,6 @@ void find_arrows_pluses(vector<vector<point_t> > &margins, vector<list<point_t> 
 		  values.push_back(hist[pos]);
 		}
 	    }
-	  
-
 
 	  if (peaks.size() == 2   && abs(len/2 - abs(peaks[1]-peaks[0]))<=1)  // only two peaks are present at 180 degrees 
 	    {
@@ -660,6 +660,7 @@ void find_arrows_pluses(vector<vector<point_t> > &margins, vector<list<point_t> 
 		  segments[i].clear();
 		}
 	    }
+		
 	  if (peaks.size() == 4  && (double(values[1])/values[0]>0.8 || values[0]-values[1]<=2)  && (double(values[2])/values[0]>0.8  || values[0]-values[1]<=2) && (double(values[3])/values[0]>0.8 || values[0]-values[1]<=2))
 	    {
 	      bool first=false, second=false, third=false, fourth=false;
@@ -678,6 +679,7 @@ void find_arrows_pluses(vector<vector<point_t> > &margins, vector<list<point_t> 
 		    if (kk>=len) kk -=len;
 		    hist[kk]=0;
 		  }
+		  
 	      bool low=true;
 	      for(int k=0; k<len; k++)
 		if (hist[k]>3) low=false;
