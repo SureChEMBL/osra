@@ -331,7 +331,9 @@ void arrange_structures_between_arrows_before(vector<arrow_t> &arrows,  vector <
 	  if (rx1>=0 && rx1<=l && rx2>=0 && rx2<=l && rx3>=0 && rx3<=l && rx4>=0 && rx4<=l && 
 	      cr<max(page_of_boxes[i].x2-page_of_boxes[i].x1, page_of_boxes[i].y2-page_of_boxes[i].y1))
 	    {
-	      arrows[j].agent += convert_to_smiles_agent_structure(page_of_structures[i]);
+	      string smi=convert_to_smiles_agent_structure(page_of_structures[i]);
+		  if (!smi.empty())
+			arrows[j].agent += "OSRA_AGENT_SMILES="+smi;
 	    }
 	  else if (fabs(ry)<min(page_of_boxes[i].x2-page_of_boxes[i].x1, page_of_boxes[i].y2-page_of_boxes[i].y1) && r<rt)
 	    {
