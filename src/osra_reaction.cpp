@@ -333,7 +333,7 @@ void arrange_structures_between_arrows_before(vector<arrow_t> &arrows,  vector <
 	    {
 	      string smi=convert_to_smiles_agent_structure(page_of_structures[i]);
 		  if (!smi.empty())
-			arrows[j].agent += "OSRA_AGENT_SMILES="+smi;
+			arrows[j].agent += " OSRA_AGENT_SMILES="+smi;
 	    }
 	  else if (fabs(ry)<min(page_of_boxes[i].x2-page_of_boxes[i].x1, page_of_boxes[i].y2-page_of_boxes[i].y1) && r<rt)
 	    {
