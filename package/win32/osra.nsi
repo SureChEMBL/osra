@@ -98,7 +98,7 @@ Section "osra (required)"
 
 SectionEnd
 
-Section /o "Symyx Draw plugin" symyx_draw
+Section /o "Symyx/Accelrys Draw plugin" symyx_draw
  strcpy $3 "Symyx Technologies, Inc.\Symyx Draw\Client"
  call CheckSoftVersion
  strcmp $2 "" no_symyx
@@ -142,6 +142,19 @@ SectionEnd
 ; Uninstaller
 
 Section "Uninstall"
+	# call userInfo plugin to get user info.  The plugin puts the result in the stack
+    userInfo::getAccountType
+   
+    # pop the result from the stack into $0
+    pop $0
+ 
+    # compare the result with the string "Admin" to see if the user is admin.
+    # If match, jump 3 lines down.
+    strCmp $0 "Admin" +3
+ 
+    # if there is not a match, print message and return
+    messageBox MB_OK "Please run this with Administrator privileges"
+    Quit   
   ReadRegStr $0 HKLM SOFTWARE\osra\${DOT_VERSION} "Install_Dir"
   strcpy $INSTDIR $0
   ; Remove registry keys
@@ -272,6 +285,7 @@ Function getSymyxPath
  extract:
   StrCpy $1 $0 
   IfFileExists $1\SymyxDraw.exe fin
+  IfFileExists $1\AccelrysDraw.exe fin
   StrCpy $1 ""
   fin:
   ;$1 contains the folder of Symyx Draw or empty
@@ -301,6 +315,7 @@ Function un.getSymyxPath
  extract:
   StrCpy $1 $0 
   IfFileExists $1\SymyxDraw.exe fin
+  IfFileExists $1\AccelrysDraw.exe fin
   StrCpy $1 ""
   fin:
   ;$1 contains the folder of Symyx Draw or empty
@@ -421,6 +436,19 @@ FunctionEnd
 
 
 Function .onInit
+	# call userInfo plugin to get user info.  The plugin puts the result in the stack
+    userInfo::getAccountType
+   
+    # pop the result from the stack into $0
+    pop $0
+ 
+    # compare the result with the string "Admin" to see if the user is admin.
+    # If match, jump 3 lines down.
+    strCmp $0 "Admin" +3
+ 
+    # if there is not a match, print message and return
+    messageBox MB_OK "Please run this with Administrator privileges"
+    Quit
  strcpy $3 "Symyx Technologies, Inc.\Symyx Draw\Client"
  call CheckSoftVersion
  strcmp $2 "" no_symyx
