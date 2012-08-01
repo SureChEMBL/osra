@@ -80,11 +80,9 @@ string convert_page_to_reaction(const vector<string> &page_of_structures, const 
       react.SetTitle(value);
     }
   strstr << conv->WriteString(&react, true);
-//  if (output_format == "rsmi" && !strstr.str().empty() && !value.empty())
-  //  strstr << " " << value;
   reaction = strstr.str();
-  if (output_format != "rxn") // rxn format seems to have a double-free problem
-    delete conv;
+//  if (output_format != "rxn") // rxn format seems to have a double-free problem in OB 2.3.1
+   delete conv;
   return(reaction);
 }
 

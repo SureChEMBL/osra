@@ -465,11 +465,9 @@ dnl These libraries are needed for static linking with openbabel:
 AS_IF([test "${enable_static_linking:+set}" == "set"], [
 	AS_IF([test "$build_os" == "darwin"], [
 		dnl Special case for OSX: the libraries should be at fixed locations:
-		AC_CHECK_LIB([inchi], [GetINCHI])
 		LIBS="${MACPORTSLIBS}/libxml2.a ${MACPORTSLIBS}/libiconv.a ${MACPORTSLIBS}/libz.a ${LIBS}"
 	], [
 		dnl Note: This hack to link statically against OpenBabel is not portable: the list of libraries should be discovered via pkg-config.
-		AC_CHECK_LIB([inchi], [GetINCHI])
 		AC_CHECK_LIB([z], [inflateEnd])
 		AC_CHECK_LIB([xml2], [xmlParseFile])
 	])
