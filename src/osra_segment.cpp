@@ -722,6 +722,17 @@ bool comp_labels(const label_t &left, const label_t &right)
   return (false);
 }
 
+int comp_labels_int(const void *l, const void *r)
+{
+  label_t *left = (label_t *) l;
+  label_t *right = (label_t *) r;
+  if (left->x2 < right->x1)
+    return (-1);
+  if (max(left->y1,left->y2) < min(right->y1,right->y2))
+    return (-1);
+  return (1);
+}
+
 string ocr_agent_strings(const vector<list<point_t> >  &agents,const Image &image, double threshold, const ColorGray &bgColor, bool verbose)
 { 
   string agent_string;
@@ -750,16 +761,23 @@ string ocr_agent_strings(const vector<list<point_t> >  &agents,const Image &imag
 		  lt.x = (left + right) / 2;
 		  lt.y  = (top + bottom) / 2;
 		  lt.r  = distance(left, top, right, bottom) / 2;
+		  lt.min_x = left;
+		  lt.max_x = right;
+		  lt.min_y = top;
+		  lt.max_y = bottom;
 		  lt.free = true;
                   letters.push_back(lt);
-		  //cout<<label<<" "<<lt.x<<"  "<<lt.y<<endl;
 		}
 	    }
     }
   vector<label_t> label;
   assemble_labels(letters, letters.size(), label);
-  sort(label.begin(),label.end(),comp_labels);
-  
+ 
+  //sort(label.begin(),label.end(),comp_labels);
+
+  if (!label.empty())
+    qsort(&label[0],label.size(),sizeof(label_t),comp_labels_int);
+
   for (int i=0; i<label.size(); i++)
     if (!label[i].a.empty())
       agent_string += " "+label[i].a;

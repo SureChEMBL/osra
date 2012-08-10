@@ -81,7 +81,7 @@ string convert_page_to_reaction(const vector<string> &page_of_structures, const 
     }
   strstr << conv->WriteString(&react, true);
   reaction = strstr.str();
-//  if (output_format != "rxn") // rxn format seems to have a double-free problem in OB 2.3.1
+  if (output_format != "rxn") // rxn format seems to have a double-free problem in OB 2.3.1
    delete conv;
   return(reaction);
 }

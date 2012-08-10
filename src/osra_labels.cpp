@@ -131,15 +131,13 @@ bool comp_letters(const letters_t &left, const letters_t &right)
 int assemble_labels(vector<letters_t> &letters, int n_letters, vector<label_t> &label)
 {
   vector<lbond_t> lbond;
-  int n_lbond = 0;
-  int n_label = 0;
 
   std::sort(letters.begin(), letters.end(), comp_letters);
 
-  for (int i = 0; i < n_letters; i++)
+  for (int i = 0; i < letters.size(); i++)
     {
       //            cout<<letters[i].a<<" "<<letters[i].min_x<<" "<<letters[i].min_y<<" "<<letters[i].max_x<<" "<<letters[i].max_y<<endl;
-      for (int j = i + 1; j < n_letters; j++)
+      for (int j = i + 1; j < letters.size(); j++)
         if ((distance(letters[i].x, letters[i].y, letters[j].x, letters[j].y) < 2 * max(letters[i].r, letters[j].r)
              && (((fabs(letters[i].y - letters[j].y) < min(letters[i].r, letters[j].r))) || ((fabs(letters[i].y
                  - letters[j].y) < (letters[i].r + letters[j].r)) && (((letters[i].y < letters[j].y)
@@ -149,121 +147,114 @@ int assemble_labels(vector<letters_t> &letters, int n_letters, vector<label_t> &
                                     || letters[j].a == '+')))
           {
             lbond_t lb;
+            lb.a = i;
+            lb.b = j;
+            lb.x = letters[i].x;
+            lb.exists = true;
             lbond.push_back(lb);
-            lbond[n_lbond].a = i;
-            lbond[n_lbond].b = j;
-            lbond[n_lbond].x = letters[i].x;
-
             letters[i].free = false;
             letters[j].free = false;
-            lbond[n_lbond].exists = true;
-            n_lbond++;
-            if (n_lbond >= MAX_ATOMS)
-              n_lbond--;
             break;
           }
     }
 
   std::sort(lbond.begin(), lbond.end(), comp_lbonds);
 
-  for (int i = 0; i < n_lbond; i++)
+  for (int i = 0; i < lbond.size(); i++)
     if (lbond[i].exists)
       {
         bool found_left = false;
         label_t lb;
-        label.push_back(lb);
-        label[n_label].x1 = FLT_MAX;
-        label[n_label].y1 = FLT_MAX;
-        label[n_label].r1 = 0;
-        label[n_label].x2 = FLT_MAX;
-        label[n_label].y2 = FLT_MAX;
-        label[n_label].r2 = 0;
-        label[n_label].a = letters[lbond[i].a].a;
-        label[n_label].a += letters[lbond[i].b].a;
-        label[n_label].n.push_back(lbond[i].a);
-        label[n_label].n.push_back(lbond[i].b);
-	label[n_label].min_x =  min(letters[lbond[i].a].min_x, letters[lbond[i].b].min_x);
-	label[n_label].min_y =  min(letters[lbond[i].a].min_y,letters[lbond[i].b].min_y);
-	label[n_label].max_x =  max(letters[lbond[i].a].max_x, letters[lbond[i].b].max_x);
-	label[n_label].max_y =  max(letters[lbond[i].a].max_y,letters[lbond[i].b].max_y);
+
+        lb.x1 = FLT_MAX;
+        lb.y1 = FLT_MAX;
+        lb.r1 = 0;
+        lb.x2 = FLT_MAX;
+        lb.y2 = FLT_MAX;
+        lb.r2 = 0;
+        lb.a = letters[lbond[i].a].a;
+        lb.a += letters[lbond[i].b].a;
+        lb.n.push_back(lbond[i].a);
+        lb.n.push_back(lbond[i].b);
+	lb.min_x =  min(letters[lbond[i].a].min_x, letters[lbond[i].b].min_x);
+	lb.min_y =  min(letters[lbond[i].a].min_y,letters[lbond[i].b].min_y);
+	lb.max_x =  max(letters[lbond[i].a].max_x, letters[lbond[i].b].max_x);
+	lb.max_y =  max(letters[lbond[i].a].max_y,letters[lbond[i].b].max_y);
 
         if (!isdigit(letters[lbond[i].a].a) && letters[lbond[i].a].a != '-' && letters[lbond[i].a].a != '+'
             && !found_left)
           {
-            label[n_label].x1 = letters[lbond[i].a].x;
-            label[n_label].y1 = letters[lbond[i].a].y;
-            label[n_label].r1 = letters[lbond[i].a].r;
+            lb.x1 = letters[lbond[i].a].x;
+            lb.y1 = letters[lbond[i].a].y;
+            lb.r1 = letters[lbond[i].a].r;
             found_left = true;
           }
         if (!isdigit(letters[lbond[i].b].a) && letters[lbond[i].b].a != '-' && letters[lbond[i].b].a != '+'
             && !found_left)
           {
-            label[n_label].x1 = letters[lbond[i].b].x;
-            label[n_label].y1 = letters[lbond[i].b].y;
-            label[n_label].r1 = letters[lbond[i].b].r;
+            lb.x1 = letters[lbond[i].b].x;
+            lb.y1 = letters[lbond[i].b].y;
+            lb.r1 = letters[lbond[i].b].r;
             found_left = true;
           }
         if (!isdigit(letters[lbond[i].a].a) && letters[lbond[i].a].a != '-' && letters[lbond[i].a].a != '+')
           {
-            label[n_label].x2 = letters[lbond[i].a].x;
-            label[n_label].y2 = letters[lbond[i].a].y;
-            label[n_label].r2 = letters[lbond[i].a].r;
+            lb.x2 = letters[lbond[i].a].x;
+            lb.y2 = letters[lbond[i].a].y;
+            lb.r2 = letters[lbond[i].a].r;
           }
         if (!isdigit(letters[lbond[i].b].a) && letters[lbond[i].b].a != '-' && letters[lbond[i].b].a != '+')
           {
-            label[n_label].x2 = letters[lbond[i].b].x;
-            label[n_label].y2 = letters[lbond[i].b].y;
-            label[n_label].r2 = letters[lbond[i].b].r;
+            lb.x2 = letters[lbond[i].b].x;
+            lb.y2 = letters[lbond[i].b].y;
+            lb.r2 = letters[lbond[i].b].r;
           }
         lbond[i].exists = false;
         int last = lbond[i].b;
-        for (int j = i + 1; j < n_lbond; j++)
+        for (int j = i + 1; j < lbond.size(); j++)
           if ((lbond[j].exists) && (lbond[j].a == last))
             {
-              label[n_label].a += letters[lbond[j].b].a;
-	      label[n_label].min_x =  min(label[n_label].min_x, letters[lbond[j].b].min_x);
-	      label[n_label].min_y =  min(label[n_label].min_y,letters[lbond[j].b].min_y);
-	      label[n_label].max_x =  max(label[n_label].max_x, letters[lbond[j].b].max_x);
-	      label[n_label].max_y =  max(label[n_label].max_y,letters[lbond[j].b].max_y);
-              label[n_label].n.push_back(lbond[j].b);
+              lb.a += letters[lbond[j].b].a;
+	      lb.min_x =  min(lb.min_x, letters[lbond[j].b].min_x);
+	      lb.min_y =  min(lb.min_y,letters[lbond[j].b].min_y);
+	      lb.max_x =  max(lb.max_x, letters[lbond[j].b].max_x);
+	      lb.max_y =  max(lb.max_y,letters[lbond[j].b].max_y);
+              lb.n.push_back(lbond[j].b);
               if (!isdigit(letters[lbond[j].a].a) && letters[lbond[j].a].a != '-' && letters[lbond[j].a].a != '+'
                   && !found_left)
                 {
-                  label[n_label].x1 = letters[lbond[j].a].x;
-                  label[n_label].y1 = letters[lbond[j].a].y;
-                  label[n_label].r1 = letters[lbond[j].a].r;
+                  lb.x1 = letters[lbond[j].a].x;
+                  lb.y1 = letters[lbond[j].a].y;
+                  lb.r1 = letters[lbond[j].a].r;
                   found_left = true;
                 }
               if (!isdigit(letters[lbond[j].b].a) && letters[lbond[j].b].a != '-' && letters[lbond[j].b].a != '+'
                   && !found_left)
                 {
-                  label[n_label].x1 = letters[lbond[j].b].x;
-                  label[n_label].y1 = letters[lbond[j].b].y;
-                  label[n_label].r1 = letters[lbond[j].b].r;
+                  lb.x1 = letters[lbond[j].b].x;
+                  lb.y1 = letters[lbond[j].b].y;
+                  lb.r1 = letters[lbond[j].b].r;
                   found_left = true;
                 }
               if (!isdigit(letters[lbond[j].a].a) && letters[lbond[j].a].a != '-' && letters[lbond[j].a].a != '+')
                 {
-                  label[n_label].x2 = letters[lbond[j].a].x;
-                  label[n_label].y2 = letters[lbond[j].a].y;
-                  label[n_label].r2 = letters[lbond[j].a].r;
+                  lb.x2 = letters[lbond[j].a].x;
+                  lb.y2 = letters[lbond[j].a].y;
+                  lb.r2 = letters[lbond[j].a].r;
                 }
               if (!isdigit(letters[lbond[j].b].a) && letters[lbond[j].b].a != '-' && letters[lbond[j].b].a != '+')
                 {
-                  label[n_label].x2 = letters[lbond[j].b].x;
-                  label[n_label].y2 = letters[lbond[j].b].y;
-                  label[n_label].r2 = letters[lbond[j].b].r;
+                  lb.x2 = letters[lbond[j].b].x;
+                  lb.y2 = letters[lbond[j].b].y;
+                  lb.r2 = letters[lbond[j].b].r;
                 }
               last = lbond[j].b;
               lbond[j].exists = false;
             }
-
-        n_label++;
-        if (n_label >= MAX_ATOMS)
-          n_label--;
+        label.push_back(lb);
       }
 
-  int old_n_label = n_label;
+   int old_n_label = label.size();
   for (int i = 0; i < old_n_label; i++)
     {
       double cy = 0;
@@ -283,72 +274,76 @@ int assemble_labels(vector<letters_t> &letters, int n_letters, vector<label_t> &
 
       if (n > 1)
         {
+	  vector<int> old_label_n(label[i].n);
           label[i].a = "";
           label[i].x1 = FLT_MAX;
           label[i].x2 = 0;
+	  label[i].n.clear();
           label_t lb;
-          label.push_back(lb);
-          label[n_label].a = "";
-          label[n_label].x1 = FLT_MAX;
-          label[n_label].x2 = 0;
-	  label[n_label].min_x = INT_MAX;
-	  label[n_label].min_y = INT_MAX;
-	  label[n_label].max_x = 0;
-	  label[n_label].max_y = 0;
-          for (unsigned int j = 0; j < label[i].n.size(); j++)
+
+          lb.a = "";
+          lb.x1 = FLT_MAX;
+          lb.x2 = 0;
+	  lb.min_x = INT_MAX;
+	  lb.min_y = INT_MAX;
+	  lb.max_x = 0;
+	  lb.max_y = 0;
+          for (unsigned int j = 0; j < old_label_n.size(); j++)
             {
-              if (letters[label[i].n[j]].y > cy)
+              if (letters[old_label_n[j]].y > cy)
                 {
-                  label[i].a += letters[label[i].n[j]].a;
-		  label[i].min_x =  min(label[i].min_x, letters[label[i].n[j]].min_x);
-		  label[i].min_y =  min(label[i].min_y,letters[label[i].n[j]].min_y);
-		  label[i].max_x =  max(label[i].max_x, letters[label[i].n[j]].max_x);
-		  label[i].max_y =  max(label[i].max_y,letters[label[i].n[j]].max_y);
-                  if (isalpha(letters[label[i].n[j]].a))
+                  label[i].a += letters[old_label_n[j]].a;
+		  label[i].n.push_back(old_label_n[j]);
+		  label[i].min_x =  min(label[i].min_x, letters[old_label_n[j]].min_x);
+		  label[i].min_y =  min(label[i].min_y,letters[old_label_n[j]].min_y);
+		  label[i].max_x =  max(label[i].max_x, letters[old_label_n[j]].max_x);
+		  label[i].max_y =  max(label[i].max_y,letters[old_label_n[j]].max_y);
+                  if (isalpha(letters[old_label_n[j]].a))
                     {
-                      if (letters[label[i].n[j]].x < label[i].x1)
+                      if (letters[old_label_n[j]].x < label[i].x1)
                         {
-                          label[i].x1 = letters[label[i].n[j]].x;
-                          label[i].y1 = letters[label[i].n[j]].y;
-                          label[i].r1 = letters[label[i].n[j]].r;
+                          label[i].x1 = letters[old_label_n[j]].x;
+                          label[i].y1 = letters[old_label_n[j]].y;
+                          label[i].r1 = letters[old_label_n[j]].r;
                         }
-                      if (letters[label[i].n[j]].x > label[i].x2)
+                      if (letters[old_label_n[j]].x > label[i].x2)
                         {
-                          label[i].x2 = letters[label[i].n[j]].x;
-                          label[i].y2 = letters[label[i].n[j]].y;
-                          label[i].r2 = letters[label[i].n[j]].r;
+                          label[i].x2 = letters[old_label_n[j]].x;
+                          label[i].y2 = letters[old_label_n[j]].y;
+                          label[i].r2 = letters[old_label_n[j]].r;
                         }
                     }
                 }
               else
                 {
-                  label[n_label].a += letters[label[i].n[j]].a;
-		  label[n_label].min_x =  min(label[n_label].min_x, letters[label[i].n[j]].min_x);
-		  label[n_label].min_y =  min(label[n_label].min_y,letters[label[i].n[j]].min_y);
-		  label[n_label].max_x =  max(label[n_label].max_x, letters[label[i].n[j]].max_x);
-		  label[n_label].max_y =  max(label[n_label].max_y,letters[label[i].n[j]].max_y);
-                  if (isalpha(letters[label[i].n[j]].a))
+                  lb.a += letters[old_label_n[j]].a;
+		  lb.n.push_back(old_label_n[j]);
+		  lb.min_x =  min(lb.min_x, letters[old_label_n[j]].min_x);
+		  lb.min_y =  min(lb.min_y,letters[old_label_n[j]].min_y);
+		  lb.max_x =  max(lb.max_x, letters[old_label_n[j]].max_x);
+		  lb.max_y =  max(lb.max_y,letters[old_label_n[j]].max_y);
+                  if (isalpha(letters[old_label_n[j]].a))
                     {
-                      if (letters[label[i].n[j]].x < label[n_label].x1)
+                      if (letters[old_label_n[j]].x < lb.x1)
                         {
-                          label[n_label].x1 = letters[label[i].n[j]].x;
-                          label[n_label].y1 = letters[label[i].n[j]].y;
-                          label[n_label].r1 = letters[label[i].n[j]].r;
+                          lb.x1 = letters[old_label_n[j]].x;
+                          lb.y1 = letters[old_label_n[j]].y;
+                          lb.r1 = letters[old_label_n[j]].r;
                         }
-                      if (letters[label[i].n[j]].x > label[n_label].x2)
+                      if (letters[old_label_n[j]].x > lb.x2)
                         {
-                          label[n_label].x2 = letters[label[i].n[j]].x;
-                          label[n_label].y2 = letters[label[i].n[j]].y;
-                          label[n_label].r2 = letters[label[i].n[j]].r;
+                          lb.x2 = letters[old_label_n[j]].x;
+                          lb.y2 = letters[old_label_n[j]].y;
+                          lb.r2 = letters[old_label_n[j]].r;
                         }
                     }
                 }
             }
-          n_label++;
+          label.push_back(lb);
         }
     }
-
-  for (int i = 0; i < n_label; i++)
+  
+  for (int i = 0; i < label.size(); i++)
     {
       //cout<<label[i].a<<" "<<label[i].min_x<<" "<<label[i].min_y<<" "<<label[i].max_x<<" "<<label[i].max_y<<endl;
       bool cont = true;
@@ -372,9 +367,9 @@ int assemble_labels(vector<letters_t> &letters, int n_letters, vector<label_t> &
             }
         }
       label[i].a += charges;
-    }
-
-  return (n_label);
+      }
+ 
+  return (label.size());
 }
 
 
