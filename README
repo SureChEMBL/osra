@@ -37,6 +37,10 @@ image processing options and automatically selecting and filtering for the best 
 that it is much slower than a regular OSRA run. You can modify the option set or the filtering criteria to better suit your needs.
 OpenBabel perl binding are required to run this script.
 
+Starting with version 1.4.0 OSRA is capable of recognizing reactions.
+To run reaction recognition use the output formats rxn, rsmi, or cmlr:
+osra -f rxn input.pdf -w output.rxn
+
 =============================================================================
 Dependencies:
 
@@ -233,7 +237,7 @@ only generate garbage output.
 
 Some common abbreviations, hetero atoms, fused and merged atomic
 labels, hash and wedge bonds, and bridge bonds are currently
-recognized. Formal charges, isotopes and some element
+recognized. Isotopes and some element
 symbols, i.e. iodine ("I" -- looks too much like a straight line = single
 bond), are not.
 
