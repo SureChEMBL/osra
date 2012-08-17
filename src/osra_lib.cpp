@@ -831,7 +831,7 @@ int osra_process_image(
                 n_bond = fix_one_sided_bonds(bond, n_bond, atom, dist, avg_bond_length);
 
                 n_letters = clean_unrecognized_characters(bond, n_bond, atom, real_font_height, real_font_width, 4,
-                            letters, n_letters);
+		          letters, n_letters);
 
                 thickness = find_wedge_bonds(thick_box, atom, n_atom, bond, n_bond, bgColor, THRESHOLD_BOND,
                                              max_dist_double_bond, avg_bond_length, 3, 1);

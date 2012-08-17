@@ -66,8 +66,7 @@ bool chlorine(const vector<bond_t> &bond, const vector<atom_t> &atom, int i, vec
     {
       for (int j = 0; j < n_letters; j++)
         {
-          if ((distance(x, y, letters[j].x, letters[j].y) < r + letters[j].r) && (fabs(y - letters[j].y) < min(r,
-              letters[j].r)))
+          if ((distance(x, y, letters[j].x, letters[j].y) < r + letters[j].r) && (fabs(y - letters[j].y) < min(r,letters[j].r)))
             {
               res = true;
             }
@@ -75,6 +74,37 @@ bool chlorine(const vector<bond_t> &bond, const vector<atom_t> &atom, int i, vec
     }
 
   return (res);
+}
+
+bool iodine(const vector<bond_t> &bond, const vector<atom_t> &atom, int i, vector<letters_t> &letters, int n_letters, int max_font_height, int min_font_height)
+{
+  if (bond_length(bond, i, atom) < max_font_height && 
+      bond_length(bond, i, atom) > min_font_height &&
+      fabs(atom[bond[i].a].x - atom[bond[i].b].x) < V_DISPLACEMENT && 
+      fabs(atom[bond[i].a].y - atom[bond[i].b].y) > min_font_height &&
+      bond[i].type == 1)
+    {
+      bool found = false;
+      double xa = atom[bond[i].a].x;
+      double ya = atom[bond[i].a].y;
+      double xb = atom[bond[i].b].x;
+      double yb = atom[bond[i].b].y;
+      double bl = bond_length(bond, i, atom);
+      for (int j = 0; j < n_letters; j++)
+	if (letters[j].a != '+' && letters[j].a != '-')
+	  {
+	    double d1 = distance_from_bond_x_a(xa, ya, xb, yb, letters[j].x, letters[j].y);
+	    double d2 = distance_from_bond_x_b(xa, ya, xb, yb, letters[j].x, letters[j].y);
+	    double h = fabs(distance_from_bond_y(xa, ya, xb, yb, letters[j].x, letters[j].y));
+	    double nb = min(d1,d2) - letters[i].r;
+	    if (nb <= bl/2 && h <=  letters[j].r / 2)
+	      found = true;
+	  }
+      if (!found)
+	return true;
+    }
+
+  return false;
 }
 
 int remove_small_bonds(vector<bond_t> &bond, int n_bond, const vector<atom_t> &atom, vector<letters_t> &letters,
@@ -88,23 +118,31 @@ int remove_small_bonds(vector<bond_t> &bond, int n_bond, const vector<atom_t> &a
           {
             bond[i].exists = false;
           }
-        else if ((al) && (chlorine(bond, atom, i, letters, n_letters, max_font_height, min_font_height)))
+        else if (al) 
           {
-            letters_t lt;
-            letters.push_back(lt);
-            letters[n_letters].a = 'l';
-            letters[n_letters].x = (atom[bond[i].a].x + atom[bond[i].b].x) / 2;
-            letters[n_letters].y = (atom[bond[i].a].y + atom[bond[i].b].y) / 2;
-            letters[n_letters].r = bond_length(bond, i, atom) / 2;
-	    letters[n_letters].min_x = min(atom[bond[i].a].min_x,atom[bond[i].b].min_x);
-	    letters[n_letters].max_x = max(atom[bond[i].b].max_x,atom[bond[i].b].max_x);
-	    letters[n_letters].min_y = min(atom[bond[i].a].min_y,atom[bond[i].b].min_y);
-	    letters[n_letters].max_y = max(atom[bond[i].a].max_y,atom[bond[i].b].max_y);
-            letters[n_letters].free = true;
-            n_letters++;
-            if (n_letters >= MAX_ATOMS)
-              n_letters--;
-            bond[i].exists = false;
+	    bool cl = chlorine(bond, atom, i, letters, n_letters, max_font_height, min_font_height);
+	    bool io = iodine(bond, atom, i, letters, n_letters, max_font_height, min_font_height);
+	    if (cl || io)
+	      {
+		letters_t lt;
+		letters.push_back(lt);
+		if (cl)
+		  letters[n_letters].a = 'l';  // small L for chlorine
+		else
+		  letters[n_letters].a = 'I';   // capital i for iodine
+		letters[n_letters].x = (atom[bond[i].a].x + atom[bond[i].b].x) / 2;
+		letters[n_letters].y = (atom[bond[i].a].y + atom[bond[i].b].y) / 2;
+		letters[n_letters].r = bond_length(bond, i, atom) / 2;
+		letters[n_letters].min_x = min(atom[bond[i].a].min_x,atom[bond[i].b].min_x);
+		letters[n_letters].max_x = max(atom[bond[i].b].max_x,atom[bond[i].b].max_x);
+		letters[n_letters].min_y = min(atom[bond[i].a].min_y,atom[bond[i].b].min_y);
+		letters[n_letters].max_y = max(atom[bond[i].a].max_y,atom[bond[i].b].max_y);
+		letters[n_letters].free = true;
+		n_letters++;
+		if (n_letters >= MAX_ATOMS)
+		  n_letters--;
+		bond[i].exists = false;
+	      }
           }
       }
   return (n_letters);
