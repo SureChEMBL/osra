@@ -384,3 +384,15 @@ void find_limits_on_avg_bond(double &min_bond, double &max_bond, const vector<ve
                              const vector<vector<double> > &pages_of_ind_conf);
 
 
+// Function: find_wavy_bonds()
+//
+// Finds undefined stereo bonds (wavy bonds)
+//
+// Parameters:
+// bond - vector of bonds
+// n_bond - number of bonds
+// atom - vector of atoms
+// avg - average bond length
+//
+// Returns: number of bonds
+int find_wavy_bonds(vector<bond_t> &bond,int n_bond,const vector<atom_t> &atom,double avg);

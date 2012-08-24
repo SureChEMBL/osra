@@ -221,6 +221,26 @@ double confidence_function(int C_Count, int N_Count, int O_Count, int F_Count, i
   return (confidence);
 }
 
+void SetTetrahedtalUnknown(OBMolAtomIter atom)
+{
+  OBStereoFacade facade(atom->GetParent());
+  OBTetrahedralStereo *stereo;
+  if (facade.HasTetrahedralStereo(atom->GetId()))
+    stereo = facade.GetTetrahedralStereo(atom->GetId());
+  else
+    stereo = new OBTetrahedralStereo(atom->GetParent());
+
+  OBTetrahedralStereo::Config config = stereo->GetConfig();
+  config.center = atom->GetId();
+  config.specified = true;
+  config.winding = OBStereo::UnknownWinding;
+  //config.specified = false;
+  stereo->SetConfig(config);
+
+  if (!facade.HasTetrahedralStereo(atom->GetId()))
+    atom->GetParent()->SetData(stereo);
+}
+
 // Function: create_molecule()
 //
 // Converts vectors of atoms and bonds into a molecular object and calculates the molecule statistics.
@@ -262,8 +282,8 @@ void create_molecule(OBMol &mol, vector<atom_t> &atom, const vector<bond_t> &bon
                   super_bonds.push_back(mol.NumBonds());
                 }
             }
-
-        if (bond[i].hash)
+	
+        if (bond[i].hash && !bond[i].wedge)
           {
             if (verbose)
               cout << "Creating hash bond #" << mol.NumBonds() << " " << atom[bond[i].a].n << "<->"
@@ -276,7 +296,7 @@ void create_molecule(OBMol &mol, vector<atom_t> &atom, const vector<bond_t> &bon
             else
               mol.AddBond(atom[bond[i].a].n, atom[bond[i].b].n, bond[i].type, OB_HASH_BOND);
           }
-        if (bond[i].arom)
+	else if (bond[i].arom)
           {
             if (verbose)
               cout << "Creating aromatic bond #" << mol.NumBonds() << " " << atom[bond[i].a].n << "->"
@@ -288,7 +308,7 @@ void create_molecule(OBMol &mol, vector<atom_t> &atom, const vector<bond_t> &bon
           {
             int bond_flags = 0;
 
-            if (bond[i].wedge)
+            if (bond[i].wedge && !bond[i].hash)
               bond_flags = OB_WEDGE_BOND;
             else if (bond[i].up)
               bond_flags = OB_TORUP_BOND;
@@ -300,6 +320,15 @@ void create_molecule(OBMol &mol, vector<atom_t> &atom, const vector<bond_t> &bon
                    << atom[bond[i].b].n << ", type: " << bond[i].type << ", flags: " << bond_flags << '.' << endl;
 
             mol.AddBond(atom[bond[i].a].n, atom[bond[i].b].n, bond[i].type, bond_flags);
+	    if (bond[i].wedge && bond[i].hash) // wavy bonds
+	      {
+		OBMolAtomIter a,b;
+		FOR_ATOMS_OF_MOL(ai, mol)
+		  if (ai->GetIdx() == atom[bond[i].b].n) b = ai;
+		  else if (ai->GetIdx() == atom[bond[i].a].n) a = ai;
+		SetTetrahedtalUnknown(a);
+		SetTetrahedtalUnknown(b);
+	      }
           }
       }
   mol.EndModify();
@@ -581,23 +610,3 @@ const string get_formatted_structure(vector<atom_t> &atom, const vector<bond_t> 
   return (strstr.str());
 }
 
-
-void SetTetrahedtalUnknown(OBAtom *atom)
-{
-  OBStereoFacade facade(atom->GetParent());
-  OBTetrahedralStereo *stereo;
-  if (facade.HasTetrahedralStereo(atom->GetId()))
-    stereo = facade.GetTetrahedralStereo(atom->GetId());
-  else
-    stereo = new OBTetrahedralStereo(atom->GetParent());
-
-  OBTetrahedralStereo::Config config = stereo->GetConfig();
-  config.center = atom->GetId();
-  //  config.specified = true;
-  //  config.winding = OBStereo::UnknownWinding;
-  config.specified = false;
-  stereo->SetConfig(config);
-
-  if (!facade.HasTetrahedralStereo(atom->GetId()))
-    atom->GetParent()->SetData(stereo);
-}

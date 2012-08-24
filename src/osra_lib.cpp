@@ -797,6 +797,8 @@ int osra_process_image(
                 collapse_atoms(atom, bond, n_atom, n_bond, 3);
                 remove_zero_bonds(bond, n_bond, atom);
 
+		n_bond = find_wavy_bonds(bond,n_bond,atom,avg_bond_length);
+
                 n_letters = find_fused_chars(bond, n_bond, atom, letters, n_letters, real_font_height,
                                              real_font_width, 0, orig_box, bgColor, THRESHOLD_BOND, 3, verbose);
 
