@@ -1043,9 +1043,43 @@ bool smaller_distance(int n, int last, int begin, int total, const vector<atom_t
   return (false);
 }
 
+void douglas_peucker(vector<atom_t> &atom,  int b_atom, int n_atom)
+{
+  double max_s = 0;
+  double max_i = b_atom;
+  for (int i=b_atom+1; i<n_atom; i++)
+    {
+      double s = fabs(distance_from_bond_y(atom[b_atom].x, atom[b_atom].y, atom[n_atom-1].x, atom[n_atom-1].y, atom[i].x, atom[i].y));
+      if (s>max_s)
+	{
+	  max_i = i;
+	  max_s = s;
+	}
+    }
+  if (max_s>DIR_CHANGE)
+    {
+      vector<atom_t> atom1(atom);
+      vector<atom_t> atom2(atom);
+      douglas_peucker(atom1,  b_atom, max_i);
+      douglas_peucker(atom2,  max_i, n_atom);
+      for (int i=b_atom; i<max_i; i++)
+	atom[i].exists = atom1[i].exists;
+      for (int i=max_i; i<n_atom; i++)
+	atom[i].exists = atom2[i].exists;
+    }
+  else
+    {
+      atom[b_atom].exists = true;
+      atom[n_atom-1].exists = true;
+    }
+}
+
 int find_bonds(vector<atom_t> &atom, vector<bond_t> &bond, int b_atom, int n_atom, int n_bond,
                const potrace_path_t * const p)
 {
+
+  //douglas_peucker(atom,  b_atom, n_atom);
+  
   int i = b_atom + 1;
   int last = b_atom;
 
@@ -1074,7 +1108,8 @@ int find_bonds(vector<atom_t> &atom, vector<bond_t> &bond, int b_atom, int n_ato
           i++;
         }
     }
-  for (i = b_atom; i < n_atom; i++)
+  
+  for (int i = b_atom; i < n_atom; i++)
     if (atom[i].exists)
       {
         bond_t bn;

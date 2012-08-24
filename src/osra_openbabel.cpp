@@ -24,6 +24,7 @@
 #include <openbabel/obconversion.h>
 #include <openbabel/builder.h>
 #include <openbabel/alias.h>
+#include <openbabel/stereo/tetrahedral.h>
 
 #include <sstream> // std:ostringstream
 #include <iostream> // std::cerr
@@ -578,4 +579,25 @@ const string get_formatted_structure(vector<atom_t> &atom, const vector<bond_t> 
     cout << "Structure length: " << strstr.str().length() << ", molecule fragments: " << molecule_statistics.fragments << '.' << endl;
 
   return (strstr.str());
+}
+
+
+void SetTetrahedtalUnknown(OBAtom *atom)
+{
+  OBStereoFacade facade(atom->GetParent());
+  OBTetrahedralStereo *stereo;
+  if (facade.HasTetrahedralStereo(atom->GetId()))
+    stereo = facade.GetTetrahedralStereo(atom->GetId());
+  else
+    stereo = new OBTetrahedralStereo(atom->GetParent());
+
+  OBTetrahedralStereo::Config config = stereo->GetConfig();
+  config.center = atom->GetId();
+  //  config.specified = true;
+  //  config.winding = OBStereo::UnknownWinding;
+  config.specified = false;
+  stereo->SetConfig(config);
+
+  if (!facade.HasTetrahedralStereo(atom->GetId()))
+    atom->GetParent()->SetData(stereo);
 }
