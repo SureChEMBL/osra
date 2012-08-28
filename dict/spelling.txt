@@ -160,17 +160,19 @@ Bl Br
 el Br
 BC Br
 
-CH3 C
-H3C C
-CH C
-CH2 C
-HC C
-hle C
-M8 C
-MB C
-MR C
-Me C
-H2C C
+# Need to distinguish between a recognized label for methyl and
+# the default empty string for carbon
+CH3 Me
+H3C Me
+CH Me
+CH2 Me
+HC Me
+hle Me
+M8 Me
+MB Me
+MR Me
+Me Me
+H2C Me
 
 pl Ar
 nl Ar

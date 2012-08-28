@@ -45,6 +45,7 @@ using namespace OpenBabel;
 #define ARGON_ATOMIC_NUM        18
 #define BROMINE_ATOMIC_NUM      35
 #define IODINE_ATOMIC_NUM       53
+#define SILICONE_ATOMIC_NUM  14
 
 // Look at this issue: https://sourceforge.net/tracker/?func=detail&aid=3425216&group_id=40728&atid=428740
 #define AROMATIC_BOND_ORDER     5
@@ -109,6 +110,8 @@ bool create_atom(OBMol &mol, atom_t &atom, double scale, const map<string, strin
           OBAtomIterator atom_iter;
 
           // Transfer all atoms from "superatom" molecule to current molecule.
+	  
+
           for (OBAtom *a = superatom_mol.BeginAtom(atom_iter); a; a = superatom_mol.NextAtom(atom_iter))
             {
               if (verbose)
@@ -118,6 +121,16 @@ bool create_atom(OBMol &mol, atom_t &atom, double scale, const map<string, strin
 
               new_atom->SetAtomicNum(a->GetAtomicNum());
               new_atom->SetFormalCharge(a->GetFormalCharge());
+	      //          if (atom.anum == 0)
+	      if (!atom.label.empty() && atom.label != " ")
+		{
+		  // Unknown atom?
+		  OBPairData *label = new OBPairData;
+		  label->SetAttribute("UserLabel");
+		  label->SetValue(atom.label);
+		  label->SetOrigin(userInput); // set by user, not by Open Babel
+		  new_atom->SetData(label);
+		}
             }
 
           // Correct first atom meta-info:
@@ -127,15 +140,7 @@ bool create_atom(OBMol &mol, atom_t &atom, double scale, const map<string, strin
 
           atom.anum = first_superatom->GetAtomicNum();
 
-          if (atom.anum == 0)
-            {
-              // Unknown atom?
-              AliasData* ad = new AliasData();
-              ad->SetAlias(atom.label);
-              ad->SetOrigin(external);
-              first_superatom->SetData(ad);
-            }
-
+	
           int first_bond_index = mol.NumBonds();
 
           OBBondIterator bond_iter;
@@ -172,13 +177,16 @@ bool create_atom(OBMol &mol, atom_t &atom, double scale, const map<string, strin
   if (atom.charge != 0)
     a->SetFormalCharge(atom.charge);
 
-  if (atom.anum == 0)
+  //  if (atom.anum == 0)
+  if (atom.anum != 0 && !atom.label.empty() && atom.label != " ")
     {
       // Unknown atom?
-      AliasData* ad = new AliasData();
-      ad->SetAlias(atom.label);
-      ad->SetOrigin(external);
-      a->SetData(ad);
+      OBPairData *label = new OBPairData;
+      label->SetAttribute("UserLabel");  
+      label->SetValue(atom.label);
+      label->SetOrigin(userInput); // set by user, not by Open Babel
+      a->SetData(label);
+                                                              
     }
 
   return false;
@@ -199,23 +207,27 @@ bool create_atom(OBMol &mol, atom_t &atom, double scale, const map<string, strin
 //
 // Returns:
 //      confidence estimate
-double confidence_function(int C_Count, int N_Count, int O_Count, int F_Count, int S_Count, int Cl_Count, int Br_Count,
-                           int R_Count, int Xx_Count, int num_rings, int num_aromatic, int num_fragments, const vector<int> &Num_Rings)
+double confidence_function(int C_Count, int N_Count, int O_Count, int F_Count, int S_Count, int Cl_Count, int Br_Count, int Si_Count, int Me_Count,
+                           int R_Count, int Xx_Count, int num_rings, int num_aromatic, int num_fragments, const vector<int> &Num_Rings, int Num_HashBonds, int Num_WedgeBonds)
 {
   double confidence = 0.316030 //
                       - 0.016315 * C_Count //
+                      + 0.02 * Me_Count //
                       + 0.034336 * N_Count //
                       + 0.066810 * O_Count //
                       + 0.035674 * F_Count //
                       + 0.065504 * S_Count //
                       + 0.04 * Cl_Count //
                       + 0.066811 * Br_Count //
+                      + 0.042631 * Si_Count 
                       + 0.01 * R_Count //
                       - 0.02 * Xx_Count //
                       - 0.212739 * num_rings //
                       + 0.071300 * num_aromatic //
                       + 0.329922 * Num_Rings[5] //
                       + 0.342865 * Num_Rings[6] //
+                      + 0.01632 * Num_HashBonds //
+    //+ 0.00816 * Num_WedgeBonds //
                       - 0.037796 * num_fragments;
 
   return (confidence);
@@ -286,7 +298,7 @@ void create_molecule(OBMol &mol, vector<atom_t> &atom, const vector<bond_t> &bon
         if (bond[i].hash && !bond[i].wedge)
           {
             if (verbose)
-              cout << "Creating hash bond #" << mol.NumBonds() << " " << atom[bond[i].a].n << "<->"
+	      cout << "Creating hash bond #" << mol.NumBonds() << " " << atom[bond[i].a].n << "<->"
                    << atom[bond[i].b].n << ", order: " << bond[i].type << ", flags: " << OB_HASH_BOND << '.' << endl;
 
             if (atom[bond[i].a].anum == OXYGEN_ATOMIC_NUM || atom[bond[i].a].anum == HYDROGEN_ATOMIC_NUM || atom[bond[i].a].anum == FLUORINE_ATOMIC_NUM
@@ -346,6 +358,8 @@ void create_molecule(OBMol &mol, vector<atom_t> &atom, const vector<bond_t> &bon
   // The logic below calculates the information both for molecule statistics and for confidence function:
 
   OBBondIterator bond_iter;
+  int Num_HashBonds = 0;
+  int Num_WedgeBonds = 0;
 
   // This block modifies the molecule:
   for (OBBond *b = mol.BeginBond(bond_iter); b; b = mol.NextBond(bond_iter))
@@ -359,23 +373,37 @@ void create_molecule(OBMol &mol, vector<atom_t> &atom, const vector<bond_t> &bon
       else
         // Clear all aromaticity information for the bond (affects "num_aromatic" variable below):
         b->UnsetAromatic();
+      if (b->IsHash())
+	Num_HashBonds++;
+      if (b->IsWedge())
+	Num_WedgeBonds++;
     }
 
   vector<int> Num_Rings(8, 0); // number of rings of the given size (e.g. "Num_Rings[2]" = number of rings of size 2)
-  int num_rings = 0, // total number of rings
-      num_aromatic = 0; // total number of aromatic rings
+  int num_rings = 0; // total number of rings
+  int num_aromatic = 0; // total number of aromatic rings
 
-  // Get the Smallest Set of Smallest Rings:
-  vector<OBRing*> vr = mol.GetSSSR();
-
-  for (vector<OBRing*>::iterator iter = vr.begin(); iter != vr.end(); iter++)
-    {
-      num_rings++;
-      if ((*iter)->IsAromatic())
-        num_aromatic++;
-      if ((*iter)->Size() < 8)
-        Num_Rings[(*iter)->Size()]++;
-    }
+  {
+    OBMol mol_without_R(mol);
+    mol_without_R.BeginModify();
+    OBAtomIterator atom_iter_R;
+    for (OBAtom *a = mol_without_R.BeginAtom(atom_iter_R); a; a = mol_without_R.NextAtom(atom_iter_R))
+      if (a->GetAtomicNum() == 0)
+	a->SetAtomicNum(CARBON_ATOMIC_NUM);            
+    mol_without_R.EndModify();
+    mol_without_R.FindRingAtomsAndBonds();
+    // Get the Smallest Set of Smallest Rings:
+    vector<OBRing*> vr = mol_without_R.GetSSSR();
+  
+    for (vector<OBRing*>::iterator iter = vr.begin(); iter != vr.end(); iter++)
+      {
+	num_rings++;
+	if ((*iter)->IsAromatic())
+	  num_aromatic++;
+	if ((*iter)->Size() < 8)
+	  Num_Rings[(*iter)->Size()]++;
+      }
+  }
 
   // Get a list of contiguous fragments sorted by size from largest to smallest:
   std::vector<std::vector<int> > cfl;
@@ -398,13 +426,23 @@ void create_molecule(OBMol &mol, vector<atom_t> &atom, const vector<bond_t> &bon
       int Br_Count = 0;
       int R_Count = 0;
       int Xx_Count = 0;
+      int Si_Count = 0;
+      int Me_Count = 0;
 
       OBAtomIterator atom_iter;
 
       for (OBAtom *a = mol.BeginAtom(atom_iter); a; a = mol.NextAtom(atom_iter))
         {
           if (a->IsCarbon())
-            C_Count++;
+	    {
+	      C_Count++;
+	      AliasData *ad = (AliasData *) a->GetData("UserLabel");
+              if (ad != NULL && ad->GetAlias() != " " && !ad->GetAlias().empty())
+		{
+		  C_Count--;
+		  Me_Count++;
+		}
+	    }
           else if (a->IsNitrogen())
             N_Count++;
           else if (a->IsOxygen())
@@ -417,19 +455,27 @@ void create_molecule(OBMol &mol, vector<atom_t> &atom, const vector<bond_t> &bon
             Cl_Count++;
           else if (a->GetAtomicNum() == BROMINE_ATOMIC_NUM)
             Br_Count++;
+	  else if (a->GetAtomicNum() == SILICONE_ATOMIC_NUM)
+            Si_Count++;
           else if (a->GetAtomicNum() == 0)
             {
-              AliasData *ad;
-              ad = (AliasData *) a->GetData(OBGenericDataType::SetData);
-              if (ad != NULL && ad->GetAlias() != "Xx")
+              AliasData *ad = (AliasData *) a->GetData("UserLabel");
+              if (ad != NULL && ad->GetAlias() != "Xx" && ad->GetAlias() != "*")
                 R_Count++;
               else
                 Xx_Count++;
             }
+	  else
+	    {
+              AliasData *ad = (AliasData *) a->GetData("UserLabel");
+              if (ad != NULL && ad->GetAlias() != "Xx" && ad->GetAlias() != " "  && ad->GetAlias() != "*" && !ad->GetAlias().empty())
+                R_Count++;
+	    }
         }
-
-      *confidence = confidence_function(C_Count, N_Count, O_Count, F_Count, S_Count, Cl_Count, Br_Count, R_Count,
-                                        Xx_Count, num_rings, num_aromatic, molecule_statistics.fragments, Num_Rings);
+      //cout<<C_Count<<" "<<N_Count<<" "<<O_Count<<" "<<F_Count<<" "<<S_Count<<" "<<Cl_Count<<" "<<Br_Count<<" "<<Si_Count<<" "<<Me_Count<<" "<<R_Count<<" "<<
+      //Xx_Count<<" "<<num_rings<<" "<<num_aromatic<<" "<<molecule_statistics.fragments<<" "<<Num_Rings<<" "<<Num_HashBonds<<" "<<Num_WedgeBonds<<endl;
+      *confidence = confidence_function(C_Count, N_Count, O_Count, F_Count, S_Count, Cl_Count, Br_Count, Si_Count, Me_Count, R_Count,
+                                        Xx_Count, num_rings, num_aromatic, molecule_statistics.fragments, Num_Rings, Num_HashBonds, Num_WedgeBonds);
     }
 
   if (generate_2D_coordinates)

@@ -5,6 +5,7 @@
 # Also check spelling.txt to see that the superatom label
 # is correctly spelled.
 
+Me	 C
 MeO      OC
 MeS      SC
 MeN      NC
@@ -176,4 +177,5 @@ R8 [*]
 R9 [*]
 R10 [*]
 Y2 [*]
+D [*]
 

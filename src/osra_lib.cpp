@@ -923,6 +923,14 @@ int osra_process_image(
               max_res = i;
             }
         }
+      for (int i = 0; i < num_resolutions; i++)
+        {
+          if (array_of_confidence[i] == max_conf && array_of_structures[i].size() > 0 && select_resolution[i] == 300)
+            {
+              max_conf = array_of_confidence[i];
+              max_res = i;
+            }
+        }
       #pragma omp critical
       {
         for (unsigned int i = 0; i < array_of_structures[max_res].size(); i++)

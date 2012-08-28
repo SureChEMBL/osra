@@ -275,7 +275,7 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
     job_t gocr_job;
 
     // The list of all characters, that can be recognised as atom label:
-    string char_filter = "oOcCnNHFsSBuUgMeEXYZRPp23456789AmTh";
+    string char_filter = "oOcCnNHFsSBuUgMeEXYZRPp23456789AmThD";
     if (no_filtering) char_filter.clear();
 
     job_init(&gocr_job);
