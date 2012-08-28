@@ -208,7 +208,8 @@ bool create_atom(OBMol &mol, atom_t &atom, double scale, const map<string, strin
 // Returns:
 //      confidence estimate
 double confidence_function(int C_Count, int N_Count, int O_Count, int F_Count, int S_Count, int Cl_Count, int Br_Count, int Si_Count, int Me_Count,
-                           int R_Count, int Xx_Count, int num_rings, int num_aromatic, int num_fragments, const vector<int> &Num_Rings, int Num_HashBonds, int Num_WedgeBonds)
+                           int R_Count, int Xx_Count, int num_rings, int num_aromatic, int num_fragments, const vector<int> &Num_Rings, int Num_HashBonds, int Num_WedgeBonds,
+			   int PositiveCharge)
 {
   double confidence = 0.316030 //
                       - 0.016315 * C_Count //
@@ -227,7 +228,8 @@ double confidence_function(int C_Count, int N_Count, int O_Count, int F_Count, i
                       + 0.329922 * Num_Rings[5] //
                       + 0.342865 * Num_Rings[6] //
                       + 0.01632 * Num_HashBonds //
-    //+ 0.00816 * Num_WedgeBonds //
+                      + 0.00010 * Num_WedgeBonds //
+                      + 0.00010 * PositiveCharge //
                       - 0.037796 * num_fragments;
 
   return (confidence);
@@ -428,6 +430,7 @@ void create_molecule(OBMol &mol, vector<atom_t> &atom, const vector<bond_t> &bon
       int Xx_Count = 0;
       int Si_Count = 0;
       int Me_Count = 0;
+      int PositiveCharge = 0;
 
       OBAtomIterator atom_iter;
 
@@ -471,11 +474,12 @@ void create_molecule(OBMol &mol, vector<atom_t> &atom, const vector<bond_t> &bon
               if (ad != NULL && ad->GetAlias() != "Xx" && ad->GetAlias() != " "  && ad->GetAlias() != "*" && !ad->GetAlias().empty())
                 R_Count++;
 	    }
+	  if (a->GetFormalCharge() > 0) PositiveCharge++;
         }
       //cout<<C_Count<<" "<<N_Count<<" "<<O_Count<<" "<<F_Count<<" "<<S_Count<<" "<<Cl_Count<<" "<<Br_Count<<" "<<Si_Count<<" "<<Me_Count<<" "<<R_Count<<" "<<
       //Xx_Count<<" "<<num_rings<<" "<<num_aromatic<<" "<<molecule_statistics.fragments<<" "<<Num_Rings<<" "<<Num_HashBonds<<" "<<Num_WedgeBonds<<endl;
       *confidence = confidence_function(C_Count, N_Count, O_Count, F_Count, S_Count, Cl_Count, Br_Count, Si_Count, Me_Count, R_Count,
-                                        Xx_Count, num_rings, num_aromatic, molecule_statistics.fragments, Num_Rings, Num_HashBonds, Num_WedgeBonds);
+                                        Xx_Count, num_rings, num_aromatic, molecule_statistics.fragments, Num_Rings, Num_HashBonds, Num_WedgeBonds,PositiveCharge);
     }
 
   if (generate_2D_coordinates)
