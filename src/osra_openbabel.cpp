@@ -46,6 +46,7 @@ using namespace OpenBabel;
 #define BROMINE_ATOMIC_NUM      35
 #define IODINE_ATOMIC_NUM       53
 #define SILICONE_ATOMIC_NUM  14
+#define URANIUM_ATOMIC_NUM 92
 
 // Look at this issue: https://sourceforge.net/tracker/?func=detail&aid=3425216&group_id=40728&atid=428740
 #define AROMATIC_BOND_ORDER     5
@@ -207,9 +208,9 @@ bool create_atom(OBMol &mol, atom_t &atom, double scale, const map<string, strin
 //
 // Returns:
 //      confidence estimate
-double confidence_function(int C_Count, int N_Count, int O_Count, int F_Count, int S_Count, int Cl_Count, int Br_Count, int Si_Count, int Me_Count,
+double confidence_function(int C_Count, int N_Count, int O_Count, int F_Count, int S_Count, int Cl_Count, int Br_Count, int Si_Count, int U_Count, int Me_Count,
                            int R_Count, int Xx_Count, int num_rings, int num_aromatic, int num_fragments, const vector<int> &Num_Rings, int Num_HashBonds, int Num_WedgeBonds,
-			   int PositiveCharge)
+			   int Num_DoubleBonds, int PositiveCharge)
 {
   double confidence = 0.316030 //
                       - 0.016315 * C_Count //
@@ -220,7 +221,8 @@ double confidence_function(int C_Count, int N_Count, int O_Count, int F_Count, i
                       + 0.065504 * S_Count //
                       + 0.04 * Cl_Count //
                       + 0.066811 * Br_Count //
-                      + 0.042631 * Si_Count 
+                      + 0.042631 * Si_Count //
+                      - 0.05 * U_Count //
                       + 0.01 * R_Count //
                       - 0.02 * Xx_Count //
                       - 0.212739 * num_rings //
@@ -229,6 +231,7 @@ double confidence_function(int C_Count, int N_Count, int O_Count, int F_Count, i
                       + 0.342865 * Num_Rings[6] //
                       + 0.01632 * Num_HashBonds //
                       + 0.00010 * Num_WedgeBonds //
+                      + 0.00010 * Num_DoubleBonds
                       + 0.00010 * PositiveCharge //
                       - 0.037796 * num_fragments;
 
@@ -362,6 +365,7 @@ void create_molecule(OBMol &mol, vector<atom_t> &atom, const vector<bond_t> &bon
   OBBondIterator bond_iter;
   int Num_HashBonds = 0;
   int Num_WedgeBonds = 0;
+  int Num_DoubleBonds = 0;
 
   // This block modifies the molecule:
   for (OBBond *b = mol.BeginBond(bond_iter); b; b = mol.NextBond(bond_iter))
@@ -379,6 +383,8 @@ void create_molecule(OBMol &mol, vector<atom_t> &atom, const vector<bond_t> &bon
 	Num_HashBonds++;
       if (b->IsWedge())
 	Num_WedgeBonds++;
+      if (b->IsDouble() && (b->GetBeginAtom()->IsOxygen() ||  b->GetEndAtom()->IsOxygen()))
+	Num_DoubleBonds++;
     }
 
   vector<int> Num_Rings(8, 0); // number of rings of the given size (e.g. "Num_Rings[2]" = number of rings of size 2)
@@ -430,6 +436,7 @@ void create_molecule(OBMol &mol, vector<atom_t> &atom, const vector<bond_t> &bon
       int Xx_Count = 0;
       int Si_Count = 0;
       int Me_Count = 0;
+      int U_Count = 0;
       int PositiveCharge = 0;
 
       OBAtomIterator atom_iter;
@@ -460,6 +467,8 @@ void create_molecule(OBMol &mol, vector<atom_t> &atom, const vector<bond_t> &bon
             Br_Count++;
 	  else if (a->GetAtomicNum() == SILICONE_ATOMIC_NUM)
             Si_Count++;
+	  else if (a->GetAtomicNum() == URANIUM_ATOMIC_NUM)
+	    U_Count++;
           else if (a->GetAtomicNum() == 0)
             {
               AliasData *ad = (AliasData *) a->GetData("UserLabel");
@@ -478,8 +487,8 @@ void create_molecule(OBMol &mol, vector<atom_t> &atom, const vector<bond_t> &bon
         }
       //cout<<C_Count<<" "<<N_Count<<" "<<O_Count<<" "<<F_Count<<" "<<S_Count<<" "<<Cl_Count<<" "<<Br_Count<<" "<<Si_Count<<" "<<Me_Count<<" "<<R_Count<<" "<<
       //Xx_Count<<" "<<num_rings<<" "<<num_aromatic<<" "<<molecule_statistics.fragments<<" "<<Num_Rings<<" "<<Num_HashBonds<<" "<<Num_WedgeBonds<<endl;
-      *confidence = confidence_function(C_Count, N_Count, O_Count, F_Count, S_Count, Cl_Count, Br_Count, Si_Count, Me_Count, R_Count,
-                                        Xx_Count, num_rings, num_aromatic, molecule_statistics.fragments, Num_Rings, Num_HashBonds, Num_WedgeBonds,PositiveCharge);
+      *confidence = confidence_function(C_Count, N_Count, O_Count, F_Count, S_Count, Cl_Count, Br_Count, Si_Count, U_Count, Me_Count, R_Count,
+                                        Xx_Count, num_rings, num_aromatic, molecule_statistics.fragments, Num_Rings, Num_HashBonds, Num_WedgeBonds,Num_DoubleBonds,PositiveCharge);
     }
 
   if (generate_2D_coordinates)

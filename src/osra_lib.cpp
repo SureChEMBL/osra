@@ -69,7 +69,8 @@ void set_select_resolution(vector<int>  &select_resolution, int input_resolution
       select_resolution[0] = 72;
       select_resolution[1] = 150;
       select_resolution[2] = 300;
-      select_resolution[3] = 500;
+      select_resolution[3] = 301;
+      select_resolution[4] = 500;
     }
 }
 
@@ -128,7 +129,7 @@ void create_thick_box(Image &orig_box,Image &thick_box,int &width,int &height,in
         noise_factor(orig_box, width, height, bgColor, THRESHOLD_BOND, resolution, max_hist, nf45);
 
       //if (max_hist < 5) thick = false;
-      if (res_iter == 3)
+      if (res_iter == NUM_RESOLUTIONS-1)
         {
           if (max_hist > 6)
             {
@@ -651,7 +652,7 @@ int osra_process_image(
 
       set_select_resolution(select_resolution,input_resolution);
 
-      if (input_resolution > 300)
+      if (input_resolution > 301)
         {
           int percent = (100 * 300) / input_resolution;
           ostringstream scale;
@@ -707,7 +708,7 @@ int osra_process_image(
 
           int resolution = select_resolution[res_iter];
           int working_resolution = resolution;
-          if (resolution > 300)
+          if (resolution > 301)
             working_resolution = 300;
 
           double THRESHOLD_BOND = set_threshold(threshold,resolution);
@@ -719,6 +720,8 @@ int osra_process_image(
             thick = false;
           else if (resolution == 150 && !jaggy)
             thick = false;
+	  else if (resolution == 301)
+	    thick = false;
 
           //Image dbg = image;
           //dbg.modifyImage();
@@ -924,13 +927,9 @@ int osra_process_image(
             }
         }
       for (int i = 0; i < num_resolutions; i++)
-        {
-          if (array_of_confidence[i] == max_conf && array_of_structures[i].size() > 0 && select_resolution[i] == 300)
-            {
-              max_conf = array_of_confidence[i];
-              max_res = i;
-            }
-        }
+	if (array_of_confidence[i] == max_conf && array_of_structures[i].size() > 0 && select_resolution[i] == 300)
+	  max_res = i;
+
       #pragma omp critical
       {
         for (unsigned int i = 0; i < array_of_structures[max_res].size(); i++)
