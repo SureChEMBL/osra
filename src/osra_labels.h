@@ -141,6 +141,29 @@ int find_chars(const potrace_path_t * p, const Image &orig, vector<letters_t> &l
                bond_t> &bond, int n_atom, int n_bond, int height, int width, ColorGray &bgColor, double THRESHOLD,
                int max_font_width, int max_font_height, int &real_font_width, int &real_font_height, bool verbose);
 
+// Function: find_numbers()
+//
+// searches for numbers 0..9 in the image and calls OCR routines
+//
+// Parameters:
+// p - vectorized output of Potrace routines
+// orig - original image
+// letters - vector which will contain recognized characters
+// atom - vector of atoms
+// bond - vector of bonds
+// n_atom - number of atoms
+// n_bond - number of bonds
+// height - image height
+// width - image width
+// bgColor - background color
+// THRESHOLD - black-white binarization threshold
+// n_letters - number of previously recognized characters
+//
+// Returns:
+// number of recognized characters
+int find_numbers(const potrace_path_t * p, const Image &orig, vector<letters_t> &letters, vector<atom_t> &atom, vector<bond_t> &bond, 
+		 int n_atom, int n_bond, int height, int width, ColorGray &bgColor, double THRESHOLD, int n_letters);
+
 // Function: find_plus_minus()
 //
 // Detects plus and minus signs in atomic charge labels

@@ -59,11 +59,13 @@ void osra_ocr_destroy();
 //      THRESHOLD - graylevel threshold for image binarization
 //      dropx, dropy - coordinates of drop point from where breadth-first algorithm will search for single connected component
 //                     which is hopefully the character we are trying to recognize
+//      no_filtering - do not apply character filter
+//      numbers - only allow numbers in the output 0..9
 //
 // Returns:
 //      recognized character or 0
 char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int x1, int y1, int x2, int y2,
-                    double THRESHOLD, int dropx, int dropy, bool no_filtering, bool verbose);
+                    double THRESHOLD, int dropx, int dropy, bool no_filtering, bool verbose, bool numbers = false);
 
 // Function: fix_atom_name()
 //

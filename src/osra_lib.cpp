@@ -69,7 +69,8 @@ void set_select_resolution(vector<int>  &select_resolution, int input_resolution
       select_resolution[0] = 72;
       select_resolution[1] = 150;
       select_resolution[2] = 300;
-      select_resolution[3] = 500;
+      select_resolution[3] = 300;  // No thinning
+      select_resolution[4] = 500;
     }
 }
 
@@ -128,9 +129,19 @@ void create_thick_box(Image &orig_box,Image &thick_box,int &width,int &height,in
         noise_factor(orig_box, width, height, bgColor, THRESHOLD_BOND, resolution, max_hist, nf45);
 
       //if (max_hist < 5) thick = false;
+      if (res_iter == NUM_RESOLUTIONS-2)  // no thinning
+	{
+	  working_resolution = 300;
+	  thick_box = orig_box;
+	  width = thick_box.columns();
+	  height = thick_box.rows();
+	  thick = false;
+	  nf = noise_factor(orig_box, width, height, bgColor, THRESHOLD_BOND, resolution,
+			    max_hist, nf45);
+	}
       if (res_iter == NUM_RESOLUTIONS-1)
         {
-          if (max_hist > 6)
+          if (max_hist >= 6)
             {
               int new_resolution = max_hist * 300 / 4;
               int percent = (100 * 300) / new_resolution;
@@ -149,12 +160,12 @@ void create_thick_box(Image &orig_box,Image &thick_box,int &width,int &height,in
             }
           else
             {
-              resolution = 300;
-              /*int percent = (100 * 300) / resolution;
+              resolution = 500;
+              int percent = (100 * 300) / resolution;
               ostringstream scale;
               scale << percent << "%";
               orig_box.scale(scale.str());
-              box_scale /= (double) percent/100;*/
+              box_scale /= (double) percent/100;
               working_resolution = 300;
               thick_box = orig_box;
               width = thick_box.columns();
@@ -768,7 +779,7 @@ int osra_process_image(
                 int real_font_width, real_font_height;
                 n_letters = find_chars(p, orig_box, letters, atom, bond, n_atom, n_bond, height, width, bgColor,
                                        THRESHOLD_BOND, max_font_width, max_font_height, real_font_width, real_font_height,verbose);
-
+		
                 if (verbose)
                   cout << "Number of atoms: " << n_atom << ", bonds: " << n_bond << ", " << n_letters << " letters: " << n_letters << " " << letters << " after find_atoms()" << endl;
 
@@ -825,6 +836,9 @@ int osra_process_image(
 
                 n_letters = remove_small_bonds(bond, n_bond, atom, letters, n_letters, real_font_height,
                                                MIN_FONT_HEIGHT, avg_bond_length);
+		
+		n_letters = find_numbers(p, orig_box, letters, atom, bond, n_atom, n_bond, height, width, bgColor,
+					 THRESHOLD_BOND, n_letters);
 
                 dist = 4.;
                 if (working_resolution < 300)
@@ -925,8 +939,11 @@ int osra_process_image(
             }
         }
       for (int i = 0; i < num_resolutions; i++)
-	if (array_of_confidence[i] == max_conf && array_of_structures[i].size() > 0 && select_resolution[i] == 300)
-	  max_res = i;
+	if (array_of_confidence[i] == max_conf && array_of_structures[i].size() > 0 && select_resolution[i] == 300) // second 300 dpi is without thinning
+	  {
+	    max_res = i;
+	    break;
+	  }
 
       #pragma omp critical
       {

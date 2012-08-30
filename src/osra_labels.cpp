@@ -414,6 +414,241 @@ int assemble_labels(vector<letters_t> &letters, int n_letters, vector<label_t> &
 }
 
 
+int find_numbers(const potrace_path_t * p, const Image &orig, vector<letters_t> &letters, vector<atom_t> &atom, vector<bond_t> &bond, 
+		 int n_atom, int n_bond, int height, int width, ColorGray &bgColor, double THRESHOLD, int n_letters)
+{
+  int max_font_width, max_font_height;
+  vector<int> widths, heights;
+  for (int i=0; i<n_letters; i++)
+    if (letters[i].a >= '2' && letters[i].a <= '9')
+      {
+	widths.push_back(letters[i].max_x - letters[i].min_x+1);
+	heights.push_back(letters[i].max_y - letters[i].min_y+1);
+      }
+  if (widths.size() < 3) return n_letters;
+  max_font_width = min(MAX_FONT_WIDTH,widths[widths.size() / 2]);
+  max_font_height = min(MAX_FONT_HEIGHT,heights[heights.size() / 2]);
+
+
+  int n, *tag;
+  potrace_dpoint_t (*c)[3];
+
+  while (p != NULL)
+    {
+      if ((p->sign == int('+')))
+        {
+          n = p->curve.n;
+          tag = p->curve.tag;
+          c = p->curve.c;
+          int top = height;
+          int x1 = 0;
+          int left = width;
+          int y1 = 0;
+          int bottom = 0;
+          int x2 = 0;
+          int right = 0;
+          int y2 = 0;
+          int cx,cy;
+          for (int i = 0; i < n; i++)
+            {
+              switch (tag[i])
+                {
+                case POTRACE_CORNER:
+                  cx = c[i][1].x;
+                  cy = c[i][1].y;
+                  if (cx<0) cx=0;
+                  if (cx>width) cx=width;
+                  if (cy<0) cy=0;
+                  if (cy>height) cy=height;
+
+                  if (cx < left)
+                    {
+                      left = cx;
+                      y1 = cy;
+                    }
+                  if (cx > right)
+                    {
+                      right = cx;
+                      y2 = cy;
+                    }
+                  if (cy < top)
+                    {
+                      top = cy;
+                      x1 = cx;
+                    }
+                  if (cy > bottom)
+                    {
+                      bottom = cy;
+                      x2 = cx;
+                    }
+                  break;
+                case POTRACE_CURVETO:
+                  cx = c[i][0].x;
+                  cy = c[i][0].y;
+                  if (cx<0) cx=0;
+                  if (cx>width) cx=width;
+                  if (cy<0) cy=0;
+                  if (cy>height) cy=height;
+                  if (cx < left)
+                    {
+                      left = cx;
+                      y1 = cy;
+                    }
+                  if (cx > right)
+                    {
+                      right = cx;
+                      y2 = cy;
+                    }
+                  if (cy < top)
+                    {
+                      top = cy;
+                      x1 = cx;
+                    }
+                  if (cy > bottom)
+                    {
+                      bottom = cy;
+                      x2 = cx;
+                    }
+                  cx = c[i][1].x;
+                  cy = c[i][1].y;
+                  if (cx<0) cx=0;
+                  if (cx>width) cx=width;
+                  if (cy<0) cy=0;
+                  if (cy>height) cy=height;
+                  if (cx < left)
+                    {
+                      left = cx;
+                      y1 = cy;
+                    }
+                  if (cx > right)
+                    {
+                      right = cx;
+                      y2 = cy;
+                    }
+                  if (cy < top)
+                    {
+                      top = cy;
+                      x1 = cx;
+                    }
+                  if (cy > bottom)
+                    {
+                      bottom = cy;
+                      x2 = cx;
+                    }
+                  break;
+                }
+              cx = c[i][2].x;
+              cy = c[i][2].y;
+              if (cx<0) cx=0;
+              if (cx>width) cx=width;
+              if (cy<0) cy=0;
+              if (cy>height) cy=height;
+              if (cx < left)
+                {
+                  left = cx;
+                  y1 = cy;
+                }
+              if (cx > right)
+                {
+                  right = cx;
+                  y2 = cy;
+                }
+              if (cy < top)
+                {
+                  top = cy;
+                  x1 = cx;
+                }
+              if (cy > bottom)
+                {
+                  bottom = cy;
+                  x2 = cx;
+                }
+            }
+
+          if (((bottom - top) <= max_font_height) && ((right - left) <= max_font_width) && (right - left
+              > V_DISPLACEMENT) && (bottom - top > MIN_FONT_HEIGHT))
+            {
+              int s = 1;
+              while ((top > 0) && (s > 0))
+                {
+                  s = 0;
+                  s = get_pixel(orig, bgColor, x1, top, THRESHOLD);
+                  if (s > 0)
+                    top--;
+                }
+              s = 1;
+              while ((bottom < height) && (s > 0))
+                {
+                  s = 0;
+                  s = get_pixel(orig, bgColor, x2, bottom, THRESHOLD);
+                  if (s > 0)
+                    bottom++;
+                }
+              s = 1;
+              while ((left > 0) && (s > 0))
+                {
+                  s = 0;
+                  s = get_pixel(orig, bgColor, left, y1, THRESHOLD);
+                  if (s > 0)
+                    left--;
+                }
+              s = 1;
+              while ((right < width) && (s > 0))
+                {
+                  s = 0;
+                  s = get_pixel(orig, bgColor, right, y2, THRESHOLD);
+                  if (s > 0)
+                    right++;
+                }
+            }
+
+          if (((bottom - top) <= max_font_height) && ((right - left) <= max_font_width) && (right - left
+              > V_DISPLACEMENT) && (bottom - top > MIN_FONT_HEIGHT))
+            {
+	      bool found = false;
+	      for (int i=0; i<n_letters; i++)
+		{
+		  int x =  (left + right) / 2;
+		  int y = (top + bottom) / 2;
+		  if (distance(x,y,letters[i].x,letters[i].y) < V_DISPLACEMENT)
+		    {
+		      found = true;
+		      break;
+		    }
+		}
+	      if (!found)
+		{
+		  char label = 0;
+		  label = get_atom_label(orig, bgColor, left, top, right, bottom, THRESHOLD, (right + left) / 2, top, false, false ,true);
+		  
+		  if (label == '1')
+		    {
+		      letters_t lt;
+		      letters.push_back(lt);
+		      letters[n_letters].a = label;
+		      letters[n_letters].x = (left + right) / 2;
+		      letters[n_letters].y = (top + bottom) / 2;
+		      letters[n_letters].r = distance(left, top, right, bottom) / 2;
+		      letters[n_letters].min_x = left;
+		      letters[n_letters].max_x = right;
+		      letters[n_letters].min_y = top;
+		      letters[n_letters].max_y = bottom;
+		      letters[n_letters].free = true;
+		      n_letters++;
+		      if (n_letters >= MAX_ATOMS)
+			n_letters--;
+		      delete_bonds_in_char(bond, n_bond, atom, left, top, right, bottom);
+		      delete_curve_with_children(atom, bond, n_atom, n_bond, p);
+		    }
+		}
+            }
+        }
+      p = p->next;
+    }
+
+  return (n_letters);
+}
+
 int find_chars(const potrace_path_t * p, const Image &orig, vector<letters_t> &letters, vector<atom_t> &atom, vector<
                bond_t> &bond, int n_atom, int n_bond, int height, int width, ColorGray &bgColor, double THRESHOLD,
                int max_font_width, int max_font_height, int &real_font_width, int &real_font_height, bool verbose)
@@ -746,6 +981,7 @@ int find_chars(const potrace_path_t * p, const Image &orig, vector<letters_t> &l
     real_font_height++;
   return (n_letters);
 }
+
 
 
 int find_fused_chars(vector<bond_t> &bond, int n_bond, vector<atom_t> &atom, vector<letters_t> &letters, int n_letters,
