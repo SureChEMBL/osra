@@ -98,6 +98,7 @@ nBU nBu
 neU nBu 
 ngU nBu
 n8U nBu
+BU nBu
 
 Eto EtO
 oEt EtO
@@ -121,7 +122,6 @@ lPl iPr
 nPl iPr
 
 tBU tBu
-BU tBu
 llBU tBu
 lBU tBu
 

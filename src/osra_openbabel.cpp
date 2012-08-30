@@ -122,7 +122,6 @@ bool create_atom(OBMol &mol, atom_t &atom, double scale, const map<string, strin
 
               new_atom->SetAtomicNum(a->GetAtomicNum());
               new_atom->SetFormalCharge(a->GetFormalCharge());
-	      //          if (atom.anum == 0)
 	      if (!atom.label.empty() && atom.label != " ")
 		{
 		  // Unknown atom?
@@ -131,6 +130,13 @@ bool create_atom(OBMol &mol, atom_t &atom, double scale, const map<string, strin
 		  label->SetValue(atom.label);
 		  label->SetOrigin(userInput); // set by user, not by Open Babel
 		  new_atom->SetData(label);
+		}
+	      if (atom.anum == 0)
+		{
+		  AliasData* ad = new AliasData();
+		  ad->SetAlias(atom.label);
+		  ad->SetOrigin(external); 
+		  new_atom->SetData(ad);
 		}
             }
 
@@ -178,7 +184,6 @@ bool create_atom(OBMol &mol, atom_t &atom, double scale, const map<string, strin
   if (atom.charge != 0)
     a->SetFormalCharge(atom.charge);
 
-  //  if (atom.anum == 0)
   if (atom.anum != 0 && !atom.label.empty() && atom.label != " ")
     {
       // Unknown atom?
@@ -187,7 +192,13 @@ bool create_atom(OBMol &mol, atom_t &atom, double scale, const map<string, strin
       label->SetValue(atom.label);
       label->SetOrigin(userInput); // set by user, not by Open Babel
       a->SetData(label);
-                                                              
+    }
+  if (atom.anum == 0)
+    {
+      AliasData* ad = new AliasData();
+      ad->SetAlias(atom.label);
+      ad->SetOrigin(external); 
+      a->SetData(ad);
     }
 
   return false;

@@ -140,6 +140,7 @@ OBOC OC(=O)OC(C)(C)C
 Bn2N N(Cc1ccccc1)Cc1ccccc1
 F5S S(F)(F)(F)(F)F
 PPh2 P(c1ccccc1)c1ccccc1
+PPh3 P(c1ccccc1)(c1ccccc1)c1ccccc1
 OCH2Ph OCc1ccccc1
 CH2OMe COC
 PMBN NCc1ccc(OC)cc1
@@ -160,6 +161,8 @@ CONEt2 C(=O)N(CC)CC
 CONMe2 C(=O)N(C)C
 EtO2CHN NC(=O)OCC
 H4NO3S S(=O)(=O)ON
+TMS [Si](C)(C)(C)
+
 
 Xx [*]
 X  [*]
