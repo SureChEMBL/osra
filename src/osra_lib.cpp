@@ -69,8 +69,7 @@ void set_select_resolution(vector<int>  &select_resolution, int input_resolution
       select_resolution[0] = 72;
       select_resolution[1] = 150;
       select_resolution[2] = 300;
-      select_resolution[3] = 301;
-      select_resolution[4] = 500;
+      select_resolution[3] = 500;
     }
 }
 
@@ -150,12 +149,12 @@ void create_thick_box(Image &orig_box,Image &thick_box,int &width,int &height,in
             }
           else
             {
-              resolution = 500;
-              int percent = (100 * 300) / resolution;
+              resolution = 300;
+              /*int percent = (100 * 300) / resolution;
               ostringstream scale;
               scale << percent << "%";
               orig_box.scale(scale.str());
-              box_scale /= (double) percent/100;
+              box_scale /= (double) percent/100;*/
               working_resolution = 300;
               thick_box = orig_box;
               width = thick_box.columns();
@@ -652,7 +651,7 @@ int osra_process_image(
 
       set_select_resolution(select_resolution,input_resolution);
 
-      if (input_resolution > 301)
+      if (input_resolution > 300)
         {
           int percent = (100 * 300) / input_resolution;
           ostringstream scale;
@@ -708,7 +707,7 @@ int osra_process_image(
 
           int resolution = select_resolution[res_iter];
           int working_resolution = resolution;
-          if (resolution > 301)
+          if (resolution > 300)
             working_resolution = 300;
 
           double THRESHOLD_BOND = set_threshold(threshold,resolution);
@@ -720,8 +719,7 @@ int osra_process_image(
             thick = false;
           else if (resolution == 150 && !jaggy)
             thick = false;
-	  else if (resolution == 301)
-	    thick = false;
+
 
           //Image dbg = image;
           //dbg.modifyImage();
