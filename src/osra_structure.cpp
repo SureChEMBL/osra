@@ -831,7 +831,7 @@ void extend_terminal_bond_to_label(vector<atom_t> &atom, const vector<letters_t>
                   double y_dist = maxh + label[i].r1 / 2;
                   if (bond[j].type > 1)
                     y_dist += max_dist_double_bond;
-                  double nb = fabs(d1) - label[i].r1;
+                  double nb = fabs(d1) - label[i].r1 / 2;
                   if (nb <= avg && h1 <= y_dist && nb < minb && d1 < bl / 2)
                     {
                       found1 = true;
@@ -841,7 +841,7 @@ void extend_terminal_bond_to_label(vector<atom_t> &atom, const vector<letters_t>
                   y_dist = maxh + label[i].r2 / 2;
                   if (bond[j].type > 1)
                     y_dist += max_dist_double_bond;
-                  nb = fabs(d2) - label[i].r2;
+                  nb = fabs(d2) - label[i].r2 / 2;
                   if (nb <= avg && h2 <= y_dist && nb < minb && d2 < bl / 2)
                     {
                       found1 = true;
@@ -857,7 +857,7 @@ void extend_terminal_bond_to_label(vector<atom_t> &atom, const vector<letters_t>
                   if (bond[j].type > 1)
                     y_dist += max_dist_double_bond;
                   double h = fabs(distance_from_bond_y(xa, ya, xb, yb, letters[i].x, letters[i].y));
-                  double nb = fabs(d) - letters[i].r;
+                  double nb = fabs(d) - letters[i].r / 2;
                   if (nb <= avg && h <= y_dist && nb < minb && d < bl / 2)
                     {
                       found2 = true;
@@ -867,6 +867,8 @@ void extend_terminal_bond_to_label(vector<atom_t> &atom, const vector<letters_t>
                 }
             if (found2)
               {
+		//cout<< letters[l2].a<<" "<<letters[l2].x<<" "<<letters[l2].y<<" "<< atom[bond[j].a].x<<" "<< atom[bond[j].a].y<<" "<<bl<<endl;
+		//cout<<"=== "<<fabs(distance_from_bond_x_a(xa, ya, xb, yb, letters[l2].x, letters[l2].y))<<" "<<avg<<" "<< fabs(distance_from_bond_y(xa, ya, xb, yb, letters[l2].x, letters[l2].y))<<" "<<maxh<<" "<<letters[l2].r<<endl;
                 atom[bond[j].a].label = toupper(letters[l2].a);
                 atom[bond[j].a].x = letters[l2].x;
                 atom[bond[j].a].y = letters[l2].y;
@@ -900,7 +902,7 @@ void extend_terminal_bond_to_label(vector<atom_t> &atom, const vector<letters_t>
                   double y_dist = maxh + label[i].r1 / 2;
                   if (bond[j].type > 1)
                     y_dist += max_dist_double_bond;
-                  double nb = fabs(d1) - label[i].r1; // end "b" and 1st side
+                  double nb = fabs(d1) - label[i].r1 / 2; // end "b" and 1st side
                   if (nb <= avg && h1 <= y_dist && nb < minb && d1 > -bl / 2)
                     {
                       found1 = true;
@@ -910,7 +912,7 @@ void extend_terminal_bond_to_label(vector<atom_t> &atom, const vector<letters_t>
                   y_dist = maxh + label[i].r2 / 2;
                   if (bond[j].type > 1)
                     y_dist += max_dist_double_bond;
-                  nb = fabs(d2) - label[i].r2; // end "b" and 2nd side
+                  nb = fabs(d2) - label[i].r2 / 2; // end "b" and 2nd side
                   if (nb <= avg && h2 <= y_dist && nb < minb && d2 > -bl / 2)
                     {
                       found1 = true;
@@ -922,7 +924,7 @@ void extend_terminal_bond_to_label(vector<atom_t> &atom, const vector<letters_t>
               if (letters[i].free && letters[i].a != '+' && letters[i].a != '-' && i != l2)
                 {
                   double d = distance_from_bond_x_b(xa, ya, xb, yb, letters[i].x, letters[i].y);
-                  double nb = fabs(d) - letters[i].r; // distance between end "b" and letter
+                  double nb = fabs(d) - letters[i].r / 2; // distance between end "b" and letter
                   double y_dist = maxh + letters[i].r / 2;
                   if (bond[j].type > 1)
                     y_dist += max_dist_double_bond;
@@ -937,6 +939,8 @@ void extend_terminal_bond_to_label(vector<atom_t> &atom, const vector<letters_t>
 
             if (found2)
               {
+		//cout<<letters[l2].a<<" "<<letters[l2].x<<" "<<letters[l2].y<<" "<< atom[bond[j].b].x<<" "<< atom[bond[j].b].y<<" "<<bl<<endl;
+		//cout<<"=== "<<fabs(distance_from_bond_x_a(xa, ya, xb, yb, letters[l2].x, letters[l2].y))<<" "<<avg<<" "<< fabs(distance_from_bond_y(xa, ya, xb, yb, letters[l2].x, letters[l2].y))<<" "<<maxh<<" "<<letters[l2].r<<endl;
                 atom[bond[j].b].label = toupper(letters[l2].a);
                 atom[bond[j].b].x = letters[l2].x;
                 atom[bond[j].b].y = letters[l2].y;

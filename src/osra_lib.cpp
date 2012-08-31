@@ -877,7 +877,7 @@ int osra_process_image(
 	
 
                 extend_terminal_bond_to_label(atom, letters, n_letters, bond, n_bond, label, n_label, avg_bond_length / 2,
-                                              thickness, max_dist_double_bond);
+		                          thickness, max_dist_double_bond);
 
 
 
