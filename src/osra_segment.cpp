@@ -661,7 +661,7 @@ void find_arrows_pluses(vector<vector<point_t> > &margins, vector<list<point_t> 
 		}
 	    }
 		
-	  if (peaks.size() == 4  && (double(values[1])/values[0]>0.8 || values[0]-values[1]<=2)  && (double(values[2])/values[0]>0.8  || values[0]-values[1]<=2) && (double(values[3])/values[0]>0.8 || values[0]-values[1]<=2))
+	  if (peaks.size() == 4  && (double(values[1])/values[0]>0.8 || values[0]-values[1]<=2)  && (double(values[2])/values[0]>0.8  || values[0]-values[2]<=2) && (double(values[3])/values[0]>0.8 || values[0]-values[3]<=2))
 	    {
 	      bool first=false, second=false, third=false, fourth=false;
 	      for (int j=0; j<4; j++)

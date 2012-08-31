@@ -1118,7 +1118,122 @@ int find_fused_chars(vector<bond_t> &bond, int n_bond, vector<atom_t> &atom, vec
   return (n_letters);
 }
 
-int find_plus_minus(const potrace_path_t *p, vector<letters_t> &letters, vector<atom_t> &atom, vector<bond_t> &bond,
+void detect_plus_minus(const Image &image, ColorGray &bg, double THRESHOLD, int x1, int x2, int y1, int y2, int top, int left, int right, int bottom, bool &is_plus, bool &is_minus)
+{
+  vector < vector <short> > pic(right-left+1, vector<short> (bottom-top+1,0));
+  for (int i=left; i<=right; i++)
+    for (int j=top; j<=bottom; j++)
+      pic[i-left][j-top] = get_pixel(image, bg, i, j, THRESHOLD) ;
+
+  int y = 0;
+  int x = x1 - left;
+  if (x<0 || x>=pic.size()) return;
+  while (y<pic[x].size() &&  pic[x][y] != 1) y++;
+  if (y>=pic[x].size()) return;
+  vector<point_t> points;
+  // populating points with BFS
+  list<point_t> bag;
+  point_t p;
+  p.x = x;
+  p.y = y;
+  bag.push_back(p);
+
+  pic[p.x][p.y] = 2;
+  
+  while (!bag.empty())
+    {
+      point_t c = bag.front();
+      bag.pop_front();
+      points.push_back(c);
+      pic[c.x][c.y] = 0;
+        // this goes around 3x3 square touching the chosen pixel
+      for (int i = c.x - 1; i < c.x + 2; i++)
+	for (int j = c.y - 1; j < c.y + 2; j++)
+	  if (i >= 0 && j >= 0 && i < pic.size() && j < pic[i].size()  && pic[i][j] == 1)
+              {
+		point_t t;
+                t.x = i;
+                t.y = j;
+		bag.push_back(t);
+                pic[i][j] = 2;
+              }
+      }
+  const int len=50;
+  vector<int> hist(len,0);
+  int top_pos=0;
+  int top_value=0;
+  point_t head, tail,center;
+  int min_x, min_y, max_x, max_y;
+  build_hist(points,hist,len,top_pos,top_value,head,tail,center,min_x, min_y, max_x, max_y);
+  double fill = (double) points.size() / ((max_x-min_x+1)*(max_y-min_y+1));
+  double aspect = (double) (max_y - min_y +1) / (max_x - min_x +1);
+  if (points.size() > len)
+    {     
+      vector<int> peaks(1,top_pos);
+      vector<int> values(1,top_value);
+      for (int k=1; k<len;k++)
+	{
+	  int pos=k+top_pos;
+	  if (pos>=len) pos -= len;
+	  int after=pos+1;
+	  int before=pos-1;
+	  if (after>=len) after -=len;
+	  if (before<0) before +=len;
+	  if (hist[before]<hist[pos] && hist[after]<hist[pos] && hist[pos]>=top_value/2)  // find all peaks at least half as high as the top-most
+	    {
+	      peaks.push_back(pos);
+	      values.push_back(hist[pos]);
+	    }
+	}
+
+      if (peaks.size() == 2   && abs(len/2 - abs(peaks[1]-peaks[0]))<=1)  // only two peaks are present at 180 degrees 
+	{
+	  
+	  if (aspect < 0.7 && fill > 0.9)
+	    is_minus = true;
+	}
+      
+      if (peaks.size() == 4  && (double(values[1])/values[0]>0.8 || values[0]-values[1]<=2)  && (double(values[2])/values[0]>0.8  || values[0]-values[2]<=2) && (double(values[3])/values[0]>0.8 || values[0]-values[3]<=2))
+	{
+	  bool first=false, second=false, third=false, fourth=false;
+	  for (int j=0; j<4; j++)
+	    {
+	      if (peaks[j] <= 1 || peaks[j] >=len-2) first=true;
+	      if (abs(len/4-peaks[j])<=1) second=true;
+	      if (abs(len/2-peaks[j])<=1) third=true;
+	      if (abs(3*len/4-peaks[j])<=1) fourth=true;
+	    }
+	  for (int j=0; j<peaks.size(); j++)          // check outside of the peaks is essentially zero
+	    for (int k=peaks[j]-2; k<=peaks[j]+2; k++)
+	      {
+		int kk=k;
+		if (kk<0) kk += len;
+		if (kk>=len) kk -=len;
+		hist[kk]=0;
+	      }
+	  
+	  bool low=true;
+	  for(int k=0; k<len; k++)
+	    if (hist[k]>3) low=false;
+	  if (first && second && third && fourth && low)
+	    {
+	      // we found a plus!
+	      is_plus = true;
+	    }
+	}	
+    }
+  else
+    {
+      if (aspect < 0.7 && fill > 0.9)
+	is_minus = true;
+      if (aspect > 0.7 && aspect < 1. / 0.7 && abs(y1 - y2) < 3 && abs(y1 + y2 - bottom - top) / 2 < 3
+	  && abs(x1 - x2) < 3 && abs(x1 + x2 - right - left) / 2 < 3)
+	is_plus = true;
+    }
+  
+}
+
+int find_plus_minus(const potrace_path_t *p, const Image &image, ColorGray &bgColor, double THRESHOLD, vector<letters_t> &letters, vector<atom_t> &atom, vector<bond_t> &bond,
                     int n_atom, int n_bond, int height, int width, int max_font_height, int max_font_width, int n_letters)
 {
   int n, *tag;
@@ -1255,43 +1370,28 @@ int find_plus_minus(const potrace_path_t *p, vector<letters_t> &letters, vector<
                 }
             }
 
-          if (((bottom - top) <= max_font_height) && ((right - left) <= max_font_width) && (right - left > 1)
-              //&& (right-left)<avg
-             )
+          if (((bottom - top) <= max_font_height) && ((right - left) <= max_font_width) && (right - left > 1))
             {
-              double aspect = 1. * (bottom - top) / (right - left);
-              double fill = 0;
-              if ((bottom - top) * (right - left) != 0)
-                fill = 1. * p->area / ((bottom - top) * (right - left));
-              else if ((bottom - top) == 0)
-                fill = 1.;
-              else if ((right - left) == 0)
-                fill = 0.;
               char c = ' ';
               bool char_to_right = false;
               bool inside_char = false;
               for (int j = 0; j < n_letters; j++)
                 {
-                  if (letters[j].x > right && (top + bottom) / 2 > letters[j].y - letters[j].r && (top + bottom) / 2
-                      < letters[j].y + letters[j].r && right > letters[j].x - 2 * letters[j].r && letters[j].a
-                      != '-' && letters[j].a != '+')
-                    char_to_right = true;
-                  if (letters[j].x - letters[j].r <= left && letters[j].x + letters[j].r >= right && letters[j].y
-                      - letters[j].r <= top && letters[j].y + letters[j].r >= bottom)
+                  if (letters[j].x > right && (top + bottom) / 2 > letters[j].min_y  && (top + bottom) / 2 < letters[j].max_y 
+		      && right > letters[j].min_x - letters[j].r && letters[j].a  != '-' && letters[j].a != '+')
+		    char_to_right = true;
+                  if (letters[j].min_x <= left && letters[j].max_x >= right && letters[j].min_y <= top && letters[j].max_y >= bottom)
                     inside_char = true;
                 }
-              //cout << left << "," << y1 << " " << right << "," << y2 << " " << top << "," << x1 << " " << bottom
-              //		<< "," << x2 << endl;
-              //cout << left << " " << y1 << " " << aspect << " " << fill << endl;
-              //cout << aspect << " " << abs(y1 - y2) << " " << abs(y1 + y2 - bottom - top) / 2 << " " << abs(x1 - x2)
-              //		<< " " << abs(x1 + x2 - right - left) / 2 << endl;
-              if (aspect < 0.7 && fill > 0.9 && !char_to_right && !inside_char)
-                c = '-';
-              else if (aspect > 0.7 && aspect < 1. / 0.7 && abs(y1 - y2) < 3 && abs(y1 + y2 - bottom - top) / 2 < 3
-                       && abs(x1 - x2) < 3 && abs(x1 + x2 - right - left) / 2 < 3 && !inside_char
-                       //&& !char_to_right
-                      )
-                c = '+';
+              bool is_minus = false;
+	      bool is_plus = false;
+	      detect_plus_minus(image,bgColor, THRESHOLD,x1,x2,y1,y2,top,left,right,bottom,is_plus,is_minus);
+
+              if (is_minus && !char_to_right && !inside_char)
+		  c = '-';
+              if (is_plus && !inside_char)
+		c = '+';
+
               if (c != ' ')
                 {
                   letters_t lt;

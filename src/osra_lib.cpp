@@ -789,7 +789,7 @@ int osra_process_image(
                 if (thick)
                   max_area = avg_bond_length;
 
-                n_letters = find_plus_minus(p, letters, atom, bond, n_atom, n_bond, height, width,
+                n_letters = find_plus_minus(p, orig_box, bgColor, THRESHOLD_BOND, letters, atom, bond, n_atom, n_bond, height, width,
                                             real_font_height, real_font_width, n_letters);
 
                 n_atom = find_small_bonds(p, atom, bond, n_atom, &n_bond, max_area, avg_bond_length / 2, 5);

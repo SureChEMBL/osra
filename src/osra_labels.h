@@ -170,6 +170,9 @@ int find_numbers(const potrace_path_t * p, const Image &orig, vector<letters_t> 
 //
 // Parameters:
 // p - Potrace vectorization output
+// image - original image
+// bgColor - background color
+// THRESHOLD - black-white binarization threshold
 // letters - a vector of atomic label characters
 // atom -  a vector of atoms
 // bond - a vector of bonds
@@ -184,6 +187,8 @@ int find_numbers(const potrace_path_t * p, const Image &orig, vector<letters_t> 
 // Returns:
 // new number of characters
 int find_plus_minus(const potrace_path_t *p, vector<letters_t> &letters, vector<atom_t> &atom, vector<bond_t> &bond,
+                    int n_atom, int n_bond, int height, int width, int max_font_height, int max_font_width, int n_letters);
+int find_plus_minus(const potrace_path_t *p, const Image &image, ColorGray &bgColor, double THRESHOLD, vector<letters_t> &letters, vector<atom_t> &atom, vector<bond_t> &bond,
                     int n_atom, int n_bond, int height, int width, int max_font_height, int max_font_width, int n_letters);
 
 // Function: clean_unrecognized_characters()
