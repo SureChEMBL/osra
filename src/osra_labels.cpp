@@ -33,6 +33,7 @@
 #include "osra_ocr.h"
 #include "osra_labels.h"
 
+
 bool alone(const vector<bond_t> &bond, int i, double avg)
 {
   bool alone = false;

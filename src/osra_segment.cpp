@@ -25,10 +25,6 @@
 //
 
 #include <iostream> // std::ostream, std::cout
-#include <math.h> // fabs(double)
-#include <float.h> // FLT_MAX
-#include <limits.h> // INT_MAX
-#include <algorithm> // std::min(double, double), std::max(double, double)
 
 #include "osra.h"
 #include "osra_common.h"
@@ -461,77 +457,6 @@ int locate_max_entropy(const vector<vector<int> > &features, unsigned int max_ar
   return (start_b);
 }
 
-template<class T>
-void build_hist(const T &seg, vector<int> &hist, const int len, int &top_pos, int &top_value,point_t &head,point_t &tail, point_t &center, int &min_x, int &min_y, int &max_x, int &max_y)
-{
-  int l=seg.size();
-  typename T::const_iterator j;
-  center.x=0; center.y=0;
-  min_x = INT_MAX;
-  min_y = INT_MAX;
-  max_x = 0;
-  max_y = 0;
-  for (j=seg.begin(); j!=seg.end(); j++)
-    {
-      center.x += j->x;
-      center.y += j->y;
-      min_x = min(min_x, j->x);
-      min_y = min(min_y, j->y);
-      max_x = max(max_x, j->x);
-      max_y = max(max_y, j->y);
-    }
-  center.x /=l;  // Find the center of mass for the segment margin
-  center.y /=l;
-
-  for (j=seg.begin(); j!=seg.end(); j++)
-    {
-      int dx = j->x-center.x;
-      int dy = j->y-center.y;
-      double r=(double)sqrt(dx*dx+dy*dy);
-      double theta=0.;
-      if (dx!=0 || dy!=0)
-	theta = atan2(dy,dx);
-      int bin = (theta+M_PI)*len/(2*M_PI);
-      if (bin>=len) bin -= len;
-      hist[bin]++;          // build a histogram of occurencies in polar coordinates
-      if (hist[bin]>=top_value)
-	  {
-	    top_pos = bin;                       // find the position of the highest peak
-	    top_value = hist[bin];
-	  }
-    }
-
-  double r_max=0;
-  for (j=seg.begin(); j!=seg.end(); j++)
-    {
-      int dx = j->x-center.x;
-      int dy = j->y-center.y;
-      double r=(double)sqrt(dx*dx+dy*dy);
-      double theta=0.;
-      if (dx!=0 || dy!=0)
-	theta = atan2(dy,dx);
-      int bin = (theta+M_PI)*len/(2*M_PI);
-      if (bin>=len) bin -= len;
-      if (bin == top_pos && r>r_max)
-	{
-	  head = *j;
-	  r_max = r;
-	}
-    }
-
-  r_max=0;
-  for (j=seg.begin(); j!=seg.end(); j++)
-    {
-      int dx = j->x-head.x;
-      int dy = j->y-head.y;
-      double r=(double)sqrt(dx*dx+dy*dy);
-      if (r>r_max)
-	{
-	  r_max = r;
-	  tail = *j;
-	}
-    }
-}
 
 bool bulge(const point_t tail, const point_t head, const list<point_t> & seg)
 {
