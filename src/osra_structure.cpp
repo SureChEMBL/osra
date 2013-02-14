@@ -565,6 +565,7 @@ double dist_double_bonds(const vector<atom_t> &atom, vector<bond_t> &bond, int n
             {
               double l2 = bond_length(bond, j, atom);
               double dbb = distance_between_bonds(bond, i, j, atom);
+
               if (dbb < avg / 2 && l1 > avg / 3 && l2 > avg / 3 && bonds_within_each_other(bond, i, j, atom))
                 {
                   a.push_back(dbb);
