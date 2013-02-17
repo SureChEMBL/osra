@@ -342,8 +342,10 @@ void split_fragments_and_assemble_structure_record(vector<atom_t> &atom,
       remove_zero_bonds(bond, n_bond, atom);
       extend_terminal_bond_to_bonds(atom, bond, n_bond, avg_bond_length, 7, 0);
 
+
       remove_small_terminal_bonds(bond, n_bond, atom, avg_bond_length);
       n_bond = reconnect_fragments(bond, n_bond, atom, avg_bond_length);
+
       collapse_atoms(atom, bond, n_atom, n_bond, 1);
       mark_terminal_atoms(bond, n_bond, atom, n_atom);
       const vector<vector<int> > &frags = find_fragments(bond, n_bond, atom);
@@ -629,6 +631,8 @@ int osra_process_image(
     {
       Image image;
       double page_scale=1;
+      
+      int ttt = 0;
 
       if (verbose)
         cout << "Processing page " << (l+1) << " out of " << page << "..." << endl;
@@ -827,10 +831,6 @@ int osra_process_image(
                 double max_dist_double_bond = dist_double_bonds(atom, bond, n_bond, avg_bond_length);
                 n_bond = double_triple_bonds(atom, bond, n_bond, avg_bond_length, n_atom, max_dist_double_bond);
 
-                /*if (ttt++ == 1) {
-                	debug_img(orig_box, atom, n_atom, bond, n_bond, "tmp.png");
-                }
-                */
                 n_atom = find_dashed_bonds(p, atom, bond, n_atom, &n_bond, max(MAX_DASH, int(avg_bond_length / 3)),
                                            avg_bond_length, orig_box, bgColor, THRESHOLD_BOND, thick, avg_bond_length);
 
@@ -877,9 +877,12 @@ int osra_process_image(
 	
 
                 extend_terminal_bond_to_label(atom, letters, n_letters, bond, n_bond, label, n_label, avg_bond_length / 2,
-		                          thickness, max_dist_double_bond);
+					      thickness, max_dist_double_bond);
 
 
+		/*if (ttt++ == 3) {
+		  debug_image(orig_box, atom, n_atom, bond, n_bond, "tmp.png");
+		  }*/
 
                 remove_disconnected_atoms(atom, bond, n_atom, n_bond);
                 collapse_atoms(atom, bond, n_atom, n_bond, thickness);
@@ -890,8 +893,11 @@ int osra_process_image(
                 remove_zero_bonds(bond, n_bond, atom);
                 remove_disconnected_atoms(atom, bond, n_atom, n_bond);
 
+		
+                
                 extend_terminal_bond_to_bonds(atom, bond, n_bond, avg_bond_length, 2 * thickness, max_dist_double_bond);
 
+		
 
 
                 collapse_atoms(atom, bond, n_atom, n_bond, 3);

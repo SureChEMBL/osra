@@ -130,21 +130,26 @@ int reconnect_fragments(vector<bond_t> &bond, int n_bond, vector<atom_t> &atom, 
                     }
                 if (l < 1.1 * avg && l > avg / 3)
                   {
-                    bond_t b1;
-                    bond.push_back(b1);
-                    bond[n_bond].a = atom1;
-                    bond[n_bond].exists = true;
-                    bond[n_bond].type = 1;
-                    bond[n_bond].b = atom2;
-                    bond[n_bond].curve = atom[atom1].curve;
-                    bond[n_bond].hash = false;
-                    bond[n_bond].wedge = false;
-                    bond[n_bond].up = false;
-                    bond[n_bond].down = false;
-                    bond[n_bond].Small = false;
-                    bond[n_bond].arom = false;
-                    bond[n_bond].conjoined = false;
-                    n_bond++;
+		    //cout<<atom[atom1].label<<" "<<atom[atom2].label<<endl;
+		    
+		    if (atom[atom1].label.length() < 2 &&  atom[atom2].label.length() < 2)
+		      {
+			bond_t b1;
+			bond.push_back(b1);
+			bond[n_bond].a = atom1;
+			bond[n_bond].exists = true;
+			bond[n_bond].type = 1;
+			bond[n_bond].b = atom2;
+			bond[n_bond].curve = atom[atom1].curve;
+			bond[n_bond].hash = false;
+			bond[n_bond].wedge = false;
+			bond[n_bond].up = false;
+			bond[n_bond].down = false;
+			bond[n_bond].Small = false;
+			bond[n_bond].arom = false;
+			bond[n_bond].conjoined = false;
+			n_bond++;
+		      }
                   }
                 if (l <= avg / 3)
                   {

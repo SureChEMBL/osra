@@ -868,7 +868,7 @@ void extend_terminal_bond_to_label(vector<atom_t> &atom, const vector<letters_t>
                 }
             if (found2)
               {
-		//cout<< letters[l2].a<<" "<<letters[l2].x<<" "<<letters[l2].y<<" "<< atom[bond[j].a].x<<" "<< atom[bond[j].a].y<<" "<<bl<<endl;
+		//cout<< letters[l2].a<<" "<<letters[l2].x<<" "<<letters[l2].y<<" "<< atom[bond[j].a].x<<" "<< atom[bond[j].a].y<<" "<<j<<endl;
 		//cout<<"=== "<<fabs(distance_from_bond_x_a(xa, ya, xb, yb, letters[l2].x, letters[l2].y))<<" "<<avg<<" "<< fabs(distance_from_bond_y(xa, ya, xb, yb, letters[l2].x, letters[l2].y))<<" "<<maxh<<" "<<letters[l2].r<<endl;
                 atom[bond[j].a].label = toupper(letters[l2].a);
                 atom[bond[j].a].x = letters[l2].x;
@@ -880,6 +880,7 @@ void extend_terminal_bond_to_label(vector<atom_t> &atom, const vector<letters_t>
               }
             else if (found1)
               {
+		//cout<<label[l1].a<<" "<<label[l1].x1<<" "<<label[l1].y1<<" "<<atom[bond[j].a].x<<" "<<atom[bond[j].a].y<<" "<<j<<endl;
                 atom[bond[j].a].label = label[l1].a;
                 atom[bond[j].a].x = (label[l1].x1 + label[l1].x2) / 2;
                 atom[bond[j].a].y = (label[l1].y1 + label[l1].y2) / 2;
@@ -940,7 +941,7 @@ void extend_terminal_bond_to_label(vector<atom_t> &atom, const vector<letters_t>
 
             if (found2)
               {
-		//cout<<letters[l2].a<<" "<<letters[l2].x<<" "<<letters[l2].y<<" "<< atom[bond[j].b].x<<" "<< atom[bond[j].b].y<<" "<<bl<<endl;
+		//cout<<letters[l2].a<<" "<<letters[l2].x<<" "<<letters[l2].y<<" "<< atom[bond[j].b].x<<" "<< atom[bond[j].b].y<<" "<<j<<endl;
 		//cout<<"=== "<<fabs(distance_from_bond_x_a(xa, ya, xb, yb, letters[l2].x, letters[l2].y))<<" "<<avg<<" "<< fabs(distance_from_bond_y(xa, ya, xb, yb, letters[l2].x, letters[l2].y))<<" "<<maxh<<" "<<letters[l2].r<<endl;
                 atom[bond[j].b].label = toupper(letters[l2].a);
                 atom[bond[j].b].x = letters[l2].x;
@@ -952,6 +953,7 @@ void extend_terminal_bond_to_label(vector<atom_t> &atom, const vector<letters_t>
               }
             else if (found1)
               {
+		//cout<<label[l1].a<<" "<<label[l1].x1<<" "<<label[l1].y1<<" "<<atom[bond[j].b].x<<" "<<atom[bond[j].b].y<<" "<<j<<endl;
                 atom[bond[j].b].label = label[l1].a;
                 atom[bond[j].b].x = (label[l1].x1 + label[l1].x2) / 2;
                 atom[bond[j].b].y = (label[l1].y1 + label[l1].y2) / 2;
@@ -1027,14 +1029,18 @@ void extend_terminal_bond_to_bonds(vector<atom_t> &atom, vector<bond_t> &bond, i
                   }
             if (found)
               {
-                atom[l].x = (atom[bond[j].a].x + atom[l].x) / 2;
-                atom[l].y = (atom[bond[j].a].y + atom[l].y) / 2;
-		atom[l].min_x = min(atom[bond[j].a].min_x ,atom[l].min_x);
-		atom[l].min_y = min(atom[bond[j].a].min_y ,atom[l].min_y);
-		atom[l].max_x = max(atom[bond[j].a].max_x ,atom[l].max_x);
-		atom[l].max_y = max(atom[bond[j].a].max_y ,atom[l].max_y);
-                bond[j].a = l;
-                found_intersection = true;
+		if (atom[l].label.length() < 2 &&  atom[bond[j].a].label.length() < 2)
+		  {
+		    atom[l].x = (atom[bond[j].a].x + atom[l].x) / 2;
+		    atom[l].y = (atom[bond[j].a].y + atom[l].y) / 2;
+		    atom[l].min_x = min(atom[bond[j].a].min_x ,atom[l].min_x);
+		    atom[l].min_y = min(atom[bond[j].a].min_y ,atom[l].min_y);
+		    atom[l].max_x = max(atom[bond[j].a].max_x ,atom[l].max_x);
+		    atom[l].max_y = max(atom[bond[j].a].max_y ,atom[l].max_y);
+		    bond[j].a = l;
+		    found_intersection = true;
+		  }
+		//cout<<atom[bond[j].a].label<<" "<<atom[l].label<<endl;
               }
 
             found = false;
@@ -1081,14 +1087,19 @@ void extend_terminal_bond_to_bonds(vector<atom_t> &atom, vector<bond_t> &bond, i
 
             if (found)
               {
-                atom[l].x = (atom[bond[j].b].x + atom[l].x) / 2;
-                atom[l].y = (atom[bond[j].b].y + atom[l].y) / 2;
-		atom[l].min_x = min(atom[bond[j].b].min_x ,atom[l].min_x);
-		atom[l].min_y = min(atom[bond[j].b].min_y ,atom[l].min_y);
-		atom[l].max_x = max(atom[bond[j].b].max_x ,atom[l].max_x);
-		atom[l].max_y = max(atom[bond[j].b].max_y ,atom[l].max_y);
-                bond[j].b = l;
-                found_intersection = true;
+	
+		if (atom[l].label.length() < 2 &&  atom[bond[j].b].label.length() < 2)
+		  {
+		    atom[l].x = (atom[bond[j].b].x + atom[l].x) / 2;
+		    atom[l].y = (atom[bond[j].b].y + atom[l].y) / 2;
+		    atom[l].min_x = min(atom[bond[j].b].min_x ,atom[l].min_x);
+		    atom[l].min_y = min(atom[bond[j].b].min_y ,atom[l].min_y);
+		    atom[l].max_x = max(atom[bond[j].b].max_x ,atom[l].max_x);
+		    atom[l].max_y = max(atom[bond[j].b].max_y ,atom[l].max_y);
+		    bond[j].b = l;
+		    found_intersection = true;
+		  }
+		//cout<<atom[bond[j].b].label<<" "<<atom[l].label<<endl;
               }
           }
     }

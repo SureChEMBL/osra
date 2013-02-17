@@ -38,14 +38,15 @@
 using namespace OpenBabel;
 
 #define HYDROGEN_ATOMIC_NUM     1
+#define LITHIUM_ATOMIC_NUM      3
 #define CARBON_ATOMIC_NUM       6
 #define OXYGEN_ATOMIC_NUM       8
 #define FLUORINE_ATOMIC_NUM     9
+#define SILICONE_ATOMIC_NUM  14
 #define CHLORINE_ATOMIC_NUM     17
 #define ARGON_ATOMIC_NUM        18
 #define BROMINE_ATOMIC_NUM      35
 #define IODINE_ATOMIC_NUM       53
-#define SILICONE_ATOMIC_NUM  14
 #define URANIUM_ATOMIC_NUM 92
 
 // Look at this issue: https://sourceforge.net/tracker/?func=detail&aid=3425216&group_id=40728&atid=428740
@@ -219,7 +220,7 @@ bool create_atom(OBMol &mol, atom_t &atom, double scale, const map<string, strin
 //
 // Returns:
 //      confidence estimate
-double confidence_function(int C_Count, int N_Count, int O_Count, int F_Count, int S_Count, int Cl_Count, int Br_Count, int Si_Count, int U_Count, int Me_Count,
+double confidence_function(int C_Count, int N_Count, int O_Count, int F_Count, int S_Count, int Cl_Count, int Br_Count, int Si_Count, int U_Count, int Me_Count, int Li_Count,
                            int R_Count, int Xx_Count, int num_rings, int num_aromatic, int num_fragments, const vector<int> &Num_Rings, int Num_HashBonds, int Num_WedgeBonds,
 			   int Num_DoubleBonds, int PositiveCharge)
 {
@@ -234,6 +235,7 @@ double confidence_function(int C_Count, int N_Count, int O_Count, int F_Count, i
                       + 0.066811 * Br_Count //
                       + 0.042631 * Si_Count //
                       - 0.05 * U_Count //
+                      - 0.06 * Li_Count //
                       + 0.01 * R_Count //
                       - 0.02 * Xx_Count //
                       - 0.212739 * num_rings //
@@ -448,6 +450,7 @@ void create_molecule(OBMol &mol, vector<atom_t> &atom, const vector<bond_t> &bon
       int Si_Count = 0;
       int Me_Count = 0;
       int U_Count = 0;
+      int Li_Count = 0;
       int PositiveCharge = 0;
 
       OBAtomIterator atom_iter;
@@ -480,6 +483,8 @@ void create_molecule(OBMol &mol, vector<atom_t> &atom, const vector<bond_t> &bon
             Si_Count++;
 	  else if (a->GetAtomicNum() == URANIUM_ATOMIC_NUM)
 	    U_Count++;
+	  else if (a->GetAtomicNum() == LITHIUM_ATOMIC_NUM)
+	    Li_Count++;
           else if (a->GetAtomicNum() == 0)
             {
               AliasData *ad = (AliasData *) a->GetData("UserLabel");
@@ -498,7 +503,7 @@ void create_molecule(OBMol &mol, vector<atom_t> &atom, const vector<bond_t> &bon
         }
       //cout<<C_Count<<" "<<N_Count<<" "<<O_Count<<" "<<F_Count<<" "<<S_Count<<" "<<Cl_Count<<" "<<Br_Count<<" "<<Si_Count<<" "<<U_Count<<" "<<Me_Count<<" "<<R_Count<<" "<<
       //Xx_Count<<" "<<num_rings<<" "<<num_aromatic<<" "<<molecule_statistics.fragments<<" "<<Num_Rings<<" "<<Num_HashBonds<<" "<<Num_WedgeBonds<<" "<<Num_DoubleBonds<<" "<<PositiveCharge<<endl;
-      *confidence = confidence_function(C_Count, N_Count, O_Count, F_Count, S_Count, Cl_Count, Br_Count, Si_Count, U_Count, Me_Count, R_Count,
+      *confidence = confidence_function(C_Count, N_Count, O_Count, F_Count, S_Count, Cl_Count, Br_Count, Si_Count, U_Count, Me_Count, Li_Count, R_Count,
                                         Xx_Count, num_rings, num_aromatic, molecule_statistics.fragments, Num_Rings, Num_HashBonds, Num_WedgeBonds,Num_DoubleBonds,PositiveCharge);
     }
 
