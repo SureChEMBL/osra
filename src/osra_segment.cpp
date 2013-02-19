@@ -259,6 +259,223 @@ void remove_separators(vector<list<point_t> > &segments, vector<vector<point_t> 
     }
 }
 
+
+double cos_angle_between_points(point_t a, point_t b, point_t c)
+{
+  double v1_x = a.x-b.x;
+  double v1_y = a.y-b.y;
+  double v2_x = c.x-b.x;
+  double v2_y = c.y-b.y;
+  double v1 = sqrt(v1_x*v1_x+v1_y*v1_y);
+  double v2 = sqrt(v2_x*v2_x+v2_y*v2_y);
+  if (v1>0 && v2>0)
+    return (v1_x*v2_x+v1_y*v2_y)/(v1*v2);
+  else
+    return FLT_MAX;
+}
+
+// clockwise actual angle is considered positive
+pair<double,double> find_rotation(point_t top, point_t left, point_t bottom, point_t right)
+{
+  double top_angle = fabs(cos_angle_between_points(left,top,right));
+  double right_angle = fabs(cos_angle_between_points(top,right,bottom));
+  double bottom_angle = fabs(cos_angle_between_points(right,bottom,left));
+  double left_angle = fabs(cos_angle_between_points(bottom,left,top));
+  double dx,dy;
+  if (top_angle<right_angle && top_angle<left_angle && top_angle<bottom_angle)
+    {
+      // angle at the top point is the closest to 90 degrees
+      if (top.x-left.x < right.x - top.x)
+	{
+	  // rotation is clockwise
+	  dx = top.x-left.x;
+	  dy = left.y-top.y;
+	}
+      else
+	{
+	  // rotation is counter-clockwise
+	  dx = top.x-right.x;
+	  dy = right.y-top.y;
+	}
+    }
+  else if (left_angle<right_angle && left_angle<top_angle && left_angle<bottom_angle)
+    {
+      // angle at the left is the closest to 90 degrees 
+      if (bottom.y-left.y < left.y - top.y)
+	{
+	  // clockwise
+	  dx = top.x-left.x;
+	  dy = left.y-top.y;
+	} 
+      else
+	{
+	  // counter-clockwise
+	  dx = left.x-bottom.x;
+	  dy = bottom.y-left.y;
+	}
+    }
+  else if (right_angle<top_angle && right_angle<left_angle && right_angle<bottom_angle)
+    {
+      // angle at the right is the closest to 90 degrees
+      if (right.y - top.y < bottom.y - right.y)
+	{
+	  // clockwise
+	  dx = right.x-bottom.x;
+	  dy = bottom.y-right.y;
+	}
+      else
+	{
+	  // counter-clockwise
+	  dx = top.x-right.x;
+	  dy = right.y-top.y;
+	}
+    }
+  else
+    {
+      // assume that angle at the bottom is the closest to 90 degrees
+      if (right.x-bottom.x < bottom.x-left.x)
+	{
+	  // clockwise
+	  dx = right.x-bottom.x;
+	  dy = bottom.y-right.y;
+	}
+      else 
+	{
+	  // counter-clockwise
+	  dx = left.x - bottom.x;
+	  dy = bottom.y - left.y;
+	}
+    }
+  double s = dx / sqrt(dx*dx+dy*dy);
+  double c = dy / sqrt(dx*dx+dy*dy);
+  return(make_pair(s,c));
+}
+
+int border_count_in_rotated_frame(vector<vector<point_t> >::iterator m,
+				  point_t top_point,point_t left_point,point_t bottom_point,point_t right_point,
+				  pair <double,double> &sin_cos)
+{
+  double s = -sin_cos.first;
+  double c = sin_cos.second;
+
+  double x1 = top_point.x*c-top_point.y*s;
+  double y1 = top_point.x*s+top_point.y*c;
+  double x2 = left_point.x*c-left_point.y*s;
+  double y2 = left_point.x*s+left_point.y*c;
+  double x3 = bottom_point.x*c-bottom_point.y*s;
+  double y3 = bottom_point.x*s+bottom_point.y*c;
+  double x4 = right_point.x*c-right_point.y*s;
+  double y4 = right_point.x*s+right_point.y*c;
+
+  double left = min(min(x1,x2),min(x3,x4));
+  double right = max(max(x1,x2),max(x3,x4));
+  double top = min(min(y1,y2),min(y3,y4));
+  double bottom = max(max(y1,y2),max(y3,y4));
+
+  int border_count = 0;
+  for (vector<point_t>::iterator p = m->begin(); p != m->end(); p++)
+    {
+      double x = c*(p->x) - s*(p->y);
+      double y = s*(p->x) + c*(p->y);
+      
+      if ((x - left)<2 || (right - x) < 2 || (y - top) < 2 || (bottom - y) < 2)
+	border_count++;
+    }
+  return border_count;
+}
+
+
+void remove_tables(vector<list<point_t> > &segments, vector<vector<point_t> > &margins, unsigned int size)
+{
+  vector<list<point_t> >::iterator s;
+  vector<vector<point_t> >::iterator m;
+  s = segments.begin();
+  m = margins.begin();
+
+  while (s != segments.end() && m != margins.end())
+    {
+      if (m->size() <= size)
+        {
+          s++;
+          m++;
+          continue;
+        }
+
+      int top = INT_MAX, left = INT_MAX, bottom = 0, right = 0;
+      point_t left_point,top_point,right_point,bottom_point;
+      for (vector<point_t>::iterator p = m->begin(); p != m->end(); p++)
+        {
+          if (p->x < left)
+	    {
+	      left = p->x;
+	      left_point = *p;
+	    }
+          if (p->x > right)
+	    {
+	      right = p->x;
+	      right_point = *p;
+	    }
+          if (p->y < top)
+	    {
+	      top = p->y;
+	      top_point = *p;
+	    }
+          if (p->y > bottom)
+	    {
+	      bottom = p->y;
+	      bottom_point = *p;
+	    }
+        }
+
+      double aspect = FLT_MAX;
+      if (right != left)
+        aspect = 1. * (bottom - top) / (right - left);
+      if (aspect >= MAX_ASPECT || aspect <= 1./MAX_ASPECT)
+        {
+          s++;
+          m++;
+          continue;
+        }
+
+      double area = s->size();
+      double square_area = (bottom - top+1) * (right - left+1);
+      double ratio = 0;
+      if (square_area != 0)
+	ratio = area / square_area;
+      if (ratio > MAX_RATIO || ratio == 0)
+	{
+          s++;
+          m++;
+          continue;
+        }
+      pair<double,double> zero_angle = make_pair(0,1);
+      int border_count = border_count_in_rotated_frame(m,top_point,left_point,bottom_point,right_point,zero_angle);
+
+      if (PARTS_IN_MARGIN*border_count > BORDER_COUNT)
+        {
+          s = segments.erase(s);
+          m = margins.erase(m);
+        }
+      else
+        {
+	  // perform rotation
+	  pair<double,double> sin_cos = find_rotation(top_point,left_point,bottom_point,right_point);
+	  int rotated_border_count = border_count_in_rotated_frame(m,top_point,left_point,bottom_point,right_point,sin_cos);
+	  if (PARTS_IN_MARGIN*rotated_border_count > BORDER_COUNT)
+	    {
+	      s = segments.erase(s);
+	      m = margins.erase(m);
+	    }
+	  else
+	    { 
+	      s++;
+	      m++;
+	    }
+        }
+    }
+}
+
+/*
 void remove_tables(vector<list<point_t> > &segments, vector<vector<point_t> > &margins, unsigned int size)
 {
   vector<list<point_t> >::iterator s;
@@ -319,6 +536,7 @@ void remove_tables(vector<list<point_t> > &segments, vector<vector<point_t> > &m
         }
     }
 }
+*/
 
 list<list<int> > assemble_clusters(const vector<vector<point_t> > &margins, int dist,
                                    const vector<vector<int> > &distance_matrix, vector<int> &avail, bool text,
