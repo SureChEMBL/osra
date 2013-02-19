@@ -180,24 +180,29 @@ int assemble_labels(vector<letters_t> &letters, int n_letters, vector<label_t> &
     {
       //            cout<<letters[i].a<<" "<<letters[i].min_x<<" "<<letters[i].min_y<<" "<<letters[i].max_x<<" "<<letters[i].max_y<<endl;
       for (int j = i + 1; j < letters.size(); j++)
-        if ((distance(letters[i].x, letters[i].y, letters[j].x, letters[j].y) < 2 * max(letters[i].r, letters[j].r)
-             && (((fabs(letters[i].y - letters[j].y) < min(letters[i].r, letters[j].r))) || ((fabs(letters[i].y
-                 - letters[j].y) < (letters[i].r + letters[j].r)) && (((letters[i].y < letters[j].y)
-                     && (isdigit(letters[j].a))) || ((letters[j].y < letters[i].y) && (isdigit(letters[i].a)))))))
-            || (distance(letters[i].x, letters[i].y, letters[j].x, letters[j].y) < 1.5 * (letters[i].r
-                + letters[j].r) && (letters[i].a == '-' || letters[i].a == '+' || letters[j].a == '-'
-                                    || letters[j].a == '+')))
-          {
-            lbond_t lb;
-            lb.a = i;
-            lb.b = j;
-            lb.x = letters[i].x;
-            lb.exists = true;
-            lbond.push_back(lb);
-            letters[i].free = false;
-            letters[j].free = false;
-            break;
-          }
+	{
+	  bool digits = fabs(letters[i].y - letters[j].y) < (letters[i].r + letters[j].r) 
+							    && ((letters[i].y < letters[j].y  && isdigit(letters[j].a)) || ((letters[j].y < letters[i].y) && isdigit(letters[i].a)));
+	  bool alphanum = distance(letters[i].x, letters[i].y, letters[j].x, letters[j].y) < 2 * max(letters[i].r, letters[j].r)
+											     && (fabs(letters[i].y - letters[j].y) < min(letters[i].r, letters[j].r) 
+												 || fabs(letters[i].x - letters[j].x) < min(letters[i].r, letters[j].r)
+												 || digits);
+	  bool signs = distance(letters[i].x, letters[i].y, letters[j].x, letters[j].y) < 1.5 * (letters[i].r + letters[j].r) 
+											  && ((letters[i].y < letters[j].y && (letters[i].a == '-' || letters[i].a == '+')) || 
+											      (letters[j].y < letters[i].y && (letters[j].a == '-' || letters[j].a == '+')));
+	  if (alphanum || signs)
+	    {
+	      lbond_t lb;
+	      lb.a = i;
+	      lb.b = j;
+	      lb.x = letters[i].x;
+	      lb.exists = true;
+	      lbond.push_back(lb);
+	      letters[i].free = false;
+	      letters[j].free = false;
+	      break;
+	    }
+	}
     }
 
   std::sort(lbond.begin(), lbond.end(), comp_lbonds);

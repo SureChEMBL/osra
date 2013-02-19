@@ -208,6 +208,7 @@ HS S
 O2S SO2
 
 lH H
+1H H
 
 AcNH NHAc
 AcHN NHAc

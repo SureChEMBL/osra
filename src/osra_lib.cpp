@@ -880,20 +880,21 @@ int osra_process_image(
 					      thickness, max_dist_double_bond);
 
 
-		/*if (ttt++ == 3) {
-		  debug_image(orig_box, atom, n_atom, bond, n_bond, "tmp.png");
-		  }*/
+	
 
                 remove_disconnected_atoms(atom, bond, n_atom, n_bond);
                 collapse_atoms(atom, bond, n_atom, n_bond, thickness);
                 collapse_doubleup_bonds(bond, n_bond);
 
+	
                 remove_zero_bonds(bond, n_bond, atom);
                 flatten_bonds(bond, n_bond, atom, thickness);
                 remove_zero_bonds(bond, n_bond, atom);
                 remove_disconnected_atoms(atom, bond, n_atom, n_bond);
 
-		
+	if (ttt++ == 1) {
+		  debug_image(orig_box, atom, n_atom, bond, n_bond, "tmp.png");
+		  }	
                 
                 extend_terminal_bond_to_bonds(atom, bond, n_bond, avg_bond_length, 2 * thickness, max_dist_double_bond);
 

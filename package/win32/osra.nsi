@@ -57,7 +57,7 @@ Section "osra (required)"
   SetOutPath $INSTDIR
   
   ; Put file there
-  File "osra.exe"
+  File "osra-bin.exe"
   File "delegates.mgk"
   File "type.mgk"
   File "type-ghostscript.mgk"
@@ -166,7 +166,7 @@ Section "Uninstall"
   SendMessage ${HWND_BROADCAST} ${WM_WININICHANGE} 0 "STR:Environment" /TIMEOUT=5000
 
   ; Remove files and uninstaller
-  Delete $INSTDIR\osra.exe
+  Delete $INSTDIR\osra-bin.exe
   Delete $INSTDIR\delegates.mgk
   Delete $INSTDIR\type.mgk
   Delete $INSTDIR\type-ghostscript.mgk
@@ -344,7 +344,7 @@ set exec_dir=%~dp0%$\r$\n\
 set OMP_NUM_THREADS=1$\r$\n\
 set PATH=%exec_dir%;$1\bin;$1\lib;%PATH%$\r$\n\
 set MAGICK_CONFIGURE_PATH=%exec_dir%$\r$\n\
-"%exec_dir%osra.exe" %*$\r$\n\
+"%exec_dir%osra-bin.exe" %*$\r$\n\
 endlocal$\r$\n\
 '
 fileClose $0
