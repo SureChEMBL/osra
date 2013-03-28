@@ -396,3 +396,6 @@ void find_limits_on_avg_bond(double &min_bond, double &max_bond, const vector<ve
 //
 // Returns: number of bonds
 int find_wavy_bonds(vector<bond_t> &bond,int n_bond,const vector<atom_t> &atom,double avg);
+
+
+void remove_small_bonds_in_chars(vector<atom_t> &atom, vector<bond_t> &bond,vector<letters_t> &letters);

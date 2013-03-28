@@ -2901,3 +2901,14 @@ void find_limits_on_avg_bond(double &min_bond, double &max_bond, const vector<ve
   max_bond++;
 }
 
+void remove_small_bonds_in_chars(vector<atom_t> &atom, vector<bond_t> &bond,vector<letters_t> &letters)
+{
+  for (int i = 0; i < bond.size(); i++)
+    if (bond[i].exists)
+      for (int j=0; j < letters.size(); j++)
+	if (atom[bond[i].a].x >= letters[j].min_x && atom[bond[i].a].x <= letters[j].max_x &&
+	    atom[bond[i].a].y >= letters[j].min_y && atom[bond[i].a].y <= letters[j].max_y &&
+	    atom[bond[i].b].x >= letters[j].min_x && atom[bond[i].b].x <= letters[j].max_x &&
+	    atom[bond[i].b].y >= letters[j].min_y && atom[bond[i].b].y <= letters[j].max_y)
+	  bond[i].exists = false;
+}

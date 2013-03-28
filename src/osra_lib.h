@@ -64,6 +64,7 @@ int osra_process_image(
   bool show_page = false,
   bool show_coordinates = false,
   bool show_avg_bond_length = false,
+  bool show_learning = false,
   const string &osra_dir = "",
   const string &spelling_file = "",
   const string &superatom_file = "",

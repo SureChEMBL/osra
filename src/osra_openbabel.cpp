@@ -220,35 +220,14 @@ bool create_atom(OBMol &mol, atom_t &atom, double scale, const map<string, strin
 //
 // Returns:
 //      confidence estimate
-double confidence_function(int C_Count, int N_Count, int O_Count, int F_Count, int S_Count, int Cl_Count, int Br_Count, int Si_Count, int U_Count, int Me_Count, int Li_Count,
-                           int R_Count, int Xx_Count, int num_rings, int num_aromatic, int num_fragments, const vector<int> &Num_Rings, int Num_HashBonds, int Num_WedgeBonds,
-			   int Num_DoubleBonds, int PositiveCharge)
+double confidence_function(int* x, int n)
 {
-  double confidence = 0.316030 //
-                      - 0.016315 * C_Count //
-                      + 0.02 * Me_Count //
-                      + 0.034336 * N_Count //
-                      + 0.066810 * O_Count //
-                      + 0.035674 * F_Count //
-                      + 0.065504 * S_Count //
-                      + 0.04 * Cl_Count //
-                      + 0.066811 * Br_Count //
-                      + 0.042631 * Si_Count //
-                      - 0.05 * U_Count //
-                      - 0.06 * Li_Count //
-                      + 0.01 * R_Count //
-                      - 0.02 * Xx_Count //
-                      - 0.212739 * num_rings //
-                      + 0.071300 * num_aromatic //
-                      + 0.329922 * Num_Rings[5] //
-                      + 0.342865 * Num_Rings[6] //
-                      + 0.01632 * Num_HashBonds //
-                      + 0.00010 * Num_WedgeBonds //
-                      + 0.00010 * Num_DoubleBonds
-                      + 0.00010 * PositiveCharge //
-                      - 0.037796 * num_fragments;
-
-  return (confidence);
+  double c[] = {-0.11469143725730054, 0.15723547931889853, 0.19765680222250673, 0.249101590474403, 0.1897669087341134, 0.19588348907301223, 0.3354622208036507, 0.16779269801176255, -0.21232000222198893, 0.016958281784354032, -0.08672059360133752, -0.05105752296619957, -0.349912750824004, 0.18836317536530647, 0.22316782354758827, 0.27741998968081166, 0.25710999274481955, 0.27968899280120096, 0.12695166847876285, -0.10020778884718293, 0.05150631410596443, 0.22283571763712148, 0.23130179826714167, 0.1049054095759948, 0.05333970810460394, -0.12491056666737535};
+  double r = 0;
+  for (int i=0; i<n; i++)
+    r += c[i]*x[i];
+   
+  return (r);
 }
 
 void SetTetrahedtalUnknown(OBMolAtomIter atom)
@@ -287,7 +266,7 @@ void SetTetrahedtalUnknown(OBMolAtomIter atom)
 //      superatom - dictionary of superatom labels mapped to SMILES
 //      verbose - print debug info
 void create_molecule(OBMol &mol, vector<atom_t> &atom, const vector<bond_t> &bond, int n_bond, double avg_bond_length, molecule_statistics_t &molecule_statistics,
-                     bool generate_2D_coordinates, double * const confidence, const map<string, string> &superatom, bool verbose)
+                     bool generate_2D_coordinates, double * const confidence, const map<string, string> &superatom, int n_letters, string * const confidence_parameters, bool verbose)
 {
   string str;
   double scale = CC_BOND_LENGTH / avg_bond_length;
@@ -503,8 +482,21 @@ void create_molecule(OBMol &mol, vector<atom_t> &atom, const vector<bond_t> &bon
         }
       //cout<<C_Count<<" "<<N_Count<<" "<<O_Count<<" "<<F_Count<<" "<<S_Count<<" "<<Cl_Count<<" "<<Br_Count<<" "<<Si_Count<<" "<<U_Count<<" "<<Me_Count<<" "<<R_Count<<" "<<
       //Xx_Count<<" "<<num_rings<<" "<<num_aromatic<<" "<<molecule_statistics.fragments<<" "<<Num_Rings<<" "<<Num_HashBonds<<" "<<Num_WedgeBonds<<" "<<Num_DoubleBonds<<" "<<PositiveCharge<<endl;
-      *confidence = confidence_function(C_Count, N_Count, O_Count, F_Count, S_Count, Cl_Count, Br_Count, Si_Count, U_Count, Me_Count, Li_Count, R_Count,
-                                        Xx_Count, num_rings, num_aromatic, molecule_statistics.fragments, Num_Rings, Num_HashBonds, Num_WedgeBonds,Num_DoubleBonds,PositiveCharge);
+      int x[] = {C_Count,N_Count,O_Count,F_Count,S_Count,Cl_Count,Br_Count,Si_Count,U_Count,Me_Count,Li_Count,R_Count, Xx_Count,num_rings,num_aromatic,molecule_statistics.fragments,Num_Rings[5],Num_Rings[6],Num_HashBonds,Num_WedgeBonds,Num_DoubleBonds,PositiveCharge,n_letters,mol.NumAtoms(),mol.NumHvyAtoms(),mol.NumBonds()};
+      int n = sizeof(x)/sizeof(int);
+      *confidence = confidence_function(x,n);
+      
+      if (confidence_parameters)
+	{
+	  stringstream cpss;
+	  //       0           1             2              3              4            5               6             7              8             9             10             11
+	  cpss<<C_Count<<","<<N_Count<<","<<O_Count<<","<<F_Count<<","<<S_Count<<","<<Cl_Count<<","<< Br_Count<<","<<Si_Count<<","<<U_Count<<","<<Me_Count<<","<<Li_Count<<","<<R_Count<<","<<
+	    //  12           13             14                   15                                16                 17                  18                   19                    20                 
+	    Xx_Count<<","<<num_rings<<","<<num_aromatic<<","<<molecule_statistics.fragments<<","<<Num_Rings[5]<<","<<Num_Rings[6]<<","<<Num_HashBonds<<","<<Num_WedgeBonds<<","<<Num_DoubleBonds
+	    //            21                  22            23                   24                       25
+	      <<","<<PositiveCharge<<","<<n_letters<<","<<mol.NumAtoms()<<","<<mol.NumHvyAtoms()<<","<<mol.NumBonds();
+	  *confidence_parameters = cpss.str();
+	}
     }
 
   if (generate_2D_coordinates)
@@ -526,7 +518,7 @@ molecule_statistics_t caclulate_molecule_statistics(vector<atom_t> &atom, const 
   #pragma omp critical
   {
     OBMol mol;
-    create_molecule(mol, atom, bond, n_bond, avg_bond_length, molecule_statistics, false, NULL, superatom, false);
+    create_molecule(mol, atom, bond, n_bond, avg_bond_length, molecule_statistics, false, NULL, superatom, 0, NULL, false);
     mol.Clear();
   }
 
@@ -539,13 +531,15 @@ molecule_statistics_t caclulate_molecule_statistics(vector<atom_t> &atom, const 
 const string get_formatted_structure(vector<atom_t> &atom, const vector<bond_t> &bond, int n_bond, const string &format, const string &embedded_format, molecule_statistics_t &molecule_statistics,
                                      double &confidence, bool show_confidence, double avg_bond_length, double scaled_avg_bond_length, bool show_avg_bond_length, const int * const resolution,
                                      const int * const page, const box_t * const surrounding_box,
-                                     const map<string, string> &superatom, bool verbose)
+                                     const map<string, string> &superatom, int n_letters, bool show_learning, int resolution_iteration, bool verbose)
 {
   ostringstream strstr;
   #pragma omp critical
   {
     OBMol mol;
-    create_molecule(mol, atom, bond, n_bond, avg_bond_length, molecule_statistics, format == "sdf" || format == "mol" || format == "sd" || format == "mdl", &confidence, superatom, verbose);
+    string confidence_parameters;
+    create_molecule(mol, atom, bond, n_bond, avg_bond_length, molecule_statistics, format == "sdf" || format == "mol" || format == "sd" || format == "mdl", &confidence, superatom, 
+		    n_letters, &confidence_parameters, verbose);
 
     // Add hydrogens to the entire molecule to fill out implicit valence spots:
     mol.AddHydrogens(true, false); // polarOnly, correctForPh
@@ -579,6 +573,24 @@ const string get_formatted_structure(vector<atom_t> &atom, const vector<bond_t> 
         cs << confidence;
         label->SetValue(cs.str());
         mol.SetData(label);
+      }
+
+    if (show_learning)
+      {
+        OBPairData *label = new OBPairData;
+        label->SetAttribute("Confidence_parameters");
+        ostringstream cs;
+        cs << confidence_parameters;
+        label->SetValue(cs.str());
+        mol.SetData(label);
+
+	OBPairData *label1 = new OBPairData;
+        label1->SetAttribute("Resolution_iteration");
+        ostringstream cs1;
+        cs1 << resolution_iteration;
+        label1->SetValue(cs1.str());
+        mol.SetData(label1);
+	
       }
 
     if (show_avg_bond_length)
@@ -668,6 +680,8 @@ const string get_formatted_structure(vector<atom_t> &atom, const vector<bond_t> 
           strstr << " " << *resolution;
         if (show_confidence)
           strstr << " " << confidence;
+	if (show_learning)
+          strstr << " " << confidence_parameters<<" "<<resolution_iteration;
         if (page)
           strstr << " " << *page;
         if (surrounding_box)

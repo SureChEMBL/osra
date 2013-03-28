@@ -176,6 +176,7 @@ typedef struct bond_s bond_t;
 #define STRUCTURE_COUNT 20
 #define SPELLING_TXT "spelling.txt"
 #define SUPERATOM_TXT "superatom.txt"
+#define RECOGNIZED_CHARS "oOcCnNHFsSBuUgMeEXYZRPp23456789AmThD"
 
 #define ERROR_SPELLING_FILE_IS_MISSING          -1
 #define ERROR_SUPERATOM_FILE_IS_MISSING         -2

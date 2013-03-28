@@ -28,6 +28,7 @@
 
 #include <list> // sdt::list
 #include <vector> // std::vector
+#include <set>
 #include <algorithm> // std::sort, std::min(double, double), std::max(double, double)
 #include <iostream> // std::ostream, std::cout
 #include <fstream> // std::ofstream, std::ifstream
@@ -328,6 +329,9 @@ void split_fragments_and_assemble_structure_record(vector<atom_t> &atom,
 						   vector<vector<box_t> > &array_of_boxes,
 						   int &total_boxes,
 						   double &total_confidence,
+						   int n_letters,
+						   bool show_learning,
+						   int resolution_iteration,
 						   bool verbose)
 {
   vector<atom_t> frag_atom;
@@ -419,7 +423,7 @@ void split_fragments_and_assemble_structure_record(vector<atom_t> &atom,
                                         show_avg_bond_length,
                                         show_resolution_guess ? &resolution : NULL,
                                         show_page ? &page_number : NULL,
-                                        show_coordinates ? &coordinate_box : NULL, superatom, verbose);
+                                        show_coordinates ? &coordinate_box : NULL, superatom, n_letters, show_learning, resolution_iteration, verbose);
 
               if (molecule_statistics.fragments > 0 && molecule_statistics.fragments < MAX_FRAGMENTS && molecule_statistics.num_atoms>MIN_A_COUNT && molecule_statistics.num_bonds>0)
                 {
@@ -429,6 +433,8 @@ void split_fragments_and_assemble_structure_record(vector<atom_t> &atom,
 		  array_of_boxes[res_iter].push_back(rel_box);
                   total_boxes++;
                   total_confidence += confidence;
+		  if (verbose)
+		    cout<<"Result: "<<res_iter<<" "<<structure<<" "<<confidence<<endl;
                   if (!output_image_file_prefix.empty())
                     {
                       Image tmp = image;
@@ -457,6 +463,26 @@ void split_fragments_and_assemble_structure_record(vector<atom_t> &atom,
             }
         }
     }
+}
+
+int count_recognized_chars(vector<atom_t>  &atom, vector<bond_t>& bond)
+{
+  string char_filter = "oOcCNHsSBMeEXYZRPp23456789AF";
+  set<int> atoms;
+  for (int i=0; i<bond.size(); i++)
+    if (bond[i].exists)
+      {
+	atoms.insert(bond[i].a);
+	atoms.insert(bond[i].b);
+      }
+  int r = 0;
+  for (set<int>::iterator a=atoms.begin(); a != atoms.end(); a++)
+    for (int i=0; i<atom[*a].label.size(); i++)
+    {
+      if (char_filter.find(atom[*a].label[i]) != string::npos)
+	r++;
+    }
+  return r;
 }
 
 extern job_t *OCR_JOB;
@@ -519,6 +545,7 @@ int osra_process_image(
   bool show_page,
   bool show_coordinates,
   bool show_avg_bond_length,
+  bool show_learning,
   const string &osra_dir,
   const string &spelling_file,
   const string &superatom_file,
@@ -798,6 +825,9 @@ int osra_process_image(
 
                 n_atom = find_small_bonds(p, atom, bond, n_atom, &n_bond, max_area, avg_bond_length / 2, 5);
 
+		//remove_small_bonds_in_chars(atom,bond,letters);
+
+
                 find_old_aromatic_bonds(p, bond, n_bond, atom, n_atom, avg_bond_length);
 
                 if (verbose)
@@ -824,6 +854,8 @@ int osra_process_image(
                 flatten_bonds(bond, n_bond, atom, 3);
                 remove_zero_bonds(bond, n_bond, atom);
                 avg_bond_length = percentile75(bond, n_bond, atom);
+
+
 
                 if (verbose)
                   cout << "Average bond length: " << avg_bond_length << endl;
@@ -879,8 +911,10 @@ int osra_process_image(
                 extend_terminal_bond_to_label(atom, letters, n_letters, bond, n_bond, label, n_label, avg_bond_length / 2,
 					      thickness, max_dist_double_bond);
 
-
-	
+		/*if (ttt++ == 3) {
+		  debug_image(orig_box, atom, n_atom, bond, n_bond, "tmp.png");
+		  }	
+		*/
 
                 remove_disconnected_atoms(atom, bond, n_atom, n_bond);
                 collapse_atoms(atom, bond, n_atom, n_bond, thickness);
@@ -892,9 +926,7 @@ int osra_process_image(
                 remove_zero_bonds(bond, n_bond, atom);
                 remove_disconnected_atoms(atom, bond, n_atom, n_bond);
 
-	if (ttt++ == 1) {
-		  debug_image(orig_box, atom, n_atom, bond, n_bond, "tmp.png");
-		  }	
+	
                 
                 extend_terminal_bond_to_bonds(atom, bond, n_bond, avg_bond_length, 2 * thickness, max_dist_double_bond);
 
@@ -910,6 +942,7 @@ int osra_process_image(
 	
                 n_letters = clean_unrecognized_characters(bond, n_bond, atom, real_font_height, real_font_width, 0,
                             letters, n_letters);
+		int recognized_chars = count_recognized_chars(atom,bond);
 	
                 assign_charge(atom, bond, n_atom, n_bond, spelling, superatom, debug);
                 find_up_down_bonds(bond, n_bond, atom, thickness);
@@ -917,15 +950,16 @@ int osra_process_image(
                 int bond_max_type = 0;
                 int real_bonds = count_bonds(bond, n_bond,bond_max_type);
 
-
                 if (verbose)
                   cout << "Final number of atoms: " << real_atoms << ", bonds: " << real_bonds << ", chars: " << n_letters << '.' << endl;
 
                 split_fragments_and_assemble_structure_record(atom,n_atom,bond,n_bond,boxes,
 							      l,k,resolution,res_iter,output_image_file_prefix,image,orig_box,real_font_width,real_font_height,
 							      thickness,avg_bond_length,superatom,real_atoms,real_bonds,bond_max_type,
-							      box_scale,page_scale,rotation,unpaper_dx,unpaper_dy,output_format,embedded_format,is_reaction,show_confidence,show_resolution_guess,show_page,show_coordinates,
-							      show_avg_bond_length,array_of_structures,array_of_avg_bonds,array_of_ind_conf,array_of_images,array_of_boxes,total_boxes,total_confidence,verbose);
+							      box_scale,page_scale,rotation,unpaper_dx,unpaper_dy,output_format,embedded_format,is_reaction,show_confidence,
+							      show_resolution_guess,show_page,show_coordinates, show_avg_bond_length,array_of_structures,
+							      array_of_avg_bonds,array_of_ind_conf,array_of_images,array_of_boxes,total_boxes,total_confidence,
+							      recognized_chars,show_learning,res_iter,verbose);
 
                 if (st != NULL)
                   potrace_state_free(st);
@@ -951,19 +985,32 @@ int osra_process_image(
 	    max_res = i;
 	    break;
 	  }
-
+      
       #pragma omp critical
       {
-        for (unsigned int i = 0; i < array_of_structures[max_res].size(); i++)
-          {
-            pages_of_structures[l].push_back(array_of_structures[max_res][i]);
-            if (!output_image_file_prefix.empty())
-              pages_of_images[l].push_back(array_of_images[max_res][i]);
-            pages_of_avg_bonds[l].push_back(array_of_avg_bonds[max_res][i]);
-            pages_of_ind_conf[l].push_back(array_of_ind_conf[max_res][i]);
-	    pages_of_boxes[l].push_back(array_of_boxes[max_res][i]);
-            total_structure_count++;
-          }
+	if (!show_learning)
+	  for (unsigned int i = 0; i < array_of_structures[max_res].size(); i++)
+	    {
+	      pages_of_structures[l].push_back(array_of_structures[max_res][i]);
+	      if (!output_image_file_prefix.empty())
+		pages_of_images[l].push_back(array_of_images[max_res][i]);
+	      pages_of_avg_bonds[l].push_back(array_of_avg_bonds[max_res][i]);
+	      pages_of_ind_conf[l].push_back(array_of_ind_conf[max_res][i]);
+	      pages_of_boxes[l].push_back(array_of_boxes[max_res][i]);
+	      total_structure_count++;
+	    }
+	else
+	  for (int j = 0; j < num_resolutions; j++)
+	    for (unsigned int i = 0; i < array_of_structures[j].size(); i++)
+	    {
+	      pages_of_structures[l].push_back(array_of_structures[j][i]);
+	      if (!output_image_file_prefix.empty())
+		pages_of_images[l].push_back(array_of_images[j][i]);
+	      pages_of_avg_bonds[l].push_back(array_of_avg_bonds[j][i]);
+	      pages_of_ind_conf[l].push_back(array_of_ind_conf[j][i]);
+	      pages_of_boxes[l].push_back(array_of_boxes[j][i]);
+	      total_structure_count++;
+	    }
       }
     }
 

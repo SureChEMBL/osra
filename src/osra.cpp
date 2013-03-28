@@ -118,6 +118,9 @@ int main(int argc,
   TCLAP::ValueArg<string> output_file_option("w", "write", "Write recognized structures to text file", false, "", "filename");
   cmd.add(output_file_option);
 
+  TCLAP::SwitchArg show_learning_option("", "learn", "Print out all structure guesses with confidence parameters", false);
+  cmd.add(show_learning_option);
+
   cmd.parse(argc, argv);
 
   // Calculating the current dir:
@@ -143,6 +146,7 @@ int main(int argc,
                  show_page_option.getValue(),
                  show_coordinates_option.getValue(),
                  show_avg_bond_length_option.getValue(),
+		 show_learning_option.getValue(),
                  osra_dir,
                  spelling_file_option.getValue(),
                  superatom_file_option.getValue(),
