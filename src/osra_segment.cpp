@@ -259,6 +259,66 @@ void remove_separators(vector<list<point_t> > &segments, vector<vector<point_t> 
     }
 }
 
+void remove_tables_old(vector<list<point_t> > &segments, vector<vector<point_t> > &margins, unsigned int size)
+{
+  vector<list<point_t> >::iterator s;
+  vector<vector<point_t> >::iterator m;
+  s = segments.begin();
+  m = margins.begin();
+
+  while (s != segments.end() && m != margins.end())
+    {
+      if (m->size() <= size)
+        {
+          s++;
+          m++;
+          continue;
+        }
+
+      int top = INT_MAX, left = INT_MAX, bottom = 0, right = 0;
+      int border_count = 0;
+      for (vector<point_t>::iterator p = m->begin(); p != m->end(); p++)
+        {
+          if (p->x < left)
+            left = p->x;
+          if (p->x > right)
+            right = p->x;
+          if (p->y < top)
+            top = p->y;
+          if (p->y > bottom)
+            bottom = p->y;
+        }
+
+      double aspect = FLT_MAX;
+      if (right != left)
+        aspect = 1. * (bottom - top) / (right - left);
+      if (aspect >= MAX_ASPECT || aspect <= MIN_ASPECT)
+        {
+          s++;
+          m++;
+          continue;
+        }
+
+      for (vector<point_t>::iterator p = m->begin(); p != m->end(); p++)
+        if (p->x - left < 2 || right - p->x < 2 || p->y - top < 2 || bottom - p->y < 2)
+          {
+            border_count++;
+          }
+
+      //cout << border_count << " " << 2 * (right - left) + 2 * (bottom - top) << endl;
+
+      if (border_count > BORDER_COUNT)
+        {
+          s = segments.erase(s);
+          m = margins.erase(m);
+        }
+      else
+        {
+          s++;
+          m++;
+        }
+    }
+}
 
 double cos_angle_between_points(point_t a, point_t b, point_t c)
 {
@@ -461,7 +521,8 @@ void remove_tables(vector<list<point_t> > &segments, vector<vector<point_t> > &m
 	  // perform rotation
 	  pair<double,double> sin_cos = find_rotation(top_point,left_point,bottom_point,right_point);
 	  int rotated_border_count = border_count_in_rotated_frame(m,top_point,left_point,bottom_point,right_point,sin_cos);
-	  if (PARTS_IN_MARGIN*rotated_border_count > BORDER_COUNT)
+
+	    if (PARTS_IN_MARGIN*rotated_border_count > BORDER_COUNT && fabs(sin_cos.first)<sin(10*PI/180) && sin_cos.second>cos(10*PI/180))
 	    {
 	      s = segments.erase(s);
 	      m = margins.erase(m);
@@ -474,69 +535,6 @@ void remove_tables(vector<list<point_t> > &segments, vector<vector<point_t> > &m
         }
     }
 }
-
-/*
-void remove_tables(vector<list<point_t> > &segments, vector<vector<point_t> > &margins, unsigned int size)
-{
-  vector<list<point_t> >::iterator s;
-  vector<vector<point_t> >::iterator m;
-  s = segments.begin();
-  m = margins.begin();
-
-  while (s != segments.end() && m != margins.end())
-    {
-      if (m->size() <= size)
-        {
-          s++;
-          m++;
-          continue;
-        }
-
-      int top = INT_MAX, left = INT_MAX, bottom = 0, right = 0;
-      int border_count = 0;
-      for (vector<point_t>::iterator p = m->begin(); p != m->end(); p++)
-        {
-          if (p->x < left)
-            left = p->x;
-          if (p->x > right)
-            right = p->x;
-          if (p->y < top)
-            top = p->y;
-          if (p->y > bottom)
-            bottom = p->y;
-        }
-
-      double aspect = FLT_MAX;
-      if (right != left)
-        aspect = 1. * (bottom - top) / (right - left);
-      if (aspect >= MAX_ASPECT || aspect <= MIN_ASPECT)
-        {
-          s++;
-          m++;
-          continue;
-        }
-
-      for (vector<point_t>::iterator p = m->begin(); p != m->end(); p++)
-        if (p->x - left < 2 || right - p->x < 2 || p->y - top < 2 || bottom - p->y < 2)
-          {
-            border_count++;
-          }
-
-      //cout << border_count << " " << 2 * (right - left) + 2 * (bottom - top) << endl;
-
-      if (border_count > BORDER_COUNT)
-        {
-          s = segments.erase(s);
-          m = margins.erase(m);
-        }
-      else
-        {
-          s++;
-          m++;
-        }
-    }
-}
-*/
 
 list<list<int> > assemble_clusters(const vector<vector<point_t> > &margins, int dist,
                                    const vector<vector<int> > &distance_matrix, vector<int> &avail, bool text,

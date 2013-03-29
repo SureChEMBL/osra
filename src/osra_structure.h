@@ -29,7 +29,6 @@
 #include "osra.h"
 #include "osra_labels.h"
 
-#define PI 3.14159265358979323846
 
 
 //struct: dash_s

@@ -139,6 +139,7 @@ typedef struct bond_s bond_t;
 // STRUCTURE_COUNT - threshold number of structures to compute limits on average bond length
 // SPELLING_TXT - spelling file for OCR corrections
 // SUPERATOM_TXT - superatom file for mapping labels to SMILES
+#define PI 3.14159265358979323846
 #define MAX_ATOMS 10000
 #define MAX_FONT_HEIGHT 22
 #define MAX_FONT_WIDTH 21
@@ -170,7 +171,7 @@ typedef struct bond_s bond_t;
 #define THRESHOLD_LEVEL 4
 #define TEXT_LINE_SIZE 8
 #define PARTS_IN_MARGIN 2
-#define BORDER_COUNT 300
+#define BORDER_COUNT 3000
 #define MAX_SEGMENTS 10000
 #define MAX_FRAGMENTS 10
 #define STRUCTURE_COUNT 20
