@@ -32,6 +32,10 @@
 
 #include <Magick++.h>
 
+extern "C" {
+#include <potracelib.h>
+}
+
 #include "osra.h"
 
 using namespace std;
@@ -52,6 +56,9 @@ struct letters_s
   // bool: free
   // whether or not it was already assign to an existing atomic label
   bool free;
+  // pointer: curve
+  //    pointer to the curve found by Potrace
+  const potrace_path_t *curve;
 };
 // typedef: letters_t
 // defines letters_t type based on letters_s struct

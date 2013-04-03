@@ -211,6 +211,7 @@ bool no_white_space(int ai, int bi, int aj, int bj, const vector<atom_t> &atom, 
 
 int find_wavy_bonds(vector<bond_t> &bond,int n_bond,const vector<atom_t> &atom,double avg)
 {
+  int n_bond_orig = n_bond;
   bool found = true;
   while (found)
     {
@@ -218,7 +219,7 @@ int find_wavy_bonds(vector<bond_t> &bond,int n_bond,const vector<atom_t> &atom,d
       set<int> bag;
       int begin = 0;
       int end = 0;
-      for (int i = 0; i < n_bond; i++)
+      for (int i = 0; i < n_bond_orig; i++)
 	if (bond[i].exists && !bond[i].Small)
 	  {
 	    double l = bond_length(bond, i, atom);
@@ -234,7 +235,7 @@ int find_wavy_bonds(vector<bond_t> &bond,int n_bond,const vector<atom_t> &atom,d
       while (found)
 	{
 	  found = false;
-	  for (int i = 0; i < n_bond; i++)
+	  for (int i = 0; i < n_bond_orig; i++)
 	    if (bond[i].exists && !bond[i].Small && bag.find(i)==bag.end() && 
 		(bond[end].a == bond[i].a || bond[end].a == bond[i].b || bond[end].b == bond[i].a || bond[end].b == bond[i].b))
 	      {
@@ -247,7 +248,7 @@ int find_wavy_bonds(vector<bond_t> &bond,int n_bond,const vector<atom_t> &atom,d
 		    break;
 		  }
 	      }
-	  for (int i = 0; i < n_bond; i++)
+	  for (int i = 0; i < n_bond_orig; i++)
 	    if (bond[i].exists && !bond[i].Small && bag.find(i)==bag.end() && 
 		(bond[begin].a == bond[i].a || bond[begin].a == bond[i].b || bond[begin].b == bond[i].a || bond[begin].b == bond[i].b))
 	      {
@@ -1432,30 +1433,14 @@ int find_atoms(const potrace_path_t *p, vector<atom_t> &atom, vector<bond_t> &bo
   return (n_atom);
 }
 
-int comp_dashes_x(const void *a, const void *b)
+bool comp_dashes_x(const dash_t &a, const dash_t &b)
 {
-  dash_t *aa = (dash_t *) a;
-  dash_t *bb = (dash_t *) b;
-  if (aa->x < bb->x)
-    return (-1);
-  if (aa->x == bb->x)
-    return (0);
-  if (aa->x > bb->x)
-    return (1);
-  return (0);
+  return (a.x < b.x);
 }
 
-int comp_dashes_y(const void *a, const void *b)
+bool comp_dashes_y(const dash_t &a, const dash_t &b)
 {
-  dash_t *aa = (dash_t *) a;
-  dash_t *bb = (dash_t *) b;
-  if (aa->y < bb->y)
-    return (-1);
-  if (aa->y == bb->y)
-    return (0);
-  if (aa->y > bb->y)
-    return (1);
-  return (0);
+  return (a.y < b.y);
 }
 
 void extend_dashed_bond(int a, int b, int n, vector<atom_t> &atom)
@@ -1467,8 +1452,10 @@ void extend_dashed_bond(int a, int b, int n, vector<atom_t> &atom)
   double l = distance(x0, y0, x1, y1);
   double kx = (x1 - x0) / l;
   double ky = (y1 - y0) / l;
-  atom[a].x = kx * (-1. * l / (n - 1)) + x0;
-  atom[a].y = ky * (-1. * l / (n - 1)) + y0;
+  double x = kx * (-1. * l / (n - 1)) + x0;
+  double y = ky * (-1. * l / (n - 1)) + y0;
+  atom[a].x = x;
+  atom[a].y = y;
   atom[b].x = kx * l / (n - 1) + x1;
   atom[b].y = ky * l / (n - 1) + y1;
 }
@@ -1518,12 +1505,20 @@ int count_area(vector<vector<int> > &box, double &x0, double &y0)
   return (a);
 }
 
-int find_dashed_bonds(const potrace_path_t *p, vector<atom_t> &atom, vector<bond_t> &bond, int n_atom, int *n_bond,
-                      int max, double avg, const Image &img, const ColorGray &bg, double THRESHOLD, bool thick, double dist)
+bool curve_in_letter(const potrace_path_t *p,  vector<letters_t> &letters)
 {
-  int n, n_dot = 0;
+  bool r = false;
+  for (int i=0; i<letters.size(); i++)
+    if (letters[i].curve == p)
+      r = true;
+  return r;
+}
+
+int find_dashed_bonds(const potrace_path_t *p, vector<atom_t> &atom, vector<bond_t> &bond, int n_atom, int *n_bond,
+                      int max, double avg, const Image &img, const ColorGray &bg, double THRESHOLD, bool thick, double dist, vector<letters_t> &letters)
+{
   potrace_dpoint_t (*c)[3];
-  dash_t dot[100];
+  vector<dash_t> dot;
   vector<vector<int> > box(img.columns());
   int width = img.columns();
   int height = img.rows();
@@ -1534,9 +1529,9 @@ int find_dashed_bonds(const potrace_path_t *p, vector<atom_t> &atom, vector<bond
 
   while (p != NULL)
     {
-      if (p->sign == int('+') && p->area < max)
+      if (p->sign == int('+') && p->area < max && p->childlist == NULL && !curve_in_letter(p,letters) && dot.size() < 100)
         {
-          n = p->curve.n;
+	  int n = p->curve.n;
           c = p->curve.c;
           int *tag = p->curve.tag;
           double cx =  c[n - 1][2].x;
@@ -1545,14 +1540,16 @@ int find_dashed_bonds(const potrace_path_t *p, vector<atom_t> &atom, vector<bond
           if (cx>width) cx=width;
           if (cy<0) cy=0;
           if (cy>height) cy=height;
-          dot[n_dot].x = cx;
-          dot[n_dot].y = cy;
+	  dash_t d;
+          d.x = cx;
+          d.y = cy;
           double l = cx;
           double r = cx;
           double t = cy;
           double b = cy;
-          dot[n_dot].curve = p;
-          dot[n_dot].free = true;
+          d.curve = p;
+          d.free = true;
+
           int tot = 1;
           for (long i = 0; i < n; i++)
             {
@@ -1565,8 +1562,8 @@ int find_dashed_bonds(const potrace_path_t *p, vector<atom_t> &atom, vector<bond
                   if (cx>width) cx=width;
                   if (cy<0) cy=0;
                   if (cy>height) cy=height;
-                  dot[n_dot].x += cx;
-                  dot[n_dot].y += cy;
+                  d.x += cx;
+                  d.y += cy;
                   if (cx < l)
                     l = cx;
                   if (cx > r)
@@ -1584,8 +1581,8 @@ int find_dashed_bonds(const potrace_path_t *p, vector<atom_t> &atom, vector<bond
                   if (cx>width) cx=width;
                   if (cy<0) cy=0;
                   if (cy>height) cy=height;
-                  dot[n_dot].x += cx;
-                  dot[n_dot].y += cy;
+                  d.x += cx;
+                  d.y += cy;
                   if (cx < l)
                     l = cx;
                   if (cx > r)
@@ -1600,8 +1597,8 @@ int find_dashed_bonds(const potrace_path_t *p, vector<atom_t> &atom, vector<bond
                   if (cx>width) cx=width;
                   if (cy<0) cy=0;
                   if (cy>height) cy=height;
-                  dot[n_dot].x += cx;
-                  dot[n_dot].y += cy;
+                  d.x += cx;
+                  d.y += cy;
                   if (cx < l)
                     l = cx;
                   if (cx > r)
@@ -1621,8 +1618,8 @@ int find_dashed_bonds(const potrace_path_t *p, vector<atom_t> &atom, vector<bond
                   if (cx>width) cx=width;
                   if (cy<0) cy=0;
                   if (cy>height) cy=height;
-                  dot[n_dot].x += cx;
-                  dot[n_dot].y += cy;
+                  d.x += cx;
+                  d.y += cy;
                   if (cx < l)
                     l = cx;
                   if (cx > r)
@@ -1634,24 +1631,22 @@ int find_dashed_bonds(const potrace_path_t *p, vector<atom_t> &atom, vector<bond
                   tot++;
                 }
             }
-          dot[n_dot].x /= tot;
-          dot[n_dot].y /= tot;
+          d.x /= tot;
+          d.y /= tot;
           if (thick)
-            dot[n_dot].area = count_area(box, dot[n_dot].x, dot[n_dot].y);
+            d.area = count_area(box, d.x, d.y);
           else
-            dot[n_dot].area = p->area;
+            d.area = p->area;
           if (distance(l, t, r, b) < avg / 3)
-            n_dot++;
-          if (n_dot >= 100)
-            n_dot--;
+	    dot.push_back(d);
         }
       p = p->next;
     }
-  for (int i = 0; i < n_dot; i++)
+  for (int i = 0; i < dot.size(); i++)
     if (dot[i].free)
       {
-        dash_t dash[100];
-        dash[0] = dot[i];
+        vector<dash_t> dash;
+        dash.push_back(dot[i]);
         dot[i].free = false;
         double l = dot[i].x;
         double r = dot[i].x;
@@ -1661,16 +1656,15 @@ int find_dashed_bonds(const potrace_path_t *p, vector<atom_t> &atom, vector<bond
         double my = t;
         double dist_next = FLT_MAX;
         int next_dot = i;
-        for (int j = i + 1; j < n_dot; j++)
+        for (int j = i + 1; j < dot.size(); j++)
           if (dot[j].free && distance(dash[0].x, dash[0].y, dot[j].x, dot[j].y) <= dist && distance(dash[0].x,
               dash[0].y, dot[j].x, dot[j].y) < dist_next)
             {
-              dash[1] = dot[j];
+              dash.push_back(dot[j]);
               dist_next = distance(dash[0].x, dash[0].y, dot[j].x, dot[j].y);
               next_dot = j;
             }
 
-        int n = 1;
         if (next_dot != i)
           {
             dot[next_dot].free = false;
@@ -1684,23 +1678,21 @@ int find_dashed_bonds(const potrace_path_t *p, vector<atom_t> &atom, vector<bond
               b = dash[1].y;
             mx = (mx + dash[1].x) / 2;
             my = (my + dash[1].y) / 2;
-            n = 2;
           }
         bool found = true;
-        while (n > 1 && found)
+        while (dash.size() > 1 && found)
           {
             dist_next = FLT_MAX;
             found = false;
             int minj = next_dot;
-            for (int j = next_dot + 1; j < n_dot; j++)
+	    dash_t d;
+            for (int j = next_dot + 1; j < dot.size(); j++)
               if (dot[j].free && distance(mx, my, dot[j].x, dot[j].y) <= dist && distance(mx, my, dot[j].x,
                   dot[j].y) < dist_next
-                  //&& fabs(angle4(dash[0].x, dash[0].y, dash[n - 1].x, dash[n - 1].y, dash[0].x, dash[0].y,
-                  //		dot[j].x, dot[j].y)) > D_T_TOLERANCE)
-                  && fabs(distance_from_bond_y(dash[0].x, dash[0].y, dash[n - 1].x, dash[n - 1].y, dot[j].x,
+                  && fabs(distance_from_bond_y(dash[0].x, dash[0].y, dash.back().x, dash.back().y, dot[j].x,
                                                dot[j].y)) < V_DISPLACEMENT)
                 {
-                  dash[n] = dot[j];
+                  d = dot[j];
                   dist_next = distance(mx, my, dot[j].x, dot[j].y);
                   found = true;
                   minj = j;
@@ -1708,39 +1700,39 @@ int find_dashed_bonds(const potrace_path_t *p, vector<atom_t> &atom, vector<bond
             if (found)
               {
                 dot[minj].free = false;
-                if (dash[n].x < l)
-                  l = dash[n].x;
-                if (dash[n].x > r)
-                  r = dash[n].x;
-                if (dash[n].y < t)
-                  t = dash[n].y;
-                if (dash[n].y > b)
-                  b = dash[n].y;
-                mx = (mx + dash[n].x) / 2;
-                my = (my + dash[n].y) / 2;
-                n++;
+                if (d.x < l)
+                  l = d.x;
+                if (d.x > r)
+                  r = d.x;
+                if (d.y < t)
+                  t = d.y;
+                if (d.y > b)
+                  b = d.y;
+                mx = (mx + d.x) / 2;
+                my = (my + d.y) / 2;
+                dash.push_back(d);
               }
           }
 
-        if (n > 2)
+        if (dash.size() > 2)
           {
             if ((r - l) > (b - t))
               {
-                qsort(dash, n, sizeof(dash_t), comp_dashes_x);
+                sort(dash.begin(),dash.end(),comp_dashes_x);
               }
             else
               {
-                qsort(dash, n, sizeof(dash_t), comp_dashes_y);
+                sort(dash.begin(),dash.end(), comp_dashes_y);
               }
             bool one_line = true;
-            double dx = dash[n - 1].x - dash[0].x;
-            double dy = dash[n - 1].y - dash[0].y;
+            double dx = dash.back().x - dash[0].x;
+            double dy = dash.back().y - dash[0].y;
             double k = 0;
             if (fabs(dx) > fabs(dy))
               k = dy / dx;
             else
               k = dx / dy;
-            for (int j = 1; j < n - 1; j++)
+            for (int j = 1; j < dash.size() - 1; j++)
               {
                 double nx = dash[j].x - dash[0].x;
                 double ny = dash[j].y - dash[0].y;
@@ -1754,7 +1746,7 @@ int find_dashed_bonds(const potrace_path_t *p, vector<atom_t> &atom, vector<bond
               }
             if (one_line)
               {
-                for (int j = 0; j < n; j++)
+                for (int j = 0; j < dash.size(); j++)
                   delete_curve(atom, bond, n_atom, *n_bond, dash[j].curve);
                 atom_t a1;
                 atom.push_back(a1);
@@ -1777,15 +1769,15 @@ int find_dashed_bonds(const potrace_path_t *p, vector<atom_t> &atom, vector<bond
                   n_atom--;
                 atom_t a2;
                 atom.push_back(a2);
-                atom[n_atom].x = dash[n - 1].x;
-                atom[n_atom].y = dash[n - 1].y;
+                atom[n_atom].x = dash.back().x;
+                atom[n_atom].y = dash.back().y;
 		atom[n_atom].min_x = atom[n_atom].x;
 		atom[n_atom].max_x = atom[n_atom].x;
 		atom[n_atom].min_y = atom[n_atom].y;
 		atom[n_atom].max_y = atom[n_atom].y;
                 atom[n_atom].label = " ";
                 atom[n_atom].exists = true;
-                atom[n_atom].curve = dash[n - 1].curve;
+                atom[n_atom].curve = dash.back().curve;
                 atom[n_atom].n = 0;
                 atom[n_atom].corner = false;
                 atom[n_atom].terminal = false;
@@ -1801,7 +1793,7 @@ int find_dashed_bonds(const potrace_path_t *p, vector<atom_t> &atom, vector<bond
                 bond[*n_bond].type = 1;
                 bond[*n_bond].b = n_atom - 1;
                 bond[*n_bond].curve = dash[0].curve;
-                if (dash[0].area > dash[n - 1].area)
+                if (dash[0].area > dash.back().area)
                   bond_end_swap(bond, *n_bond);
                 bond[*n_bond].hash = true;
                 bond[*n_bond].wedge = false;
@@ -1810,10 +1802,10 @@ int find_dashed_bonds(const potrace_path_t *p, vector<atom_t> &atom, vector<bond
                 bond[*n_bond].Small = false;
                 bond[*n_bond].arom = false;
                 bond[*n_bond].conjoined = false;
-                extend_dashed_bond(bond[*n_bond].a, bond[*n_bond].b, n, atom);
+                extend_dashed_bond(bond[*n_bond].a, bond[*n_bond].b, dash.size(), atom);
                 (*n_bond)++;
                 if ((*n_bond) >= MAX_ATOMS)
-                  (*n_bond)--;
+		(*n_bond)--;
               }
           }
       }
@@ -1828,27 +1820,25 @@ int find_small_bonds(const potrace_path_t *p, vector<atom_t> &atom, vector<bond_
     {
       if ((p->sign == int('+')) && (p->area <= max_area))
         {
-          int n_dot = 0;
-          dash_t dot[20];
+          vector<dash_t> dot;
           for (int i = 0; i < n_atom; i++)
-            if ((atom[i].exists) && (atom[i].curve == p) && (n_dot < 20))
+            if ((atom[i].exists) && (atom[i].curve == p) && (dot.size() < 20))
               {
-                dot[n_dot].x = atom[i].x;
-                dot[n_dot].y = atom[i].y;
-                dot[n_dot].curve = p;
-                dot[n_dot].free = true;
-                n_dot++;
-                if (n_dot >= 20)
-                  n_dot--;
+		dash_t d;
+                d.x = atom[i].x;
+                d.y = atom[i].y;
+                d.curve = p;
+                d.free = true;
+		dot.push_back(d);
               }
 
-          if ((n_dot > 2))
+          if ((dot.size() > 2))
             {
               double l = dot[0].x;
               double r = dot[0].x;
               double t = dot[0].y;
               double b = dot[0].y;
-              for (int i = 1; i < n_dot; i++)
+              for (int i = 1; i < dot.size(); i++)
                 {
                   if (dot[i].x < l)
                     l = dot[i].x;
@@ -1861,15 +1851,15 @@ int find_small_bonds(const potrace_path_t *p, vector<atom_t> &atom, vector<bond_
                 }
               if ((r - l) > (b - t))
                 {
-                  qsort(dot, n_dot, sizeof(dash_t), comp_dashes_x);
+                  sort(dot.begin(),dot.end(),comp_dashes_x);
                 }
               else
                 {
-                  qsort(dot, n_dot, sizeof(dash_t), comp_dashes_y);
+                  sort(dot.begin(),dot.end(), comp_dashes_y);
                 }
               double d = 0;
-              for (int i = 1; i < n_dot - 1; i++)
-                d = max(d, fabs(distance_from_bond_y(dot[0].x, dot[0].y, dot[n_dot - 1].x, dot[n_dot - 1].y,
+              for (int i = 1; i < dot.size() - 1; i++)
+                d = max(d, fabs(distance_from_bond_y(dot[0].x, dot[0].y, dot.back().x, dot.back().y,
                                                      dot[i].x, dot[i].y)));
               if (d < thickness || p->area < Small)
                 {
@@ -1895,8 +1885,8 @@ int find_small_bonds(const potrace_path_t *p, vector<atom_t> &atom, vector<bond_
                     n_atom--;
                   atom_t a2;
                   atom.push_back(a2);
-                  atom[n_atom].x = dot[n_dot - 1].x;
-                  atom[n_atom].y = dot[n_dot - 1].y;
+                  atom[n_atom].x = dot.back().x;
+                  atom[n_atom].y = dot.back().y;
 		  atom[n_atom].min_x = atom[n_atom].x;
 		  atom[n_atom].max_x = atom[n_atom].x;
 		  atom[n_atom].min_y = atom[n_atom].y;
@@ -2107,10 +2097,10 @@ void collapse_bonds(vector<atom_t> &atom, const vector<bond_t> &bond, int n_bond
 int fix_one_sided_bonds(vector<bond_t> &bond, int n_bond, const vector<atom_t> &atom, double thickness, double avg)
 {
   double l;
-
-  for (int i = 0; i < n_bond; i++)
+  int n_bond_orig = n_bond;
+  for (int i = 0; i < n_bond_orig; i++)
     if (bond[i].exists && bond[i].type < 3 && (l = bond_length(bond, i, atom)) > avg / 3)
-      for (int j = 0; j < n_bond; j++)
+      for (int j = 0; j < n_bond_orig; j++)
         if (bond[j].exists && j != i && bond[j].type < 3 && fabs(angle_between_bonds(bond, i, j, atom))
             < D_T_TOLERANCE && bond_length(bond, j, atom) > avg / 3)
           {

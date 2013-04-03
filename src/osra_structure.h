@@ -214,7 +214,7 @@ int find_atoms(const potrace_path_t *p, vector<atom_t> &atom, vector<bond_t> &bo
 // thick - flag set if the image was subject to thinning
 // dist - maximum dashed bond length
 int find_dashed_bonds(const potrace_path_t *p, vector<atom_t> &atom, vector<bond_t> &bond, int n_atom, int *n_bond,int max, double avg, const Image &img,
-                      const ColorGray &bg, double THRESHOLD, bool thick, double dist);
+                      const ColorGray &bg, double THRESHOLD, bool thick, double dist, vector<letters_t> &letters);
 
 // Function: find_small_bonds()
 //

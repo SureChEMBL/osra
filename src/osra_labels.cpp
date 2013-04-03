@@ -853,6 +853,7 @@ int find_chars(const potrace_path_t * p, const Image &orig, vector<letters_t> &l
 		  letters[n_letters].max_x = right;
 		  letters[n_letters].min_y = top;
 		  letters[n_letters].max_y = bottom;
+		  letters[n_letters].curve = p;
                   if (right - left > real_font_width)
                     real_font_width = right - left;
                   if (bottom - top > real_font_height)
@@ -890,6 +891,7 @@ int find_chars(const potrace_path_t * p, const Image &orig, vector<letters_t> &l
 		  letters[n_letters].max_x = right;
 		  letters[n_letters].min_y = newtop;
 		  letters[n_letters].max_y = bottom;
+		  letters[n_letters].curve = p;
                   if (right - left > real_font_width)
                     real_font_width = right - left;
                   if (bottom - newtop > real_font_height)
@@ -908,6 +910,7 @@ int find_chars(const potrace_path_t * p, const Image &orig, vector<letters_t> &l
 		  letters[n_letters].max_x = right;
 		  letters[n_letters].min_y = top;
 		  letters[n_letters].max_y = newbottom;
+		  letters[n_letters].curve = p;
                   if (newbottom - top > real_font_height)
                     real_font_height = newbottom - top;
                   letters[n_letters].free = true;
@@ -944,6 +947,7 @@ int find_chars(const potrace_path_t * p, const Image &orig, vector<letters_t> &l
 		  letters[n_letters].max_x = newright;
 		  letters[n_letters].min_y = top;
 		  letters[n_letters].max_y = bottom;
+		  letters[n_letters].curve = p;
                   if (newright - left > real_font_width)
                     real_font_width = newright - left;
                   if (bottom - top > real_font_height)
@@ -962,6 +966,7 @@ int find_chars(const potrace_path_t * p, const Image &orig, vector<letters_t> &l
 		  letters[n_letters].max_x = right;
 		  letters[n_letters].min_y = top;
 		  letters[n_letters].max_y = bottom;
+		  letters[n_letters].curve = p;
                   if (right - newleft > real_font_width)
                     real_font_width = right - newleft;
                   letters[n_letters].free = true;

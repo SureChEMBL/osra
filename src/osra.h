@@ -159,7 +159,7 @@ typedef struct bond_s bond_t;
 #define MAX_BOND_THICKNESS 10
 #define SMALL_PICTURE_AREA 6000
 #define NUM_RESOLUTIONS 5
-#define MAX_DASH 14
+#define MAX_DASH 80
 #define CC_BOND_LENGTH 1.5120
 #define FRAME 5
 #define SEPARATOR_ASPECT 100

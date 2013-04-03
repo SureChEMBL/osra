@@ -478,10 +478,10 @@ int count_recognized_chars(vector<atom_t>  &atom, vector<bond_t>& bond)
   int r = 0;
   for (set<int>::iterator a=atoms.begin(); a != atoms.end(); a++)
     for (int i=0; i<atom[*a].label.size(); i++)
-    {
-      if (char_filter.find(atom[*a].label[i]) != string::npos)
-	r++;
-    }
+      {
+	if (char_filter.find(atom[*a].label[i]) != string::npos)
+	  r++;
+      }
   return r;
 }
 
@@ -864,7 +864,12 @@ int osra_process_image(
                 n_bond = double_triple_bonds(atom, bond, n_bond, avg_bond_length, n_atom, max_dist_double_bond);
 
                 n_atom = find_dashed_bonds(p, atom, bond, n_atom, &n_bond, max(MAX_DASH, int(avg_bond_length / 3)),
-                                           avg_bond_length, orig_box, bgColor, THRESHOLD_BOND, thick, avg_bond_length);
+                                           avg_bond_length, orig_box, bgColor, THRESHOLD_BOND, thick, avg_bond_length, letters);
+
+		/*if (ttt++ == 3) {
+		  debug_image(orig_box, atom, n_atom, bond, n_bond, "tmp.png");
+		  }	
+		*/
 
                 n_letters = remove_small_bonds(bond, n_bond, atom, letters, n_letters, real_font_height,
                                                MIN_FONT_HEIGHT, avg_bond_length);
@@ -877,6 +882,7 @@ int osra_process_image(
                   dist = 3;
                 if (working_resolution < 150)
                   dist = 2;
+
                 n_bond = fix_one_sided_bonds(bond, n_bond, atom, dist, avg_bond_length);
 
                 n_letters = clean_unrecognized_characters(bond, n_bond, atom, real_font_height, real_font_width, 4,
@@ -911,10 +917,7 @@ int osra_process_image(
                 extend_terminal_bond_to_label(atom, letters, n_letters, bond, n_bond, label, n_label, avg_bond_length / 2,
 					      thickness, max_dist_double_bond);
 
-		/*if (ttt++ == 3) {
-		  debug_image(orig_box, atom, n_atom, bond, n_bond, "tmp.png");
-		  }	
-		*/
+		
 
                 remove_disconnected_atoms(atom, bond, n_atom, n_bond);
                 collapse_atoms(atom, bond, n_atom, n_bond, thickness);
@@ -930,7 +933,7 @@ int osra_process_image(
                 
                 extend_terminal_bond_to_bonds(atom, bond, n_bond, avg_bond_length, 2 * thickness, max_dist_double_bond);
 
-		
+
 
 
                 collapse_atoms(atom, bond, n_atom, n_bond, 3);
