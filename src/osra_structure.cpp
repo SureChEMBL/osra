@@ -1150,7 +1150,7 @@ void assign_charge(vector<atom_t> &atom, vector<bond_t> &bond, int n_atom, int n
               }
           }
         for (int j = 0; j < n_bond; j++)
-          if (bond[j].exists && bond[j].hash && bond[j].b == i)
+          if (bond[j].exists && bond[j].hash && (bond[j].b == i || bond[j].a == i))
             atom[i].charge = 0;
 
         atom[i].label = fix_atom_name(atom[i].label, n, fix, superatom, debug);

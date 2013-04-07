@@ -231,7 +231,7 @@ void create_thick_box(Image &orig_box,Image &thick_box,int &width,int &height,in
 potrace_state_t * const  raster_to_vector(Image &box,ColorGray bgColor, double THRESHOLD_BOND,int width,int height,int working_resolution)
 {
   potrace_param_t * const param = potrace_param_default();
-  param->alphamax = 0.;
+  param->alphamax = 0.; // this has been changed in potrace-1.11 !!! use 1.10 !!!
   //param->turnpolicy = POTRACE_TURNPOLICY_MINORITY;
   param->turdsize = 0;
 
@@ -940,7 +940,7 @@ int osra_process_image(
 
 
                 remove_zero_bonds(bond, n_bond, atom);
-                flatten_bonds(bond, n_bond, atom, 3);
+                flatten_bonds(bond, n_bond, atom, 5);
                 remove_zero_bonds(bond, n_bond, atom);
 	
                 n_letters = clean_unrecognized_characters(bond, n_bond, atom, real_font_height, real_font_width, 0,
