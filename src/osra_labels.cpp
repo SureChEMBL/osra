@@ -1398,7 +1398,7 @@ int find_plus_minus(const potrace_path_t *p, const Image &image, ColorGray &bgCo
 	      bool is_plus = false;
 	      detect_plus_minus(image,bgColor, THRESHOLD,x1,x2,y1,y2,top,left,right,bottom,is_plus,is_minus);
 
-              if (is_minus && !char_to_right && !inside_char)
+              if (is_minus && !char_to_right && !inside_char && (right - left) <= max_font_width/2)
 		  c = '-';
               if (is_plus && !inside_char)
 		c = '+';

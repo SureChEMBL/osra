@@ -57,6 +57,9 @@ OM  O
 Un  O
 4O  O
 Mo  O
+nU  O
+UnH O
+nUH O
 
 Meo MeO 
 oMe MeO  
@@ -159,6 +162,7 @@ OAC AcO
 Bl Br
 el Br
 BC Br
+BF Br
 
 # Need to distinguish between a recognized label for methyl and
 # the default empty string for carbon

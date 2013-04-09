@@ -810,7 +810,6 @@ int osra_process_image(
                 int real_font_width, real_font_height;
                 n_letters = find_chars(p, orig_box, letters, atom, bond, n_atom, n_bond, height, width, bgColor,
                                        THRESHOLD_BOND, max_font_width, max_font_height, real_font_width, real_font_height,verbose);
-		
                 if (verbose)
                   cout << "Number of atoms: " << n_atom << ", bonds: " << n_bond << ", " << n_letters << " letters: " << n_letters << " " << letters << " after find_atoms()" << endl;
 
@@ -819,10 +818,8 @@ int osra_process_image(
                 double max_area = avg_bond_length * 5;
                 if (thick)
                   max_area = avg_bond_length;
-
                 n_letters = find_plus_minus(p, orig_box, bgColor, THRESHOLD_BOND, letters, atom, bond, n_atom, n_bond, height, width,
                                             real_font_height, real_font_width, n_letters);
-
                 n_atom = find_small_bonds(p, atom, bond, n_atom, &n_bond, max_area, avg_bond_length / 2, 5);
 
 		//remove_small_bonds_in_chars(atom,bond,letters);
@@ -838,11 +835,9 @@ int osra_process_image(
                   dist = 2;
 
                 double thickness = skeletize(atom, bond, n_bond, box, THRESHOLD_BOND, bgColor, dist, avg_bond_length);
-
                 remove_disconnected_atoms(atom, bond, n_atom, n_bond);
                 collapse_atoms(atom, bond, n_atom, n_bond, 3);
                 remove_zero_bonds(bond, n_bond, atom);
-
 		n_bond = find_wavy_bonds(bond,n_bond,atom,avg_bond_length);
 
                 n_letters = find_fused_chars(bond, n_bond, atom, letters, n_letters, real_font_height,
@@ -854,22 +849,17 @@ int osra_process_image(
                 flatten_bonds(bond, n_bond, atom, 3);
                 remove_zero_bonds(bond, n_bond, atom);
                 avg_bond_length = percentile75(bond, n_bond, atom);
-
-
+//if (ttt++ == 4)  debug_image(orig_box, atom, n_atom, bond, n_bond, "tmp.png");
 
                 if (verbose)
                   cout << "Average bond length: " << avg_bond_length << endl;
 
                 double max_dist_double_bond = dist_double_bonds(atom, bond, n_bond, avg_bond_length);
                 n_bond = double_triple_bonds(atom, bond, n_bond, avg_bond_length, n_atom, max_dist_double_bond);
-
                 n_atom = find_dashed_bonds(p, atom, bond, n_atom, &n_bond, max(MAX_DASH, int(avg_bond_length / 3)),
                                            avg_bond_length, orig_box, bgColor, THRESHOLD_BOND, thick, avg_bond_length, letters);
 
-		/*if (ttt++ == 3) {
-		  debug_image(orig_box, atom, n_atom, bond, n_bond, "tmp.png");
-		  }	
-		*/
+		
 
                 n_letters = remove_small_bonds(bond, n_bond, atom, letters, n_letters, real_font_height,
                                                MIN_FONT_HEIGHT, avg_bond_length);
