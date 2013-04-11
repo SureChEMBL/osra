@@ -320,5 +320,5 @@ bool load_config_map(const string &file, map<string, string> &out);
 // False otherwise
 bool comp_boxes(const box_t &aa, const box_t &bb);
 
-void debug_image(Image &image, const vector<atom_t> &atom, int n_atom, const vector<bond_t> &bond, int n_bond,
+void debug_image(Image image, const vector<atom_t> &atom, int n_atom, const vector<bond_t> &bond, int n_bond,
 		 const string &fname);

@@ -411,7 +411,7 @@ void create_molecule(OBMol &mol, vector<atom_t> &atom, const vector<bond_t> &bon
 
   molecule_statistics.rotors = mol.NumRotors();
   molecule_statistics.fragments = cfl.size();
-  molecule_statistics.rings56 = Num_Rings[5] + Num_Rings[6];
+  molecule_statistics.rings56 = Num_Rings[5] + Num_Rings[6] + Num_Rings[4];
   molecule_statistics.num_atoms = mol.NumAtoms();
   molecule_statistics.num_bonds = mol.NumBonds();
 
@@ -511,7 +511,7 @@ void create_molecule(OBMol &mol, vector<atom_t> &atom, const vector<bond_t> &bon
     }
 }
 
-molecule_statistics_t caclulate_molecule_statistics(vector<atom_t> &atom, const vector<bond_t> &bond, int n_bond, double avg_bond_length, const map<string, string> &superatom, bool verbose)
+molecule_statistics_t calculate_molecule_statistics(vector<atom_t> &atom, const vector<bond_t> &bond, int n_bond, double avg_bond_length, const map<string, string> &superatom, bool verbose)
 {
   molecule_statistics_t molecule_statistics;
 

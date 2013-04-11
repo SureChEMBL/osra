@@ -75,7 +75,7 @@ typedef struct molecule_statistics_s molecule_statistics_t;
 //      non-zero value in case of error
 int osra_openbabel_init();
 
-// Function: caclulate_molecule_statistics()
+// Function: calculate_molecule_statistics()
 //
 // Converts vectors of atoms and bonds into a molecular object and calculates the molecule statistics.
 // Note: this function changes the atoms!
@@ -90,7 +90,7 @@ int osra_openbabel_init();
 //
 // Returns:
 //      calculated molecule statistics
-molecule_statistics_t caclulate_molecule_statistics(vector<atom_t> &atom, const vector<bond_t> &bond, int n_bond,
+molecule_statistics_t calculate_molecule_statistics(vector<atom_t> &atom, const vector<bond_t> &bond, int n_bond,
     double avg_bond_length, const map<string, string> &superatom, bool verbose);
 
 // Function: get_formatted_structure()

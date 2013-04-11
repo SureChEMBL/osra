@@ -108,6 +108,7 @@ C(CH3)3 C(C)(C)C
 COCH3 C(=O)C
 CH(CH3)2 C(C)C
 OCF3 OC(F)(F)F
+OCCl3 OC(Cl)(Cl)Cl
 OCF2H OC(F)F
 SO2Me S(=O)(=O)C
 OCH2CO2H OCC(=O)O
@@ -156,6 +157,9 @@ Me2NO2S S(C)(C)N(=O)=O
 SO3Na S(=O)(=O)(=O)[Na]
 OSO2Ph OS(=O)(=O)c1ccccc1
 (CH2)5Br CCCCCBr
+OPh Oc1ccccc1
+SPh Sc1ccccc1
+NHPh Nc1ccccc1
 
 CONEt2 C(=O)N(CC)CC
 CONMe2 C(=O)N(C)C

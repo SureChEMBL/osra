@@ -1245,7 +1245,7 @@ void detect_plus_minus(const Image &image, ColorGray &bg, double THRESHOLD, int 
 }
 
 int find_plus_minus(const potrace_path_t *p, const Image &image, ColorGray &bgColor, double THRESHOLD, vector<letters_t> &letters, vector<atom_t> &atom, vector<bond_t> &bond,
-                    int n_atom, int n_bond, int height, int width, int max_font_height, int max_font_width, int n_letters)
+                    int n_atom, int n_bond, int height, int width, int max_font_height, int max_font_width, int n_letters, double avg_bond_length)
 {
   int n, *tag;
   potrace_dpoint_t (*c)[3];
@@ -1398,8 +1398,11 @@ int find_plus_minus(const potrace_path_t *p, const Image &image, ColorGray &bgCo
 	      bool is_plus = false;
 	      detect_plus_minus(image,bgColor, THRESHOLD,x1,x2,y1,y2,top,left,right,bottom,is_plus,is_minus);
 
-              if (is_minus && !char_to_right && !inside_char && (right - left) <= max_font_width/2)
+              if (is_minus && !char_to_right && !inside_char && (right - left) < avg_bond_length/2)
+		{
 		  c = '-';
+		  //		  cout<<"Minus: "<<(right-left)<<" "<<max_font_width<<endl;
+		}
               if (is_plus && !inside_char)
 		c = '+';
 

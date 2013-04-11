@@ -807,6 +807,7 @@ int osra_process_image(
                 potrace_state_t * const  st = raster_to_vector(box,bgColor,THRESHOLD_BOND,width,height,working_resolution);
                 potrace_path_t const * const p = st->plist;
                 n_atom = find_atoms(p, atom, bond, &n_bond,width,height);
+		//if (ttt++ == 0)  debug_image(orig_box, atom, n_atom, bond, n_bond, "tmp.png");                
                 int real_font_width, real_font_height;
                 n_letters = find_chars(p, orig_box, letters, atom, bond, n_atom, n_bond, height, width, bgColor,
                                        THRESHOLD_BOND, max_font_width, max_font_height, real_font_width, real_font_height,verbose);
@@ -819,7 +820,7 @@ int osra_process_image(
                 if (thick)
                   max_area = avg_bond_length;
                 n_letters = find_plus_minus(p, orig_box, bgColor, THRESHOLD_BOND, letters, atom, bond, n_atom, n_bond, height, width,
-                                            real_font_height, real_font_width, n_letters);
+                                            real_font_height, real_font_width, n_letters, avg_bond_length);
                 n_atom = find_small_bonds(p, atom, bond, n_atom, &n_bond, max_area, avg_bond_length / 2, 5);
 
 		//remove_small_bonds_in_chars(atom,bond,letters);
@@ -849,7 +850,6 @@ int osra_process_image(
                 flatten_bonds(bond, n_bond, atom, 3);
                 remove_zero_bonds(bond, n_bond, atom);
                 avg_bond_length = percentile75(bond, n_bond, atom);
-//if (ttt++ == 4)  debug_image(orig_box, atom, n_atom, bond, n_bond, "tmp.png");
 
                 if (verbose)
                   cout << "Average bond length: " << avg_bond_length << endl;

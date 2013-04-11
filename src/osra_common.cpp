@@ -206,7 +206,7 @@ bool terminal_bond(int a, int b, const vector<bond_t> &bond, int n_bond)
 }
 
 
-void debug_image(Image &image, const vector<atom_t> &atom, int n_atom, const vector<bond_t> &bond, int n_bond,
+void debug_image(Image image, const vector<atom_t> &atom, int n_atom, const vector<bond_t> &bond, int n_bond,
                const string &fname)
 {
   image.modifyImage();

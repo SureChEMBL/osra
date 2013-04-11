@@ -193,10 +193,8 @@ int find_numbers(const potrace_path_t * p, const Image &orig, vector<letters_t> 
 //
 // Returns:
 // new number of characters
-int find_plus_minus(const potrace_path_t *p, vector<letters_t> &letters, vector<atom_t> &atom, vector<bond_t> &bond,
-                    int n_atom, int n_bond, int height, int width, int max_font_height, int max_font_width, int n_letters);
 int find_plus_minus(const potrace_path_t *p, const Image &image, ColorGray &bgColor, double THRESHOLD, vector<letters_t> &letters, vector<atom_t> &atom, vector<bond_t> &bond,
-                    int n_atom, int n_bond, int height, int width, int max_font_height, int max_font_width, int n_letters);
+                    int n_atom, int n_bond, int height, int width, int max_font_height, int max_font_width, int n_letters, double avg_bond_length);
 
 // Function: clean_unrecognized_characters()
 //
