@@ -2259,13 +2259,18 @@ int thickness_ver(const Image &image, int x1, int y1, const ColorGray &bgColor, 
   return (w);
 }
 
+bool comp_thickness(const pair<int,double> &a, const pair<int,double> &b)
+{
+  return a.second < b.second;
+}
+
 double find_wedge_bonds(const Image &image, vector<atom_t> &atom, int n_atom, vector<bond_t> &bond, int n_bond,
                         const ColorGray &bgColor, double THRESHOLD_BOND, double max_dist_double_bond, double avg, int limit, int dist)
 {
   double l;
-  vector<double> a;
+  vector<pair<int,double> > a;
   int n = 0;
-  a.push_back(1.5);
+  a.push_back(make_pair(-1,1.5));
   vector<int> x_reg, y_reg;
 
   for (int i = 0; i < n_bond; i++)
@@ -2390,6 +2395,7 @@ double find_wedge_bonds(const Image &image, vector<atom_t> &atom, int n_atom, ve
             if (beta * sign < 0)
               bond_end_swap(bond, i);
           }
+
         if (bond[i].wedge)
           {
             for (int j = 0; j < n_atom; j++)
@@ -2419,17 +2425,20 @@ double find_wedge_bonds(const Image &image, vector<atom_t> &atom, int n_atom, ve
           }
         if (!bond[i].wedge)
           {
-            a.push_back(int(avg_y));
+            a.push_back(make_pair(i,int(avg_y)));
             n++;
           }
       }
-  std::sort(a.begin(), a.end());
+  std::sort(a.begin(), a.end(),comp_thickness);
   double t;
   if (n > 0)
-    t = a[(n - 1) / 2];
+    t = a[(n - 1) / 2].second;
   else
     t = 1.5;
   //cout << "----------------" << endl;
+  for (int i=0; i<a.size(); i++)
+    if (a[i].second > 2*t && a[i].first >= 0)
+      bond[a[i].first].wedge = true;
   return (t);
 }
 

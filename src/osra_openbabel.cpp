@@ -305,6 +305,15 @@ void create_molecule(OBMol &mol, vector<atom_t> &atom, const vector<bond_t> &bon
             else
               mol.AddBond(atom[bond[i].a].n, atom[bond[i].b].n, bond[i].type, OB_HASH_BOND);
           }
+	else if (!bond[i].hash && bond[i].wedge)
+          {
+            if (atom[bond[i].a].anum == OXYGEN_ATOMIC_NUM || atom[bond[i].a].anum == HYDROGEN_ATOMIC_NUM || atom[bond[i].a].anum == FLUORINE_ATOMIC_NUM
+                || atom[bond[i].a].anum == IODINE_ATOMIC_NUM || atom[bond[i].a].anum == CHLORINE_ATOMIC_NUM || atom[bond[i].a].anum == BROMINE_ATOMIC_NUM
+                || atom[bond[i].a].anum == ARGON_ATOMIC_NUM || atom[bond[i].a].terminal)
+              mol.AddBond(atom[bond[i].b].n, atom[bond[i].a].n, bond[i].type, OB_WEDGE_BOND);
+            else
+              mol.AddBond(atom[bond[i].a].n, atom[bond[i].b].n, bond[i].type, OB_WEDGE_BOND);
+          }
 	else if (bond[i].arom)
           {
             if (verbose)
@@ -317,9 +326,7 @@ void create_molecule(OBMol &mol, vector<atom_t> &atom, const vector<bond_t> &bon
           {
             int bond_flags = 0;
 
-            if (bond[i].wedge && !bond[i].hash)
-              bond_flags = OB_WEDGE_BOND;
-            else if (bond[i].up)
+            if (bond[i].up)
               bond_flags = OB_TORUP_BOND;
             else if (bond[i].down)
               bond_flags = OB_TORDOWN_BOND;
@@ -489,12 +496,15 @@ void create_molecule(OBMol &mol, vector<atom_t> &atom, const vector<bond_t> &bon
       if (confidence_parameters)
 	{
 	  stringstream cpss;
+	  for (int  i = 0; i < n-1; i++)
+	    cpss << x[i]<<",";
+	  cpss << x[n-1];
 	  //       0           1             2              3              4            5               6             7              8             9             10             11
-	  cpss<<C_Count<<","<<N_Count<<","<<O_Count<<","<<F_Count<<","<<S_Count<<","<<Cl_Count<<","<< Br_Count<<","<<Si_Count<<","<<U_Count<<","<<Me_Count<<","<<Li_Count<<","<<R_Count<<","<<
+	  //	  cpss<<C_Count<<","<<N_Count<<","<<O_Count<<","<<F_Count<<","<<S_Count<<","<<Cl_Count<<","<< Br_Count<<","<<Si_Count<<","<<U_Count<<","<<Me_Count<<","<<Li_Count<<","<<R_Count<<","<<
 	    //  12           13             14                   15                                16                 17                  18                   19                    20                 
-	    Xx_Count<<","<<num_rings<<","<<num_aromatic<<","<<molecule_statistics.fragments<<","<<Num_Rings[5]<<","<<Num_Rings[6]<<","<<Num_HashBonds<<","<<Num_WedgeBonds<<","<<Num_DoubleBonds
+	  //   Xx_Count<<","<<num_rings<<","<<num_aromatic<<","<<molecule_statistics.fragments<<","<<Num_Rings[5]<<","<<Num_Rings[6]<<","<<Num_HashBonds<<","<<Num_WedgeBonds<<","<<Num_DoubleBonds
 	    //            21                  22            23                   24                       25
-	      <<","<<PositiveCharge<<","<<n_letters<<","<<mol.NumAtoms()<<","<<mol.NumHvyAtoms()<<","<<mol.NumBonds();
+	  //   <<","<<PositiveCharge<<","<<n_letters<<","<<mol.NumAtoms()<<","<<mol.NumHvyAtoms()<<","<<mol.NumBonds();
 	  *confidence_parameters = cpss.str();
 	}
     }

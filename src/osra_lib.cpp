@@ -231,7 +231,7 @@ void create_thick_box(Image &orig_box,Image &thick_box,int &width,int &height,in
 potrace_state_t * const  raster_to_vector(Image &box,ColorGray bgColor, double THRESHOLD_BOND,int width,int height,int working_resolution)
 {
   potrace_param_t * const param = potrace_param_default();
-  param->alphamax = 0.; // this has been changed in potrace-1.11 !!! use 1.10 !!!
+  param->alphamax = 5e-324; // this has been changed in potrace-1.11 !!! use 1.10 !!!
   //param->turnpolicy = POTRACE_TURNPOLICY_MINORITY;
   param->turdsize = 0;
 
