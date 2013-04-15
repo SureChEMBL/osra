@@ -2302,7 +2302,7 @@ double find_wedge_bonds(const Image &image, vector<atom_t> &atom, int n_atom, ve
   int n = 0;
   a.push_back(make_pair(-1,1.5));
   vector<int> x_reg, y_reg;
-
+  bool triangle = false;
   for (int i = 0; i < n_bond; i++)
     if (bond[i].exists && !bond[i].hash && bond[i].type == 1 && (l = bond_length(bond, i, atom))
         > max_dist_double_bond)
@@ -2422,6 +2422,7 @@ double find_wedge_bonds(const Image &image, vector<atom_t> &atom, int n_atom, ve
         if (fabs(beta) * (max_c - min_c) > limit)
           {
             bond[i].wedge = true;
+	    triangle = true;
             if (beta * sign < 0)
               bond_end_swap(bond, i);
           }
@@ -2466,9 +2467,10 @@ double find_wedge_bonds(const Image &image, vector<atom_t> &atom, int n_atom, ve
   else
     t = 1.5;
   //cout << "----------------" << endl;
-  for (int i=0; i<a.size(); i++)
-    if (a[i].second > 2*t && a[i].first >= 0)
-      bond[a[i].first].wedge = true;
+  if (!triangle)
+    for (int i=0; i<a.size(); i++)
+      if (a[i].second > 2*t && a[i].first >= 0)
+	bond[a[i].first].wedge = true;
   return (t);
 }
 
