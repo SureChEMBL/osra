@@ -1771,7 +1771,7 @@ int find_dashed_bonds(const potrace_path_t *p, vector<atom_t> &atom, vector<bond
                   diff = k * nx - ny;
                 else
                   diff = k * ny - nx;
-                if (fabs(diff) > V_DISPLACEMENT)
+                if (fabs(diff) > V_DISPLACEMENT || dash[j].curve == dash[0].curve)
                   one_line = false;
               }
             if (one_line)
