@@ -212,131 +212,161 @@ bool no_white_space(int ai, int bi, int aj, int bj, const vector<atom_t> &atom, 
 int find_wavy_bonds(vector<bond_t> &bond,int n_bond,const vector<atom_t> &atom,double avg)
 {
   int n_bond_orig = n_bond;
-  bool found = true;
-  while (found)
-    {
-      found = false;
-      set<int> bag;
-      int begin = 0;
-      int end = 0;
-      for (int i = 0; i < n_bond_orig; i++)
-	if (bond[i].exists && !bond[i].Small)
-	  {
-	    double l = bond_length(bond, i, atom);
-	    if (l < avg/3)
-	      {
-		bag.insert(i);
-		begin = i;
-		end = i;
-		found = true;
-		break;
-	      }
-	  }
-      while (found)
+  const double t = 4;
+  for (int i = 0; i < n_bond_orig; i++)
+    if (bond[i].exists)
+      {
+	double l = bond_length(bond, i, atom);
+	if (l > avg)
+	  avg = l;
+      }
+
+      for (int j = 0; j < n_bond_orig; j++)
 	{
-	  found = false;
-	  for (int i = 0; i < n_bond_orig; i++)
-	    if (bond[i].exists && !bond[i].Small && bag.find(i)==bag.end() && 
-		(bond[end].a == bond[i].a || bond[end].a == bond[i].b || bond[end].b == bond[i].a || bond[end].b == bond[i].b))
-	      {
-		double l = bond_length(bond, i, atom);
-		if (l < avg/3)
-		  {
-		    bag.insert(i);
-		    end = i;
-		    found = true;
-		    break;
-		  }
-	      }
-	  for (int i = 0; i < n_bond_orig; i++)
-	    if (bond[i].exists && !bond[i].Small && bag.find(i)==bag.end() && 
-		(bond[begin].a == bond[i].a || bond[begin].a == bond[i].b || bond[begin].b == bond[i].a || bond[begin].b == bond[i].b))
-	      {
-		double l = bond_length(bond, i, atom);
-		if (l < avg/3)
-		  {
-		    bag.insert(i);
-		    begin = i;
-		    found = true;
-		    break;
-		  }
-	      }
-	  
-	}
-      if (bag.size() > 3)
-	{
-	  double d1 = distance(atom[bond[begin].a].x,atom[bond[begin].a].y,atom[bond[end].a].x,atom[bond[end].a].y);
-	  double d2 = distance(atom[bond[begin].a].x,atom[bond[begin].a].y,atom[bond[end].b].x,atom[bond[end].b].y);
-	  double d3 = distance(atom[bond[begin].b].x,atom[bond[begin].b].y,atom[bond[end].a].x,atom[bond[end].a].y);
-	  double d4 = distance(atom[bond[begin].b].x,atom[bond[begin].b].y,atom[bond[end].b].x,atom[bond[end].b].y);
-	  double d = max(max(d1,d2),max(d3,d4));
-	  if (d>0.75*avg && d<1.5*avg)
+	  bool found = false;
+	  set<int> bag;
+	  int begin = 0;
+	  int end = 0;
+	  if (bond[j].exists)// && !bond[i].Small)
 	    {
-	      double xa = atom[bond[begin].a].x;
-	      double ya = atom[bond[begin].a].y;
-	      double xb = atom[bond[end].a].x;
-	      double yb = atom[bond[end].a].y;
-	      int a = bond[begin].a;
-	      int b = bond[end].a;
-	      if (d2 > d1)
+	      double l = bond_length(bond, j, atom);
+	      if (l < avg/3)
 		{
-		  xb = atom[bond[end].b].x;
-		  yb = atom[bond[end].b].y;
-		  b = bond[end].b;
+		  bag.insert(j);
+		  begin = j;
+		  end = j;
+		  found = true;
 		}
-	      if (d3 > max(d1,d2))
+	    }
+	  while (found)
+	    {
+	      found = false;
+	      int mini = -1;
+	      double mind = t;
+	      double d1,d2,d3,d4;
+	      for (int i = 0; i < n_bond_orig; i++)
+		if (bond[i].exists /*&& !bond[i].Small*/ && bag.find(i)==bag.end() && 
+		    ((d1 = distance(atom[bond[end].a].x,atom[bond[end].a].y,atom[bond[i].a].x,atom[bond[i].a].y)) < mind ||
+		     (d2 = distance(atom[bond[end].a].x,atom[bond[end].a].y,atom[bond[i].b].x,atom[bond[i].b].y)) < mind ||
+		     (d3 = distance(atom[bond[end].b].x,atom[bond[end].b].y,atom[bond[i].a].x,atom[bond[i].a].y)) < mind ||
+		     (d4 = distance(atom[bond[end].b].x,atom[bond[end].b].y,atom[bond[i].b].x,atom[bond[i].b].y)) < mind ))
+		  //		    (bond[end].a == bond[i].a || bond[end].a == bond[i].b || bond[end].b == bond[i].a || bond[end].b == bond[i].b))
+		  {
+		    mind = min(min(d1,d2),min(d3,d4));
+		    mini = i;
+		  }
+	      if (mini >= 0)
 		{
-		  xa = atom[bond[begin].b].x;
-		  ya = atom[bond[begin].b].y;
-		  xb = atom[bond[end].a].x;
-		  yb = atom[bond[end].a].y;
-		  a = bond[begin].b;
-		  b = bond[end].a;
-		}
-	      if (d4 > max(d3,max(d1,d2)))
-		{
-		  xa = atom[bond[begin].b].x;
-		  ya = atom[bond[begin].b].y;
-		  xb = atom[bond[end].b].x;
-		  yb = atom[bond[end].b].y;
-		  a = bond[begin].b;
-		  b = bond[end].b;
-		}
-	      bool too_far = false;
-	      for(set<int>::iterator i=bag.begin(); i!=bag.end(); i++)
-		{
-		  double da =  fabs(distance_from_bond_y(xa,ya,xb,yb,atom[bond[*i].a].x, atom[bond[*i].a].y));
-		  double db =  fabs(distance_from_bond_y(xa,ya,xb,yb,atom[bond[*i].b].x, atom[bond[*i].b].y));
-		  if (da > avg/3 || db > avg/3)
+		  double l = bond_length(bond, mini, atom);
+		  if (l < avg/3)
 		    {
-		      too_far = true;
-		      break;
+
+		      bag.insert(mini);
+		      end = mini;
+		      found = true;
 		    }
 		}
-	      if (!too_far)  // This looks like a wavy bond
+	      mini = -1;
+	      mind = t;
+	      for (int i = 0; i < n_bond_orig; i++)
+		if (bond[i].exists /*&& !bond[i].Small*/ && bag.find(i)==bag.end() && 
+		    ((d1 = distance(atom[bond[begin].a].x,atom[bond[begin].a].y,atom[bond[i].a].x,atom[bond[i].a].y)) < mind ||
+		     (d2 = distance(atom[bond[begin].a].x,atom[bond[begin].a].y,atom[bond[i].b].x,atom[bond[i].b].y)) < mind ||
+		     (d3 = distance(atom[bond[begin].b].x,atom[bond[begin].b].y,atom[bond[i].a].x,atom[bond[i].a].y)) < mind ||
+		     (d4 = distance(atom[bond[begin].b].x,atom[bond[begin].b].y,atom[bond[i].b].x,atom[bond[i].b].y)) < mind ))
+		  //		    (bond[begin].a == bond[i].a || bond[begin].a == bond[i].b || bond[begin].b == bond[i].a || bond[begin].b == bond[i].b))
+		  {
+		    mind = min(min(d1,d2),min(d3,d4));
+		    mini = i;
+		  }
+	      if (mini >= 0)
+		  {
+		    double l = bond_length(bond, mini, atom);
+		    if (l < avg/3)
+		      {
+
+			bag.insert(mini);
+			begin = mini;
+			found = true;
+		      }
+		  }
+	    }
+
+	  if (bag.size() > 3)
+	    {
+	      double d1 = distance(atom[bond[begin].a].x,atom[bond[begin].a].y,atom[bond[end].a].x,atom[bond[end].a].y);
+	      double d2 = distance(atom[bond[begin].a].x,atom[bond[begin].a].y,atom[bond[end].b].x,atom[bond[end].b].y);
+	      double d3 = distance(atom[bond[begin].b].x,atom[bond[begin].b].y,atom[bond[end].a].x,atom[bond[end].a].y);
+	      double d4 = distance(atom[bond[begin].b].x,atom[bond[begin].b].y,atom[bond[end].b].x,atom[bond[end].b].y);
+	      double d = max(max(d1,d2),max(d3,d4));
+
+	      if (d>0.75*avg && d<1.5*avg)
 		{
-		  bond_t nb;
-		  nb.a = a;
-		  nb.b = b;
-		  nb.exists = true;
-		  nb.type = 1;
-		  nb.curve = bond[begin].curve;
-		  nb.hash = true;
-		  nb.wedge = true;
-		  nb.up = false;
-		  nb.down = false;
-		  nb.Small = false;
-		  nb.arom = false;
-		  nb.conjoined = false;
-		  found = true;
-		  bond.push_back(nb);
-		  n_bond++;
+		  double xa = atom[bond[begin].a].x;
+		  double ya = atom[bond[begin].a].y;
+		  double xb = atom[bond[end].a].x;
+		  double yb = atom[bond[end].a].y;
+		  int a = bond[begin].a;
+		  int b = bond[end].a;
+		  if (d2 > d1)
+		    {
+		      xb = atom[bond[end].b].x;
+		      yb = atom[bond[end].b].y;
+		      b = bond[end].b;
+		    }
+		  if (d3 > max(d1,d2))
+		    {
+		      xa = atom[bond[begin].b].x;
+		      ya = atom[bond[begin].b].y;
+		      xb = atom[bond[end].a].x;
+		      yb = atom[bond[end].a].y;
+		      a = bond[begin].b;
+		      b = bond[end].a;
+		    }
+		  if (d4 > max(d3,max(d1,d2)))
+		    {
+		      xa = atom[bond[begin].b].x;
+		      ya = atom[bond[begin].b].y;
+		      xb = atom[bond[end].b].x;
+		      yb = atom[bond[end].b].y;
+		      a = bond[begin].b;
+		      b = bond[end].b;
+		    }
+		  bool too_far = false;
 		  for(set<int>::iterator i=bag.begin(); i!=bag.end(); i++)
-		    bond[*i].exists = false;
+		    {
+		      double da =  fabs(distance_from_bond_y(xa,ya,xb,yb,atom[bond[*i].a].x, atom[bond[*i].a].y));
+		      double db =  fabs(distance_from_bond_y(xa,ya,xb,yb,atom[bond[*i].b].x, atom[bond[*i].b].y));
+
+		      if (da > avg/3 || db > avg/3)
+			{
+			  too_far = true;
+			  break;
+			}
+		    }
+		  if (!too_far)  // This looks like a wavy bond
+		    {
+		      bond_t nb;
+		      nb.a = a;
+		      nb.b = b;
+		      nb.exists = true;
+		      nb.type = 1;
+		      nb.curve = bond[begin].curve;
+		      nb.hash = true;
+		      nb.wedge = true;
+		      nb.up = false;
+		      nb.down = false;
+		      nb.Small = false;
+		      nb.arom = false;
+		      nb.conjoined = false;
+		      bond.push_back(nb);
+		      n_bond++;
+		      for(set<int>::iterator i=bag.begin(); i!=bag.end(); i++)
+			bond[*i].exists = false;
+		    }
 		}
 	    }
 	}
-    }
   return n_bond;
 }
 

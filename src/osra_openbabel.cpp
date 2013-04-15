@@ -335,9 +335,9 @@ void create_molecule(OBMol &mol, vector<atom_t> &atom, const vector<bond_t> &bon
               cout << "Creating bond #" << mol.NumBonds() << " " << atom[bond[i].a].n << "->"
                    << atom[bond[i].b].n << ", type: " << bond[i].type << ", flags: " << bond_flags << '.' << endl;
 
-            mol.AddBond(atom[bond[i].a].n, atom[bond[i].b].n, bond[i].type, bond_flags);
 	    if (bond[i].wedge && bond[i].hash) // wavy bonds
 	      {
+		mol.AddBond(atom[bond[i].a].n, atom[bond[i].b].n, bond[i].type,  OB_WEDGE_OR_HASH_BOND);
 		OBMolAtomIter a,b;
 		FOR_ATOMS_OF_MOL(ai, mol)
 		  if (ai->GetIdx() == atom[bond[i].b].n) b = ai;
@@ -345,6 +345,8 @@ void create_molecule(OBMol &mol, vector<atom_t> &atom, const vector<bond_t> &bon
 		SetTetrahedtalUnknown(a);
 		SetTetrahedtalUnknown(b);
 	      }
+	    else
+	      mol.AddBond(atom[bond[i].a].n, atom[bond[i].b].n, bond[i].type, bond_flags);	      
           }
       }
   mol.EndModify();
@@ -566,6 +568,13 @@ const string get_formatted_structure(vector<atom_t> &atom, const vector<bond_t> 
             //b->UnsetHash();
             b->UnsetWedge();
           }
+	if (!b->GetBeginAtom()->IsChiral() && (b->IsWedge() || b->IsHash()))
+	  {
+	    OBAtom* ba = b->GetBeginAtom();
+	    OBAtom* ea = b->GetEndAtom();
+	    b->SetBegin(ea);
+	    b->SetEnd(ba);
+	  }
       }
 
     // Add single bonds based on atom proximity:
