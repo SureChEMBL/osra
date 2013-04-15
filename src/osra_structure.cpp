@@ -227,10 +227,10 @@ int find_wavy_bonds(vector<bond_t> &bond,int n_bond,const vector<atom_t> &atom,d
 	  set<int> bag;
 	  int begin = 0;
 	  int end = 0;
-	  if (bond[j].exists)// && !bond[i].Small)
+	  if (bond[j].exists)// && !bond[j].Small)
 	    {
 	      double l = bond_length(bond, j, atom);
-	      if (l < avg/3)
+	      if (l < avg/4)
 		{
 		  bag.insert(j);
 		  begin = j;
@@ -258,7 +258,7 @@ int find_wavy_bonds(vector<bond_t> &bond,int n_bond,const vector<atom_t> &atom,d
 	      if (mini >= 0)
 		{
 		  double l = bond_length(bond, mini, atom);
-		  if (l < avg/3)
+		  if (l < avg/4)
 		    {
 
 		      bag.insert(mini);
@@ -282,7 +282,7 @@ int find_wavy_bonds(vector<bond_t> &bond,int n_bond,const vector<atom_t> &atom,d
 	      if (mini >= 0)
 		  {
 		    double l = bond_length(bond, mini, atom);
-		    if (l < avg/3)
+		    if (l < avg/4)
 		      {
 
 			bag.insert(mini);
@@ -338,7 +338,7 @@ int find_wavy_bonds(vector<bond_t> &bond,int n_bond,const vector<atom_t> &atom,d
 		      double da =  fabs(distance_from_bond_y(xa,ya,xb,yb,atom[bond[*i].a].x, atom[bond[*i].a].y));
 		      double db =  fabs(distance_from_bond_y(xa,ya,xb,yb,atom[bond[*i].b].x, atom[bond[*i].b].y));
 
-		      if (da > avg/3 || db > avg/3)
+		      if (da > avg/4 || db > avg/4)
 			{
 			  too_far = true;
 			  break;
