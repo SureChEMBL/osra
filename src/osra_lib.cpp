@@ -137,8 +137,7 @@ void create_thick_box(Image &orig_box,Image &thick_box,int &width,int &height,in
 	  width = thick_box.columns();
 	  height = thick_box.rows();
 	  thick = false;
-	  nf = noise_factor(orig_box, width, height, bgColor, THRESHOLD_BOND, resolution,
-			    max_hist, nf45);
+	  //nf = noise_factor(orig_box, width, height, bgColor, THRESHOLD_BOND, resolution, max_hist, nf45);
 	}
       if (res_iter == NUM_RESOLUTIONS-1)
         {
@@ -156,8 +155,7 @@ void create_thick_box(Image &orig_box,Image &thick_box,int &width,int &height,in
               thick_box = orig_box;
               width = thick_box.columns();
               height = thick_box.rows();
-              nf = noise_factor(orig_box, width, height, bgColor, THRESHOLD_BOND, resolution,
-                                max_hist, nf45);
+	      nf = noise_factor(orig_box, width, height, bgColor, THRESHOLD_BOND, resolution, max_hist, nf45);
             }
           else
             {
@@ -172,8 +170,7 @@ void create_thick_box(Image &orig_box,Image &thick_box,int &width,int &height,in
               width = thick_box.columns();
               height = thick_box.rows();
               thick = false;
-              nf = noise_factor(orig_box, width, height, bgColor, THRESHOLD_BOND, resolution,
-                                max_hist, nf45);
+              nf = noise_factor(orig_box, width, height, bgColor, THRESHOLD_BOND, resolution,  max_hist, nf45);
             }
         }
       if (jaggy)

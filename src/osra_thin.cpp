@@ -22,7 +22,7 @@
 
 #include "osra_common.h"
 #include "osra_thin.h"
-
+#include <iostream>
 
 /*------------------- ThinImage - Thin binary image. --------------------------- *
  *
@@ -178,7 +178,7 @@ double noise_factor(const Image &image, int width, int height, const ColorGray &
   int max_thick = 40;
   vector<double> n(max_thick, 0);
   double nf;
-
+  vector<int> lines;
   for (int i = 0; i < width; i++)
     {
       int j = 0;
@@ -194,6 +194,7 @@ double noise_factor(const Image &image, int width, int height, const ColorGray &
             }
           if (l < max_thick)
             n[l]++;
+	  lines.push_back(l);
         }
     }
   for (int i = 0; i < height; i++)
@@ -211,10 +212,12 @@ double noise_factor(const Image &image, int width, int height, const ColorGray &
             }
           if (l < max_thick)
             n[l]++;
+	  lines.push_back(l);
         }
     }
   double max_v = 0;
   max = 1;
+  sort(lines.begin(),lines.end());
   for (int l = 1; l < max_thick; l++)
     {
       //cout << l << " " << n[l] << endl;
@@ -224,6 +227,7 @@ double noise_factor(const Image &image, int width, int height, const ColorGray &
           max = l;
         }
     }
+
   if (max > 2)
     nf = n[2] / n[3];
   else if (max == 2)
@@ -232,5 +236,6 @@ double noise_factor(const Image &image, int width, int height, const ColorGray &
     nf = n[2] / n[1];
   if (n[5]!=0) nf45=n[4]/n[5];
   else nf45=0;
+
   return (nf);
 }

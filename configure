@@ -4179,6 +4179,9 @@ fi
 # Check whether --with-tclap-include was given.
 if test "${with_tclap_include+set}" = set; then :
   withval=$with_tclap_include;
+			with_tclap="${with_tclap_include}"
+			CPPFLAGS="-I${withval} ${CPPFLAGS}"
+
 else
   with_tclap_include="auto"
 fi
