@@ -39,7 +39,8 @@ nIH N
 NHX N
 mH  N
 NN  N
-
+hN  N
+Nh  N
 
 OH  O  
 oH  O  

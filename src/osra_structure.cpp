@@ -1203,6 +1203,7 @@ void douglas_peucker(vector<atom_t> &atom,  int b_atom, int n_atom)
     }
 }
 
+
 int find_bonds(vector<atom_t> &atom, vector<bond_t> &bond, int b_atom, int n_atom, int n_bond,
                const potrace_path_t * const p)
 {
@@ -1707,6 +1708,7 @@ int find_dashed_bonds(const potrace_path_t *p, vector<atom_t> &atom, vector<bond
   return (n_atom);
 }
 
+
 int find_small_bonds(const potrace_path_t *p, vector<atom_t> &atom, vector<bond_t> &bond, int n_atom, int *n_bond,
                      double max_area, double Small, double thickness)
 {
@@ -1773,6 +1775,7 @@ int find_small_bonds(const potrace_path_t *p, vector<atom_t> &atom, vector<bond_
 		      n_atom++;
 		    }     
 		  bond_t b1(n_atom-2,n_atom-1,p);
+		  b1.Small = true;
 		  if (*n_bond < MAX_ATOMS)
 		    {
 		      bond.push_back(b1);
@@ -1952,6 +1955,7 @@ void collapse_bonds(vector<atom_t> &atom, const vector<bond_t> &bond, int n_bond
         atom[bond[i].b].max_y = max(atom[bond[i].a].max_y,atom[bond[i].b].max_y);
       }
 }
+
 
 int fix_one_sided_bonds(vector<bond_t> &bond, int n_bond, const vector<atom_t> &atom, double thickness, double avg)
 {

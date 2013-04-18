@@ -1071,7 +1071,7 @@ list<list<list<point_t> > > find_segments(const Image &image, double threshold, 
 
       dist = 2 * dist_text;
     }
-  if (dist<10) dist = 10;
+  if (dist<20) dist = 20;
   for (unsigned int i = 0; i < margins.size(); i++)
     if (avail[i] != -1)
       avail[i] = 1;

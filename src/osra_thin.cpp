@@ -215,6 +215,78 @@ double noise_factor(const Image &image, int width, int height, const ColorGray &
 	  lines.push_back(l);
         }
     }
+  /*for (int i = 0; i < height; i++)
+    {
+      int j = 0;
+      while (j < width && i+j < height)
+        {
+          while (!get_pixel(image, bgColor, j, i+j, THRESHOLD_BOND) && j < width && i+j < height)
+            j++;
+          int l = 0;
+          while (get_pixel(image, bgColor, j, i+j, THRESHOLD_BOND) && j < width && i+j < height)
+            {
+              l++;
+              j++;
+            }
+          if (l < max_thick)
+            n[l]++;
+	  lines.push_back(l);
+        }
+    }
+  for (int i = 0; i < height; i++)
+    {
+      int j = width - 1;
+      while (j >= 0 && i+(width-1-j) < height)
+        {
+          while (!get_pixel(image, bgColor, j, i+(width-1-j), THRESHOLD_BOND) && j >= 0 && i+(width-1-j) < height)
+            j--;
+          int l = 0;
+          while (get_pixel(image, bgColor, j, i+(width-1-j), THRESHOLD_BOND) && j >= 0 && i+(width-1-j) < height)
+            {
+              l++;
+              j--;
+            }
+          if (l < max_thick)
+            n[l]++;
+	  lines.push_back(l);
+        }
+    }
+  for (int i = 0; i < width; i++)
+    {
+      int j = 0;
+      while (j < height && i+j < width)
+        {
+          while (!get_pixel(image, bgColor, i+j, j, THRESHOLD_BOND) && j < height && i+j < width)
+            j++;
+          int l = 0;
+          while (get_pixel(image, bgColor, i+j, j, THRESHOLD_BOND) && j < height && i+j < width)
+            {
+              l++;
+              j++;
+            }
+          if (l < max_thick)
+            n[l]++;
+	  lines.push_back(l);
+        }
+    }
+  for (int i = 0; i < width; i++)
+    {
+      int j = height - 1;
+      while (j > 0 && i+(height-1-j) < width)
+        {
+          while (!get_pixel(image, bgColor, i+(height-1-j), j, THRESHOLD_BOND) && j > 0 && i+(height-1-j) < width)
+            j--;
+          int l = 0;
+          while (get_pixel(image, bgColor, i+(height-1-j), j, THRESHOLD_BOND) && j > 0 && i+(height-1-j) < width)
+            {
+              l++;
+              j--;
+            }
+          if (l < max_thick)
+            n[l]++;
+	  lines.push_back(l);
+        }
+	}*/
   double max_v = 0;
   max = 1;
   sort(lines.begin(),lines.end());
@@ -227,6 +299,8 @@ double noise_factor(const Image &image, int width, int height, const ColorGray &
           max = l;
         }
     }
+  //if (lines.size() > 1)
+  // max = lines[lines.size() / 2];
 
   if (max > 2)
     nf = n[2] / n[3];
