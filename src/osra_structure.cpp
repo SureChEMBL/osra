@@ -346,21 +346,14 @@ int find_wavy_bonds(vector<bond_t> &bond,int n_bond,const vector<atom_t> &atom,d
 		    }
 		  if (!too_far)  // This looks like a wavy bond
 		    {
-		      bond_t nb;
-		      nb.a = a;
-		      nb.b = b;
-		      nb.exists = true;
-		      nb.type = 1;
-		      nb.curve = bond[begin].curve;
-		      nb.hash = true;
+		      bond_t nb(a,b,bond[begin].curve);
+		      nb.hash = true;                        
 		      nb.wedge = true;
-		      nb.up = false;
-		      nb.down = false;
-		      nb.Small = false;
-		      nb.arom = false;
-		      nb.conjoined = false;
-		      bond.push_back(nb);
-		      n_bond++;
+		      if (n_bond < MAX_ATOMS)
+			{
+			  bond.push_back(nb);
+			  n_bond++;
+			}
 		      for(set<int>::iterator i=bag.begin(); i!=bag.end(); i++)
 			bond[*i].exists = false;
 		    }
@@ -707,85 +700,42 @@ int double_triple_bonds(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, 
                         {
                           double x = atom[bond[ii].a].x + (atom[bond[ii].b].x - atom[bond[ii].a].x) * da / l11;
                           double y = atom[bond[ii].a].y + (atom[bond[ii].b].y - atom[bond[ii].a].y) * da / l11;
-                          bond_t b1;
-                          bond.push_back(b1);
-                          bond[n_bond].a = bond[ii].a;
-                          bond[n_bond].exists = true;
-                          bond[n_bond].type = 1;
-                          bond[n_bond].curve = bond[ii].curve;
-                          bond[n_bond].hash = false;
-                          bond[n_bond].wedge = false;
-                          bond[n_bond].up = false;
-                          bond[n_bond].down = false;
-                          bond[n_bond].Small = false;
-                          bond[n_bond].arom = false;
-                          bond[n_bond].conjoined = false;
-                          atom_t a1;
-                          atom.push_back(a1);
-                          atom[n_atom].x = x;
-                          atom[n_atom].y = y;
-			  atom[n_atom].min_x = atom[n_atom].x;
-			  atom[n_atom].max_x = atom[n_atom].x;
-			  atom[n_atom].min_y = atom[n_atom].y;
-			  atom[n_atom].max_y = atom[n_atom].y;
-                          atom[n_atom].label = " ";
-                          atom[n_atom].exists = true;
-                          atom[n_atom].curve = bond[ii].curve;
-                          atom[n_atom].n = 0;
-                          atom[n_atom].corner = false;
-                          atom[n_atom].terminal = false;
-                          atom[n_atom].charge = 0;
-                          atom[n_atom].anum = 0;
-                          bond[ii].a = n_atom;
-                          n_atom++;
-                          if (n_atom >= MAX_ATOMS)
-                            n_atom--;
-                          bond[n_bond].b = bond[ii].a;
-                          n_bond++;
-                          if (n_bond >= MAX_ATOMS)
-                            n_bond--;
+			  int ba = bond[ii].a;
+			  atom_t at1(x,y,bond[ii].curve);
+			  at1.exists = true;
+			  if (n_atom < MAX_ATOMS)
+			    {
+			      bond[ii].a = n_atom;
+			      atom.push_back(at1);
+			      n_atom++;
+			    }     
+			  bond_t b1(ba,bond[ii].a,bond[ii].curve);
+			  if (n_bond < MAX_ATOMS)
+			    {
+			      bond.push_back(b1);
+			      n_bond++;
+			    }
                         }
                       if (db > 0.5 * l22)
                         {
                           double x = atom[bond[ii].b].x + (atom[bond[ii].a].x - atom[bond[ii].b].x) * db / l11;
                           double y = atom[bond[ii].b].y + (atom[bond[ii].a].y - atom[bond[ii].b].y) * db / l11;
-                          bond_t b1;
-                          bond.push_back(b1);
-                          bond[n_bond].a = bond[ii].b;
-                          bond[n_bond].exists = true;
-                          bond[n_bond].type = 1;
-                          bond[n_bond].curve = bond[ii].curve;
-                          bond[n_bond].hash = false;
-                          bond[n_bond].wedge = false;
-                          bond[n_bond].up = false;
-                          bond[n_bond].down = false;
-                          bond[n_bond].Small = false;
-                          bond[n_bond].arom = false;
-                          bond[n_bond].conjoined = false;
-                          atom_t a1;
-                          atom.push_back(a1);
-                          atom[n_atom].x = x;
-                          atom[n_atom].y = y;
-			  atom[n_atom].min_x = atom[n_atom].x;
-			  atom[n_atom].max_x = atom[n_atom].x;
-			  atom[n_atom].min_y = atom[n_atom].y;
-			  atom[n_atom].max_y = atom[n_atom].y;
-                          atom[n_atom].label = " ";
-                          atom[n_atom].exists = true;
-                          atom[n_atom].curve = bond[ii].curve;
-                          atom[n_atom].n = 0;
-                          atom[n_atom].corner = false;
-                          atom[n_atom].terminal = false;
-                          atom[n_atom].charge = 0;
-                          atom[n_atom].anum = 0;
-                          bond[ii].b = n_atom;
-                          n_atom++;
-                          if (n_atom >= MAX_ATOMS)
-                            n_atom--;
-                          bond[n_bond].b = bond[ii].b;
-                          n_bond++;
-                          if (n_bond >= MAX_ATOMS)
-                            n_bond--;
+			 
+                          int ba = bond[ii].b;
+			  atom_t at1(x,y,bond[ii].curve);
+			  at1.exists = true;
+			  if (n_atom < MAX_ATOMS)
+			    {
+			      bond[ii].b = n_atom;
+			      atom.push_back(at1);
+			      n_atom++;
+			    }     
+			  bond_t b1(ba,bond[ii].b,bond[ii].curve);
+			  if (n_bond < MAX_ATOMS)
+			    {
+			      bond.push_back(b1);
+			      n_bond++;
+			    }
                         }
                       bond[jj].exists = false;
                       bond[ii].type += bond[jj].type;
@@ -1291,28 +1241,17 @@ int find_bonds(vector<atom_t> &atom, vector<bond_t> &bond, int b_atom, int n_ato
   for (int i = b_atom; i < n_atom; i++)
     if (atom[i].exists)
       {
-        bond_t bn;
-        bond.push_back(bn);
-        bond[n_bond].a = i;
-        bond[n_bond].exists = true;
-        bond[n_bond].type = 1;
-        int j = next_atom(i, b_atom, n_atom);
+	int j = next_atom(i, b_atom, n_atom);
         while (!atom[j].exists)
           {
             j = next_atom(j, b_atom, n_atom);
           }
-        bond[n_bond].b = j;
-        bond[n_bond].curve = p;
-        bond[n_bond].hash = false;
-        bond[n_bond].wedge = false;
-        bond[n_bond].up = false;
-        bond[n_bond].down = false;
-        bond[n_bond].Small = false;
-        bond[n_bond].arom = false;
-        bond[n_bond].conjoined = false;
-        n_bond++;
-        if (n_bond >= MAX_ATOMS)
-          n_bond--;
+        bond_t bn(i,j,p);
+        if (n_bond < MAX_ATOMS)
+	  {
+	    bond.push_back(bn);
+	    n_bond++;
+	  }
       }
   return (n_bond);
 }
@@ -1331,130 +1270,89 @@ int find_atoms(const potrace_path_t *p, vector<atom_t> &atom, vector<bond_t> &bo
       tag = p->curve.tag;
       c = p->curve.c;
       int b_atom = n_atom;
-      atom_t at;
-      atom.push_back(at);
-      atom[n_atom].x = c[n - 1][2].x;
-      atom[n_atom].y = c[n - 1][2].y;
-      if (atom[n_atom].x<0) atom[n_atom].x=0;
-      if (atom[n_atom].x>width) atom[n_atom].x=width;
-      if (atom[n_atom].y<0) atom[n_atom].y=0;
-      if (atom[n_atom].y>height) atom[n_atom].y=height;
-      atom[n_atom].min_x = atom[n_atom].x;
-      atom[n_atom].max_x = atom[n_atom].x;
-      atom[n_atom].min_y = atom[n_atom].y;
-      atom[n_atom].max_y = atom[n_atom].y;
-      atom[n_atom].label = " ";
-      atom[n_atom].exists = false;
-      atom[n_atom].curve = p;
-      atom[n_atom].n = 0;
-      atom[n_atom].corner = false;
-      atom[n_atom].terminal = false;
-      atom[n_atom].charge = 0;
-      atom[n_atom].anum = 0;
-      n_atom++;
-      if (n_atom >= MAX_ATOMS)
-        n_atom--;
+      double x = c[n - 1][2].x;
+      double y = c[n - 1][2].y;
+      if (x<0) x=0;
+      if (x>width) x=width;
+      if (y<0) y=0;
+      if (y>height) y=height;
+      atom_t at(x,y,p);
+
+      if (n_atom < MAX_ATOMS)
+	{
+	  atom.push_back(at);
+	  n_atom++;
+	}     
+
       for (long i = 0; i < n; i++)
         {
-          atom_t at1, at2, at3, at4;
 
           switch (tag[i])
             {
             case POTRACE_CORNER:
-              atom.push_back(at1);
-              atom[n_atom].x = c[i][1].x;
-              atom[n_atom].y = c[i][1].y;
-              if (atom[n_atom].x<0) atom[n_atom].x=0;
-              if (atom[n_atom].x>width) atom[n_atom].x=width;
-              if (atom[n_atom].y<0) atom[n_atom].y=0;
-              if (atom[n_atom].y>height) atom[n_atom].y=height;
-	      atom[n_atom].min_x = atom[n_atom].x;
-	      atom[n_atom].max_x = atom[n_atom].x;
-	      atom[n_atom].min_y = atom[n_atom].y;
-	      atom[n_atom].max_y = atom[n_atom].y;
-              atom[n_atom].label = " ";
-              atom[n_atom].exists = false;
-              atom[n_atom].curve = p;
-              atom[n_atom].n = 0;
-              atom[n_atom].corner = true;
-              atom[n_atom].terminal = false;
-              atom[n_atom].charge = 0;
-              atom[n_atom].anum = 0;
-              n_atom++;
-              if (n_atom >= MAX_ATOMS)
-                n_atom--;
+	      {
+		x = c[i][1].x;
+		y = c[i][1].y;
+		if (x<0) x=0;
+		if (x>width) x=width;
+		if (y<0) y=0;
+		if (y>height) y=height;
+		atom_t at1(x,y,p);
+		at1.corner = true;
+		if (n_atom < MAX_ATOMS)
+		  {
+		    atom.push_back(at1);
+		    n_atom++;
+		  }     
+	      }
               break;
             case POTRACE_CURVETO:
-              atom.push_back(at2);
-              atom[n_atom].x = c[i][0].x;
-              atom[n_atom].y = c[i][0].y;
-              if (atom[n_atom].x<0) atom[n_atom].x=0;
-              if (atom[n_atom].x>width) atom[n_atom].x=width;
-              if (atom[n_atom].y<0) atom[n_atom].y=0;
-              if (atom[n_atom].y>height) atom[n_atom].y=height;
-	      atom[n_atom].min_x = atom[n_atom].x;
-	      atom[n_atom].max_x = atom[n_atom].x;
-	      atom[n_atom].min_y = atom[n_atom].y;
-	      atom[n_atom].max_y = atom[n_atom].y;
-              atom[n_atom].label = " ";
-              atom[n_atom].exists = false;
-              atom[n_atom].curve = p;
-              atom[n_atom].n = 0;
-              atom[n_atom].corner = false;
-              atom[n_atom].terminal = false;
-              atom[n_atom].charge = 0;
-              atom[n_atom].anum = 0;
-              n_atom++;
-              if (n_atom >= MAX_ATOMS)
-                n_atom--;
-              atom.push_back(at3);
-              atom[n_atom].x = c[i][1].x;
-              atom[n_atom].y = c[i][1].y;
-              if (atom[n_atom].x<0) atom[n_atom].x=0;
-              if (atom[n_atom].x>width) atom[n_atom].x=width;
-              if (atom[n_atom].y<0) atom[n_atom].y=0;
-              if (atom[n_atom].y>height) atom[n_atom].y=height;
-	      atom[n_atom].min_x = atom[n_atom].x;
-	      atom[n_atom].max_x = atom[n_atom].x;
-	      atom[n_atom].min_y = atom[n_atom].y;
-	      atom[n_atom].max_y = atom[n_atom].y;
-              atom[n_atom].label = " ";
-              atom[n_atom].exists = false;
-              atom[n_atom].curve = p;
-              atom[n_atom].n = 0;
-              atom[n_atom].corner = false;
-              atom[n_atom].terminal = false;
-              atom[n_atom].charge = 0;
-              atom[n_atom].anum = 0;
-              n_atom++;
-              if (n_atom >= MAX_ATOMS)
-                n_atom--;
+	      {
+		x = c[i][0].x;
+		y = c[i][0].y;
+		if (x<0) x=0;
+		if (x>width) x=width;
+		if (y<0) y=0;
+		if (y>height) y=height;
+		atom_t at2(x,y,p);
+
+		if (n_atom < MAX_ATOMS)
+		  {
+		    atom.push_back(at2);
+		    n_atom++;
+		  }     
+		
+		x = c[i][1].x;
+		y = c[i][1].y;
+		if (x<0) x=0;
+		if (x>width) x=width;
+		if (y<0) y=0;
+		if (y>height) y=height;
+		atom_t at3(x,y,p);
+		
+		if (n_atom < MAX_ATOMS)
+		  {
+		    atom.push_back(at3);
+		    n_atom++;
+		  }     
+	      }
               break;
             }
           if (i != n - 1)
             {
-              atom.push_back(at4);
-              atom[n_atom].x = c[i][2].x;
-              atom[n_atom].y = c[i][2].y;
-              if (atom[n_atom].x<0) atom[n_atom].x=0;
-              if (atom[n_atom].x>width) atom[n_atom].x=width;
-              if (atom[n_atom].y<0) atom[n_atom].y=0;
-              if (atom[n_atom].y>height) atom[n_atom].y=height;
-	      atom[n_atom].min_x = atom[n_atom].x;
-	      atom[n_atom].max_x = atom[n_atom].x;
-	      atom[n_atom].min_y = atom[n_atom].y;
-	      atom[n_atom].max_y = atom[n_atom].y;
-              atom[n_atom].label = " ";
-              atom[n_atom].exists = false;
-              atom[n_atom].curve = p;
-              atom[n_atom].n = 0;
-              atom[n_atom].corner = false;
-              atom[n_atom].terminal = false;
-              atom[n_atom].charge = 0;
-              atom[n_atom].anum = 0;
-              n_atom++;
-              if (n_atom >= MAX_ATOMS)
-                n_atom--;
+	      x = c[i][2].x;
+	      y = c[i][2].y;
+	      if (x<0) x=0;
+	      if (x>width) x=width;
+	      if (y<0) y=0;
+	      if (y>height) y=height;
+	      atom_t at4(x,y,p);
+
+	      if (n_atom < MAX_ATOMS)
+		{
+		  atom.push_back(at4);
+		  n_atom++;
+		}     
             }
         }
       *n_bond = find_bonds(atom, bond, b_atom, n_atom, *n_bond, p);
@@ -1778,64 +1676,30 @@ int find_dashed_bonds(const potrace_path_t *p, vector<atom_t> &atom, vector<bond
               {
                 for (int j = 0; j < dash.size(); j++)
                   delete_curve(atom, bond, n_atom, *n_bond, dash[j].curve);
-                atom_t a1;
-                atom.push_back(a1);
-                atom[n_atom].x = dash[0].x;
-                atom[n_atom].y = dash[0].y;
-		atom[n_atom].min_x = atom[n_atom].x;
-		atom[n_atom].max_x = atom[n_atom].x;
-		atom[n_atom].min_y = atom[n_atom].y;
-		atom[n_atom].max_y = atom[n_atom].y;
-                atom[n_atom].label = " ";
-                atom[n_atom].exists = true;
-                atom[n_atom].curve = dash[0].curve;
-                atom[n_atom].n = 0;
-                atom[n_atom].corner = false;
-                atom[n_atom].terminal = false;
-                atom[n_atom].charge = 0;
-                atom[n_atom].anum = 0;
-                n_atom++;
-                if (n_atom >= MAX_ATOMS)
-                  n_atom--;
-                atom_t a2;
-                atom.push_back(a2);
-                atom[n_atom].x = dash.back().x;
-                atom[n_atom].y = dash.back().y;
-		atom[n_atom].min_x = atom[n_atom].x;
-		atom[n_atom].max_x = atom[n_atom].x;
-		atom[n_atom].min_y = atom[n_atom].y;
-		atom[n_atom].max_y = atom[n_atom].y;
-                atom[n_atom].label = " ";
-                atom[n_atom].exists = true;
-                atom[n_atom].curve = dash.back().curve;
-                atom[n_atom].n = 0;
-                atom[n_atom].corner = false;
-                atom[n_atom].terminal = false;
-                atom[n_atom].charge = 0;
-                atom[n_atom].anum = 0;
-                n_atom++;
-                if (n_atom >= MAX_ATOMS)
-                  n_atom--;
-                bond_t b1;
-                bond.push_back(b1);
-                bond[*n_bond].a = n_atom - 2;
-                bond[*n_bond].exists = true;
-                bond[*n_bond].type = 1;
-                bond[*n_bond].b = n_atom - 1;
-                bond[*n_bond].curve = dash[0].curve;
-                if (dash[0].area > dash.back().area)
-                  bond_end_swap(bond, *n_bond);
-                bond[*n_bond].hash = true;
-                bond[*n_bond].wedge = false;
-                bond[*n_bond].up = false;
-                bond[*n_bond].down = false;
-                bond[*n_bond].Small = false;
-                bond[*n_bond].arom = false;
-                bond[*n_bond].conjoined = false;
-                extend_dashed_bond(bond[*n_bond].a, bond[*n_bond].b, dash.size(), atom);
-                (*n_bond)++;
-                if ((*n_bond) >= MAX_ATOMS)
-		(*n_bond)--;
+		atom_t at1(dash[0].x,dash[0].y,dash[0].curve);
+		at1.exists = true;
+		if (n_atom < MAX_ATOMS)
+		  {
+		    atom.push_back(at1);
+		    n_atom++;
+		  }     
+		atom_t at2(dash.back().x,dash.back().y,dash.back().curve);
+		at2.exists = true;
+		if (n_atom < MAX_ATOMS)
+		  {
+		    atom.push_back(at2);
+		    n_atom++;
+		  }     
+		bond_t b1(n_atom-2,n_atom-1,dash[0].curve);
+		b1.hash = true;                        
+		if (*n_bond < MAX_ATOMS)
+		  {
+		    bond.push_back(b1);
+		    if (dash[0].area > dash.back().area)
+		      bond_end_swap(bond, *n_bond);
+		    extend_dashed_bond(bond[*n_bond].a, bond[*n_bond].b, dash.size(), atom);
+		    (*n_bond)++;
+		  }
               }
           }
       }
@@ -1894,61 +1758,26 @@ int find_small_bonds(const potrace_path_t *p, vector<atom_t> &atom, vector<bond_
               if (d < thickness || p->area < Small)
                 {
                   delete_curve(atom, bond, n_atom, *n_bond, p);
-                  atom_t a1;
-                  atom.push_back(a1);
-                  atom[n_atom].x = dot[0].x;
-                  atom[n_atom].y = dot[0].y;
-		  atom[n_atom].min_x = atom[n_atom].x;
-		  atom[n_atom].max_x = atom[n_atom].x;
-		  atom[n_atom].min_y = atom[n_atom].y;
-		  atom[n_atom].max_y = atom[n_atom].y;
-                  atom[n_atom].label = " ";
-                  atom[n_atom].exists = true;
-                  atom[n_atom].curve = p;
-                  atom[n_atom].n = 0;
-                  atom[n_atom].corner = false;
-                  atom[n_atom].terminal = false;
-                  atom[n_atom].charge = 0;
-                  atom[n_atom].anum = 0;
-                  n_atom++;
-                  if (n_atom >= MAX_ATOMS)
-                    n_atom--;
-                  atom_t a2;
-                  atom.push_back(a2);
-                  atom[n_atom].x = dot.back().x;
-                  atom[n_atom].y = dot.back().y;
-		  atom[n_atom].min_x = atom[n_atom].x;
-		  atom[n_atom].max_x = atom[n_atom].x;
-		  atom[n_atom].min_y = atom[n_atom].y;
-		  atom[n_atom].max_y = atom[n_atom].y;
-                  atom[n_atom].label = " ";
-                  atom[n_atom].exists = true;
-                  atom[n_atom].curve = p;
-                  atom[n_atom].n = 0;
-                  atom[n_atom].corner = false;
-                  atom[n_atom].terminal = false;
-                  atom[n_atom].charge = 0;
-                  atom[n_atom].anum = 0;
-                  n_atom++;
-                  if (n_atom >= MAX_ATOMS)
-                    n_atom--;
-                  bond_t b1;
-                  bond.push_back(b1);
-                  bond[*n_bond].a = n_atom - 2;
-                  bond[*n_bond].exists = true;
-                  bond[*n_bond].type = 1;
-                  bond[*n_bond].b = n_atom - 1;
-                  bond[*n_bond].curve = p;
-                  bond[*n_bond].hash = false;
-                  bond[*n_bond].wedge = false;
-                  bond[*n_bond].up = false;
-                  bond[*n_bond].down = false;
-                  bond[*n_bond].Small = true;
-                  bond[*n_bond].arom = false;
-                  bond[*n_bond].conjoined = false;
-                  (*n_bond)++;
-                  if ((*n_bond) >= MAX_ATOMS)
-                    (*n_bond)--;
+		  atom_t at1(dot[0].x,dot[0].y,p);
+		  at1.exists = true;
+		  if (n_atom < MAX_ATOMS)
+		    {
+		      atom.push_back(at1);
+		      n_atom++;
+		    }     
+		  atom_t at2(dot.back().x,dot.back().y,p);
+		  at2.exists = true;
+		  if (n_atom < MAX_ATOMS)
+		    {
+		      atom.push_back(at2);
+		      n_atom++;
+		    }     
+		  bond_t b1(n_atom-2,n_atom-1,p);
+		  if (*n_bond < MAX_ATOMS)
+		    {
+		      bond.push_back(b1);
+		      (*n_bond)++;
+		    }
                 }
             }
         }
@@ -2150,32 +1979,17 @@ int fix_one_sided_bonds(vector<bond_t> &bond, int n_bond, const vector<atom_t> &
                       }
                     else
                       {
-                        bond_t b1;
-                        bond.push_back(b1);
-                        bond[n_bond].b = bond[i].b;
-                        bond[n_bond].exists = true;
-                        bond[n_bond].type = bond[i].type;
-                        bond[n_bond].a = bond[j].a;
-                        bond[n_bond].curve = bond[i].curve;
-                        if (bond[i].hash)
-                          bond[n_bond].hash = true;
-                        else
-                          bond[n_bond].hash = false;
-                        if (bond[i].wedge)
-                          bond[n_bond].wedge = true;
-                        else
-                          bond[n_bond].wedge = false;
-                        bond[n_bond].Small = false;
-                        bond[n_bond].up = false;
-                        bond[n_bond].down = false;
-                        if (bond[i].arom)
-                          bond[n_bond].arom = true;
-                        else
-                          bond[n_bond].arom = false;
-                        bond[n_bond].conjoined = bond[i].conjoined;
-                        n_bond++;
-                        if (n_bond >= MAX_ATOMS)
-                          n_bond--;
+			bond_t b1(bond[j].a,bond[i].b,bond[i].curve);
+                        b1.type = bond[i].type;
+			b1.hash = bond[i].hash;                        
+			b1.wedge = bond[i].wedge;
+			b1.arom = bond[i].arom;
+                        b1.conjoined = bond[i].conjoined;
+			if (n_bond < MAX_ATOMS)
+			  {
+			    bond.push_back(b1);
+			    n_bond++;
+			  }
                         bond[i].b = bond[j].a;
                         bond[i].wedge = false;
                       }
@@ -2193,32 +2007,17 @@ int fix_one_sided_bonds(vector<bond_t> &bond, int n_bond, const vector<atom_t> &
                       }
                     else
                       {
-                        bond_t b1;
-                        bond.push_back(b1);
-                        bond[n_bond].b = bond[i].b;
-                        bond[n_bond].exists = true;
-                        bond[n_bond].type = bond[i].type;
-                        bond[n_bond].a = bond[j].b;
-                        bond[n_bond].curve = bond[i].curve;
-                        if (bond[i].hash)
-                          bond[n_bond].hash = true;
-                        else
-                          bond[n_bond].hash = false;
-                        if (bond[i].wedge)
-                          bond[n_bond].wedge = true;
-                        else
-                          bond[n_bond].wedge = false;
-                        bond[n_bond].Small = false;
-                        bond[n_bond].up = false;
-                        bond[n_bond].down = false;
-                        if (bond[i].arom)
-                          bond[n_bond].arom = true;
-                        else
-                          bond[n_bond].arom = false;
-                        bond[n_bond].conjoined = bond[i].conjoined;
-                        n_bond++;
-                        if (n_bond >= MAX_ATOMS)
-                          n_bond--;
+			bond_t b1(bond[j].b,bond[i].b,bond[i].curve);
+                        b1.type = bond[i].type;
+			b1.hash = bond[i].hash;                        
+			b1.wedge = bond[i].wedge;
+			b1.arom = bond[i].arom;
+                        b1.conjoined = bond[i].conjoined;
+			if (n_bond < MAX_ATOMS)
+			  {
+			    bond.push_back(b1);
+			    n_bond++;
+			  }
                         bond[i].b = bond[j].b;
                         bond[i].wedge = false;
                       }

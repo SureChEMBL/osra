@@ -43,6 +43,8 @@ using namespace Magick;
 //      Contains information about perspective atom
 struct atom_s
 {
+atom_s(double xx=0, double yy=0, const potrace_path_t* p=NULL) : 
+  x(xx),y(yy),min_x(xx),min_y(yy),max_x(xx),max_y(yy),curve(p),label(" "),n(0),anum(0), exists(false),corner(false),terminal(false),charge(0) {}
   // doubles: x, y
   //    coordinates within the image clip
   double x, y;
@@ -76,6 +78,8 @@ typedef struct atom_s atom_t;
 //      contains information about perspective bond between two atoms
 struct bond_s
 {
+bond_s(int i=0, int j=0, const potrace_path_t* p=NULL) : 
+  a(i),b(j),curve(p),type(1),exists(true),hash(false),wedge(false),up(false),down(false),Small(false),arom(false),conjoined(false) {}
   // ints: a, b, type
   //    starting atom, ending atom, bond type (1=single, 2=double, 3=triple)
   int a, b, type;
