@@ -248,11 +248,11 @@ AX_PROBE_OPTIONAL_LIBRARY(
 
 dnl cuneiform library (optional)
 
-AC_ARG_WITH(
-	[cuneiform-include],
-	[AC_HELP_STRING([--with-cuneiform-include], [Location of cuneiform.h header file])],
-	[CPPFLAGS="-I${withval} ${CPPFLAGS}"]
-)
+dnl AC_ARG_WITH(
+dnl	[cuneiform-include],
+dnl	[AC_HELP_STRING([--with-cuneiform-include], [Location of cuneiform.h header file])],
+dnl	[CPPFLAGS="-I${withval} ${CPPFLAGS}"]
+dnl)
 
 AX_PROBE_OPTIONAL_LIBRARY(
 	[cuneiform],

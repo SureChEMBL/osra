@@ -693,8 +693,8 @@ with_ocrad_lib
 with_tesseract_include
 with_tesseract
 with_tesseract_lib
-with_cuneiform_include
 with_cuneiform
+with_cuneiform_include
 with_cuneiform_lib
 with_openbabel_include
 with_openbabel_lib
@@ -1376,13 +1376,21 @@ Optional Packages:
                           developed at HP Labs), see
                           http://code.google.com/p/tesseract-ocr/ (optional)
                           (default: "auto")
+  --with-tesseract-include
+                          Enable optional support for Tesseract (OCR Engine
+                          developed at HP Labs), see
+                          http://code.google.com/p/tesseract-ocr/ (default:
+                          "auto")
   --with-tesseract-lib    custom location of the library
-  --with-cuneiform-include
-                          Location of cuneiform.h header file
   --with-cuneiform        Enable optional support for Cuneiform (OCR system
                           developed by Cognitive technologies), see
                           https://launchpad.net/cuneiform-linux (optional)
                           (default: "auto")
+  --with-cuneiform-include
+                          Enable optional support for Cuneiform (OCR system
+                          developed by Cognitive technologies), see
+                          https://launchpad.net/cuneiform-linux (default:
+                          "auto")
   --with-cuneiform-lib    custom location of the library
   --with-openbabel-include
                           custom location of openbabel/builder.h from
@@ -4926,6 +4934,18 @@ fi
 fi
 
 
+# Check whether --with-tesseract-include was given.
+if test "${with_tesseract_include+set}" = set; then :
+  withval=$with_tesseract_include;
+			with_tesseract="${with_tesseract_include}"
+			CPPFLAGS="-I${withval} ${CPPFLAGS}"
+
+else
+  with_tesseract="auto"
+fi
+
+
+
 # Check whether --with-tesseract-lib was given.
 if test "${with_tesseract_lib+set}" = set; then :
   withval=$with_tesseract_lib; LDFLAGS="-L${withval} ${LDFLAGS}"
@@ -5089,13 +5109,6 @@ fi
 
 
 
-# Check whether --with-cuneiform-include was given.
-if test "${with_cuneiform_include+set}" = set; then :
-  withval=$with_cuneiform_include; CPPFLAGS="-I${withval} ${CPPFLAGS}"
-
-fi
-
-
 
 
 # Check whether --with-cuneiform was given.
@@ -5113,6 +5126,18 @@ fi
 			with_cuneiform="auto"
 
 fi
+
+
+# Check whether --with-cuneiform-include was given.
+if test "${with_cuneiform_include+set}" = set; then :
+  withval=$with_cuneiform_include;
+			with_cuneiform="${with_cuneiform_include}"
+			CPPFLAGS="-I${withval} ${CPPFLAGS}"
+
+else
+  with_cuneiform="auto"
+fi
+
 
 
 # Check whether --with-cuneiform-lib was given.

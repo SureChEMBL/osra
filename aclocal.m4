@@ -117,6 +117,15 @@ AC_DEFUN([AX_PROBE_OPTIONAL_LIBRARY], [
 			with_$1="$3"
 		])
 
+	AC_ARG_WITH(
+		[$1-include],
+		[m4_if([$3], [], [AC_HELP_STRING([--with-$1-include], [$4])], [AC_HELP_STRING([--with-$1-include], [$4 (default: "$3")])])],
+		[
+			with_$1="${with_$1_include}"
+			CPPFLAGS="-I${withval} ${CPPFLAGS}"
+		],
+		[with_$1="$3"])
+
 		AC_ARG_WITH(
 			[$1-lib],
 			[AC_HELP_STRING([--with-$1-lib], [custom location of the library])],
