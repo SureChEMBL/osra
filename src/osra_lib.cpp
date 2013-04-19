@@ -145,7 +145,6 @@ void create_thick_box(Image &orig_box,Image &thick_box,int &width,int &height,in
             {
               int new_resolution = max_hist * 300 / 4;
               int percent = (100 * 300) / new_resolution;
-              //resolution = max_hist * select_resolution[res_iter] / 4;
               resolution = new_resolution;
               ostringstream scale;
               scale << percent << "%";

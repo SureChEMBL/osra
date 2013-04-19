@@ -780,22 +780,12 @@ void find_arrows_pluses(vector<vector<point_t> > &margins, vector<list<point_t> 
 	      if (ba || bb)
 		{
 		  // we found an arrow!
-		  arrow_t arrow;
-		  arrow.head = head;
-		  arrow.tail = tail;
+		  arrow_t arrow(head,tail,min_x,min_y,max_x,max_y);
 		  if (bb)
 		    {
 		      arrow.head = tail;
 		      arrow.tail = head;
 		    }
-		  //cout<<arrow.tail.x<<" "<<arrow.tail.y<<" "<<arrow.head.x<<" "<<arrow.head.y<<endl;
-		  arrow.linebreak = false;
-		  arrow.reversible = false;
-		  arrow.remove = false;
-		  arrow.min_x = min_x;
-		  arrow.min_y = min_y;
-		  arrow.max_x = max_x;
-		  arrow.max_y = max_y;
 		  arrows.push_back(arrow);
 		  margins[i].clear();
 		  segments[i].clear();

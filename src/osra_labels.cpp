@@ -1521,8 +1521,7 @@ void remove_small_terminal_bonds(vector<bond_t> &bond, int n_bond, vector<atom_t
     {
       found = false;
       for (int j = 0; j < n_bond; j++)
-        if (bond[j].exists && bond[j].type == 1 && !bond[j].wedge && !bond[j].hash && !bond[j].arom && bond_length(
-              bond, j, atom) < avg / 3)
+        if (bond[j].exists && bond[j].type == 1 && !bond[j].wedge && !bond[j].hash && !bond[j].arom && bond_length(bond, j, atom) < avg / 2)
           {
             bool not_corner_a = terminal_bond(bond[j].a, j, bond, n_bond);
             bool not_corner_b = terminal_bond(bond[j].b, j, bond, n_bond);
