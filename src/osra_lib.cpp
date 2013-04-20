@@ -513,8 +513,9 @@ void __attribute__ ((constructor)) osra_init()
 // Below attribute marker is GNU compiler specific.
 void __attribute__ ((destructor)) osra_destroy()
 {
+#ifdef OSRA_LIB
   MagickLib::DestroyMagick();
-
+#endif
   osra_ocr_destroy();
 }
 
