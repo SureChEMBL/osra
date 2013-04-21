@@ -6,7 +6,7 @@
 # OpenBabel perl binding are required to run this script.
 # Usage: ./osra-pdf input.pdf output.sdf
 #
-# Igor Filippov, igorf@helix.nih.gov
+# Igor Filippov, igor.v.filippov@gmail.com
 
 $OSRA = "/usr/local/bin/osra";
 @options = (['','-j'],

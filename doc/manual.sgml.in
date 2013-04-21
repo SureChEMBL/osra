@@ -17,7 +17,7 @@
 				<firstname>Igor</firstname>
 				<surname>Filippov</surname>
 				<contrib>Implemented the whole functionality.</contrib>
-				<email>igorf@helix.nih.gov</email>
+				<email>igor.v.filippov@gmail.com</email>
 			</author>
 			<!-- Should go to package/linux/debian/copyright#Maintainer -->
 			<!-- Should go to package/linux/debian/control#Maintainer -->
@@ -32,7 +32,7 @@
 		<!-- Should go to package/linux/debian/copyright#Copyright -->
 <!--		<copyright>
 			<year>2007-2010</year>
-			<holder><![CDATA[Igor Filippov <igorf@helix.nih.gov>]]></holder>
+			<holder><![CDATA[Igor Filippov <igor.v.filippov@gmail.com>]]></holder>
 		</copyright>
 -->
 		<!-- Should go to package/linux/debian/control#Description: -->

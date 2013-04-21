@@ -43,7 +43,7 @@ the SMILES or SDF representation of the molecular structure images encountered w
 
 Authors:
 --------
-    Igor Filippov <igorf@helix.nih.gov>
+    Igor Filippov <igor.v.filippov@gmail.com>
 
 %package common
 Summary:		OSRA shared files
