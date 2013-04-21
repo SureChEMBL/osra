@@ -1,5 +1,5 @@
-!define DOT_VERSION  "1.4.0"
-!define DASH_VERSION "1-4-0"
+!define DOT_VERSION  "2.0.0"
+!define DASH_VERSION "2-0-0"
 
 !define PIL_EXE "PIL-1.1.6.win32-py2.5.exe"
 !define PIL_URL "http://effbot.org/media/downloads/${PIL_EXE}"
@@ -58,6 +58,7 @@ Section "osra (required)"
   
   ; Put file there
   File "osra-bin.exe"
+  File "pthreadGC2.dll"
   File "delegates.mgk"
   File "type.mgk"
   File "type-ghostscript.mgk"
@@ -167,6 +168,7 @@ Section "Uninstall"
 
   ; Remove files and uninstaller
   Delete $INSTDIR\osra-bin.exe
+  Delete $INSTDIR\pthreadGC2.dll
   Delete $INSTDIR\delegates.mgk
   Delete $INSTDIR\type.mgk
   Delete $INSTDIR\type-ghostscript.mgk
@@ -341,7 +343,6 @@ fileOpen $0 "$INSTDIR\osra.bat" w
 @echo off$\r$\n\
 setlocal$\r$\n\
 set exec_dir=%~dp0%$\r$\n\
-set OMP_NUM_THREADS=1$\r$\n\
 set PATH=%exec_dir%;$1\bin;$1\lib;%PATH%$\r$\n\
 set MAGICK_CONFIGURE_PATH=%exec_dir%$\r$\n\
 "%exec_dir%osra-bin.exe" %*$\r$\n\
