@@ -673,7 +673,10 @@ int osra_process_image(
 #else
       ostringstream pname;
       pname << input_file << "[" << l << "]";
-      image.read(pname.str());
+#pragma omp critical
+      {
+	image.read(pname.str());
+      }
 #endif
       image.modifyImage();
       bool adaptive = convert_to_gray(image, invert, adaptive_option, verbose);
