@@ -875,7 +875,7 @@ int find_chars(const potrace_path_t * p, const Image &orig, vector<letters_t> &l
               char label2 = 0;
               int newbottom = (top + bottom) / 2;
               label2 = get_atom_label(orig, bgColor, left, top, right, newbottom, THRESHOLD, (right + left) / 2, top, false, verbose);
-              if ((label1 != 0) && (label2 != 0))
+              if (label1 != 0 && label2 != 0 && !(tolower(label1) == 's' && tolower(label2) =='s'))
                 {
                   //cout << label1 << label2 << endl;
                   letters_t lt1;
