@@ -994,7 +994,6 @@ int osra_process_image(
 		array_of_avg_bonds_page[l][j] = array_of_avg_bonds[j];
 		array_of_ind_conf_page[l][j] = array_of_ind_conf[j];
 		array_of_boxes_page[l][j] = array_of_boxes[j];
-		total_structure_count++;
 	      }
 	   
        }
@@ -1026,9 +1025,11 @@ int osra_process_image(
 	      pages_of_avg_bonds[l] = array_of_avg_bonds_page[l][max_res];
 	      pages_of_ind_conf[l] = array_of_ind_conf_page[l][max_res];
 	      pages_of_boxes[l] = array_of_boxes_page[l][max_res];
+	      total_structure_count += array_of_structures_page[l][max_res].size();
 	    }
 
   double min_bond = -FLT_MAX, max_bond = FLT_MAX;
+
   if (total_structure_count >= STRUCTURE_COUNT)
     find_limits_on_avg_bond(min_bond, max_bond, pages_of_avg_bonds, pages_of_ind_conf);
   // If multiple pages are processed at several  resolutions different pages
