@@ -1041,7 +1041,8 @@ list<list<list<point_t> > > find_segments(const Image &image, double threshold, 
   int entropy_max = locate_max_entropy(features, max_area_ratio, max_dist, stats);
 
   int dist = SINGLE_IMAGE_DIST;
-  if (entropy_max > THRESHOLD_LEVEL && !adaptive)
+
+  if (entropy_max > THRESHOLD_LEVEL && !adaptive && margins.size() > 100)
     {
       vector<int> text_stats(max_dist, 0);
       for (unsigned int j = 2; j < max_dist; j++)
@@ -1058,7 +1059,7 @@ list<list<list<point_t> > > find_segments(const Image &image, double threshold, 
 
       dist = 2 * dist_text;
     }
-  if (dist<20) dist = 20;
+  //  if (dist<20) dist = 20;
   for (unsigned int i = 0; i < margins.size(); i++)
     if (avail[i] != -1)
       avail[i] = 1;

@@ -644,8 +644,20 @@ int osra_process_image(
   vector<vector<box_t> > pages_of_boxes(page, vector<box_t> (0));
   vector<vector<arrow_t> > arrows(page, vector<arrow_t>(0));
   vector<vector<plus_t> > pluses(page, vector<plus_t>(0));
+ 
 
   int total_structure_count = 0;
+  int num_resolutions = NUM_RESOLUTIONS;
+  if (input_resolution != 0)
+    num_resolutions = 1;
+  vector<double> array_of_confidence(num_resolutions, 0);
+  vector<int> boxes_per_res(num_resolutions,0);
+  vector<int> select_resolution(num_resolutions, input_resolution);
+  set_select_resolution(select_resolution,input_resolution);
+  vector<vector<vector<string> > > array_of_structures_page(page,vector<vector<string> >(num_resolutions));
+  vector<vector<vector<double> > > array_of_avg_bonds_page(page,vector<vector<double> >(num_resolutions)), array_of_ind_conf_page(page,vector<vector<double> >(num_resolutions));
+  vector<vector<vector<Image> > > array_of_images_page(page,vector<vector<Image> > (num_resolutions));
+  vector<vector<vector<box_t> > > array_of_boxes_page(page,vector<vector<box_t> >(num_resolutions));
 
   #pragma omp parallel for default(shared) private(OCR_JOB,JOB)
   for (int l = 0; l < page; l++)
@@ -678,17 +690,14 @@ int osra_process_image(
       image.modifyImage();
       bool adaptive = convert_to_gray(image, invert, adaptive_option, verbose);
 
-      int num_resolutions = NUM_RESOLUTIONS;
-      if (input_resolution != 0)
-        num_resolutions = 1;
-      vector<int> select_resolution(num_resolutions, input_resolution);
+    
+      
       vector<vector<string> > array_of_structures(num_resolutions);
       vector<vector<double> > array_of_avg_bonds(num_resolutions), array_of_ind_conf(num_resolutions);
-      vector<double> array_of_confidence(num_resolutions, -FLT_MAX);
       vector<vector<Image> > array_of_images(num_resolutions);
       vector<vector<box_t> > array_of_boxes(num_resolutions);
 
-      set_select_resolution(select_resolution,input_resolution);
+     
 
       if (input_resolution > 300)
         {
@@ -955,42 +964,16 @@ int osra_process_image(
                 if (st != NULL)
                   potrace_state_free(st);
               }
-          if (total_boxes > 0)
-            array_of_confidence[res_iter] = total_confidence / total_boxes;
+	  array_of_confidence[res_iter] += total_confidence;
+	  boxes_per_res[res_iter] += total_boxes;
           //dbg.write("debug.png");
         }
 
-      double max_conf = -FLT_MAX;
-      int max_res = 0;
-      for (int i = 0; i < num_resolutions; i++)
-        {
-          if (array_of_confidence[i] > max_conf && array_of_structures[i].size() > 0)
-            {
-              max_conf = array_of_confidence[i];
-              max_res = i;
-            }
-        }
-      for (int i = 0; i < num_resolutions; i++)
-	if (array_of_confidence[i] == max_conf && array_of_structures[i].size() > 0 && select_resolution[i] == 300) // second 300 dpi is without thinning
-	  {
-	    max_res = i;
-	    break;
-	  }
+     
       
       #pragma omp critical
       {
-	if (!show_learning)
-	  for (unsigned int i = 0; i < array_of_structures[max_res].size(); i++)
-	    {
-	      pages_of_structures[l].push_back(array_of_structures[max_res][i]);
-	      if (!output_image_file_prefix.empty())
-		pages_of_images[l].push_back(array_of_images[max_res][i]);
-	      pages_of_avg_bonds[l].push_back(array_of_avg_bonds[max_res][i]);
-	      pages_of_ind_conf[l].push_back(array_of_ind_conf[max_res][i]);
-	      pages_of_boxes[l].push_back(array_of_boxes[max_res][i]);
-	      total_structure_count++;
-	    }
-	else
+         if (show_learning)
 	  for (int j = 0; j < num_resolutions; j++)
 	    for (unsigned int i = 0; i < array_of_structures[j].size(); i++)
 	    {
@@ -1002,8 +985,48 @@ int osra_process_image(
 	      pages_of_boxes[l].push_back(array_of_boxes[j][i]);
 	      total_structure_count++;
 	    }
-      }
-    }
+	 else
+	   for (int j = 0; j < num_resolutions; j++)
+	     {
+                array_of_structures_page[l][j] = array_of_structures[j];
+		if (!output_image_file_prefix.empty())
+		  array_of_images_page[l][j] = array_of_images[j];
+		array_of_avg_bonds_page[l][j] = array_of_avg_bonds[j];
+		array_of_ind_conf_page[l][j] = array_of_ind_conf[j];
+		array_of_boxes_page[l][j] = array_of_boxes[j];
+		total_structure_count++;
+	      }
+	   
+       }
+     }
+
+    double max_conf = -FLT_MAX;
+    int max_res = 0;
+    for (int i = 0; i < num_resolutions; i++)
+        {
+          if (boxes_per_res[i] > 0 && array_of_confidence[i]/boxes_per_res[i] > max_conf)
+            {
+              max_conf = array_of_confidence[i]/boxes_per_res[i];
+              max_res = i;
+            }
+        }
+      for (int i = 0; i < num_resolutions; i++)
+	if (boxes_per_res[i] > 0 && array_of_confidence[i]/boxes_per_res[i] == max_conf && select_resolution[i] == 300) // second 300 dpi is without thinning
+	  {
+	    max_res = i;
+	    break;
+	  }
+
+	if (!show_learning)
+         for (int l = 0; l < page; l++) 
+	    {
+	      pages_of_structures[l] = array_of_structures_page[l][max_res];
+	      if (!output_image_file_prefix.empty())
+		pages_of_images[l] = array_of_images_page[l][max_res];
+	      pages_of_avg_bonds[l] = array_of_avg_bonds_page[l][max_res];
+	      pages_of_ind_conf[l] = array_of_ind_conf_page[l][max_res];
+	      pages_of_boxes[l] = array_of_boxes_page[l][max_res];
+	    }
 
   double min_bond = -FLT_MAX, max_bond = FLT_MAX;
   if (total_structure_count >= STRUCTURE_COUNT)
