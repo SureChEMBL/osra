@@ -1,4 +1,4 @@
-dot_version="1.3.5"
+dot_version="2.0.0"
 
 import tempfile
 import StringIO
