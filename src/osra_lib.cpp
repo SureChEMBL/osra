@@ -1028,10 +1028,10 @@ int osra_process_image(
 	      total_structure_count += array_of_structures_page[l][max_res].size();
 	    }
 
-  double min_bond = -FLT_MAX, max_bond = FLT_MAX;
+  double best_bond = 0;
 
-  //  if (total_structure_count >= STRUCTURE_COUNT)
-  // find_limits_on_avg_bond(min_bond, max_bond, pages_of_avg_bonds, pages_of_ind_conf);
+  if (total_structure_count >= STRUCTURE_COUNT)
+    find_limits_on_avg_bond(best_bond, pages_of_avg_bonds, pages_of_ind_conf);
 
   // If multiple pages are processed at several  resolutions different pages
   // may be processed at different resolutions leading to a seemingly different average bond length
@@ -1059,7 +1059,7 @@ int osra_process_image(
   for (int l = 0; l < page; l++)
     {
       for (unsigned int i = 0; i < pages_of_structures[l].size(); i++)
-	if (pages_of_avg_bonds[l][i] > min_bond && pages_of_avg_bonds[l][i] < max_bond)
+	if (best_bond == 0 || (pages_of_avg_bonds[l][i] > best_bond/2 && pages_of_avg_bonds[l][i] < 2*best_bond))
 	  {
 	    if (pages_of_ind_conf[l][i] > max_confidence)
 	      {

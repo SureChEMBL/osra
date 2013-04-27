@@ -376,7 +376,7 @@ void mark_terminal_atoms(const vector<bond_t> &bond, int n_bond, vector<atom_t> 
 // max_bond - a reference to maximum bond_length
 // pages_of_avg_bonds - a vector (element per page) of vectors (element per structure) of average bond lengths
 // pages_of_ind_conf - a vector (pages) of vectors (structures on a page) of confidence estimes
-void find_limits_on_avg_bond(double &min_bond, double &max_bond, const vector<vector<double> > &pages_of_avg_bonds,
+void find_limits_on_avg_bond(double &best_bond, const vector<vector<double> > &pages_of_avg_bonds,
                              const vector<vector<double> > &pages_of_ind_conf);
 
 

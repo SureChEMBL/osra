@@ -2694,42 +2694,18 @@ void mark_terminal_atoms(const vector<bond_t> &bond, int n_bond, vector<atom_t> 
 
 
 
-void find_limits_on_avg_bond(double &min_bond, double &max_bond, const vector<vector<double> > &pages_of_avg_bonds,
+void find_limits_on_avg_bond(double &best_bond, const vector<vector<double> > &pages_of_avg_bonds,
                              const vector<vector<double> > &pages_of_ind_conf)
 {
   double max_ind_conf = -FLT_MAX;
-
+  
   for (unsigned int l = 0; l < pages_of_ind_conf.size(); l++)
     for (unsigned int i = 0; i < pages_of_ind_conf[l].size(); i++)
       if (max_ind_conf < pages_of_ind_conf[l][i])
         {
           max_ind_conf = pages_of_ind_conf[l][i];
-          min_bond = pages_of_avg_bonds[l][i];
-          max_bond = pages_of_avg_bonds[l][i];
+          best_bond = pages_of_avg_bonds[l][i];
         }
-  bool flag = true;
-  while (flag)
-    {
-      flag = false;
-      for (unsigned int l = 0; l < pages_of_avg_bonds.size(); l++)
-        for (unsigned int i = 0; i < pages_of_avg_bonds[l].size(); i++)
-          {
-            if (pages_of_avg_bonds[l][i] > max_bond && (pages_of_avg_bonds[l][i] - max_bond < 5
-                || pages_of_ind_conf[l][i] > max_ind_conf - 0.1))
-              {
-                max_bond = pages_of_avg_bonds[l][i];
-                flag = true;
-              }
-            if (pages_of_avg_bonds[l][i] < min_bond && (min_bond - pages_of_avg_bonds[l][i] < 5
-                || pages_of_ind_conf[l][i] > max_ind_conf - 0.1))
-              {
-                min_bond = pages_of_avg_bonds[l][i];
-                flag = true;
-              }
-          }
-    }
-  min_bond--;
-  max_bond++;
 }
 
 void remove_small_bonds_in_chars(vector<atom_t> &atom, vector<bond_t> &bond,vector<letters_t> &letters)
