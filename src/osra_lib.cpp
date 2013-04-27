@@ -1030,8 +1030,8 @@ int osra_process_image(
 
   double best_bond = 0;
 
-  if (total_structure_count >= STRUCTURE_COUNT)
-    find_limits_on_avg_bond(best_bond, pages_of_avg_bonds, pages_of_ind_conf);
+  //if (total_structure_count >= STRUCTURE_COUNT)
+  //  find_limits_on_avg_bond(best_bond, pages_of_avg_bonds, pages_of_ind_conf);
 
   // If multiple pages are processed at several  resolutions different pages
   // may be processed at different resolutions leading to a seemingly different average bond length
