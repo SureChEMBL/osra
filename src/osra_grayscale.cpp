@@ -234,7 +234,9 @@ bool convert_to_gray(Image &image, bool invert, bool adaptive, bool verbose)
   otsu_find_peaks(h,num_bins,peak1,peak2, max1, max2);
 
   double distance_between_peaks = (double)(peak2-peak1)/(num_bins-1);
-  if (distance_between_peaks < THRESHOLD_GLOBAL) adaptive = true;
+  //  if (distance_between_peaks < THRESHOLD_GLOBAL) adaptive = true;
+  if (distance_between_peaks < 0.5) adaptive = true;
+
   if (max1 > max2 || invert)
     invert = true;
 
