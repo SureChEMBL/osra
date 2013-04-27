@@ -1030,8 +1030,9 @@ int osra_process_image(
 
   double min_bond = -FLT_MAX, max_bond = FLT_MAX;
 
-  if (total_structure_count >= STRUCTURE_COUNT)
-    find_limits_on_avg_bond(min_bond, max_bond, pages_of_avg_bonds, pages_of_ind_conf);
+  //  if (total_structure_count >= STRUCTURE_COUNT)
+  // find_limits_on_avg_bond(min_bond, max_bond, pages_of_avg_bonds, pages_of_ind_conf);
+
   // If multiple pages are processed at several  resolutions different pages
   // may be processed at different resolutions leading to a seemingly different average bond length
   // Currently multi-page documents (PDF and PS) are all processed at the same resolution
