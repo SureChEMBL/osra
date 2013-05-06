@@ -3,8 +3,8 @@
 
 !define PIL_EXE "PIL-1.1.6.win32-py2.5.exe"
 !define PIL_URL "http://effbot.org/media/downloads/${PIL_EXE}"
-!define GS_EXE "gs870w32.exe"
-!define GS_URL "http://voxel.dl.sourceforge.net/sourceforge/ghostscript/${GS_EXE}"
+!define GS_EXE "gs907w32.exe"
+!define GS_URL "http://downloads.ghostscript.com/public/${GS_EXE}"
 
 !include Sections.nsh
 ; include for some of the windows messages defines
@@ -260,7 +260,7 @@ Function getGhostscriptInstPath
    success:
     ExecWait "$2"
     Delete $2
-    strcpy $2 "8.70"
+    strcpy $2 "9.07"
 	
  get_path:
   strcpy $1 ""
