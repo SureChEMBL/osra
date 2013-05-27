@@ -265,7 +265,7 @@ dnl openbabel library
 
 AX_PROBE_OBLIGATORY_LIBRARY(
 	[openbabel],
-	[openbabel/mol.h openbabel/obconversion.h openbabel/builder.h openbabel/alias.h],
+	[openbabel/mol.h openbabel/obconversion.h openbabel/builder.h openbabel/alias.h openbabel/stereo/tetrahedral.h],
 	[/usr/include/openbabel-2.0 /usr/local/include/openbabel-2.0],
 	[custom location of openbabel/builder.h from OpenBabel (open source chemistry toolbox), see http://openbabel.sourceforge.net/wiki/Main_Page]
 )
@@ -480,72 +480,87 @@ AX_TRY_LINK([openbabel], [
 	#include <openbabel/obconversion.h>
 	#include <openbabel/builder.h>
 	#include <openbabel/alias.h>
+	#include <openbabel/stereo/tetrahedral.h>
 ], [
 	OpenBabel::OBPairData label;
 	OpenBabel::AliasData aliasData;
+	OpenBabel::OBAtomIterator atom_iter;
 	OpenBabel::OBAtom atom;
-	OpenBabel::OBMol mol;
 	OpenBabel::OBBond bond;
 	OpenBabel::OBRing ring;
+	OpenBabel::OBMol mol;
+	OpenBabel::OBStereoFacade facade(&mol);
+	OpenBabel::OBTetrahedralStereo stereo(&mol);
 	OpenBabel::OBConversion conversion;
 
 	label.SetAttribute("");
 	label.SetValue("");
 	
+	aliasData.Expand(mol, 1);
 	aliasData.SetAlias("");
 	aliasData.SetOrigin(OpenBabel::external);
-	aliasData.Expand(mol, 1);
 
-	atom.IsHeteroatom();
+	atom.Clear();
+	atom.GetAtomicNum();
+	atom.GetFormalCharge();
+	atom.GetId();
+	atom.GetParent();
 	atom.IsCarbon();
+	atom.IsChiral();
+	atom.IsHeteroatom();
 	atom.IsNitrogen();
 	atom.IsOxygen();
 	atom.IsSulfur();
-	atom.IsChiral();
-	atom.GetAtomicNum();
-	atom.SetData(&aliasData);
-	atom.GetFormalCharge();
-	atom.SetVector(0, 0, 0);
 	atom.SetAtomicNum(0);
+	atom.SetData(&aliasData);
 	atom.SetFormalCharge(0);
 	atom.SetIdx(0);
-	atom.Clear();
+	atom.SetVector(0, 0, 0);
 
-	mol.NumAtoms();
-	mol.NumBonds();
-	mol.NumRotors();
+	bond.GetBeginAtom();
+	bond.GetBondOrder();
+	bond.GetFlags();
+	bond.IsDouble();
+	bond.IsHash();
+	bond.IsInRing();
+	bond.IsTriple();
+	bond.IsWedge();
+	bond.SetBondOrder(0);
+	bond.UnsetAromatic();
+	bond.UnsetDown();
+	bond.UnsetHash();
+	bond.UnsetUp();
+	bond.UnsetWedge();
+
+	ring.IsAromatic();
+
+	mol.AddBond(0, 0, 0, 0);
+	mol.AssignSpinMultiplicity(false);
+	mol.BeginAtom(atom_iter);
+	mol.BeginModify();
+	mol.ConnectTheDots();
+	std::vector< std::vector<int> > v;
+	mol.ContigFragList(v);
+	mol.EndModify();
+	mol.FindRingAtomsAndBonds();
 	mol.GetAtom(0);
 	mol.GetBond(0);
 	mol.GetFirstAtom();
 	mol.GetSSSR();
 	mol.NewAtom();
-	mol.AddBond(0, 0, 0, 0);
-	mol.AssignSpinMultiplicity(false);
-	mol.SetDimension(0);
-	mol.SetData(&label);
-	std::vector< std::vector<int> > v;
-	mol.ContigFragList(v);
-	mol.ConnectTheDots();
+	mol.NextAtom(atom_iter);
+	mol.NumAtoms();
+	mol.NumBonds();
+	mol.NumRotors();
 	mol.Separate();
+	mol.SetData(&label);
+	mol.SetDimension(0);
 	mol.StripSalts(0);
-	mol.BeginModify();
-	mol.EndModify();
-	mol.FindRingAtomsAndBonds();
 
-	bond.GetBondOrder();
-	bond.GetFlags();
-	bond.SetBondOrder(0);
-	bond.IsInRing();
-	bond.IsDouble();
-	bond.IsTriple();
-	bond.UnsetUp();
-	bond.UnsetDown();
-	bond.UnsetAromatic();
-	bond.UnsetHash();
-	bond.UnsetWedge();
-	bond.GetBeginAtom();
+	facade.HasTetrahedralStereo(0);
+	facade.GetTetrahedralStereo(0);
 
-	ring.IsAromatic();
+	stereo.GetConfig();
 
 	conversion.SetInFormat("");
 	conversion.SetOutFormat("");
