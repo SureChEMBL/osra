@@ -55,11 +55,10 @@ dist: tarball
 	@echo "Archive $(TAR_NAME) was created."
 
 # Use default value if TMP variable is not defined:
-BUILD_DIR := $(shell echo $${TMP:-/tmp})/build/$(NAME_VERSION)
+BUILD_DIR := $(shell echo $${TMP:-/tmp}/build-$${RANDOM})/$(NAME_VERSION)
 
 # Create DEB package:
 package_deb: clean
-	$(RM) -rf $(BUILD_DIR)
 	mkdir -p $(BUILD_DIR)
 	
 	cp -a . $(BUILD_DIR)
@@ -75,10 +74,10 @@ package_deb: clean
 	popd; \
 	exit $$exit_code;
 	cp $(BUILD_DIR)/../*.deb $(BUILD_DIR)/../$(NAME)*.orig.tar.gz .
+	$(RM) -rf $(BUILD_DIR)
 
 # Create RPM package:
 package_rpm: clean
-	$(RM) -rf $(BUILD_DIR)
 	mkdir -p $(BUILD_DIR)/{SOURCES,SPECS,BUILD,RPMS,SRPMS,$(NAME_VERSION)}
 
 	echo "%_topdir $(BUILD_DIR)" > ~/.rpmmacros
@@ -100,10 +99,11 @@ package_rpm: clean
 	find $(BUILD_DIR)/RPMS -iname '$(NAME)*.rpm' -exec cp '{}' . \;
 #	Rename to .srpm, because otherwise *.rpm mask does not match unique file:
 	cp $(BUILD_DIR)/SRPMS/$(NAME)*.src.rpm $(NAME_VERSION).srpm
+	$(RM) -rf $(BUILD_DIR)
 
 MVN_COMMON_OPS	:= -B deploy:deploy-file -Durl=$(REPOSITORY_URL) -DrepositoryId=$(REPOSITORY_ID) -DgroupId=net.sf.osra -Dversion=$(VERSION)
 
-# General maven repository deployment rule. See package/hudson/pom.xml for more details. The 1st command in the rule can be parameterized, but the 2nd is tricky:
+# Maven repository deployment rules for DEB packages:
 deploy_deb:
 	mvn $(MVN_COMMON_OPS) -Dfile=`echo $(NAME)_*.deb`		-DartifactId=$(NAME)		-Dclassifier=$(TARGET_CPU)	-Dpackaging=deb
 	mvn $(MVN_COMMON_OPS) -Dfile=`echo $(NAME)-common_*.deb`	-DartifactId=$(NAME)-common	-Dclassifier=all		-Dpackaging=deb
@@ -113,6 +113,7 @@ deploy_deb:
 	-[ -f lib$(NAME)-java$(LIB_MAJOR_VERSION)_*.deb ] &&	mvn $(MVN_COMMON_OPS) -Dfile=`echo lib$(NAME)-java$(LIB_MAJOR_VERSION)_*.deb`	-DartifactId=$(NAME)-lib-java	-Dclassifier=$(TARGET_CPU) -Dpackaging=deb
 	-[ -f lib$(NAME)-dev_*.deb ] &&				mvn $(MVN_COMMON_OPS) -Dfile=`echo lib$(NAME)-dev_*.deb`			-DartifactId=$(NAME)-devel	-Dclassifier=$(TARGET_CPU) -Dpackaging=deb
 
+# Maven repository deployment rules for RPM packages:
 deploy_rpm:
 	mvn $(MVN_COMMON_OPS) -Dfile=`echo $(NAME_VERSION)-*.rpm`	-DartifactId=$(NAME)		-Dclassifier=$(TARGET_CPU)	-Dpackaging=rpm
 	mvn $(MVN_COMMON_OPS) -Dfile=`echo $(NAME)-common-*.rpm`	-DartifactId=$(NAME)-common	-Dclassifier=noarch		-Dpackaging=rpm
@@ -122,6 +123,7 @@ deploy_rpm:
 	-[ -f $(NAME)-lib-java$(LIB_MAJOR_VERSION)-*.rpm ] &&	mvn $(MVN_COMMON_OPS) -Dfile=`echo $(NAME)-lib-java$(LIB_MAJOR_VERSION)-*.rpm`	-DartifactId=$(NAME)-lib-java	-Dclassifier=$(TARGET_CPU) -Dpackaging=rpm
 	-[ -f $(NAME)-devel-*.rpm ] &&				mvn $(MVN_COMMON_OPS) -Dfile=`echo $(NAME)-devel-*.rpm`				-DartifactId=$(NAME)-devel	-Dclassifier=$(TARGET_CPU) -Dpackaging=rpm
 
+# Maven repository deployment rules for JAR package:
 deploy_jar:
 	mvn -B -DaltDeploymentRepository=$(REPOSITORY_ID)::default::$(REPOSITORY_URL) source:jar deploy
 
