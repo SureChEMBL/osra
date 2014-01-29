@@ -4,9 +4,7 @@ import java.io.Writer;
 
 /**
  * JNI bridge for OSRA library.
- * 
  */
-
 public class OsraLib {
 	
 	/**
@@ -56,17 +54,5 @@ public class OsraLib {
 					  boolean show_page,
 					  boolean outputCoordinates, 
 					  boolean outputAvgBondLength);
-
-	private static final String NAME = "osra_java";
-		
-	static {
-		try {
-			System.out.println("Osra Name2: "+NAME);
-			System.loadLibrary(NAME);
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		} 
-	}
-
 }
 
