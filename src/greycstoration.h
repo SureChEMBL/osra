@@ -263,7 +263,7 @@ static DWORD WINAPI greycstoration_thread(void *arg)
       p.temporary = 0;
       p.counter = 0;
       p.tile = p.tile_border = p.thread = p.threads = 0;
-      p.stop_request = false;
+      p.stop_request = NULL;
       greycstoration_mutex_destroy(p);
     }
   p.is_running = false;
