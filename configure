@@ -4133,6 +4133,10 @@ if test "${enable_java}" == "yes"; then :
 
 		CPPFLAGS="-I${JAVA_HOME}/include -I${JAVA_HOME}/include/linux -I${JAVA_HOME}/include/win32 ${CPPFLAGS}"
 
+else
+
+		CPPFLAGS="-I/usr/lib/jvm/default-java/include ${CPPFLAGS}"
+
 fi
 
 		case "$build_os" in #(

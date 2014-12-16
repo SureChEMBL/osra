@@ -154,6 +154,8 @@ AC_ARG_ENABLE(
 AS_IF([test "${enable_java}" == "yes"], [
 	AS_IF([test -n "${JAVA_HOME}"], [
 		CPPFLAGS="-I${JAVA_HOME}/include -I${JAVA_HOME}/include/linux -I${JAVA_HOME}/include/win32 ${CPPFLAGS}"
+	], [
+		CPPFLAGS="-I/usr/lib/jvm/default-java/include ${CPPFLAGS}"
 	])
 
 	dnl Fix for jlong definition in jni.h on Windows

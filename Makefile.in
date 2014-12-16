@@ -45,10 +45,10 @@ proper:
 # This rule creates a tarball from current directory.
 # $(TAR_NAME) should be defined before calling this rule:
 tarball: distclean proper
-	tar -C .. -czf $(TAR_NAME) --exclude-vcs $(shell basename `pwd`)
+	tar -C .. -cj --exclude-vcs $(shell basename `pwd`) -f $(TAR_NAME)
 
 # Create a tarball snapshot from current source directory (usually to be uploaded to FTP server).
-dist: TAR_NAME := ../$(NAME_VERSION).tgz
+dist: TAR_NAME := ../$(NAME_VERSION).tar.bz2
 # Generate md5:
 dist: tarball
 	cat $(TAR_NAME) | md5sum  > $(TAR_NAME).md5
