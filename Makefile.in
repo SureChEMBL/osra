@@ -58,6 +58,7 @@ dist: tarball
 BUILD_DIR := $(shell echo $${TMP:-/tmp}/build-$${RANDOM})/$(NAME_VERSION)
 
 # Create DEB package:
+package_deb: TAR_NAME := ../$(NAME)_$(VERSION).orig.tar.bz2
 package_deb: clean
 	mkdir -p $(BUILD_DIR)
 	
@@ -65,7 +66,7 @@ package_deb: clean
 	cp -a package/linux/debian $(BUILD_DIR)
 	
 #	Debian build requires the original tarball name to correspond to mask "NAME_VERSION.orig.(tar|tar.bz2|tar.gz|lzma)":	
-	TAR_NAME=../$(NAME)_$(VERSION).orig.tar.gz $(MAKE) -C $(BUILD_DIR) tarball 
+	TAR_NAME=$(TAR_NAME) $(MAKE) -C $(BUILD_DIR) tarball 
 
 #	Run dpkg build in isolated environment (preserve the exit code): 
 	pushd $(BUILD_DIR); \
@@ -73,7 +74,7 @@ package_deb: clean
 	exit_code=$$?; \
 	popd; \
 	exit $$exit_code;
-	cp $(BUILD_DIR)/../*.deb $(BUILD_DIR)/../$(NAME)*.orig.tar.gz .
+	cp $(BUILD_DIR)/../*.deb $(BUILD_DIR)/$(TAR_NAME) .
 	$(RM) -rf $(BUILD_DIR)
 
 # Create RPM package:
@@ -86,7 +87,7 @@ package_rpm: clean
 	cp package/linux/suse/osra.spec $(BUILD_DIR)/SPECS
 	
 #	If you change the tarname here, change also "Source0" in package/linux/suse/osra.spec:
-	TAR_NAME=$(BUILD_DIR)/SOURCES/$(NAME_VERSION).tar.gz $(MAKE) -C $(BUILD_DIR)/$(NAME_VERSION) tarball
+	TAR_NAME=$(BUILD_DIR)/SOURCES/$(NAME_VERSION).tar.bz2 $(MAKE) -C $(BUILD_DIR)/$(NAME_VERSION) tarball
 
 #	Run RPM build in isolated environment (preserve the exit code): 
 	pushd $(BUILD_DIR)/SPECS; \

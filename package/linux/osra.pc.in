@@ -7,4 +7,4 @@ Version: @PACKAGE_VERSION@
 
 Requires: gocr ocrad openbabel-2.0 GraphicsMagick++
 Libs: -l@libdir@ @LIBS@
-Cflags: -I@includedir@ @CPPFLAGS@
+Cflags: 

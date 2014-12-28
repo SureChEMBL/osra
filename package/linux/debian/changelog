@@ -1,5 +1,5 @@
 osra (2.0.0-1) unstable; urgency=low
 
-  * Initial release (Closes: #nnnn)  <nnnn is the bug number of your ITP>
+  * Initial release (closes: #682760)
 
  -- Dmitry Katsubo <dma_k@mail.ru>  Mon, 15 Dec 2014 17:05:38 +0200

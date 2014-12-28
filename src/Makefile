@@ -41,7 +41,6 @@ endif
 ifdef OSRA_LIB
 	$(RM) -f $(OBJ_LIB)
 	$(MAKE) libosra.a
-	$(RM) -f $(OBJ_LIB)
 	$(MAKE) libosra$(SHAREDEXT)
 endif
 ifdef OSRA_JAVA
@@ -59,7 +58,7 @@ osra$(EXEEXT): $(OBJ_CLI)
 	$(LINK.cpp) -o $@ $(OBJ_CLI) $(LIBS)
 
 ifdef OSRA_LIB
-libosra.a: CXXFLAGS += -DOSRA_LIB
+libosra.a: CXXFLAGS += -fPIC -DOSRA_LIB
 libosra.a: $(OBJ_LIB)
 	$(AR) cru $@ $(OBJ_LIB)
 	$(RANLIB) $@
@@ -81,7 +80,7 @@ libosra_andriod$(SHAREDEXT): $(OBJ_ANDROID)
 	$(LINK.cpp) $(LDSHAREDFLAGS) -o $@ $(OBJ_ANDROID) $(LIBS)
 endif
 
-Makefile.dep: ../Makefile.inc $(patsubst %.o,%.cpp,$(OBJ_CLI))
+Makefile.dep: ../Makefile.inc $(wildcard *.cpp)
 	$(CXX) $(CPPFLAGS) -MM $^ > Makefile.dep 
 
 # Correct installation for Cygwin/MinGW also needs handling of libosra.dll.a, which is not done here:
