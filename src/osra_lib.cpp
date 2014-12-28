@@ -339,7 +339,6 @@ void split_fragments_and_assemble_structure_record(vector<atom_t> &atom,
       remove_zero_bonds(bond, n_bond, atom);
       extend_terminal_bond_to_bonds(atom, bond, n_bond, avg_bond_length, 7, 0);
 
-
       remove_small_terminal_bonds(bond, n_bond, atom, avg_bond_length);
       n_bond = reconnect_fragments(bond, n_bond, atom, avg_bond_length);
 
@@ -449,7 +448,6 @@ void split_fragments_and_assemble_structure_record(vector<atom_t> &atom,
 			      tmp = orig_box;
 			    }
 			}
-
                       array_of_images[res_iter].push_back(tmp);
                     }
                 }
@@ -481,7 +479,9 @@ int count_recognized_chars(vector<atom_t>  &atom, vector<bond_t>& bond)
 extern job_t *OCR_JOB;
 extern job_t *JOB;
 
-//int global_init_state;
+#ifdef OSRA_LIB
+int global_init_state;
+#endif
 
 // Function: osra_init()
 //
@@ -495,10 +495,12 @@ void __attribute__ ((constructor)) osra_init()
 
   osra_ocr_init();
 
-// global_init_state = osra_openbabel_init();
+#ifdef OSRA_LIB
+  global_init_state = osra_openbabel_init();
 
-  //if (global_init_state != 0)
-  //cerr << "OpenBabel initialization failure." << endl;
+  if (global_init_state != 0)
+    cerr << "OpenBabel initialization failure." << endl;
+#endif
 
   srand(1);
 }
@@ -549,8 +551,9 @@ int osra_process_image(
   const string &resize
 )
 {
-  //if (global_init_state != 0)
-  // return global_init_state;
+#ifdef OSRA_LIB
+  if (global_init_state != 0) return global_init_state;
+#endif
 
   std::transform(output_format.begin(), output_format.end(), output_format.begin(), ::tolower);
   std::transform(embedded_format.begin(), embedded_format.end(), embedded_format.begin(), ::tolower);
@@ -645,7 +648,6 @@ int osra_process_image(
   vector<vector<arrow_t> > arrows(page, vector<arrow_t>(0));
   vector<vector<plus_t> > pluses(page, vector<plus_t>(0));
  
-
   int total_structure_count = 0;
   int num_resolutions = NUM_RESOLUTIONS;
   if (input_resolution != 0)
@@ -689,15 +691,11 @@ int osra_process_image(
 #endif
       image.modifyImage();
       bool adaptive = convert_to_gray(image, invert, adaptive_option, verbose);
-
-    
       
       vector<vector<string> > array_of_structures(num_resolutions);
       vector<vector<double> > array_of_avg_bonds(num_resolutions), array_of_ind_conf(num_resolutions);
       vector<vector<Image> > array_of_images(num_resolutions);
       vector<vector<box_t> > array_of_boxes(num_resolutions);
-
-     
 
       if (input_resolution > 300)
         {
@@ -768,7 +766,6 @@ int osra_process_image(
           else if (resolution == 150 && !jaggy)
             thick = false;
 
-
           //Image dbg = image;
           //dbg.modifyImage();
           //dbg.backgroundColor("white");
@@ -831,7 +828,6 @@ int osra_process_image(
 
 		//remove_small_bonds_in_chars(atom,bond,letters);
 
-
                 find_old_aromatic_bonds(p, bond, n_bond, atom, n_atom, avg_bond_length);
 
                 if (verbose)
@@ -866,8 +862,6 @@ int osra_process_image(
                 n_atom = find_dashed_bonds(p, atom, bond, n_atom, &n_bond, max(MAX_DASH, int(avg_bond_length / 3)),
                                            avg_bond_length, orig_box, bgColor, THRESHOLD_BOND, thick, avg_bond_length, letters);
 
-		
-
                 n_letters = remove_small_bonds(bond, n_bond, atom, letters, n_letters, real_font_height,
                                                MIN_FONT_HEIGHT, avg_bond_length);
 		
@@ -890,13 +884,11 @@ int osra_process_image(
 
                 n_label = assemble_labels(letters, n_letters, label);
 		
-
                 if (verbose)
                   cout << n_label << " labels: " << label << " after assemble_labels()" << endl;
 
                 remove_disconnected_atoms(atom, bond, n_atom, n_bond);
 	
-
                 collapse_atoms(atom, bond, n_atom, n_bond, thickness);
 
                 remove_zero_bonds(bond, n_bond, atom);
@@ -909,32 +901,21 @@ int osra_process_image(
 
                 collapse_double_bonds(bond, n_bond, atom, max_dist_double_bond);
 
-	
-
                 extend_terminal_bond_to_label(atom, letters, n_letters, bond, n_bond, label, n_label, avg_bond_length / 2,
 					      thickness, max_dist_double_bond);
-
-		
 
                 remove_disconnected_atoms(atom, bond, n_atom, n_bond);
                 collapse_atoms(atom, bond, n_atom, n_bond, thickness);
                 collapse_doubleup_bonds(bond, n_bond);
-
 	
                 remove_zero_bonds(bond, n_bond, atom);
                 flatten_bonds(bond, n_bond, atom, thickness);
                 remove_zero_bonds(bond, n_bond, atom);
                 remove_disconnected_atoms(atom, bond, n_atom, n_bond);
 
-	
-                
                 extend_terminal_bond_to_bonds(atom, bond, n_bond, avg_bond_length, 2 * thickness, max_dist_double_bond);
 
-
-
-
                 collapse_atoms(atom, bond, n_atom, n_bond, 3);
-
 
                 remove_zero_bonds(bond, n_bond, atom);
                 flatten_bonds(bond, n_bond, atom, 5);
@@ -969,8 +950,6 @@ int osra_process_image(
           //dbg.write("debug.png");
         }
 
-     
-      
       #pragma omp critical
       {
          if (show_learning)
@@ -1046,14 +1025,11 @@ int osra_process_image(
   ostream &out_stream = outfile.is_open() ? outfile : cout;
 #endif
 
-
   // For Andriod version we will find the structure with maximum confidence value, as the common usecase for Andriod is to analyse the
   // image (taken by embedded photo camera) that usually contains just one molecule:
   double max_confidence = -FLT_MAX;
   int l_index = 0;
   int i_index = 0;
-
-
   int image_count = 0;
 
   for (int l = 0; l < page; l++)
@@ -1138,7 +1114,6 @@ int osra_process_image(
 	    }
 	}
     }
-
 
   out_stream.flush();
 
