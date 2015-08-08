@@ -79,3 +79,5 @@ char get_atom_label(const Magick::Image &image, const Magick::ColorGray &bg, int
 //      corrected atomic label
 const string fix_atom_name(const string &s, int n, const map<string, string> &fix,
                            const map<string, string> &superatom, bool debug);
+
+bool detect_bracket(int x, int y, unsigned char *pic);
