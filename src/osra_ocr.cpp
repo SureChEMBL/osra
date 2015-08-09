@@ -461,7 +461,7 @@ bool detect_bracket(int x, int y, unsigned char *pic)
       }
    }
   
-  string str;
+  /*  string str;
   for (int i = 0; i < y; i++)
     {
       for (int j = 0; j < x; j++) 
@@ -472,7 +472,7 @@ bool detect_bracket(int x, int y, unsigned char *pic)
     }
   
     cout << str << endl;
-
+  */
   if (count > MIN_CHAR_POINTS && zeros > MIN_CHAR_POINTS) 
     {
       try 
@@ -493,13 +493,13 @@ bool detect_bracket(int x, int y, unsigned char *pic)
 	    res = true;
 	}
     }
-
+  /*
   if (res)
     {
       
       cout <<"Found! " << c1<<endl;
     }
-  
+  */
     
   delete ocrad_pixmap; 
   free(ocrad_bitmap);

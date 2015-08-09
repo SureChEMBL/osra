@@ -793,7 +793,8 @@ int osra_process_image(
                     //dbg.pixelColor(x, y, color);
                     orig_box.pixelColor(x - boxes[k].x1 + FRAME, y - boxes[k].y1 + FRAME, color);
                   }
-
+		
+		
                 int width = orig_box.columns();
                 int height = orig_box.rows();
                 Image thick_box;

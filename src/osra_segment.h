@@ -42,6 +42,8 @@ struct point_s
   // int: x,y
   //    coordinates of the image point
   int x, y;
+  explicit point_s(int a, int b) : x(a), y(b) {}
+  point_s() {}
 };
 // typedef: point_t
 //      defines point_t type based on point_s struct
