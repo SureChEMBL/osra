@@ -1864,7 +1864,7 @@ int resolve_bridge_bonds(vector<atom_t> &atom, int n_atom, vector<bond_t> &bond,
                     molecule_statistics_t molecule_statistics2 = calculate_molecule_statistics(atom, bond, n_bond, avg_bond_length, superatom, verbose);
                     if (molecule_statistics1.fragments != molecule_statistics2.fragments ||
                         molecule_statistics1.rotors != molecule_statistics2.rotors ||
-                        molecule_statistics1.rings56 - molecule_statistics2.rings56 == 2)
+                        molecule_statistics1.rings456 - molecule_statistics2.rings456 == 2)
                       {
                         bond[b].exists = true;
                         bond[d].exists = true;

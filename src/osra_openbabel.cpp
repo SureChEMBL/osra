@@ -417,7 +417,8 @@ void create_molecule(OBMol &mol, vector<atom_t> &atom, const vector<bond_t> &bon
 
   molecule_statistics.rotors = mol.NumRotors();
   molecule_statistics.fragments = cfl.size();
-  molecule_statistics.rings56 = Num_Rings[5] + Num_Rings[6] + Num_Rings[4];
+  molecule_statistics.rings456 = Num_Rings[5] + Num_Rings[6] + Num_Rings[4];
+  molecule_statistics.rings56 = Num_Rings[5] + Num_Rings[6];
   molecule_statistics.num_atoms = mol.NumAtoms();
   molecule_statistics.num_bonds = mol.NumBonds();
 
@@ -486,6 +487,67 @@ void create_molecule(OBMol &mol, vector<atom_t> &atom, const vector<bond_t> &bon
 	    }
 	  if (a->GetFormalCharge() > 0) PositiveCharge++;
         }
+      
+      molecule_statistics.num_organic_non_carbon_atoms = N_Count + F_Count + S_Count + Cl_Count + Br_Count + Me_Count;
+      int num_angles = 0;
+      //vector<double> angles;
+      if (super_atoms.empty())
+	{
+	  OBBondIterator bond_iter1;
+	  for (OBBond *b1 = mol.BeginBond(bond_iter1); b1; b1 = mol.NextBond(bond_iter1))
+	    {
+	      unsigned int a = b1->GetBeginAtomIdx();
+	      unsigned int b = b1->GetEndAtomIdx();
+	      if ( b1->GetBeginAtom()->IsHydrogen() || b1->GetEndAtom()->IsHydrogen() || b1->GetLength() == 0)
+		continue;
+	      OBBondIterator bond_iter2;
+	      for (OBBond *b2 = mol.BeginBond(bond_iter2); b2; b2 = mol.NextBond(bond_iter2))
+		{
+		  if (b1->GetIdx() < b2->GetIdx())
+		    {
+		      unsigned int c = b2->GetBeginAtomIdx();
+		      unsigned int d = b2->GetEndAtomIdx();
+		      if ( b2->GetBeginAtom()->IsHydrogen() || b2->GetEndAtom()->IsHydrogen()  || b2->GetLength() == 0)
+			continue;
+		      double angle;
+		      bool found = false;
+		      if (a == c && b != d)
+			{
+			  angle = mol.GetAngle(b1->GetEndAtom(), b1->GetBeginAtom(), b2->GetEndAtom());
+			  found = true;
+			}
+		      else if (a == d && b != c)
+			{
+			  angle = mol.GetAngle(b1->GetEndAtom(), b1->GetBeginAtom(), b2->GetBeginAtom());
+			  found = true;
+			}
+		      else if (b == c && a != d)
+			{
+			  angle = mol.GetAngle(b1->GetBeginAtom(), b1->GetEndAtom(), b2->GetEndAtom());
+			  found = true;
+			}
+		      else if (b == d && a != c)
+			{
+			  angle = mol.GetAngle(b1->GetBeginAtom(), b1->GetEndAtom(), b2->GetBeginAtom());
+			  found = true;
+			}
+		      if (found )
+			{
+			  //angles.push_back(angle);
+			  if (angle < 20)
+			    num_angles++;
+			}
+		    }
+		}
+	    }
+	}
+      molecule_statistics.num_small_angles = num_angles;
+      /*if (!angles.empty())
+	sort(angles.begin(),angles.end());
+      for (size_t kk = 0; kk < angles.size(); kk++)
+	cout << angles[kk] << endl;
+      cout << "===" << endl;
+      */
       //cout<<C_Count<<" "<<N_Count<<" "<<O_Count<<" "<<F_Count<<" "<<S_Count<<" "<<Cl_Count<<" "<<Br_Count<<" "<<Si_Count<<" "<<U_Count<<" "<<Me_Count<<" "<<R_Count<<" "<<
       //Xx_Count<<" "<<num_rings<<" "<<num_aromatic<<" "<<molecule_statistics.fragments<<" "<<Num_Rings<<" "<<Num_HashBonds<<" "<<Num_WedgeBonds<<" "<<Num_DoubleBonds<<" "<<PositiveCharge<<endl;
       int x[] = {C_Count,N_Count,O_Count,F_Count,S_Count,Cl_Count,Br_Count,Si_Count,U_Count,Me_Count,Li_Count,R_Count, Xx_Count,num_rings,num_aromatic,molecule_statistics.fragments,Num_Rings[5],Num_Rings[6],Num_HashBonds,Num_WedgeBonds,Num_DoubleBonds,PositiveCharge,n_letters,mol.NumAtoms(),mol.NumHvyAtoms(),mol.NumBonds()};

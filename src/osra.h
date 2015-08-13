@@ -119,6 +119,8 @@ typedef struct bond_s bond_t;
 // MAX_ASPECT - maximum aspect ratio
 // MIN_A_COUNT - minimum number of atoms
 // MAX_A_COUNT - maximum number of atoms
+// MIN_B_COUNT - minimum number of bonds
+// MAX_B_COUNT - maximum number of bonds
 // MIN_CHAR_POINTS - minimum number of black and white pixels in a character box
 // MAX_BOND_THICKNESS - maximum bond thickness
 // SMALL_PICTURE_AREA - threshold area of the image to be consider a small picture
@@ -156,6 +158,8 @@ typedef struct bond_s bond_t;
 #define MAX_ASPECT 10.
 #define MIN_A_COUNT 5
 #define MAX_A_COUNT 250
+#define MIN_B_COUNT 5
+#define MAX_B_COUNT 250
 #define MIN_CHAR_POINTS 2
 #define MAX_BOND_THICKNESS 10
 #define SMALL_PICTURE_AREA 6000

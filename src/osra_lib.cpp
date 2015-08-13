@@ -330,7 +330,7 @@ void split_fragments_and_assemble_structure_record(vector<atom_t> &atom,
   vector<atom_t> frag_atom;
   vector<bond_t> frag_bond;
 
-  if (real_atoms > MIN_A_COUNT && real_atoms < MAX_A_COUNT && real_bonds < MAX_A_COUNT && bond_max_type>0 && bond_max_type<5)
+  if (real_atoms > MIN_A_COUNT && real_atoms < MAX_A_COUNT && real_bonds < MAX_B_COUNT && bond_max_type>0 && bond_max_type<5)
     {
       int num_frag;
       num_frag = resolve_bridge_bonds(atom, n_atom, bond, n_bond, 2 * thickness, avg_bond_length, superatom, verbose);
@@ -417,12 +417,19 @@ void split_fragments_and_assemble_structure_record(vector<atom_t> &atom,
                                         show_page ? &page_number : NULL,
                                         show_coordinates ? &coordinate_box : NULL, superatom, n_letters, show_learning, resolution_iteration, verbose);
 
-              if (molecule_statistics.fragments > 0 && molecule_statistics.fragments < MAX_FRAGMENTS && molecule_statistics.num_atoms>MIN_A_COUNT && molecule_statistics.num_bonds>0)
+              if (molecule_statistics.fragments > 0 && molecule_statistics.fragments < MAX_FRAGMENTS
+		  && molecule_statistics.num_atoms>MIN_A_COUNT && molecule_statistics.num_bonds>0
+		  )		  
                 {
-                  array_of_structures[res_iter].push_back(structure);
-                  array_of_avg_bonds[res_iter].push_back(page_scale * box_scale * avg_bond_length);
-                  array_of_ind_conf[res_iter].push_back(confidence);
-		  array_of_boxes[res_iter].push_back(rel_box);
+		  if ((molecule_statistics.rings56 > 0 || molecule_statistics.num_organic_non_carbon_atoms > 0)
+		      && molecule_statistics.num_bonds>MIN_B_COUNT
+		      && molecule_statistics.num_small_angles < 3)
+		    {
+		      array_of_structures[res_iter].push_back(structure);
+		      array_of_avg_bonds[res_iter].push_back(page_scale * box_scale * avg_bond_length);
+		      array_of_ind_conf[res_iter].push_back(confidence);
+		      array_of_boxes[res_iter].push_back(rel_box);
+		    }
                   total_boxes++;
                   total_confidence += confidence;
 		  if (verbose)
@@ -901,7 +908,7 @@ int osra_process_image(
                 avg_bond_length = percentile75(bond, n_bond, atom);
 
                 collapse_double_bonds(bond, n_bond, atom, max_dist_double_bond);
-
+		// TODO remove brackets, assign labels to brackets
                 extend_terminal_bond_to_label(atom, letters, n_letters, bond, n_bond, label, n_label, avg_bond_length / 2,
 					      thickness, max_dist_double_bond);
 
