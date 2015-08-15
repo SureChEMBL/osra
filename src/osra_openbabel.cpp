@@ -488,7 +488,7 @@ void create_molecule(OBMol &mol, vector<atom_t> &atom, const vector<bond_t> &bon
 	  if (a->GetFormalCharge() > 0) PositiveCharge++;
         }
       
-      molecule_statistics.num_organic_non_carbon_atoms = N_Count + F_Count + S_Count + Cl_Count + Br_Count + Me_Count;
+      molecule_statistics.num_organic_non_carbon_atoms = N_Count + F_Count + Cl_Count + Br_Count;
       int num_angles = 0;
       //vector<double> angles;
       if (super_atoms.empty())
