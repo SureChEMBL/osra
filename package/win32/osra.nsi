@@ -1,5 +1,5 @@
-!define DOT_VERSION  "2.0.0"
-!define DASH_VERSION "2-0-0"
+!define DOT_VERSION  "2.0.1"
+!define DASH_VERSION "2-0-1"
 
 !define PIL_EXE "PIL-1.1.6.win32-py2.5.exe"
 !define PIL_URL "http://effbot.org/media/downloads/${PIL_EXE}"

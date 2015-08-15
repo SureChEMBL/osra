@@ -1,6 +1,6 @@
                         OSRA: Optical Structure Recognition Application
 
-							Igor Filippov, 2007-2013
+							Igor Filippov, 2007-2015
 							igor.v.filippov@gmail.com
 
 
@@ -22,12 +22,11 @@ is highly recommended.
 
 Source code and pre-compiled binaries (compiled with MinGW suite for
 Windows platform) are available from:
-http://cactus.nci.nih.gov/osra
 http://osra.sf.net 
 
 Plugins:
 Starting with version 1.3.7 plugins are available for download from http://osra.sourceforge.net;
-Plugins for ChemBioDraw and Symyx Draw are included in Windows installer; ChemAxon MarvinSketch
+Plugins for ChemBioDraw and Accelrys Draw are included in Windows installer; ChemAxon MarvinSketch
 supports OSRA starting with version 5.3.3.
 
 A perl script osra-pdf  is available in package/linux/ in the source distribution and for download on osra.sourceforge.net.  
@@ -47,9 +46,7 @@ Dependencies:
 OSRA needs the following Open Source libraries installed:
 
 - GraphicsMagick, image manipulation library (faster ImageMagick clone)
-version 1.3.7 or later. Note that versions 1.3.13 and 1.3.14 seem to have
-a regression when parsing PNG files, I recommend version 1.3.12 for the time
-being.
+version 1.3.21 or later. 
 if installing from RPM make sure you have the following packages:
 	GraphicsMagick
 	GraphicsMagick-devel
@@ -57,20 +54,21 @@ if installing from RPM make sure you have the following packages:
 	GraphicsMagick-c++ 
 http://www.graphicsmagick.org/
 
-- POTRACE, vector tracing library, version 1.9 or later,
+- POTRACE, vector tracing library, version 1.12 or later,
 http://potrace.sourceforge.net/
 
 - GOCR/JOCR, optical character recognition library, specially patched version 0.50pre
 available from http://osra.sourceforge.net is recommended.
 Project website is http://jocr.sourceforge.net/
 
-- OCRAD, optical character recognition program, version 0.21 or later. 
+- OCRAD, optical character recognition program, version 0.23 (note that the later versions, e.g. 0.24 and 0.25
+introduced some recognition regression and are not recommended for OSRA for the time being).
 http://www.gnu.org/software/ocrad/ocrad.html
 
-- TCLAP, Templatized C++ Command Line Parser Library, version 1.2.0,
+- TCLAP, Templatized C++ Command Line Parser Library, version 1.2.1,
 http://tclap.sourceforge.net/
 
-- OpenBabel, open source chemistry toolbox, version 2.3.0 or later; 
+- OpenBabel, open source chemistry toolbox, version 2.3.2 or later; 
 if installing from RPM make sure you have the following packages:
 	 openbabel 
 	 openbabel-devel

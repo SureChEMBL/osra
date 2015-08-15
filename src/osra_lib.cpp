@@ -429,34 +429,35 @@ void split_fragments_and_assemble_structure_record(vector<atom_t> &atom,
 		      array_of_avg_bonds[res_iter].push_back(page_scale * box_scale * avg_bond_length);
 		      array_of_ind_conf[res_iter].push_back(confidence);
 		      array_of_boxes[res_iter].push_back(rel_box);
+		 
+		      if (!output_image_file_prefix.empty())
+			{
+			  Image tmp = image;
+			  if (!is_reaction)
+			    {
+			      Geometry geometry =
+				(fragments.size() > 1) ? Geometry(box_scale * fragments[i].x2 - box_scale * fragments[i].x1, //
+								  box_scale * fragments[i].y2 - box_scale * fragments[i].y1, //
+								  boxes[k].x1 + box_scale * fragments[i].x1 - FRAME , //
+								  boxes[k].y1 + box_scale * fragments[i].y1 - FRAME )
+				: Geometry(boxes[k].x2 - boxes[k].x1, boxes[k].y2 - boxes[k].y1, boxes[k].x1, boxes[k].y1);
+			      
+			      try
+				{
+				  tmp.crop(geometry);
+				}
+			      catch (...)
+				{
+				  tmp = orig_box;
+				}
+			    }
+			  array_of_images[res_iter].push_back(tmp);
+			}
 		    }
                   total_boxes++;
                   total_confidence += confidence;
 		  if (verbose)
 		    cout<<"Result: "<<res_iter<<" "<<structure<<" "<<confidence<<endl;
-                  if (!output_image_file_prefix.empty())
-                    {
-                      Image tmp = image;
-		      if (!is_reaction)
-			{
-			  Geometry geometry =
-			    (fragments.size() > 1) ? Geometry(box_scale * fragments[i].x2 - box_scale * fragments[i].x1, //
-							      box_scale * fragments[i].y2 - box_scale * fragments[i].y1, //
-							      boxes[k].x1 + box_scale * fragments[i].x1 - FRAME , //
-							      boxes[k].y1 + box_scale * fragments[i].y1 - FRAME )
-			    : Geometry(boxes[k].x2 - boxes[k].x1, boxes[k].y2 - boxes[k].y1, boxes[k].x1, boxes[k].y1);
-			  
-			  try
-			    {
-			      tmp.crop(geometry);
-			    }
-			  catch (...)
-			    {
-			      tmp = orig_box;
-			    }
-			}
-                      array_of_images[res_iter].push_back(tmp);
-                    }
                 }
             }
         }
