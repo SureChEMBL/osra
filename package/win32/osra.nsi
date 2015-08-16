@@ -108,9 +108,8 @@ Section /o "Symyx/Accelrys Draw plugin" symyx_draw
  SetOutPath "$1\AddIns"
  File "plugins\symyx_draw\OSRAAction.xml"
  SetOutPath "$1\AddIns\OSRAAction"
- File "plugins\symyx_draw\README.txt"
+ File "plugins\symyx_draw\OSRAAction\README.txt"
  File "plugins\symyx_draw\OSRAAction\OSRAAction.dll"
- File "plugins\symyx_draw\OSRAAction\OSRAAction.dll.config"
  Goto done
  no_symyx:
   MessageBox MB_OK "Symyx Draw not found" IDOK done
