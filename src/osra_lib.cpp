@@ -556,7 +556,8 @@ int osra_process_image(
   bool debug,
   bool verbose,
   const string &output_image_file_prefix,
-  const string &resize
+  const string &resize,
+  const string &preview
 )
 {
 #ifdef OSRA_LIB
@@ -697,6 +698,16 @@ int osra_process_image(
 	image.read(pname.str());
       }
 #endif
+      if (l == 0 && !preview.empty())
+	{
+	  try
+	    {
+	      image.write(preview);
+	    }
+	  catch(...)
+	    {}
+	}
+
       image.modifyImage();
       bool adaptive = convert_to_gray(image, invert, adaptive_option, verbose);
       

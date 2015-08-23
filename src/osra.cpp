@@ -106,6 +106,8 @@ int main(int argc,
   TCLAP::ValueArg<string> resize_option("s", "size", "Resize image on output", false, "", "dimensions, 300x400");
   cmd.add(resize_option);
 
+  TCLAP::ValueArg<string> preview_option("", "preview", "Preview Image", false, "", "filename");
+  cmd.add(preview_option);
   //
   // Input-output options
   //
@@ -150,7 +152,8 @@ int main(int argc,
                  debug_option.getValue(),
                  verbose_option.getValue(),
                  output_image_file_prefix_option.getValue(),
-                 resize_option.getValue()
+                 resize_option.getValue(),
+		 preview_option.getValue()
                );
 
   return result;

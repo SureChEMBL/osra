@@ -224,7 +224,25 @@ Function getSymyxPath
   Pop $R0
   StrCpy $1 "$R0\"
   IfFileExists $1AccelrysDraw.exe fin
+  Push "$PROGRAMFILES64\Accelrys"	  
+  Push "AccelrysDraw.exe"
+  Call FindIt
+  Pop $R1
+  Push "$R1"
+  Call GetParent
+  Pop $R0
+  StrCpy $1 "$R0\"
+  IfFileExists $1AccelrysDraw.exe fin
   Push "$PROGRAMFILES\Symyx"
+  Push "SymyxDraw.exe"
+  Call FindIt
+  Pop $R1
+  Push "$R1"
+  Call GetParent
+  Pop $R0
+  StrCpy $1 "$R0\"
+  IfFileExists $1SymyxDraw.exe fin
+  Push "$PROGRAMFILES64\Symyx"    
   Push "SymyxDraw.exe"
   Call FindIt
   Pop $R1
@@ -249,7 +267,25 @@ Function un.getSymyxPath
   Pop $R0
   StrCpy $1 "$R0\"
   IfFileExists $1AccelrysDraw.exe fin
+  Push "$PROGRAMFILES64\Accelrys"	  
+  Push "AccelrysDraw.exe"
+  Call un.FindIt
+  Pop $R1
+  Push "$R1"
+  Call un.GetParent
+  Pop $R0
+  StrCpy $1 "$R0\"
+  IfFileExists $1AccelrysDraw.exe fin
   Push "$PROGRAMFILES\Symyx"
+  Push "SymyxDraw.exe"
+  Call un.FindIt
+  Pop $R1
+  Push "$R1"
+  Call un.GetParent
+  Pop $R0
+  StrCpy $1 "$R0\"
+  IfFileExists $1SymyxDraw.exe fin
+  Push "$PROGRAMFILES64\Symyx"    
   Push "SymyxDraw.exe"
   Call un.FindIt
   Pop $R1
