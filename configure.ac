@@ -7,7 +7,7 @@ dnl Follow this link for complete autoconf macro list:
 dnl http://www.gnu.org/software/autoconf/manual/html_node/Autoconf-Macro-Index.html
 dnl
 
-AC_INIT([osra], [2.0.1])
+AC_INIT([osra], [2.1.0])
 AC_PREREQ([2.65])
 
 dnl
@@ -17,7 +17,7 @@ dnl
 dnl Increment if interfaces have been added, removed or changed:
 AC_SUBST([LIB_MAJOR_VERSION], [1])
 dnl Increment if source code has changed:
-AC_SUBST([LIB_MINOR_VERSION], [0])
+AC_SUBST([LIB_MINOR_VERSION], [1])
 
 dnl
 dnl Platform detection
@@ -233,6 +233,15 @@ AX_PROBE_OBLIGATORY_LIBRARY(
 	[custom location of ocradlib.h from OCRAD (optical character recognition program), see http://www.gnu.org/software/ocrad/ocrad.html]
 )
 
+dnl poppler library
+
+AX_PROBE_OBLIGATORY_LIBRARY(
+	[poppler],
+	[poppler/cpp/poppler-document.h],
+	[auto],
+	[custom location of poppler/cpp/poppler-document.h from POPPLER, see http://poppler.freedesktop.org/]
+)
+
 dnl tesseract library (optional)
 
 AC_ARG_WITH(
@@ -399,6 +408,45 @@ AX_TRY_LINK([ocrad], [
 
 AS_IF([test "${osra_lib_ocrad}" != "yes"], [
 	AC_MSG_ERROR([OCRAD API check failed; make sure you have installed libocrad-dev package or check config.log])
+])
+
+dnl
+dnl Poppler library
+dnl
+
+osra_lib_poppler=yes
+
+dnl These libraries are needed for static linking with poppler:
+AS_IF([test "${enable_static_linking:+set}" == "set"], [
+		AC_CHECK_LIB([pthread], [sem_init], [], [ac_lib_poppler=no])
+		AC_CHECK_LIB([z], [inflateEnd], [], [ac_lib_poppler=no])
+		AC_CHECK_LIB([bz2], [BZ2_bzBuffToBuffCompress], [], [ac_lib_poppler=no])
+		AC_CHECK_LIB([png],[png_create_read_struct], [], [ac_lib_poppler=no])
+		AC_CHECK_LIB([iconv], [libiconv_open], [], [ac_lib_poppler=no])
+		AC_CHECK_LIB([expat],[XML_ParserCreate], [], [ac_lib_poppler=no])
+		AC_CHECK_LIB([freetype], [FT_Init_FreeType], [], [ac_lib_poppler=no])
+		AC_CHECK_LIB([fontconfig], [FcInit], [], [ac_lib_poppler=no])
+])
+
+AX_TRY_LINK([poppler poppler-cpp], [
+       #include <string>
+       #include <poppler/cpp/poppler-document.h>
+       #include <poppler/cpp/poppler-page-renderer.h>
+], [
+     std::string input;
+     poppler::document* doc = poppler::document::load_from_file(input);
+     poppler::page_renderer r;
+     int num_pages = doc->pages();
+     for (int i = 0; i < num_pages; i++)
+     {
+	poppler::page* p = doc->create_page(i);
+      	poppler::image im = r.render_page(p);
+      	const char *d = im.const_data();
+     }
+], [], [osra_lib_poppler=no])
+
+AS_IF([test "${osra_lib_poppler}" != "yes"], [
+	AC_MSG_ERROR([POPPLER API check failed; make sure you have installed poppler-devel package or check config.log])
 ])
 
 dnl
