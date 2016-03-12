@@ -266,12 +266,12 @@ bool convert_to_gray(Image &image, bool invert, bool adaptive, bool verbose)
       image.despeckle();
       if (invert)
         {
-          image.adaptiveThreshold(window,window,7);
+          image.adaptiveThreshold(window,window,7.0);
         }
       else
         {
           image.negate();
-          image.adaptiveThreshold(window,window,7);
+          image.adaptiveThreshold(window,window,7.0);
           image.negate();
         }
     }

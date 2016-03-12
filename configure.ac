@@ -15,7 +15,7 @@ dnl Library version. If library ABI changes, increase the major number.
 dnl
 
 dnl Increment if interfaces have been added, removed or changed:
-AC_SUBST([LIB_MAJOR_VERSION], [1])
+AC_SUBST([LIB_MAJOR_VERSION], [2])
 dnl Increment if source code has changed:
 AC_SUBST([LIB_MINOR_VERSION], [1])
 
@@ -29,6 +29,7 @@ AS_CASE(["$build_os"], [linux*], [build_os="linux"], [darwin*], [build_os="darwi
 
 AC_LANG([C++])
 AX_GNU_LD
+AX_CXX_COMPILE_STDCXX_11([],[optional])
 AC_CXX_HAVE_STL
 
 AS_IF([test "${ac_cv_cxx_have_stl}" != "yes"], [
@@ -416,17 +417,19 @@ dnl
 
 osra_lib_poppler=yes
 
+AC_CHECK_LIB([pthread], [sem_init], [], [ac_lib_poppler=no])
+
 dnl These libraries are needed for static linking with poppler:
 AS_IF([test "${enable_static_linking:+set}" == "set"], [
-		AC_CHECK_LIB([pthread], [sem_init], [], [ac_lib_poppler=no])
 		AC_CHECK_LIB([z], [inflateEnd], [], [ac_lib_poppler=no])
 		AC_CHECK_LIB([bz2], [BZ2_bzBuffToBuffCompress], [], [ac_lib_poppler=no])
 		AC_CHECK_LIB([png],[png_create_read_struct], [], [ac_lib_poppler=no])
 		AC_CHECK_LIB([iconv], [libiconv_open], [], [ac_lib_poppler=no])
 		AC_CHECK_LIB([expat],[XML_ParserCreate], [], [ac_lib_poppler=no])
-		AC_CHECK_LIB([freetype], [FT_Init_FreeType], [], [ac_lib_poppler=no])
-		AC_CHECK_LIB([fontconfig], [FcInit], [], [ac_lib_poppler=no])
 ])
+
+AC_CHECK_LIB([freetype], [FT_Init_FreeType], [], [ac_lib_poppler=no])
+AC_CHECK_LIB([fontconfig], [FcInit], [], [ac_lib_poppler=no])
 
 AX_TRY_LINK([poppler poppler-cpp], [
        #include <string>
