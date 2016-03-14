@@ -39,6 +39,8 @@ extern "C" {
 }
 
 #include <openbabel/oberror.h>
+#include <poppler/cpp/poppler-document.h>
+#include <poppler/cpp/poppler-page-renderer.h>
 
 #include "osra.h"
 #include "osra_grayscale.h"
@@ -484,6 +486,35 @@ int count_recognized_chars(vector<atom_t>  &atom, vector<bond_t>& bond)
   return r;
 }
 
+Image process_pdf_page(poppler::document* doc,  poppler::page_renderer &r, int l, int resolution)
+{
+  poppler::page* p = doc->create_page(l);
+  poppler::image im = r.render_page(p, resolution, resolution);
+  Image image(Geometry(im.width(), im.height()), "white");
+  image.modifyImage();
+  image.type(TrueColorType);
+  const char *d = im.const_data();
+  int bytes_per_row = im.bytes_per_row();
+  int bytes_per_pixel = bytes_per_row / im.width();
+  for (int row = 0; row < im.height(); ++row)
+    {
+      for (int col = 0; col < im.width(); ++col)
+	{
+	  int offset = row * bytes_per_row + col * bytes_per_pixel;
+	  int r = -1, g = -1, b = -1, a = -1;
+	      switch(im.format())
+		{
+		case poppler::image::format_mono : r = g = b = int(d[offset]); break;
+		case poppler::image::format_rgb24  : r = int(d[offset]); g = int(d[offset+1]); b = int(d[offset+2]); break;
+		case poppler::image::format_argb32 : r = int(d[offset]); g = int(d[offset+1]); b = int(d[offset+2]); a = int(d[offset+3]); break;
+		}
+	      if (r >= 0 && g >= 0 && b >= 0)
+		image.pixelColor(col, row, ColorRGB(double(r) / 128, double(g) / 128, double(b) / 128));
+	}
+    }
+  return image;
+}
+
 extern job_t *OCR_JOB;
 extern job_t *JOB;
 
@@ -643,10 +674,20 @@ int osra_process_image(
   if (output_format == "cmlr" || output_format == "rsmi" || output_format =="rxn")
     is_reaction = true;
 
-#ifdef OSRA_LIB
+
   int page = 1;
-#else
-  int page = count_pages(input_file);
+  poppler::document* poppler_doc = NULL;
+  poppler::page_renderer poppler_renderer;
+#ifndef OSRA_LIB
+  if (type == "PDF" || type == "PS")
+    {
+      poppler_doc = poppler::document::load_from_file(input_file);
+      page = poppler_doc->pages();
+    }
+  else
+    {
+      page = count_pages(input_file);
+    }
 #endif
 
   vector<vector<string> > pages_of_structures(page, vector<string> (0));
@@ -670,7 +711,7 @@ int osra_process_image(
   vector<vector<vector<Image> > > array_of_images_page(page,vector<vector<Image> > (num_resolutions));
   vector<vector<vector<box_t> > > array_of_boxes_page(page,vector<vector<box_t> >(num_resolutions));
 
-  #pragma omp parallel for default(shared) private(OCR_JOB,JOB)
+  //  #pragma omp parallel for default(shared) private(OCR_JOB,JOB)
   for (int l = 0; l < page; l++)
     {
       Image image;
@@ -681,23 +722,26 @@ int osra_process_image(
       if (verbose)
         cout << "Processing page " << (l+1) << " out of " << page << "..." << endl;
 
-      ostringstream density;
-      density << input_resolution << "x" << input_resolution;
-      image.density(density.str());
-
       if (type == "PDF" || type == "PS")
         page_scale *= (double) 72 / input_resolution;
 
 #ifdef OSRA_LIB
       image.read(blob);
 #else
-      ostringstream pname;
-      pname << input_file << "[" << l << "]";
+      if (poppler_doc) // process PDF and PS files
+	{
+	  image = process_pdf_page(poppler_doc, poppler_renderer, l, input_resolution);
+	}
+      else
+	{
+	  ostringstream pname;
+	  pname << input_file << "[" << l << "]";
 #pragma omp critical
-      {
-	image.read(pname.str());
-      }
+	  {
+	    image.read(pname.str());
+	  }
 #endif
+	}
       if (l == 0 && !preview.empty())
 	{
 	  try
