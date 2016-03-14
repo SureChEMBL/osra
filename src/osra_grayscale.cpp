@@ -261,7 +261,7 @@ bool convert_to_gray(Image &image, bool invert, bool adaptive, bool verbose)
   int window = min(image.columns(),image.rows()) / 41;
   if (window < 15) window = 15;
 
-  if (adaptive)
+  if (adaptive && image.columns() > 7 && image.rows() > 7)
     {
       image.despeckle();
       if (invert)

@@ -678,18 +678,25 @@ int osra_process_image(
   int page = 1;
   poppler::document* poppler_doc = NULL;
   poppler::page_renderer poppler_renderer;
-#ifndef OSRA_LIB
-  if (type == "PDF" || type == "PS")
+#ifdef OSRA_LIB
+   if (type == "PDF" || type == "PS")
     {
-      poppler_doc = poppler::document::load_from_file(input_file);
+      poppler_doc = load_from_raw_data(image_data, image_length);
       page = poppler_doc->pages();
     }
-  else
-    {
-      page = count_pages(input_file);
-    }
+#else
+   if (type == "PDF" || type == "PS")
+     {
+       poppler_doc = poppler::document::load_from_file(input_file);
+       page = poppler_doc->pages();
+     }
+   else
+     {
+       page = count_pages(input_file);
+     }
 #endif
 
+   				       
   vector<vector<string> > pages_of_structures(page, vector<string> (0));
   vector<vector<Image> > pages_of_images(page, vector<Image> (0));
   vector<vector<double> > pages_of_avg_bonds(page, vector<double> (0));
@@ -725,15 +732,16 @@ int osra_process_image(
       if (type == "PDF" || type == "PS")
         page_scale *= (double) 72 / input_resolution;
 
-#ifdef OSRA_LIB
-      image.read(blob);
-#else
+
       if (poppler_doc) // process PDF and PS files
 	{
 	  image = process_pdf_page(poppler_doc, poppler_renderer, l, input_resolution);
 	}
       else
 	{
+#ifdef OSRA_LIB
+	  image.read(blob);
+#else	  
 	  ostringstream pname;
 	  pname << input_file << "[" << l << "]";
 #pragma omp critical
