@@ -677,7 +677,6 @@ int osra_process_image(
 
   int page = 1;
   poppler::document* poppler_doc = NULL;
-  poppler::page_renderer poppler_renderer;
 #ifdef OSRA_LIB
    if (type == "PDF" || type == "PS")
     {
@@ -718,11 +717,12 @@ int osra_process_image(
   vector<vector<vector<Image> > > array_of_images_page(page,vector<vector<Image> > (num_resolutions));
   vector<vector<vector<box_t> > > array_of_boxes_page(page,vector<vector<box_t> >(num_resolutions));
 
-  //  #pragma omp parallel for default(shared) private(OCR_JOB,JOB)
+//#pragma omp parallel for default(shared) private(OCR_JOB,JOB)
   for (int l = 0; l < page; l++)
     {
       Image image;
       double page_scale=1;
+      poppler::page_renderer poppler_renderer;
       
       int ttt = 0;
 
