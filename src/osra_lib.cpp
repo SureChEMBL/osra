@@ -651,8 +651,6 @@ int osra_process_image(
     }
 #endif
 
-  if (input_resolution == 0 && (type == "PDF" || type == "PS"))
-    input_resolution = 300;
 
   if (show_coordinates && rotate != 0)
     {
@@ -735,7 +733,10 @@ int osra_process_image(
 
       if (poppler_doc) // process PDF and PS files
 	{
-	  image = process_pdf_page(poppler_doc, poppler_renderer, l, input_resolution);
+	  int resolution = input_resolution;
+	  if (resolution == 0)
+	    resolution = 300;
+	  image = process_pdf_page(poppler_doc, poppler_renderer, l, resolution);
 	}
       else
 	{
