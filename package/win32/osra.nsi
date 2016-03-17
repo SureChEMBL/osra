@@ -1,10 +1,5 @@
-!define DOT_VERSION  "2.0.1"
-!define DASH_VERSION "2-0-1"
-
-;!define GS_EXE "gs916w32.exe"
-;!define GS_URL "http://downloads.ghostscript.com/public/${GS_EXE}"
-!define GS_EXE "gs907w32.exe"
-!define GS_URL "http://downloads.ghostscript.com/public/${GS_EXE}"
+!define DOT_VERSION  "2.1.0"
+!define DASH_VERSION "2-1-0"
 
 !include Sections.nsh
 ; include for some of the windows messages defines
@@ -59,24 +54,9 @@ Section "osra (required)"
   ; Put file there
   File "osra-bin.exe"
   File "pthreadGC2.dll"
-  File "delegates.mgk"
-  File "type.mgk"
-  File "type-ghostscript.mgk"
-  File "type-solaris.mgk"
-  File "type-windows.mgk"
-  File "colors.mgk"
-  File "log.mgk"
-  File "magic.mgk"
-  File "modules.mgk"
   File "README.txt"
   File "spelling.txt"
   File "superatom.txt"
-  strcpy $3 "GPL Ghostscript"
-  call checkSoftVersion
-  call getGhostscriptInstPath
-  strcmp $1 "" no_gs +2
-  no_gs:
-  MessageBox MB_OK "Ghostscript interpreter not found" IDOK 0 
   call createOSRAbat
   
   
@@ -143,15 +123,6 @@ Section "Uninstall"
   ; Remove files and uninstaller
   Delete $INSTDIR\osra-bin.exe
   Delete $INSTDIR\pthreadGC2.dll
-  Delete $INSTDIR\delegates.mgk
-  Delete $INSTDIR\type.mgk
-  Delete $INSTDIR\type-ghostscript.mgk
-  Delete $INSTDIR\type-solaris.mgk
-  Delete $INSTDIR\type-windows.mgk
-  Delete $INSTDIR\colors.mgk
-  Delete $INSTDIR\log.mgk
-  Delete $INSTDIR\magic.mgk
-  Delete $INSTDIR\modules.mgk
   Delete $INSTDIR\README.txt
   Delete $INSTDIR\osra.bat
   Delete $INSTDIR\superatom.txt
@@ -179,39 +150,6 @@ loop:
   Goto loop
 done:
 ; $2 contains the version of Soft now or empty
-FunctionEnd
-
-
-Function getGhostscriptInstPath
- strcmp $2 "" download_gs get_path
- download_gs:
-   DetailPrint "need to download and install Ghostscript"
-   Call ConnectInternet ;Make an internet connection (if no connection available)
-   StrCpy $2 "$TEMP\${GS_EXE}"
-   NSISdl::download ${GS_URL} $2
-   Pop $0
-   StrCmp $0 success success
-    SetDetailsView show
-    DetailPrint "download failed: $0"
-    Abort
-   success:
-    ExecWait "$2"
-    Delete $2
-    strcpy $2 "9.07"
-	
- get_path:
-  strcpy $1 ""
-  ReadRegStr $0 HKLM \
-     "Software\GPL Ghostscript\$2" \ 
-     "GS_DLL"
-  StrCmp $0 "" fin extract
-  
- extract:
-  StrCpy $1 $0 -16
-  IfFileExists $1\bin\gswin32c.exe fin
-  StrCpy $1 ""
-  fin:
-  ;$1 contains the folder of Ghostscript or empty
 FunctionEnd
 
 Function getSymyxPath
@@ -307,36 +245,10 @@ fileOpen $0 "$INSTDIR\osra.bat" w
 setlocal$\r$\n\
 set exec_dir=%~dp0%$\r$\n\
 set PATH=%exec_dir%;$1\bin;$1\lib;%PATH%$\r$\n\
-set MAGICK_CONFIGURE_PATH=%exec_dir%$\r$\n\
 "%exec_dir%osra-bin.exe" %*$\r$\n\
 endlocal$\r$\n\
 '
 fileClose $0
-FunctionEnd
-
-
-Function ConnectInternet
-
-  Push $R0
-    
-    ClearErrors
-    Dialer::AttemptConnect
-    IfErrors noie3
-    
-    Pop $R0
-    StrCmp $R0 "online" connected
-      MessageBox MB_OK|MB_ICONSTOP "Cannot connect to the internet."
-      Quit
-    
-    noie3:
-  
-    ; IE3 not installed
-    MessageBox MB_OK|MB_ICONINFORMATION "Please connect to the internet now."
-    
-    connected:
-  
-  Pop $R0
-  
 FunctionEnd
 
 
