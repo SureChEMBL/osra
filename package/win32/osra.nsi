@@ -139,19 +139,6 @@ Section "Uninstall"
   no_symyx:
 SectionEnd
 
-Function CheckSoftVersion
-StrCpy $0 0
-StrCpy $2 ""
-loop:
-  EnumRegKey $1 HKLM "Software\$3" $0
-  StrCmp $1 "" done
-  StrCpy $2 $1
-  IntOp $0 $0 + 1
-  Goto loop
-done:
-; $2 contains the version of Soft now or empty
-FunctionEnd
-
 Function getSymyxPath
   Push "$PROGRAMFILES\Accelrys"
   Push "AccelrysDraw.exe"
