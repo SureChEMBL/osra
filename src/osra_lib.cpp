@@ -99,7 +99,7 @@ int load_superatom_spelling_maps(map<string, string> &spelling,map<string, strin
   if (!((spelling_file.length() != 0 && load_config_map(spelling_file, spelling))
         || load_config_map(string(DATA_DIR) + "/" + SPELLING_TXT, spelling) || load_config_map(osra_dir + "/" + SPELLING_TXT, spelling)))
     {
-      cout << "Cannot open " << SPELLING_TXT << " file (tried locations \"" << DATA_DIR << "\", \"" << osra_dir
+      cerr << "Cannot open " << SPELLING_TXT << " file (tried locations \"" << DATA_DIR << "\", \"" << osra_dir
            << "\"). Specify the custom file location via -l option." << endl;
       return ERROR_SPELLING_FILE_IS_MISSING;
     }
@@ -108,7 +108,7 @@ int load_superatom_spelling_maps(map<string, string> &spelling,map<string, strin
         || load_config_map(string(DATA_DIR) + "/" + SUPERATOM_TXT, superatom) || load_config_map(osra_dir + "/"
             + SUPERATOM_TXT, superatom)))
     {
-      cout << "Cannot open " << SUPERATOM_TXT << " file (tried locations \"" << DATA_DIR << "\", \"" << osra_dir
+      cerr << "Cannot open " << SUPERATOM_TXT << " file (tried locations \"" << DATA_DIR << "\", \"" << osra_dir
            << "\"). Specify the custom file location via -a option." << endl;
       return ERROR_SUPERATOM_FILE_IS_MISSING;
     }
@@ -425,7 +425,8 @@ void split_fragments_and_assemble_structure_record(vector<atom_t> &atom,
                 {
 		  if ((molecule_statistics.rings56 > 0 || molecule_statistics.num_organic_non_carbon_atoms > 0)
 		      && molecule_statistics.num_bonds>MIN_B_COUNT
-		      && molecule_statistics.num_small_angles < 3)
+		      && molecule_statistics.num_small_angles < 3
+		      && avg_bond_length > real_font_height )
 		    {
 		      array_of_structures[res_iter].push_back(structure);
 		      array_of_avg_bonds[res_iter].push_back(page_scale * box_scale * avg_bond_length);
@@ -538,7 +539,7 @@ void __attribute__ ((constructor)) osra_init()
   global_init_state = osra_openbabel_init();
 
   if (global_init_state != 0)
-    cout << "OpenBabel initialization failure." << endl;
+    cerr << "OpenBabel initialization failure." << endl;
 #endif
 
   srand(1);
@@ -624,11 +625,9 @@ int osra_process_image(
       // https://sourceforge.net/tracker/?func=detail&aid=3022955&group_id=40728&atid=428740
     }
 
-  // This will hide the output "Warning: non-positive median line gap" from GOCR. Remove after this is fixed
-  // Also "Fontconfig error: Cannot load default config file"
-  fclose(stderr);
-  OpenBabel::obErrorLog.StopLogging();
-
+  //int stderr_copy = dup(2);
+  //fclose(stderr);
+  
   int page = 1;
   poppler::document* poppler_doc = NULL;
   if (type.empty() || type == "PDF" || type == "PS")
@@ -652,12 +651,15 @@ int osra_process_image(
     {
       page = count_pages(input_file);
     }
+  // dup2(stderr_copy, 2);
+  //close(stderr_copy);
+  
   if (type.empty())
     {
 #ifdef OSRA_LIB
-      cout << "Cannot detect blob image type" << endl;
+      cerr << "Cannot detect blob image type" << endl;
 #else
-      cout << "Cannot open file \"" << input_file << '"' << endl;
+      cerr << "Cannot open file \"" << input_file << '"' << endl;
 #endif
       return ERROR_UNKNOWN_IMAGE_TYPE;
     }
@@ -673,7 +675,7 @@ int osra_process_image(
       outfile.open(output_file.c_str(), ios::out | ios::trunc);
       if (outfile.bad() || !outfile.is_open())
         {
-          cout << "Cannot open file \"" << output_file << "\" for output" << endl;
+          cerr << "Cannot open file \"" << output_file << "\" for output" << endl;
           return ERROR_OUTPUT_FILE_OPEN_FAILED;
         }
     }
@@ -682,7 +684,7 @@ int osra_process_image(
 
   if (show_coordinates && rotate != 0)
     {
-      cout << "Showing the box coordinates is currently not supported together with image rotation and is therefore disabled." << endl;
+      cerr << "Showing the box coordinates is currently not supported together with image rotation and is therefore disabled." << endl;
 #ifdef OSRA_LIB
       return ERROR_ILLEGAL_ARGUMENT_COMBINATION;
 #else
@@ -693,13 +695,19 @@ int osra_process_image(
   if (!embedded_format.empty() && !(output_format == "sdf" && (embedded_format == "inchi" || embedded_format == "smi"
                                     || embedded_format == "can")))
     {
-      cout << "Embedded format option is only possible if output format is SDF and option can have only inchi, smi, or can values." << endl;
+      cerr << "Embedded format option is only possible if output format is SDF and option can have only inchi, smi, or can values." << endl;
       return ERROR_ILLEGAL_ARGUMENT_COMBINATION;
     }
+
+  // This will hide the output "Warning: non-positive median line gap" from GOCR. Remove after this is fixed:
+  fclose(stderr);
+  OpenBabel::obErrorLog.StopLogging();
+      
   bool is_reaction = false;
   if (output_format == "cmlr" || output_format == "rsmi" || output_format =="rxn")
     is_reaction = true;
-    				       
+
+   				       
   vector<vector<string> > pages_of_structures(page, vector<string> (0));
   vector<vector<Image> > pages_of_images(page, vector<Image> (0));
   vector<vector<double> > pages_of_avg_bonds(page, vector<double> (0));
