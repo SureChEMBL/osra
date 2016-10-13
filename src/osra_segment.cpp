@@ -1070,13 +1070,13 @@ list<list<list<point_t> > > find_segments(const Image &image, double threshold, 
   return explicit_clusters;
 }
 
-void find_box_size(const vector<point_t> &set1, int &x1, int &x2, int &y1, int &y2)
+void find_box_size(const set<pair<int,int> > &set1, int &x1, int &x2, int &y1, int &y2)
 {
   x1 = INT_MAX; y1 = INT_MAX; x2 = 0; y2 = 0;
-  for (unsigned int p = 0; p < set1.size(); p++) 
+  for (set<pair<int,int> >::const_iterator it = set1.begin(); it != set1.end(); ++it)
     {
-      int px = set1[p].x;
-      int py = set1[p].y;
+      int px = it->first;
+      int py = it->second;
       if (px < x1)
 	x1 = px;
       if (px > x2)
@@ -1088,7 +1088,7 @@ void find_box_size(const vector<point_t> &set1, int &x1, int &x2, int &y1, int &
     }
 }
 
-bool check_possible_bracket(vector<point_t> &set1, vector < vector<bool> > &global_pic, int left, int right, int top, int bottom, int i, vector<int> &bracket)
+bool check_possible_bracket( set<pair<int,int> >  &set1, vector < vector<bool> > &global_pic, int left, int right, int top, int bottom, int i)
 {
   bool res = false;
   int x1,x2,y1,y2;
@@ -1098,10 +1098,10 @@ bool check_possible_bracket(vector<point_t> &set1, vector < vector<bool> > &glob
   vector< vector<int> > tmp(x2-x1+1, vector<int>(y2-y1+1,0));
   int startx = 0;
   int starty = INT_MAX;
-  for (unsigned int p = 0; p < set1.size(); p++) 
+  for (set<pair<int,int> >::const_iterator it = set1.begin(); it != set1.end(); ++it)
     {
-      int px = set1[p].x;
-      int py = set1[p].y;
+      int px = it->first;
+      int py = it->second;
       tmp[px-x1][py-y1] = 1;
       if (starty > py - y1)
 	{
@@ -1111,30 +1111,26 @@ bool check_possible_bracket(vector<point_t> &set1, vector < vector<bool> > &glob
     }
   int middle = (y2 - y1) / 2;
   vector<pair<int,int> > margin(1,make_pair(startx,starty));
-  vector<point_t> set2;
+  set<pair<int,int> > set2;
   while (!margin.empty())
     {
       startx = margin.back().first;
       starty = margin.back().second;
       margin.pop_back();
       int reflect = middle + (middle - starty);
-      /*if (startx - 1 >= 0 && starty - 1 >= 0 && startx + 1 <= x2-x1 && starty+1 <= y2-y1 &&
-	  reflect - 1 >= 0 && reflect + 1 <= y2-y1 &&
-	  ( tmp[startx][reflect] != 0 || tmp[startx+1][reflect] != 0 || tmp[startx-1][reflect] != 0 ||
-	  tmp[startx][reflect+1] != 0 || tmp[startx][reflect-1] != 0 || tmp[startx-1][reflect-1] != 0 ||
-	  tmp[startx-1][reflect+1] != 0 || tmp[startx+1][reflect-1] != 0 || tmp[startx+1][reflect+1] != 0) )*/
+     
       if (reflect >= 0 && reflect <= y2-y1 && tmp[startx][reflect] != 0)
 	{
-	  set2.push_back(point_t(startx+x1,starty+y1));
+	  set2.insert(make_pair(startx+x1,starty+y1));
 	}
       tmp[startx][starty] = -1;
-      for (int i = startx-1; i  <= startx+1; i++)
-	if (i >= 0 && i < tmp.size())
+      for (int ii = startx-1; ii  <= startx+1; ii++)
+	if (ii >= 0 && ii < tmp.size())
 	  for (int j = starty-1; j <= starty+1; j++)
-	    if (j >= 0 && j < tmp[i].size() && tmp[i][j] == 1)
+	    if (j >= 0 && j < tmp[ii].size() && tmp[ii][j] == 1)
 	      {
-		tmp[i][j] = 2;
-		margin.push_back(make_pair(i,j));
+		tmp[ii][j] = 2;
+		margin.push_back(make_pair(ii,j));
 	      }
     }
   swap(set1,set2);
@@ -1148,62 +1144,25 @@ bool check_possible_bracket(vector<point_t> &set1, vector < vector<bool> > &glob
 	f = y / 40;
       x /= f;
       y /= f;
+      
       //      cout << x1 <<" " << y1 <<" "<<x2<<" "<<y2<<" " << i << endl;
 
       unsigned char *pic = (unsigned char *) malloc(x * y);
       for (int j = 0; j < x * y; j++)
 	pic[j] = 255;
-      for (unsigned int p = 0; p < set1.size(); p++)
-	if ((set1[p].y - y1) / f < y && (set1[p].x - x1) / f < x && (set1[p].y - y1) % f == 0 && (set1[p].x - x1) % f == 0)
-	  pic[((set1[p].y - y1) / f) * x + (set1[p].x - x1) / f] = 0;
-      res = detect_bracket(x, y, pic);
-      //free(pic);
-      if (res) 
+      for (set<pair<int,int> >::const_iterator it = set1.begin(); it != set1.end(); ++it)
 	{
-	  for (unsigned int p = 0; p < set1.size(); p++) 
-	    {
-	      int px = set1[p].x;
-	      int py = set1[p].y;
-	      if ( (i + (i - px) - left - 1 >= 0) && (i + (i - px) - left + 1 < right - left + 1)
-		   && ( py - top - 1 >= 0) && (py - top + 1 < bottom - top + 1)
-		   && (px - left - 1 >= 0) && (px - left + 1 < right - left +1))
-		{
-		  global_pic[px - left][py - top] = false;
-		  global_pic[px - left - 1][py - top] = false;
-		  global_pic[px - left + 1][py - top] = false;
-		  global_pic[px - left][py - top - 1] = false;
-		  global_pic[px - left][py - top + 1] = false;
-		  global_pic[px - left - 1][py - top - 1] = false;
-		  global_pic[px - left - 1][py - top + 1] = false;
-		  global_pic[px - left + 1][py - top - 1] = false;
-		  global_pic[px - left + 1][py - top + 1] = false;
-		  global_pic[i + (i - px) - left][py - top] = false; 
-		  global_pic[i + (i - px) - left - 1][py - top] = false; 
-		  global_pic[i + (i - px) - left + 1][py - top] = false; 
-		  global_pic[i + (i - px) - left][py - top - 1] = false; 
-		  global_pic[i + (i - px) - left][py - top + 1] = false; 
-		  global_pic[i + (i - px) - left - 1][py - top - 1] = false; 
-		  global_pic[i + (i - px) - left + 1][py - top - 1] = false; 
-		  global_pic[i + (i - px) - left - 1][py - top + 1] = false; 
-		  global_pic[i + (i - px) - left + 1][py - top + 1] = false;
-		}
-	    }
-	  bracket[0] = x1;
-	  bracket[1] = y1;
-	  bracket[2] = x2;
-	  bracket[3] = y2;
-
-	  bracket[4] = i + (i - x1);
-	  bracket[5] = y1;
-	  bracket[6] = i + (i - x2);
-	  bracket[7] = y2;
-	  
-	}	    
+	  int px = it->first;
+	  int py = it->second;
+	  if ((py - y1) / f < y && (px - x1) / f < x && (py - y1) % f == 0 && (px - x1) % f == 0)
+	    pic[((py - y1) / f) * x + (px - x1) / f] = 0;
+	}
+      res = detect_bracket(x, y, pic);     
     }
   return res;
 }
 
-void remove_brackets(int left, int right, int top, int bottom, list<list<list<point_t> > >::iterator c) 
+void remove_brackets(int left, int right, int top, int bottom, list<list<list<point_t> > >::iterator c, set<pair<int,int> > &brackets) 
 {
   vector < vector<bool> > tmp(right - left + 1, vector<bool> (bottom - top + 1, false));
   vector < vector<bool> > global_pic(right - left + 1, vector<bool> (bottom - top + 1, false));
@@ -1212,91 +1171,54 @@ void remove_brackets(int left, int right, int top, int bottom, list<list<list<po
     for (list<point_t>::const_iterator p = s->begin(); p != s->end(); p++)
       global_pic[p->x - left][p->y - top] = true;
 
-  bool found = true;
-  //Image t(Geometry(right - left + 1, bottom - top + 1), "white");
-  while (found)
+  //Image t(Geometry(right + 1, bottom + 1), "white");
+ brackets.clear();
+ for (int i = left + FRAME; i < right - FRAME; i++)
     {
-      found = false;
-      int median = 0;
-      vector<int> bracket(8,0);
-      for (int i = left + FRAME; i < right - FRAME; i++)
+      for (list<list<point_t> >::const_iterator s = c->begin(); s != c->end(); s++) 
 	{
-	  for (list<list<point_t> >::const_iterator s = c->begin(); s != c->end(); s++) 
+	  set<pair<int,int> > set1;
+	  for (list<point_t>::const_iterator p = s->begin(); p != s->end(); p++)
 	    {
-	      vector<point_t> set1, set2;
-
-	      for (list<point_t>::const_iterator p = s->begin(); p != s->end(); p++)
+	      if ( i + (i - p->x) < right && 
+		   i + (i - p->x) - left - 1 >= 0 &&  p->y - top - 1 >= 0 &&
+		   i + (i - p->x) - left + 1 < right - left + 1 && p->y - top + 1 < bottom - top + 1 &&
+		   global_pic[p->x - left][p->y - top] && 
+		   (global_pic[i + (i - p->x) - left][p->y - top] || 
+		    global_pic[i + (i - p->x) - left + 1][p->y - top] ||
+		    global_pic[i + (i - p->x) - left - 1][p->y - top] ||
+		    global_pic[i + (i - p->x) - left][p->y - top + 1] ||
+		    global_pic[i + (i - p->x) - left][p->y - top - 1] ||
+		    global_pic[i + (i - p->x) - left - 1][p->y - top - 1] ||
+		    global_pic[i + (i - p->x) - left - 1][p->y - top + 1] ||
+		    global_pic[i + (i - p->x) - left + 1][p->y - top - 1] ||
+		    global_pic[i + (i - p->x) - left + 1][p->y - top + 1]  ) 
+		   && (p->x < i - 40) ) 
 		{
-		  if ( i + (i - p->x) < right && 
-		       i + (i - p->x) - left - 1 >= 0 &&  p->y - top - 1 >= 0 &&
-		       i + (i - p->x) - left + 1 < right - left + 1 && p->y - top + 1 < bottom - top + 1 &&
-		       global_pic[p->x - left][p->y - top] && 
-		       (global_pic[i + (i - p->x) - left][p->y - top] || 
-			global_pic[i + (i - p->x) - left + 1][p->y - top] ||
-			global_pic[i + (i - p->x) - left - 1][p->y - top] ||
-			global_pic[i + (i - p->x) - left][p->y - top + 1] ||
-			global_pic[i + (i - p->x) - left][p->y - top - 1] ||
-			global_pic[i + (i - p->x) - left - 1][p->y - top - 1] ||
-			global_pic[i + (i - p->x) - left - 1][p->y - top + 1] ||
-			global_pic[i + (i - p->x) - left + 1][p->y - top - 1] ||
-			global_pic[i + (i - p->x) - left + 1][p->y - top + 1]  ) 
-		       ) 
-		    {
-		      if (p->x < i - 40)
-			{
-			  set1.push_back(*p);			
-			}
-		      if (p->x > i + 40)
-			{
-			  point_t p2;
-			  p2.x = i + (i - p->x);
-			  p2.y = p->y;
-			  set2.push_back(p2);			 
-			}
-		    }
+		  set1.insert(make_pair(p->x, p->y));
 		}
-
-	      found = check_possible_bracket(set1, global_pic, left, right, top, bottom, i, bracket);
-	      if (!found)
-		found = check_possible_bracket(set2, global_pic, left, right, top, bottom, i, bracket);
-	      if (found)
-		break;
 	    }
-	  if (found)
-	    {
-	      median = i;
-	      break;
+	  
+	  if (check_possible_bracket(set1, global_pic, left, right, top, bottom, i))
+	    {	      
+	      for (set<pair<int,int> >::const_iterator it = set1.begin(); it != set1.end(); ++it)
+		{
+		  int ox = it->first;
+		  int oy = it->second;
+		  int px = i + (i - ox);
+		  brackets.insert(*it);
+		  brackets.insert(make_pair(px, oy));
+		  //t.pixelColor(ox, oy, "black");
+		  //t.pixelColor(px, oy, "black");
+		}
 	    }
-	}
-    
-      if (found)
-	{
-	  int middle = (bracket[1] + bracket[3]) / 2;
-	  list<list<point_t> >::iterator s1 = c->begin();
-	  while (s1 != c->end()) 
-	    {
-	      list<point_t>::iterator p1 = s1->begin();
-	      while (p1 != s1->end())
-		if (!global_pic[p1->x - left][p1->y - top] && abs(p1->y - middle) > 1)
-		  {
-		    //t.pixelColor(p1->x - left, p1->y - top, "black");
-		    //t.pixelColor(median + (median - p1->x) - left, p1->y - top, "black");
-		      p1 = s1->erase(p1);
-		  }
-		else
-		  p1++;
-	      if (s1->size() > 0)
-		s1++;
-	      else
-		s1 = c->erase(s1);
-	    }
-	}
+	}	 
     }
-  //t.write("t.png");
+ //t.write("t.png");
 }
 
 
-int prune_clusters(list<list<list<point_t> > > &clusters, vector<box_t> &boxes)
+int prune_clusters(list<list<list<point_t> > > &clusters, vector<box_t> &boxes, set<pair<int,int> > &brackets)
 {
   int n_boxes = 0;
   list<list<list<point_t> > >::iterator c = clusters.begin();
@@ -1353,7 +1275,7 @@ int prune_clusters(list<list<list<point_t> > > &clusters, vector<box_t> &boxes)
           boxes[n_boxes].x2 = right;
           boxes[n_boxes].y2 = bottom;
 
-          //remove_brackets(left, right, top, bottom, c);
+          remove_brackets(left, right, top, bottom, c, brackets);
 
           for (list<list<point_t> >::const_iterator s = c->begin(); s != c->end(); s++)
             for (list<point_t>::const_iterator p = s->begin(); p != s->end(); p++)

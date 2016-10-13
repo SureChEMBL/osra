@@ -822,7 +822,8 @@ int osra_process_image(
         cout << "Number of clusters: " << clusters.size() << '.' << endl;
 
       vector<box_t> boxes;
-      int n_boxes = prune_clusters(clusters, boxes);
+      set<pair<int,int> > brackets;
+      int n_boxes = prune_clusters(clusters, boxes, brackets);
       std::sort(boxes.begin(), boxes.end(), comp_boxes);
 
       if (verbose)
@@ -984,9 +985,10 @@ int osra_process_image(
                 avg_bond_length = percentile75(bond, n_bond, atom);
 
                 collapse_double_bonds(bond, n_bond, atom, max_dist_double_bond);
-		// TODO remove brackets, assign labels to brackets
+				
                 extend_terminal_bond_to_label(atom, letters, n_letters, bond, n_bond, label, n_label, avg_bond_length / 2,
 					      thickness, max_dist_double_bond);
+
 
                 remove_disconnected_atoms(atom, bond, n_atom, n_bond);
                 collapse_atoms(atom, bond, n_atom, n_bond, thickness);
@@ -1008,7 +1010,11 @@ int osra_process_image(
                 n_letters = clean_unrecognized_characters(bond, n_bond, atom, real_font_height, real_font_width, 0,
                             letters, n_letters);
 		int recognized_chars = count_recognized_chars(atom,bond);
-	
+		
+		// TODO remove brackets, assign labels to brackets
+		remove_bracket_atoms(atom, n_atom, brackets, thickness, boxes[k].x1, boxes[k].y1, box_scale, real_font_width, real_font_height);
+		remove_zero_bonds(bond, n_bond, atom);
+		
                 assign_charge(atom, bond, n_atom, n_bond, spelling, superatom, debug);
                 find_up_down_bonds(bond, n_bond, atom, thickness);
                 int real_atoms = count_atoms(atom, n_atom);

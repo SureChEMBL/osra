@@ -2719,3 +2719,71 @@ void remove_small_bonds_in_chars(vector<atom_t> &atom, vector<bond_t> &bond,vect
 	    atom[bond[i].b].y >= letters[j].min_y && atom[bond[i].b].y <= letters[j].max_y)
 	  bond[i].exists = false;
 }
+
+void remove_bracket_atoms(vector<atom_t> &atom, int n_atom, const set<pair<int,int> > &brackets, double thickness, int box_x, int box_y, double box_scale,
+			  int real_font_width, int real_font_height)
+{
+  vector<point_t> confirmed;
+  for (set<pair<int,int> >::const_iterator j = brackets.begin(); j != brackets.end(); ++j)
+    {
+      bool found(false);
+      for (int i = 0; i < n_atom; i++)
+	{
+	  if (atom[i].exists  && (atom[i].label == " " || atom[i].label.empty()) )
+	    {
+	      double x =   (double)  box_scale * atom[i].x + box_x -  FRAME;
+	      double y =   (double)  box_scale * atom[i].y + box_y -  FRAME;
+	      if (distance(x, y, j->first, j->second) < thickness)
+		{
+		  atom[i].exists = false;
+		  found = true;
+		}
+	    }
+        }
+      if (found)
+	{
+	  confirmed.push_back(point_t(j->first, j->second));
+	}
+    }
+
+   
+  vector<pair<point_t, point_t> > horizontals;
+  for (int i = 0; i < confirmed.size(); i++)
+    for (int j = i + 1; j < confirmed.size(); j++)
+      if ( fabs(confirmed[i].y - confirmed[j].y) < thickness && fabs(confirmed[i].x - confirmed[j].x) > real_font_width)
+	{
+	  if (confirmed[i].x < confirmed[j].x)
+	    horizontals.push_back(make_pair(confirmed[i], confirmed[j]));
+	  else
+	    horizontals.push_back(make_pair(confirmed[j], confirmed[i]));
+	}
+  
+  vector <box_t>  bracket_boxes;
+  for (int i = 0; i < horizontals.size(); i++)
+    for (int j = i + 1; j < horizontals.size(); j++)
+      {
+	if ( fabs(horizontals[i].first.x - horizontals[j].first.x) < thickness &&
+	     fabs(horizontals[i].second.x - horizontals[j].second.x) < thickness &&
+	     fabs(horizontals[i].first.y - horizontals[j].first.y) > real_font_height &&
+	     fabs(horizontals[i].second.y - horizontals[j].second.y) > real_font_height)
+	  {
+	    box_t b;
+	    if (horizontals[i].first.y < horizontals[j].first.y)
+	      {
+		b.x1 = horizontals[i].first.x;
+		b.y1 = horizontals[i].first.y;
+		b.x2 = horizontals[j].second.x;
+		b.y2 = horizontals[j].second.y;
+	      }
+	    else
+	      {
+		b.x1 = horizontals[j].first.x;
+		b.y1 = horizontals[j].first.y;
+		b.x2 = horizontals[i].second.x;
+		b.y2 = horizontals[i].second.y;
+	      }
+	    std::cout << b.x1<<" "<<b.y1<<" "<<b.x2<<" "<<b.y2<<std::endl;
+	  }	     
+      }
+  
+}
