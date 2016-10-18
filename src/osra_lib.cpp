@@ -968,9 +968,13 @@ int osra_process_image(
                                              max_dist_double_bond, avg_bond_length, 3, 1);
 
                 n_label = assemble_labels(letters, n_letters, label);
-		
+	       
                 if (verbose)
                   cout << n_label << " labels: " << label << " after assemble_labels()" << endl;
+		
+		vector <bracket_t>  bracket_boxes;
+		remove_bracket_atoms(atom, n_atom, brackets, thickness, boxes[k].x1, boxes[k].y1, box_scale, real_font_width, real_font_height, bracket_boxes);
+		remove_zero_bonds(bond, n_bond, atom);
 
                 remove_disconnected_atoms(atom, bond, n_atom, n_bond);
 	
@@ -989,6 +993,7 @@ int osra_process_image(
                 extend_terminal_bond_to_label(atom, letters, n_letters, bond, n_bond, label, n_label, avg_bond_length / 2,
 					      thickness, max_dist_double_bond);
 
+		assign_labels_to_brackets(bracket_boxes, label, n_label, letters, n_letters, boxes[k].x1, boxes[k].y1, box_scale, real_font_width, real_font_height);
 
                 remove_disconnected_atoms(atom, bond, n_atom, n_bond);
                 collapse_atoms(atom, bond, n_atom, n_bond, thickness);
@@ -1011,9 +1016,6 @@ int osra_process_image(
                             letters, n_letters);
 		int recognized_chars = count_recognized_chars(atom,bond);
 		
-		// TODO remove brackets, assign labels to brackets
-		remove_bracket_atoms(atom, n_atom, brackets, thickness, boxes[k].x1, boxes[k].y1, box_scale, real_font_width, real_font_height);
-		remove_zero_bonds(bond, n_bond, atom);
 		
                 assign_charge(atom, bond, n_atom, n_bond, spelling, superatom, debug);
                 find_up_down_bonds(bond, n_bond, atom, thickness);
