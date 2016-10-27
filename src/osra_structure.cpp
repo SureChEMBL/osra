@@ -2735,16 +2735,23 @@ bool overlap_boxes(const box_t &a, const box_t &b)
     return true;
 }
   
-void remove_bracket_atoms(vector<atom_t> &atom, int n_atom, const set<pair<int,int> > &brackets, double thickness, int box_x, int box_y, double box_scale,
+void remove_bracket_atoms(vector<atom_t> &atom, int n_atom, const vector<bond_t> &bond, int n_bond, const set<pair<int,int> > &brackets, double thickness, int box_x, int box_y, double box_scale,
 			  int real_font_width, int real_font_height, vector <bracket_t>  &reduced_bracket_boxes)
 {
+  vector<int> connected(atom.size(), 0);
+  for (size_t i = 0; i < n_bond; i++)
+    if (bond[i].exists)
+      {
+	connected[bond[i].a]++;
+	connected[bond[i].b]++;
+      }
   vector<point_t> confirmed;
   for (set<pair<int,int> >::const_iterator j = brackets.begin(); j != brackets.end(); ++j)
     {
       bool found(false);
       for (int i = 0; i < n_atom; i++)
 	{
-	  if (atom[i].exists  && (atom[i].label == " " || atom[i].label.empty()) )
+	  if (atom[i].exists  && (atom[i].label == " " || atom[i].label.empty()) && connected[i] < 2)
 	    {
 	      double x =   (double)  box_scale * atom[i].x + box_x -  FRAME;
 	      double y =   (double)  box_scale * atom[i].y + box_y -  FRAME;
@@ -2822,6 +2829,7 @@ void remove_bracket_atoms(vector<atom_t> &atom, int n_atom, const set<pair<int,i
 	  bracket_t bracket;
 	  bracket.box = b;
 	  reduced_bracket_boxes.push_back(bracket);
+	  //cout << b.x1 << " " << b.y1 << " " << b.x2 << " " << b.y2 << endl;
 	}
     }
 }
@@ -2874,3 +2882,4 @@ void assign_labels_to_brackets(vector <bracket_t>  &bracket_boxes, const vector<
 }
 
 // TODO  find crossing bonds, find included atoms, adjust coordinates
+// US20050049267A1-20050303-C04374.png

@@ -402,7 +402,8 @@ int find_wavy_bonds(vector<bond_t> &bond,int n_bond,const vector<atom_t> &atom,d
 
 void remove_small_bonds_in_chars(vector<atom_t> &atom, vector<bond_t> &bond,vector<letters_t> &letters);
 
-void remove_bracket_atoms(vector<atom_t> &atom, int n_atom, const set<pair<int,int> > &brackets, double thickness, int box_x, int box_y, double box_scale, int real_font_width,int real_font_height,
+void remove_bracket_atoms(vector<atom_t> &atom, int n_atom, const vector<bond_t> &bond, int n_bond, const set<pair<int,int> > &brackets,
+			  double thickness, int box_x, int box_y, double box_scale, int real_font_width,int real_font_height,
 			  vector <bracket_t>  &reduced_bracket_boxes);
 
 void assign_labels_to_brackets(vector <bracket_t>  &bracket_boxes, const vector<label_t> &label, int n_label, const vector<letters_t> &letters, int n_letters, int box_x, int box_y, double box_scale,

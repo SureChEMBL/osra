@@ -972,10 +972,6 @@ int osra_process_image(
                 if (verbose)
                   cout << n_label << " labels: " << label << " after assemble_labels()" << endl;
 		
-		vector <bracket_t>  bracket_boxes;
-		remove_bracket_atoms(atom, n_atom, brackets, thickness, boxes[k].x1, boxes[k].y1, box_scale, real_font_width, real_font_height, bracket_boxes);
-		remove_zero_bonds(bond, n_bond, atom);
-
                 remove_disconnected_atoms(atom, bond, n_atom, n_bond);
 	
                 collapse_atoms(atom, bond, n_atom, n_bond, thickness);
@@ -993,8 +989,6 @@ int osra_process_image(
                 extend_terminal_bond_to_label(atom, letters, n_letters, bond, n_bond, label, n_label, avg_bond_length / 2,
 					      thickness, max_dist_double_bond);
 
-		assign_labels_to_brackets(bracket_boxes, label, n_label, letters, n_letters, boxes[k].x1, boxes[k].y1, box_scale, real_font_width, real_font_height);
-
                 remove_disconnected_atoms(atom, bond, n_atom, n_bond);
                 collapse_atoms(atom, bond, n_atom, n_bond, thickness);
                 collapse_doubleup_bonds(bond, n_bond);
@@ -1006,6 +1000,12 @@ int osra_process_image(
 
                 extend_terminal_bond_to_bonds(atom, bond, n_bond, avg_bond_length, 2 * thickness, max_dist_double_bond);
 
+		vector <bracket_t>  bracket_boxes;
+		remove_bracket_atoms(atom, n_atom, bond, n_bond, brackets, thickness, boxes[k].x1, boxes[k].y1, box_scale, real_font_width, real_font_height, bracket_boxes);
+		remove_zero_bonds(bond, n_bond, atom);
+		flatten_bonds(bond, n_bond, atom, 2*thickness);
+		assign_labels_to_brackets(bracket_boxes, label, n_label, letters, n_letters, boxes[k].x1, boxes[k].y1, box_scale, real_font_width, real_font_height);
+		
                 collapse_atoms(atom, bond, n_atom, n_bond, 3);
 
                 remove_zero_bonds(bond, n_bond, atom);
@@ -1025,6 +1025,7 @@ int osra_process_image(
 
                 if (verbose)
                   cout << "Final number of atoms: " << real_atoms << ", bonds: " << real_bonds << ", chars: " << n_letters << '.' << endl;
+			
 
                 split_fragments_and_assemble_structure_record(atom,n_atom,bond,n_bond,boxes,
 							      l,k,resolution,res_iter,output_image_file_prefix,image,orig_box,real_font_width,real_font_height,
