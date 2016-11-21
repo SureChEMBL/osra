@@ -1140,8 +1140,8 @@ bool check_possible_bracket( set<pair<int,int> >  &set1, vector < vector<bool> >
       int x = x2 - x1 + 1;
       int y = y2 - y1 + 1;
       int f = 1;
-      if (y > 40)
-	f = y / 40;
+      // if (y > 40)
+      //	f = y / 40;
       x /= f;
       y /= f;
       
@@ -1157,6 +1157,7 @@ bool check_possible_bracket( set<pair<int,int> >  &set1, vector < vector<bool> >
 	  if ((py - y1) / f < y && (px - x1) / f < x && (py - y1) % f == 0 && (px - x1) % f == 0)
 	    pic[((py - y1) / f) * x + (px - x1) / f] = 0;
 	}
+      
       res = detect_bracket(x, y, pic);     
     }
   return res;
@@ -1172,7 +1173,7 @@ void remove_brackets(int left, int right, int top, int bottom, list<list<list<po
       global_pic[p->x - left][p->y - top] = true;
 
   //Image t(Geometry(right + 1, bottom + 1), "white");
- brackets.clear();
+
  for (int i = left + FRAME; i < right - FRAME; i++)
     {
       for (list<list<point_t> >::const_iterator s = c->begin(); s != c->end(); s++) 

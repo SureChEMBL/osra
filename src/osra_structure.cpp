@@ -2738,6 +2738,7 @@ bool overlap_boxes(const box_t &a, const box_t &b)
 void remove_bracket_atoms(vector<atom_t> &atom, int n_atom, const vector<bond_t> &bond, int n_bond, const set<pair<int,int> > &brackets, double thickness, int box_x, int box_y, double box_scale,
 			  int real_font_width, int real_font_height, vector <bracket_t>  &reduced_bracket_boxes)
 {
+  thickness = max(10., thickness);
   vector<int> connected(atom.size(), 0);
   for (size_t i = 0; i < n_bond; i++)
     if (bond[i].exists)

@@ -412,6 +412,83 @@ FINALIZE:
   return(c == UNKNOWN_CHAR ? 0 : c);
 }
 
+bool detect_square_bracket(unsigned char *pic, int x, int y)
+{
+
+  int w = -1;
+  for (int j = x / 2; j >= 0 ; j--) 
+    {
+      if (pic[(y / 2) * x + j] == 1)
+	{
+	  w = j;
+	  break;
+	}
+    }
+  int h1 = -1;
+  for (int i = y / 2; i >= 0; i--)
+    {
+      if (pic[i * x + x / 2] == 1)
+	{
+	  h1 = i;
+	  break;
+	}
+    }
+  int h2 = y;
+  for (int i = y / 2; i < y; i++)
+    {
+      if (pic[i * x + x / 2] == 1)
+	{
+	  h2 = i;
+	  break;
+	}
+    }
+  if (w > x /2 + 1 || h1 > y / 4 || (y - h2) > y / 4)
+    return false;
+  int total_vert(0), total_up_hor(0), total_down_hor(0), fill_vert(0), fill_up_hor(0), fill_down_hor(0), total_empty(0), fill_empty(0);
+  
+  for (int i = 0; i < y; i++)
+    {
+      for (int j = 0; j < x; j++) 
+	{
+	  bool fill = (pic[i * x + j] == 1);
+	  if (j <= w)
+	    {
+	      total_vert++;
+	      if (fill)
+		fill_vert++;
+	    }
+	  if (i <= h1)
+	    {
+	      total_up_hor++;
+	      if (fill)
+		fill_up_hor++;
+	    }
+	  if (i >= h2)
+	    {
+	      total_down_hor++;
+	      if (fill)
+		fill_down_hor++;
+	    }
+	  if (j > w && i > h1 && i < h2)
+	    {
+	      total_empty++;
+	      if (fill)
+		fill_empty++;
+	    }
+	}
+    }
+
+  if (total_vert == 0 || total_up_hor == 0 || total_down_hor == 0 || total_empty == 0)
+    return false;
+
+  double fill_v = double(fill_vert) / total_vert;
+  double fill_up_h = double(fill_up_hor) / total_up_hor;
+  double fill_down_h = double(fill_down_hor) / total_down_hor;
+  double fill_e = double(fill_empty) / total_empty;
+  if (fill_v > 0.8 && fill_up_h > 0.7 && fill_down_h > 0.7 && fill_e < 0.2)
+    return true;
+  return false;
+}
 
 bool detect_bracket(int x, int y, unsigned char *pic) 
 {
@@ -461,7 +538,7 @@ bool detect_bracket(int x, int y, unsigned char *pic)
       }
    }
   
-  /*  string str;
+  /*string str;
   for (int i = 0; i < y; i++)
     {
       for (int j = 0; j < x; j++) 
@@ -493,6 +570,9 @@ bool detect_bracket(int x, int y, unsigned char *pic)
 	    res = true;
 	}
     }
+  
+  if (!res)
+    res = detect_square_bracket(ocrad_bitmap, x, y);
   /*
   if (res)
     {
