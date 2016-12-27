@@ -406,8 +406,8 @@ void remove_bracket_atoms(vector<atom_t> &atom, int n_atom, const vector<bond_t>
 			  double thickness, int box_x, int box_y, double box_scale, int real_font_width,int real_font_height,
 			  vector <bracket_t>  &reduced_bracket_boxes);
 
-void assign_labels_to_brackets(vector <bracket_t>  &bracket_boxes, const vector<label_t> &label, int n_label, const vector<letters_t> &letters, int n_letters, int box_x, int box_y, double box_scale,
+void assign_labels_to_brackets(vector <bracket_t>  &bracket_boxes, const vector<label_t> &label, int n_label, const vector<letters_t> &letters, int n_letters, 
 			       int real_font_width, int real_font_height);
 
-void remove_vertical_bonds_close_to_brackets(const vector <bracket_t>  &bracket_boxes, vector<atom_t> &atom, const vector<bond_t> &bond, int n_bond, double thickness, double avg_bond_length,
-					     int box_x, int box_y, double box_scale);
+void remove_vertical_bonds_close_to_brackets(const vector <bracket_t>  &bracket_boxes, vector<atom_t> &atom, const vector<bond_t> &bond, int n_bond, double thickness, double avg_bond_length);
+

@@ -2827,6 +2827,10 @@ void remove_bracket_atoms(vector<atom_t> &atom, int n_atom, const vector<bond_t>
 		    }
 		}
 	    }
+	  b.x1 = int(double(b.x1 + FRAME - box_x) / box_scale);
+	  b.y1 = int(double(b.y1 + FRAME - box_y) / box_scale);
+	  b.x2 = int(double(b.x2 + FRAME - box_x) / box_scale);
+	  b.y2 = int(double(b.y2 + FRAME - box_y) / box_scale);
 	  bracket_t bracket;
 	  bracket.box = b;
 	  reduced_bracket_boxes.push_back(bracket);
@@ -2835,8 +2839,7 @@ void remove_bracket_atoms(vector<atom_t> &atom, int n_atom, const vector<bond_t>
     }
 }
 
-void remove_vertical_bonds_close_to_brackets(const vector <bracket_t>  &bracket_boxes, vector<atom_t> &atom, const vector<bond_t> &bond, int n_bond, double thickness, double avg_bond_length,
-					     int box_x, int box_y, double box_scale)
+void remove_vertical_bonds_close_to_brackets(const vector <bracket_t>  &bracket_boxes, vector<atom_t> &atom, const vector<bond_t> &bond, int n_bond, double thickness, double avg_bond_length)
 {
   vector<int> connected(atom.size(), 0);
   for (size_t i = 0; i < n_bond; i++)
@@ -2861,8 +2864,8 @@ void remove_vertical_bonds_close_to_brackets(const vector <bracket_t>  &bracket_
 	      {
 		if (connected[a] == 1)
 		  {
-		    double x =   (double)  box_scale * atom[a].x + box_x -  FRAME;
-		    double y =   (double)  box_scale * atom[a].y + box_y -  FRAME;
+		    double x =   (double)  atom[a].x;
+		    double y =   (double)  atom[a].y; 
 		    if ((fabs(y - y1) < 3 * thickness || fabs(y - y2) < 3 * thickness) &&
 			(fabs(x1 - x) < avg_bond_length / 2 || fabs(x - x2) < avg_bond_length / 2))
 		      {
@@ -2872,8 +2875,8 @@ void remove_vertical_bonds_close_to_brackets(const vector <bracket_t>  &bracket_
 		  }
 		  if (connected[b] == 1)
 		    {
-		      double x =   (double)  box_scale * atom[b].x + box_x -  FRAME;
-		      double y =   (double)  box_scale * atom[b].y + box_y -  FRAME;
+		      double x =   (double)  atom[b].x;
+		      double y =   (double)  atom[b].y;
 		      if ( (fabs(y - y1) < 3 * thickness || fabs(y - y2) < 3 * thickness) &&
 			   (fabs(x1 - x) < avg_bond_length / 2 || fabs(x - x2) < avg_bond_length / 2))
 			{
@@ -2887,7 +2890,7 @@ void remove_vertical_bonds_close_to_brackets(const vector <bracket_t>  &bracket_
 }
 
 void assign_labels_to_brackets(vector <bracket_t>  &bracket_boxes, const vector<label_t> &label, int n_label, const vector<letters_t> &letters, int n_letters,
-			       int box_x, int box_y, double box_scale, int real_font_width, int real_font_height)
+			       int real_font_width, int real_font_height)
 {
   for (int j = 0; j < bracket_boxes.size(); j++)
     {
@@ -2897,8 +2900,8 @@ void assign_labels_to_brackets(vector <bracket_t>  &bracket_boxes, const vector<
       for (int i = 0; i < n_label; i++)
 	if ((label[i].a)[0] != '+' && (label[i].a)[0] != '-')
 	  {
-	    double x =   (double)  box_scale * label[i].x1 + box_x -  FRAME;
-	    double y =   (double)  box_scale * label[i].y1 + box_y -  FRAME;
+	    double x =   (double) label[i].x1;
+	    double y =   (double) label[i].y1;
 	    
 	    if (fabs(x - b.x2) < 2 * real_font_width && fabs(y - b.y2) < 2 * real_font_height)
 	      {
@@ -2915,8 +2918,8 @@ void assign_labels_to_brackets(vector <bracket_t>  &bracket_boxes, const vector<
       for (int i = 0; i < n_letters; i++)
 	if (letters[i].free && letters[i].a != '+' && letters[i].a != '-')
 	  {
-	    double x =   (double)  box_scale * letters[i].x + box_x -  FRAME;
-	    double y =   (double)  box_scale * letters[i].y + box_y -  FRAME;
+	    double x =   (double) letters[i].x;
+	    double y =   (double) letters[i].y;
 	    
 	    if (fabs(x - b.x2) < 2 * real_font_width && fabs(y - b.y2) < 2 * real_font_height)
 	      {

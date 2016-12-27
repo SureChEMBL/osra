@@ -327,7 +327,8 @@ void split_fragments_and_assemble_structure_record(vector<atom_t> &atom,
 						   int n_letters,
 						   bool show_learning,
 						   int resolution_iteration,
-						   bool verbose)
+						   bool verbose,
+						   const vector <bracket_t>&  brackets)
 {
   vector<atom_t> frag_atom;
   vector<bond_t> frag_bond;
@@ -417,7 +418,8 @@ void split_fragments_and_assemble_structure_record(vector<atom_t> &atom,
                                         show_avg_bond_length,
                                         show_resolution_guess ? &resolution : NULL,
                                         show_page ? &page_number : NULL,
-                                        show_coordinates ? &coordinate_box : NULL, superatom, n_letters, show_learning, resolution_iteration, verbose);
+                                        show_coordinates ? &coordinate_box : NULL, superatom, n_letters, show_learning, resolution_iteration, verbose,
+					brackets);
 
               if (molecule_statistics.fragments > 0 && molecule_statistics.fragments < MAX_FRAGMENTS
 		  && molecule_statistics.num_atoms>MIN_A_COUNT && molecule_statistics.num_bonds>0
@@ -1003,10 +1005,10 @@ int osra_process_image(
 		vector <bracket_t>  bracket_boxes;
 		remove_bracket_atoms(atom, n_atom, bond, n_bond, brackets, thickness, boxes[k].x1, boxes[k].y1, box_scale, real_font_width, real_font_height, bracket_boxes);
 		remove_zero_bonds(bond, n_bond, atom);
-		remove_vertical_bonds_close_to_brackets(bracket_boxes, atom, bond, n_bond, thickness, avg_bond_length, boxes[k].x1, boxes[k].y1, box_scale);
+		remove_vertical_bonds_close_to_brackets(bracket_boxes, atom, bond, n_bond, thickness, avg_bond_length);
 		remove_zero_bonds(bond, n_bond, atom);
 		flatten_bonds(bond, n_bond, atom, 2*thickness);
-		assign_labels_to_brackets(bracket_boxes, label, n_label, letters, n_letters, boxes[k].x1, boxes[k].y1, box_scale, real_font_width, real_font_height);
+		assign_labels_to_brackets(bracket_boxes, label, n_label, letters, n_letters, real_font_width, real_font_height);
 		
                 collapse_atoms(atom, bond, n_atom, n_bond, 3);
 
@@ -1035,7 +1037,7 @@ int osra_process_image(
 							      box_scale,page_scale,rotation,unpaper_dx,unpaper_dy,output_format,embedded_format,is_reaction,show_confidence,
 							      show_resolution_guess,show_page,show_coordinates, show_avg_bond_length,array_of_structures,
 							      array_of_avg_bonds,array_of_ind_conf,array_of_images,array_of_boxes,total_boxes,total_confidence,
-							      recognized_chars,show_learning,res_iter,verbose);
+							      recognized_chars,show_learning,res_iter,verbose, bracket_boxes);
 
                 if (st != NULL)
                   potrace_state_free(st);
