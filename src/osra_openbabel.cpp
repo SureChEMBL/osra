@@ -608,37 +608,36 @@ void create_molecule(OBMol &mol, vector<atom_t> &atom, const vector<bond_t> &bon
 		{
 		  OBAtom *a1 = b->GetBeginAtom();
 		  OBAtom *a2 = b->GetEndAtom();
-		  if (a1->x() < x1 && a2->x() > x1
-		      && a1->y() > y1 && a1->y() < y2 && a2->y() > y1 && a2->y() < y2)
+		  if (a1->y() > y2 && a1->y() < y1 && a2->y() > y2 && a2->y() < y1)
 		    {
-		      start = a1;
-		      visited.insert(a1);
-		      nbrs.insert(a2);
-		      bond1 = b->GetIdx();
-		    }
-		  if (a1->x() > x1 && a2->x() < x1
-		      && a1->y() > y1 && a1->y() < y2 && a2->y() > y1 && a2->y() < y2)
-		    {
-		      start = a2;
-		      visited.insert(a2);
-		      nbrs.insert(a1);
-		      bond1 = b->GetIdx();
-		    }
-		  if (a1->x() < x2 && a2->x() > x2
-		      && a1->y() > y1 && a1->y() < y2 && a2->y() > y1 && a2->y() < y2)
-		    {
-		      finish = a2;
-		      visited.insert(a2);
-		      nbrs.insert(a1);
-		      bond2 = b->GetIdx();
-		    }
-		  if (a1->x() > x2 && a2->x() < x2
-		      && a1->y() > y1 && a1->y() < y2 && a2->y() > y1 && a2->y() < y2)
-		    {
-		      finish = a1;
-		      visited.insert(a1);
-		      nbrs.insert(a2);
-		      bond2 = b->GetIdx();
+		      if (a1->x() < x1 && a2->x() > x1)		     
+			{
+			  start = a1;
+			  visited.insert(a1);
+			  nbrs.insert(a2);
+			  bond1 = b->GetIdx();
+			}
+		      if (a1->x() > x1 && a2->x() < x1)
+			{
+			  start = a2;
+			  visited.insert(a2);
+			  nbrs.insert(a1);
+			  bond1 = b->GetIdx();
+			}
+		      if (a1->x() < x2 && a2->x() > x2)
+			{
+			  finish = a2;
+			  visited.insert(a2);
+			  nbrs.insert(a1);
+			  bond2 = b->GetIdx();
+			}
+		      if (a1->x() > x2 && a2->x() < x2)
+			{
+			  finish = a1;
+			  visited.insert(a1);
+			  nbrs.insert(a2);
+			  bond2 = b->GetIdx();
+			}
 		    }
 		}
 	      if (bond1 < 0 || bond2 < 0 || bond1 == bond2)
