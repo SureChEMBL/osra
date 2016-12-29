@@ -2738,6 +2738,9 @@ bool overlap_boxes(const box_t &a, const box_t &b)
 void remove_bracket_atoms(vector<atom_t> &atom, int n_atom, const vector<bond_t> &bond, int n_bond, const set<pair<int,int> > &brackets, double thickness, int box_x, int box_y, double box_scale,
 			  int real_font_width, int real_font_height, vector <bracket_t>  &reduced_bracket_boxes)
 {
+  thickness *= box_scale;
+  double scaled_font_width = box_scale * real_font_width;
+  double scaled_font_height = box_scale * real_font_height;
   thickness = max(10., thickness);
   vector<int> connected(atom.size(), 0);
   for (size_t i = 0; i < n_bond; i++)
@@ -2772,7 +2775,7 @@ void remove_bracket_atoms(vector<atom_t> &atom, int n_atom, const vector<bond_t>
   vector<pair<point_t, point_t> > horizontals;
   for (int i = 0; i < confirmed.size(); i++)
     for (int j = i + 1; j < confirmed.size(); j++)
-      if ( fabs(confirmed[i].y - confirmed[j].y) < thickness && fabs(confirmed[i].x - confirmed[j].x) > 2 * real_font_width)
+      if ( fabs(confirmed[i].y - confirmed[j].y) < thickness && fabs(confirmed[i].x - confirmed[j].x) > 2 * scaled_font_width)
 	{
 	  if (confirmed[i].x < confirmed[j].x)
 	    horizontals.push_back(make_pair(confirmed[i], confirmed[j]));
@@ -2786,8 +2789,8 @@ void remove_bracket_atoms(vector<atom_t> &atom, int n_atom, const vector<bond_t>
       {
 	if ( fabs(horizontals[i].first.x - horizontals[j].first.x) < thickness &&
 	     fabs(horizontals[i].second.x - horizontals[j].second.x) < thickness &&
-	     fabs(horizontals[i].first.y - horizontals[j].first.y) > 1.5 * real_font_height &&
-	     fabs(horizontals[i].second.y - horizontals[j].second.y) > 1.5 * real_font_height)
+	     fabs(horizontals[i].first.y - horizontals[j].first.y) > 1.5 * scaled_font_height &&
+	     fabs(horizontals[i].second.y - horizontals[j].second.y) > 1.5 * scaled_font_height)
 	  {
 	    box_t b;
 	    if (horizontals[i].first.y < horizontals[j].first.y)
@@ -2936,5 +2939,5 @@ void assign_labels_to_brackets(vector <bracket_t>  &bracket_boxes, const vector<
 
 }
 
-// TODO  find crossing bonds, find included atoms, adjust coordinates
+
 // US20050049267A1-20050303-C04374.png
