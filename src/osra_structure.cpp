@@ -2779,15 +2779,15 @@ void remove_bracket_atoms(vector<atom_t> &atom, int n_atom, const vector<bond_t>
 	  else
 	    horizontals.push_back(make_pair(confirmed[j], confirmed[i]));
 	}
-  
+
   vector <box_t>  bracket_boxes;
   for (int i = 0; i < horizontals.size(); i++)
     for (int j = i + 1; j < horizontals.size(); j++)
       {
 	if ( fabs(horizontals[i].first.x - horizontals[j].first.x) < thickness &&
 	     fabs(horizontals[i].second.x - horizontals[j].second.x) < thickness &&
-	     fabs(horizontals[i].first.y - horizontals[j].first.y) > 2 * real_font_height &&
-	     fabs(horizontals[i].second.y - horizontals[j].second.y) > 2 * real_font_height)
+	     fabs(horizontals[i].first.y - horizontals[j].first.y) > 1.5 * real_font_height &&
+	     fabs(horizontals[i].second.y - horizontals[j].second.y) > 1.5 * real_font_height)
 	  {
 	    box_t b;
 	    if (horizontals[i].first.y < horizontals[j].first.y)
