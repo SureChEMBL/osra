@@ -40,6 +40,9 @@ Starting with version 1.4.0 OSRA is capable of recognizing reactions.
 To run reaction recognition use the output formats rxn, rsmi, or cmlr:
 osra -f rxn input.pdf -w output.rxn
 
+Starting with version 2.1.0 OSRA can recognize some simple polymers.
+You need to build OSRA with a patched version of OpenBabel (provided at osra.sf.net),
+and the output format must be either MDL MOL or SDF for polymer recognition.
 =============================================================================
 Dependencies:
 
@@ -68,11 +71,8 @@ http://www.gnu.org/software/ocrad/ocrad.html
 - TCLAP, Templatized C++ Command Line Parser Library, version 1.2.1,
 http://tclap.sourceforge.net/
 
-- OpenBabel, open source chemistry toolbox, version 2.3.2 or later; 
-if installing from RPM make sure you have the following packages:
-	 openbabel 
-	 openbabel-devel
-http://openbabel.sourceforge.net/wiki/Main_Page
+- OpenBabel, open source chemistry toolbox, please use openbabel-2.3.2-patched.tgz
+from osra.sf.net. It has been modified to save polymer-relevant data in MDL MOL format.
 
 - Poppler,  a PDF rendering library, version 0.41.0 was used successfully;
 if installing from RPM the following packages are needed:
