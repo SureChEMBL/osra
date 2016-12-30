@@ -2750,19 +2750,20 @@ void remove_bracket_atoms(vector<atom_t> &atom, int n_atom, const vector<bond_t>
 	connected[bond[i].b]++;
       }
   vector<point_t> confirmed;
+  vector<bool> available(n_atom, true);
   for (set<pair<int,int> >::const_iterator j = brackets.begin(); j != brackets.end(); ++j)
     {
       bool found(false);
       for (int i = 0; i < n_atom; i++)
 	{
-	  if (atom[i].exists  && (atom[i].label == " " || atom[i].label.empty()) && connected[i] < 2)
+	  if (atom[i].exists  && (atom[i].label == " " || atom[i].label.empty()) && connected[i] < 2 && available[i])
 	    {
 	      double x =   (double)  box_scale * atom[i].x + box_x -  FRAME;
 	      double y =   (double)  box_scale * atom[i].y + box_y -  FRAME;
 	      if (distance(x, y, j->first, j->second) < thickness)
 		{
-		  atom[i].exists = false;
 		  found = true;
+		  available[i] = false;
 		}
 	    }
         }
@@ -2807,9 +2808,30 @@ void remove_bracket_atoms(vector<atom_t> &atom, int n_atom, const vector<bond_t>
 		b.x2 = horizontals[i].second.x;
 		b.y2 = horizontals[i].second.y;
 	      }
-	    bracket_boxes.push_back(b);
+	    bracket_boxes.push_back(b);	   
 	  }	     
       }
+
+  for (int i = 0; i < bracket_boxes.size(); i++)
+    {
+      if (bracket_boxes[i].x1 != -1)
+	{
+	  box_t b = bracket_boxes[i];
+	  for (int k = 0; k < n_atom; k++)
+	    {
+	      if (atom[k].exists  && (atom[k].label == " " || atom[k].label.empty()) && connected[k] < 2)
+		{
+		    double x =   (double)  box_scale * atom[k].x + box_x -  FRAME;
+		    double y =   (double)  box_scale * atom[k].y + box_y -  FRAME;
+		    if (distance(x, y, b.x1, b.y1) < thickness || distance(x, y, b.x1, b.y2) < thickness ||
+			distance(x, y, b.x2, b.y1) < thickness || distance(x, y, b.x2, b.y2) < thickness )
+		      {
+			atom[k].exists = false;
+		      }
+		}
+	    }
+	}
+    }
 
   for (int i = 0; i < bracket_boxes.size(); i++)
     {
