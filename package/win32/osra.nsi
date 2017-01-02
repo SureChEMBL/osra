@@ -79,7 +79,7 @@ Section "osra (required)"
 
 SectionEnd
 
-Section /o "Accelrys Draw plugin" symyx_draw
+Section /o "BIOVIA Draw plugin" symyx_draw
  call getSymyxPath
  strcmp $1 "" no_symyx
  SetOutPath "$1\AddIns"
@@ -89,7 +89,7 @@ Section /o "Accelrys Draw plugin" symyx_draw
  File "plugins\symyx_draw\OSRAAction\OSRAAction.dll"
  Goto done
  no_symyx:
-  MessageBox MB_OK "Accelrys Draw not found" IDOK done
+  MessageBox MB_OK "BIOVIA Draw not found" IDOK done
  done:
 SectionEnd
 
@@ -140,6 +140,24 @@ Section "Uninstall"
 SectionEnd
 
 Function getSymyxPath
+  Push "$PROGRAMFILES\BIOVIA"
+  Push "BIOVIADraw.exe"
+  Call FindIt
+  Pop $R1
+  Push "$R1"
+  Call GetParent
+  Pop $R0
+  StrCpy $1 "$R0\"
+  IfFileExists $1BIOVIADraw.exe fin
+  Push "$PROGRAMFILES64\BIOVIA"	  
+  Push "BIOVIADraw.exe"
+  Call FindIt
+  Pop $R1
+  Push "$R1"
+  Call GetParent
+  Pop $R0
+  StrCpy $1 "$R0\"
+  IfFileExists $1BIOVIADraw.exe fin
   Push "$PROGRAMFILES\Accelrys"
   Push "AccelrysDraw.exe"
   Call FindIt
@@ -183,6 +201,24 @@ FunctionEnd
 
 
 Function un.getSymyxPath
+  Push "$PROGRAMFILES\BIOVIA"
+  Push "BIOVIADraw.exe"
+  Call un.FindIt
+  Pop $R1
+  Push "$R1"
+  Call un.GetParent
+  Pop $R0
+  StrCpy $1 "$R0\"
+  IfFileExists $1BIOVIADraw.exe fin
+  Push "$PROGRAMFILES64\BIOVIA"	  
+  Push "BIOVIADraw.exe"
+  Call un.FindIt
+  Pop $R1
+  Push "$R1"
+  Call un.GetParent
+  Pop $R0
+  StrCpy $1 "$R0\"
+  IfFileExists $1BIOVIADraw.exe fin
   Push "$PROGRAMFILES\Accelrys"
   Push "AccelrysDraw.exe"
   Call un.FindIt
