@@ -5110,7 +5110,7 @@ if test "${enable_java}" == "yes"; then :
 
 	if test -n "${JAVA_HOME}"; then :
 
-		CPPFLAGS="-I${JAVA_HOME}/include -I${JAVA_HOME}/include/linux -I${JAVA_HOME}/include/win32 ${CPPFLAGS}"
+		CPPFLAGS="-I${JAVA_HOME}/include -I${JAVA_HOME}/include/linux -I${JAVA_HOME}/include/win32 -I${JAVA_HOME}/include/darwin ${CPPFLAGS}"
 
 else
 
