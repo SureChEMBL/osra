@@ -16,7 +16,9 @@
  this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
  St, Fifth Floor, Boston, MA 02110-1301, USA
  *****************************************************************************/
+#include "config.h" // PACKAGE_VERSION
 
+#ifdef OSRA_JAVA
 /* Fix for jlong definition in jni.h on some versions of gcc on Windows */
 #if defined(__GNUC__) && !defined(__INTEL_COMPILER)
 typedef long long __int64;
@@ -30,12 +32,11 @@ typedef long long __int64;
 #include <ostream> // std:ostream
 #include <sstream> // std:ostringstream
 
-#include "config.h" // PACKAGE_VERSION
 
 using namespace std;
 
 
-#ifdef OSRA_JAVA
+
 #include "osra_lib.h"
 
 extern "C" {
