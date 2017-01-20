@@ -635,7 +635,7 @@ int osra_process_image(
   if (type.empty() || type == "PDF" || type == "PS")
     {
 #ifdef OSRA_LIB
-      poppler_doc = load_from_raw_data(image_data, image_length);
+      poppler_doc = poppler::document::load_from_raw_data(image_data, image_length);
 #else
       poppler_doc = poppler::document::load_from_file(input_file);
 #endif
@@ -651,7 +651,11 @@ int osra_process_image(
     }
   else if (!type.empty() && type != "PDF")
     {
+#ifdef OSRA_LIB
+      page = count_pages(blob);
+#else
       page = count_pages(input_file);
+#endif      
     }
   // dup2(stderr_copy, 2);
   //close(stderr_copy);

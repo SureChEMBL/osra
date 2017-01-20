@@ -268,6 +268,8 @@ double percentile75(const vector<bond_t> &bond, int n_bond, const vector<atom_t>
 // number of pages in an image file
 int count_pages(const string &input);
 
+int count_pages(const Blob &blob);
+
 // Function: count_atoms()
 //
 // Counts the number of non-deleted atoms in a molecule

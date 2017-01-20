@@ -283,6 +283,14 @@ int count_pages(const string &input)
   return (imageList.size());
 }
 
+int count_pages(const Blob &blob)
+{
+  list<Image> imageList;
+  readImages(&imageList, blob);
+  return (imageList.size());
+}
+
+
 int count_atoms(const vector<atom_t> &atom, int n_atom)
 {
   int r = 0;
