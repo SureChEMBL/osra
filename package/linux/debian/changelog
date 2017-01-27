@@ -1,3 +1,9 @@
+osra (2.0.1-1) precise; urgency=low
+
+  * Bump version.
+
+ -- Yury Zavarin <yzavarin@ebi.ac.uk>  Fri, 27 Jan 2017 13:39:13 +0000
+
 osra (2.0.0-1) unstable; urgency=low
 
   * Initial release (closes: #682760)
