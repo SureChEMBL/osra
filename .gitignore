@@ -1,0 +1,11 @@
+/Makefile
+/Makefile.inc
+/config.log
+/config.status
+/doc/manual.sgml
+/package/linux/debian/control
+/package/linux/debian/rules
+/package/linux/osra.pc
+/package/linux/suse/osra.spec
+/pom.xml
+/src/config.h
