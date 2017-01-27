@@ -68,5 +68,6 @@ int osra_process_image(
   bool debug = false,
   bool verbose = false,
   const string &output_image_file_prefix = "",
-  const string &resize = ""
+  const string &resize = "",
+  const string &preview = ""
 );

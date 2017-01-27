@@ -152,6 +152,72 @@ Image adaptive_otsu(const Image &image, int window)
   return(result);
 }
 
+// https://habrahabr.ru/post/278435/
+Image Bradley_threshold(const Image &src)
+{
+  int width = src.columns();
+  int height = src.rows();
+  Image res(Geometry(width, height),"white");
+
+  const int S = width/8;
+  int s2 = S/2;
+  const float t = 0.15;
+  unsigned long* integral_image = 0;
+  long sum=0;
+  int count=0;
+  int index;
+  int x1, y1, x2, y2;
+  ColorGray g;
+
+  integral_image = new unsigned long [width*height*sizeof(unsigned long*)];
+  
+  for (int i = 0; i < width; i++) {
+    sum = 0;
+    for (int j = 0; j < height; j++) {
+      index = j * width + i;
+      g = src.pixelColor(i, j);
+      sum += g.shade() * 255;
+      if (i==0)
+	integral_image[index] = sum;
+      else
+	integral_image[index] = integral_image[index-1] + sum;
+    }
+  }
+  
+  for (int i = 0; i < width; i++) {
+    for (int j = 0; j < height; j++) {
+      index = j * width + i;
+      
+      x1=i-s2;
+      x2=i+s2;
+      y1=j-s2;
+      y2=j+s2;
+      
+      if (x1 < 0)
+	x1 = 0;
+      if (x2 >= width)
+	x2 = width-1;
+      if (y1 < 0)
+	y1 = 0;
+      if (y2 >= height)
+	y2 = height-1;
+      
+      count = (x2-x1)*(y2-y1);
+      
+      sum = integral_image[y2*width+x2] - integral_image[y1*width+x2] -
+	integral_image[y2*width+x1] + integral_image[y1*width+x1];
+      g = src.pixelColor(i, j);
+      if ((long)(g.shade() * 255 * count) < (long)(sum*(1.0-t)))
+	res.pixelColor(i,j,"black");
+      else
+	res.pixelColor(i,j,"white");
+    }
+  }
+  
+  delete[] integral_image;
+  return res;
+}
+
 bool convert_to_gray(Image &image, bool invert, bool adaptive, bool verbose)
 {
   int num_bins=50;
@@ -261,24 +327,25 @@ bool convert_to_gray(Image &image, bool invert, bool adaptive, bool verbose)
   int window = min(image.columns(),image.rows()) / 41;
   if (window < 15) window = 15;
 
-  if (adaptive)
+  if (adaptive && image.columns() > 7 && image.rows() > 7)
     {
       image.despeckle();
       if (invert)
         {
-          image.adaptiveThreshold(window,window,7);
+          image.adaptiveThreshold(window,window,7.0);
         }
       else
         {
           image.negate();
-          image.adaptiveThreshold(window,window,7);
+          image.adaptiveThreshold(window,window,7.0);
           image.negate();
         }
     }
   else if (color_background)
     {
       image.despeckle();
-      image = adaptive_otsu(image,window);
+      //image = adaptive_otsu(image,window);
+      image = Bradley_threshold(image);
     }
 
   if (invert)

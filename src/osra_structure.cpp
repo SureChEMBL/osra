@@ -2719,3 +2719,247 @@ void remove_small_bonds_in_chars(vector<atom_t> &atom, vector<bond_t> &bond,vect
 	    atom[bond[i].b].y >= letters[j].min_y && atom[bond[i].b].y <= letters[j].max_y)
 	  bond[i].exists = false;
 }
+
+bool overlap_boxes(const box_t &a, const box_t &b)
+{
+    if (a.x1 > b.x2 || b.x1 > a.x2)
+      {
+        return false;
+      }
+ 
+    if (a.y2 < b.y1 || b.y2 < a.y1)
+      {
+        return false;
+      }
+ 
+    return true;
+}
+  
+void remove_bracket_atoms(vector<atom_t> &atom, int n_atom, const vector<bond_t> &bond, int n_bond, const set<pair<int,int> > &brackets, double thickness, int box_x, int box_y, double box_scale,
+			  int real_font_width, int real_font_height, vector <bracket_t>  &reduced_bracket_boxes)
+{
+  thickness *= box_scale;
+  double scaled_font_width = box_scale * real_font_width;
+  double scaled_font_height = box_scale * real_font_height;
+  thickness = max(10., thickness);
+  vector<int> connected(atom.size(), 0);
+  for (size_t i = 0; i < n_bond; i++)
+    if (bond[i].exists)
+      {
+	connected[bond[i].a]++;
+	connected[bond[i].b]++;
+      }
+  vector<point_t> confirmed;
+  vector<bool> available(n_atom, true);
+  for (set<pair<int,int> >::const_iterator j = brackets.begin(); j != brackets.end(); ++j)
+    {
+      bool found(false);
+      for (int i = 0; i < n_atom; i++)
+	{
+	  if (atom[i].exists  && (atom[i].label == " " || atom[i].label.empty()) && connected[i] < 2 && available[i])
+	    {
+	      double x =   (double)  box_scale * atom[i].x + box_x -  FRAME;
+	      double y =   (double)  box_scale * atom[i].y + box_y -  FRAME;
+	      if (distance(x, y, j->first, j->second) < thickness)
+		{
+		  found = true;
+		  available[i] = false;
+		}
+	    }
+        }
+      if (found)
+	{
+	  confirmed.push_back(point_t(j->first, j->second));
+	}
+    }
+
+  vector<pair<point_t, point_t> > horizontals;
+  for (int i = 0; i < confirmed.size(); i++)
+    for (int j = i + 1; j < confirmed.size(); j++)
+      if ( fabs(confirmed[i].y - confirmed[j].y) < thickness && fabs(confirmed[i].x - confirmed[j].x) > 2 * scaled_font_width)
+	{
+	  if (confirmed[i].x < confirmed[j].x)
+	    horizontals.push_back(make_pair(confirmed[i], confirmed[j]));
+	  else
+	    horizontals.push_back(make_pair(confirmed[j], confirmed[i]));
+	}
+
+  vector <box_t>  bracket_boxes;
+  for (int i = 0; i < horizontals.size(); i++)
+    for (int j = i + 1; j < horizontals.size(); j++)
+      {
+	if ( fabs(horizontals[i].first.x - horizontals[j].first.x) < thickness &&
+	     fabs(horizontals[i].second.x - horizontals[j].second.x) < thickness &&
+	     fabs(horizontals[i].first.y - horizontals[j].first.y) > 1.5 * scaled_font_height &&
+	     fabs(horizontals[i].second.y - horizontals[j].second.y) > 1.5 * scaled_font_height)
+	  {
+	    box_t b;
+	    if (horizontals[i].first.y < horizontals[j].first.y)
+	      {
+		b.x1 = horizontals[i].first.x;
+		b.y1 = horizontals[i].first.y;
+		b.x2 = horizontals[j].second.x;
+		b.y2 = horizontals[j].second.y;
+	      }
+	    else
+	      {
+		b.x1 = horizontals[j].first.x;
+		b.y1 = horizontals[j].first.y;
+		b.x2 = horizontals[i].second.x;
+		b.y2 = horizontals[i].second.y;
+	      }
+	    bracket_boxes.push_back(b);	   
+	  }	     
+      }
+
+  for (int i = 0; i < bracket_boxes.size(); i++)
+    {
+      if (bracket_boxes[i].x1 != -1)
+	{
+	  box_t b = bracket_boxes[i];
+	  for (int k = 0; k < n_atom; k++)
+	    {
+	      if (atom[k].exists  && (atom[k].label == " " || atom[k].label.empty()) && connected[k] < 2)
+		{
+		    double x =   (double)  box_scale * atom[k].x + box_x -  FRAME;
+		    double y =   (double)  box_scale * atom[k].y + box_y -  FRAME;
+		    if (distance(x, y, b.x1, b.y1) < thickness || distance(x, y, b.x1, b.y2) < thickness ||
+			distance(x, y, b.x2, b.y1) < thickness || distance(x, y, b.x2, b.y2) < thickness )
+		      {
+			atom[k].exists = false;
+		      }
+		}
+	    }
+	}
+    }
+
+  for (int i = 0; i < bracket_boxes.size(); i++)
+    {
+      if (bracket_boxes[i].x1 != -1)
+	{
+	  box_t b = bracket_boxes[i];
+	  for (int j = i + 1; j < bracket_boxes.size(); j++)
+	    {
+	      if (bracket_boxes[j].x1 != -1)
+		{
+		  if (overlap_boxes(b, bracket_boxes[j]))
+		    {
+		      b.x1 = min(b.x1, bracket_boxes[j].x1);
+		      b.y1 = min(b.y1, bracket_boxes[j].y1);
+		      b.x2 = max(b.x2, bracket_boxes[j].x2);
+		      b.y2 = max(b.y2, bracket_boxes[j].y2);
+		      bracket_boxes[j].x1 = -1;
+		    }
+		}
+	    }
+	  b.x1 = int(double(b.x1 + FRAME - box_x) / box_scale);
+	  b.y1 = int(double(b.y1 + FRAME - box_y) / box_scale);
+	  b.x2 = int(double(b.x2 + FRAME - box_x) / box_scale);
+	  b.y2 = int(double(b.y2 + FRAME - box_y) / box_scale);
+	  bracket_t bracket;
+	  bracket.box = b;
+	  reduced_bracket_boxes.push_back(bracket);
+	  //cout << b.x1 << " " << b.y1 << " " << b.x2 << " " << b.y2 << endl;
+	}
+    }
+}
+
+void remove_vertical_bonds_close_to_brackets(const vector <bracket_t>  &bracket_boxes, vector<atom_t> &atom, const vector<bond_t> &bond, int n_bond, double thickness, double avg_bond_length)
+{
+  vector<int> connected(atom.size(), 0);
+  for (size_t i = 0; i < n_bond; i++)
+    if (bond[i].exists)
+      {
+	connected[bond[i].a]++;
+	connected[bond[i].b]++;
+      }
+  
+  for (int i = 0; i < bracket_boxes.size(); i++)
+    {
+      int x1 = bracket_boxes[i].box.x1;
+      int y1 = bracket_boxes[i].box.y1;
+      int x2 = bracket_boxes[i].box.x2;
+      int y2 = bracket_boxes[i].box.y2;
+      for (size_t j = 0; j < n_bond; j++)
+	if (bond[j].exists)
+	  {
+	    int a = bond[j].a;
+	    int b = bond[j].b;
+	    if (fabs(atom[a].x - atom[b].x) < 2 * thickness)
+	      {
+		if (connected[a] == 1)
+		  {
+		    double x =   (double)  atom[a].x;
+		    double y =   (double)  atom[a].y; 
+		    if ((fabs(y - y1) < 3 * thickness || fabs(y - y2) < 3 * thickness) &&
+			(fabs(x1 - x) < avg_bond_length / 2 || fabs(x - x2) < avg_bond_length / 2))
+		      {
+			atom[a].exists = false;
+			continue;
+		      }
+		  }
+		  if (connected[b] == 1)
+		    {
+		      double x =   (double)  atom[b].x;
+		      double y =   (double)  atom[b].y;
+		      if ( (fabs(y - y1) < 3 * thickness || fabs(y - y2) < 3 * thickness) &&
+			   (fabs(x1 - x) < avg_bond_length / 2 || fabs(x - x2) < avg_bond_length / 2))
+			{
+			  atom[b].exists = false;
+			  continue;
+			}
+		    }
+	      }
+	  }
+    }
+}
+
+void assign_labels_to_brackets(vector <bracket_t>  &bracket_boxes, const vector<label_t> &label, int n_label, const vector<letters_t> &letters, int n_letters,
+			       int real_font_width, int real_font_height)
+{
+  for (int j = 0; j < bracket_boxes.size(); j++)
+    {
+      box_t b = bracket_boxes[j].box;
+      string a;
+      double d = DBL_MAX;
+      for (int i = 0; i < n_label; i++)
+	if ((label[i].a)[0] != '+' && (label[i].a)[0] != '-')
+	  {
+	    double x =   (double) label[i].x1;
+	    double y =   (double) label[i].y1;
+	    
+	    if (fabs(x - b.x2) < 2 * real_font_width && fabs(y - b.y2) < 2 * real_font_height)
+	      {
+		double dist = (x - b.x2) * (x - b.x2) + (y - b.y2) * (y - b.y2);
+		if (dist < d)
+		  {
+		    d = dist;
+		    a = label[i].a;
+		  }
+	      }
+	  }
+    
+   
+      for (int i = 0; i < n_letters; i++)
+	if (letters[i].free && letters[i].a != '+' && letters[i].a != '-')
+	  {
+	    double x =   (double) letters[i].x;
+	    double y =   (double) letters[i].y;
+	    
+	    if (fabs(x - b.x2) < 2 * real_font_width && fabs(y - b.y2) < 2 * real_font_height)
+	      {
+		double dist = (x - b.x2) * (x - b.x2) + (y - b.y2) * (y - b.y2);
+		if (dist < d)
+		  {
+		    d = dist;
+		    a = letters[i].a;
+		  }
+	      }
+	  }
+      bracket_boxes[j].a = a;
+    }
+
+}
+
+
+// US20050049267A1-20050303-C04374.png

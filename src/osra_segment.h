@@ -26,6 +26,7 @@
 
 #include <list> // sdt::list
 #include <vector> // std::vector
+#include <set>
 #include <math.h> // fabs(double)
 #include <float.h> // FLT_MAX
 #include <limits.h> // INT_MAX
@@ -120,10 +121,12 @@ list<list<list<point_t> > > find_segments(const Image &image, double threshold, 
 // Parameters:
 // clusters - a list of clusters detected by <find_segments()>
 // boxes - a vector of <box_t> objects for molecular structure images
+// brackets - a vector of points which potentially belong to brackets
 //
 // Returns:
 // Number of molecular structure images
-int prune_clusters(list<list<list<point_t> > > &clusters, vector<box_t> &boxes);
+int prune_clusters(list<list<list<point_t> > > &clusters, vector<box_t> &boxes, set<pair<int,int> > &brackets);
+
 
 template<class T>
 void build_hist(const T &seg, vector<int> &hist, const int len, int &top_pos, int &top_value,point_t &head,point_t &tail, point_t &center, int &min_x, int &min_y, int &max_x, int &max_y)

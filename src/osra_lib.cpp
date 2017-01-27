@@ -39,6 +39,8 @@ extern "C" {
 }
 
 #include <openbabel/oberror.h>
+#include <poppler/cpp/poppler-document.h>
+#include <poppler/cpp/poppler-page-renderer.h>
 
 #include "osra.h"
 #include "osra_grayscale.h"
@@ -325,7 +327,8 @@ void split_fragments_and_assemble_structure_record(vector<atom_t> &atom,
 						   int n_letters,
 						   bool show_learning,
 						   int resolution_iteration,
-						   bool verbose)
+						   bool verbose,
+						   const vector <bracket_t>&  brackets)
 {
   vector<atom_t> frag_atom;
   vector<bond_t> frag_bond;
@@ -415,7 +418,8 @@ void split_fragments_and_assemble_structure_record(vector<atom_t> &atom,
                                         show_avg_bond_length,
                                         show_resolution_guess ? &resolution : NULL,
                                         show_page ? &page_number : NULL,
-                                        show_coordinates ? &coordinate_box : NULL, superatom, n_letters, show_learning, resolution_iteration, verbose);
+                                        show_coordinates ? &coordinate_box : NULL, superatom, n_letters, show_learning, resolution_iteration, verbose,
+					brackets);
 
               if (molecule_statistics.fragments > 0 && molecule_statistics.fragments < MAX_FRAGMENTS
 		  && molecule_statistics.num_atoms>MIN_A_COUNT && molecule_statistics.num_bonds>0
@@ -423,7 +427,8 @@ void split_fragments_and_assemble_structure_record(vector<atom_t> &atom,
                 {
 		  if ((molecule_statistics.rings56 > 0 || molecule_statistics.num_organic_non_carbon_atoms > 0)
 		      && molecule_statistics.num_bonds>MIN_B_COUNT
-		      && molecule_statistics.num_small_angles < 3)
+		      && molecule_statistics.num_small_angles < 3
+		      && avg_bond_length > real_font_height )
 		    {
 		      array_of_structures[res_iter].push_back(structure);
 		      array_of_avg_bonds[res_iter].push_back(page_scale * box_scale * avg_bond_length);
@@ -482,6 +487,35 @@ int count_recognized_chars(vector<atom_t>  &atom, vector<bond_t>& bond)
 	  r++;
       }
   return r;
+}
+
+Image process_pdf_page(poppler::document* doc,  poppler::page_renderer &r, int l, int resolution)
+{
+  poppler::page* p = doc->create_page(l);
+  poppler::image im = r.render_page(p, resolution, resolution);
+  Image image(Geometry(im.width(), im.height()), "white");
+  image.modifyImage();
+  image.type(TrueColorType);
+  const char *d = im.const_data();
+  int bytes_per_row = im.bytes_per_row();
+  int bytes_per_pixel = bytes_per_row / im.width();
+  for (int row = 0; row < im.height(); ++row)
+    {
+      for (int col = 0; col < im.width(); ++col)
+	{
+	  int offset = row * bytes_per_row + col * bytes_per_pixel;
+	  int r = -1, g = -1, b = -1, a = -1;
+	      switch(im.format())
+		{
+		case poppler::image::format_mono : r = g = b = int(d[offset]); break;
+		case poppler::image::format_rgb24  : r = int(d[offset]); g = int(d[offset+1]); b = int(d[offset+2]); break;
+		case poppler::image::format_argb32 : r = int(d[offset]); g = int(d[offset+1]); b = int(d[offset+2]); a = int(d[offset+3]); break;
+		}
+	      if (r >= 0 && g >= 0 && b >= 0)
+		image.pixelColor(col, row, ColorRGB(double(r) / 128, double(g) / 128, double(b) / 128));
+	}
+    }
+  return image;
 }
 
 extern job_t *OCR_JOB;
@@ -556,7 +590,8 @@ int osra_process_image(
   bool debug,
   bool verbose,
   const string &output_image_file_prefix,
-  const string &resize
+  const string &resize,
+  const string &preview
 )
 {
 #ifdef OSRA_LIB
@@ -592,6 +627,39 @@ int osra_process_image(
       // https://sourceforge.net/tracker/?func=detail&aid=3022955&group_id=40728&atid=428740
     }
 
+  //int stderr_copy = dup(2);
+  //fclose(stderr);
+  
+  int page = 1;
+  poppler::document* poppler_doc = NULL;
+  if (type.empty() || type == "PDF" || type == "PS")
+    {
+#ifdef OSRA_LIB
+      poppler_doc = poppler::document::load_from_raw_data(image_data, image_length);
+#else
+      poppler_doc = poppler::document::load_from_file(input_file);
+#endif
+    }   
+  if (poppler_doc)
+    {
+      page = poppler_doc->pages();
+      type = "PDF";
+    }
+  else if (type == "PDF" || type == "PS")
+    {
+      type.clear();
+    }
+  else if (!type.empty() && type != "PDF")
+    {
+#ifdef OSRA_LIB
+      page = count_pages(blob);
+#else
+      page = count_pages(input_file);
+#endif      
+    }
+  // dup2(stderr_copy, 2);
+  //close(stderr_copy);
+  
   if (type.empty())
     {
 #ifdef OSRA_LIB
@@ -619,8 +687,6 @@ int osra_process_image(
     }
 #endif
 
-  if (input_resolution == 0 && (type == "PDF" || type == "PS"))
-    input_resolution = 300;
 
   if (show_coordinates && rotate != 0)
     {
@@ -638,16 +704,16 @@ int osra_process_image(
       cerr << "Embedded format option is only possible if output format is SDF and option can have only inchi, smi, or can values." << endl;
       return ERROR_ILLEGAL_ARGUMENT_COMBINATION;
     }
+
+  // This will hide the output "Warning: non-positive median line gap" from GOCR. Remove after this is fixed:
+  fclose(stderr);
+  OpenBabel::obErrorLog.StopLogging();
+      
   bool is_reaction = false;
   if (output_format == "cmlr" || output_format == "rsmi" || output_format =="rxn")
     is_reaction = true;
 
-#ifdef OSRA_LIB
-  int page = 1;
-#else
-  int page = count_pages(input_file);
-#endif
-
+   				       
   vector<vector<string> > pages_of_structures(page, vector<string> (0));
   vector<vector<Image> > pages_of_images(page, vector<Image> (0));
   vector<vector<double> > pages_of_avg_bonds(page, vector<double> (0));
@@ -669,34 +735,52 @@ int osra_process_image(
   vector<vector<vector<Image> > > array_of_images_page(page,vector<vector<Image> > (num_resolutions));
   vector<vector<vector<box_t> > > array_of_boxes_page(page,vector<vector<box_t> >(num_resolutions));
 
-  #pragma omp parallel for default(shared) private(OCR_JOB,JOB)
+//#pragma omp parallel for default(shared) private(OCR_JOB,JOB)
   for (int l = 0; l < page; l++)
     {
       Image image;
       double page_scale=1;
+      poppler::page_renderer poppler_renderer;
       
       int ttt = 0;
 
       if (verbose)
         cout << "Processing page " << (l+1) << " out of " << page << "..." << endl;
 
-      ostringstream density;
-      density << input_resolution << "x" << input_resolution;
-      image.density(density.str());
-
       if (type == "PDF" || type == "PS")
         page_scale *= (double) 72 / input_resolution;
 
+
+      if (poppler_doc) // process PDF and PS files
+	{
+	  int resolution = input_resolution;
+	  if (resolution == 0)
+	    resolution = 300;
+	  image = process_pdf_page(poppler_doc, poppler_renderer, l, resolution);
+	}
+      else
+	{
 #ifdef OSRA_LIB
-      image.read(blob);
-#else
-      ostringstream pname;
-      pname << input_file << "[" << l << "]";
+	  image.read(blob);
+#else	  
+	  ostringstream pname;
+	  pname << input_file << "[" << l << "]";
 #pragma omp critical
-      {
-	image.read(pname.str());
-      }
+	  {
+	    image.read(pname.str());
+	  }
 #endif
+	}
+      if (l == 0 && !preview.empty())
+	{
+	  try
+	    {
+	      image.write(preview);
+	    }
+	  catch(...)
+	    {}
+	}
+
       image.modifyImage();
       bool adaptive = convert_to_gray(image, invert, adaptive_option, verbose);
       
@@ -744,15 +828,13 @@ int osra_process_image(
         cout << "Number of clusters: " << clusters.size() << '.' << endl;
 
       vector<box_t> boxes;
-      int n_boxes = prune_clusters(clusters, boxes);
+      set<pair<int,int> > brackets;
+      int n_boxes = prune_clusters(clusters, boxes, brackets);
       std::sort(boxes.begin(), boxes.end(), comp_boxes);
 
       if (verbose)
         cout << "Number of boxes: " << boxes.size() << '.' << endl;
 
-      // This will hide the output "Warning: non-positive median line gap" from GOCR. Remove after this is fixed:
-      fclose(stderr);
-      OpenBabel::obErrorLog.StopLogging();
 
       for (int res_iter = 0; res_iter < num_resolutions; res_iter++)
         {
@@ -892,10 +974,10 @@ int osra_process_image(
                                              max_dist_double_bond, avg_bond_length, 3, 1);
 
                 n_label = assemble_labels(letters, n_letters, label);
-		
+	       
                 if (verbose)
                   cout << n_label << " labels: " << label << " after assemble_labels()" << endl;
-
+		
                 remove_disconnected_atoms(atom, bond, n_atom, n_bond);
 	
                 collapse_atoms(atom, bond, n_atom, n_bond, thickness);
@@ -909,7 +991,7 @@ int osra_process_image(
                 avg_bond_length = percentile75(bond, n_bond, atom);
 
                 collapse_double_bonds(bond, n_bond, atom, max_dist_double_bond);
-		// TODO remove brackets, assign labels to brackets
+				
                 extend_terminal_bond_to_label(atom, letters, n_letters, bond, n_bond, label, n_label, avg_bond_length / 2,
 					      thickness, max_dist_double_bond);
 
@@ -924,6 +1006,14 @@ int osra_process_image(
 
                 extend_terminal_bond_to_bonds(atom, bond, n_bond, avg_bond_length, 2 * thickness, max_dist_double_bond);
 
+		vector <bracket_t>  bracket_boxes;
+		remove_bracket_atoms(atom, n_atom, bond, n_bond, brackets, thickness, boxes[k].x1, boxes[k].y1, box_scale, real_font_width, real_font_height, bracket_boxes);
+		remove_zero_bonds(bond, n_bond, atom);
+		remove_vertical_bonds_close_to_brackets(bracket_boxes, atom, bond, n_bond, thickness, avg_bond_length);
+		remove_zero_bonds(bond, n_bond, atom);
+		flatten_bonds(bond, n_bond, atom, 2*thickness);
+		assign_labels_to_brackets(bracket_boxes, label, n_label, letters, n_letters, real_font_width, real_font_height);
+		
                 collapse_atoms(atom, bond, n_atom, n_bond, 3);
 
                 remove_zero_bonds(bond, n_bond, atom);
@@ -933,7 +1023,8 @@ int osra_process_image(
                 n_letters = clean_unrecognized_characters(bond, n_bond, atom, real_font_height, real_font_width, 0,
                             letters, n_letters);
 		int recognized_chars = count_recognized_chars(atom,bond);
-	
+		
+		
                 assign_charge(atom, bond, n_atom, n_bond, spelling, superatom, debug);
                 find_up_down_bonds(bond, n_bond, atom, thickness);
                 int real_atoms = count_atoms(atom, n_atom);
@@ -942,6 +1033,7 @@ int osra_process_image(
 
                 if (verbose)
                   cout << "Final number of atoms: " << real_atoms << ", bonds: " << real_bonds << ", chars: " << n_letters << '.' << endl;
+			
 
                 split_fragments_and_assemble_structure_record(atom,n_atom,bond,n_bond,boxes,
 							      l,k,resolution,res_iter,output_image_file_prefix,image,orig_box,real_font_width,real_font_height,
@@ -949,7 +1041,7 @@ int osra_process_image(
 							      box_scale,page_scale,rotation,unpaper_dx,unpaper_dy,output_format,embedded_format,is_reaction,show_confidence,
 							      show_resolution_guess,show_page,show_coordinates, show_avg_bond_length,array_of_structures,
 							      array_of_avg_bonds,array_of_ind_conf,array_of_images,array_of_boxes,total_boxes,total_confidence,
-							      recognized_chars,show_learning,res_iter,verbose);
+							      recognized_chars,show_learning,res_iter,verbose, bracket_boxes);
 
                 if (st != NULL)
                   potrace_state_free(st);

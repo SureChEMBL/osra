@@ -27,6 +27,7 @@
 #include "osra.h"
 #include "osra_segment.h"
 
+
 using namespace std;
 
 // Header: osra_openbabel.h
@@ -126,6 +127,7 @@ molecule_statistics_t calculate_molecule_statistics(vector<atom_t> &atom, const 
 //      string containing SMILES, SDF or other representation of the molecule
 const string get_formatted_structure(vector<atom_t> &atom, const vector<bond_t> &bond, int n_bond, const string &format, const string &second_format, molecule_statistics_t &molecule_statistics,
                                      double &confidence, bool show_confidence, double avg_bond_length, double scaled_avg_bond_length, bool show_avg_bond_length, const int * const resolution,
-                                     const int * const page, const box_t * const surrounding_box, const map<string, string> &superatom, int n_letters, bool show_learning, int resolution_iteration, bool verbose);
+                                     const int * const page, const box_t * const surrounding_box, const map<string, string> &superatom, int n_letters, bool show_learning, int resolution_iteration,
+				     bool verbose, const vector <bracket_t>&  brackets);
 
 #endif
