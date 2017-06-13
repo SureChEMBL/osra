@@ -1,5 +1,5 @@
 "master" branch is for upstream
-"surechembl" branch for debianization and SureChEMBL specific changes
+"deb" branch for debianization and SureChEMBL specific changes
 
 If you want to setup svn-remote for fetching the latest changes from
 the original SVN repository, add the following lines in .git/config:
