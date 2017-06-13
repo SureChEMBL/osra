@@ -1,3 +1,9 @@
+osra (2.1.0-2) unstable; urgency=medium
+
+  * Compliance with g++ 5.
+
+ -- Yury Zavarin <yzavarin@ebi.ac.uk>  Tue, 13 Jun 2017 18:09:11 +0100
+
 osra (2.1.0-1) precise; urgency=low
 
   * Bump version.
