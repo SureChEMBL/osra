@@ -33,8 +33,6 @@ typedef long long __int64;
 #include <sstream> // std:ostringstream
 
 
-using namespace std;
-
 
 
 #include "osra_lib.h"
@@ -83,7 +81,7 @@ JNIEXPORT jint JNICALL Java_net_sf_osra_OsraLib_processImage(JNIEnv *j_env, jcla
     {
       // Perhaps there is a more optimal way to bridge from std:ostream to java.io.Writer.
       // See http://stackoverflow.com/questions/524524/creating-an-ostream/524590#524590
-      ostringstream structure_output_stream;
+      std::ostringstream structure_output_stream;
 
       result = osra_process_image(
                  image_data,

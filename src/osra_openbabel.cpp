@@ -78,7 +78,8 @@ int osra_openbabel_init()
 // Returns:
 //      true in case the given atom is superatom
 //
-bool create_atom(OBMol &mol, atom_t &atom, double scale, const map<string, string> &superatom, bool verbose)
+bool create_atom(OBMol &mol, atom_t &atom, double scale,
+                 const std::map<std::string, std::string> &superatom, bool verbose)
 {
   if (atom.label.empty() || atom.label == " ")
     {
@@ -87,12 +88,12 @@ bool create_atom(OBMol &mol, atom_t &atom, double scale, const map<string, strin
   else
     {
       // Lookup in superatom dictionary:
-      map<string, string>::const_iterator it = superatom.find(atom.label);
+      std::map<std::string, std::string>::const_iterator it = superatom.find(atom.label);
 
       if (it != superatom.end())
         {
           // "superatom" case (e.g. "COOH")
-          const string &smiles_superatom = it->second;
+          const std::string &smiles_superatom = it->second;
 
           OBConversion conv;
           OBMol superatom_mol;
@@ -101,8 +102,8 @@ bool create_atom(OBMol &mol, atom_t &atom, double scale, const map<string, strin
           conv.ReadString(&superatom_mol, smiles_superatom);
 
           if (verbose)
-            cout << "Considering superatom " << atom.label << "->" << smiles_superatom <<
-                 " vector: " << atom.x * scale << "x" << -atom.y * scale << '.' << endl;
+            std::cout << "Considering superatom " << atom.label << "->" << smiles_superatom <<
+                " vector: " << atom.x * scale << "x" << -atom.y * scale << '.' << std::endl;
 
           // This is the index of first atom in superatom in molecule:
           atom.n = mol.NumAtoms() + 1;
@@ -110,12 +111,12 @@ bool create_atom(OBMol &mol, atom_t &atom, double scale, const map<string, strin
           OBAtomIterator atom_iter;
 
           // Transfer all atoms from "superatom" molecule to current molecule.
-	  
+
 
           for (OBAtom *a = superatom_mol.BeginAtom(atom_iter); a; a = superatom_mol.NextAtom(atom_iter))
             {
               if (verbose)
-                cout << "Adding atom #" << mol.NumAtoms() + 1 << ", anum: " << a->GetAtomicNum() << endl;
+                std::cout << "Adding atom #" << mol.NumAtoms() + 1 << ", anum: " << a->GetAtomicNum() << std::endl;
 
               OBAtom *new_atom = mol.NewAtom();
 
@@ -134,7 +135,7 @@ bool create_atom(OBMol &mol, atom_t &atom, double scale, const map<string, strin
 		{
 		  AliasData* ad = new AliasData();
 		  ad->SetAlias(atom.label);
-		  ad->SetOrigin(external); 
+		  ad->SetOrigin(external);
 		  new_atom->SetData(ad);
 		}
             }
@@ -146,7 +147,7 @@ bool create_atom(OBMol &mol, atom_t &atom, double scale, const map<string, strin
 
           atom.anum = first_superatom->GetAtomicNum();
 
-	
+
           int first_bond_index = mol.NumBonds();
 
           OBBondIterator bond_iter;
@@ -155,8 +156,8 @@ bool create_atom(OBMol &mol, atom_t &atom, double scale, const map<string, strin
           for (OBBond *b = superatom_mol.BeginBond(bond_iter); b; b = superatom_mol.NextBond(bond_iter))
             {
               if (verbose)
-                cout << "Adding bond #" << mol.NumBonds() << " " << b->GetBeginAtomIdx() + atom.n - 1 << "->" << b->GetEndAtomIdx() + atom.n - 1
-                     << ", order: " << b->GetBondOrder() << ", flags: " << b->GetFlags() << '.' << endl;
+                std::cout << "Adding bond #" << mol.NumBonds() << " " << b->GetBeginAtomIdx() + atom.n - 1 << "->" << b->GetEndAtomIdx() + atom.n - 1
+                          << ", order: " << b->GetBondOrder() << ", flags: " << b->GetFlags() << '.' << std::endl;
 
               mol.AddBond(b->GetBeginAtomIdx() + atom.n - 1, b->GetEndAtomIdx() + atom.n - 1,
                           b->GetBondOrder(), b->GetFlags());
@@ -173,7 +174,7 @@ bool create_atom(OBMol &mol, atom_t &atom, double scale, const map<string, strin
   atom.n = mol.NumAtoms() + 1;
 
   if (verbose)
-    cout << "Creating atom #" << atom.n << " \"" << atom.label << "\", anum: " << atom.anum << '.' << endl;
+    std::cout << "Creating atom #" << atom.n << " \"" << atom.label << "\", anum: " << atom.anum << '.' << std::endl;
 
   OBAtom *a = mol.NewAtom();
 
@@ -187,7 +188,7 @@ bool create_atom(OBMol &mol, atom_t &atom, double scale, const map<string, strin
     {
       // Unknown atom?
       OBPairData *label = new OBPairData;
-      label->SetAttribute("UserLabel");  
+      label->SetAttribute("UserLabel");
       label->SetValue(atom.label);
       label->SetOrigin(userInput); // set by user, not by Open Babel
       a->SetData(label);
@@ -224,7 +225,7 @@ double confidence_function(int* x, int n)
   double r = 0;
   for (int i=0; i<n; i++)
     r += c[i]*x[i];
-   
+
   return (r);
 }
 
@@ -263,14 +264,18 @@ void SetTetrahedtalUnknown(OBMolAtomIter atom)
 //      confidence - confidence score (returned to the caller if provided)
 //      superatom - dictionary of superatom labels mapped to SMILES
 //      verbose - print debug info
-void create_molecule(OBMol &mol, vector<atom_t> &atom, const vector<bond_t> &bond, int n_bond, double avg_bond_length, molecule_statistics_t &molecule_statistics,
-                     bool generate_2D_coordinates, double * const confidence, const map<string, string> &superatom, int n_letters, string * const confidence_parameters, bool verbose,
-		     const vector <bracket_t>&  brackets)
+void create_molecule(OBMol &mol, std::vector<atom_t> &atom,
+                     const std::vector<bond_t> &bond, int n_bond, double avg_bond_length,
+                     molecule_statistics_t &molecule_statistics,
+                     bool generate_2D_coordinates, double * const confidence,
+                     const std::map<std::string, std::string> &superatom, int n_letters,
+                     std::string * const confidence_parameters, bool verbose,
+		     const std::vector <bracket_t>&  brackets)
 {
-  string str;
+  std::string str;
   double scale = CC_BOND_LENGTH / avg_bond_length;
   // The indexes of "superatoms" and the bonds, that connect these superatoms to the molecule:
-  vector<int> super_atoms, super_bonds;
+  std::vector<int> super_atoms, super_bonds;
   int anum;
 
   mol.SetDimension(2);
@@ -290,12 +295,12 @@ void create_molecule(OBMol &mol, vector<atom_t> &atom, const vector<bond_t> &bon
                   super_bonds.push_back(mol.NumBonds());
                 }
             }
-	
+
         if (bond[i].hash && !bond[i].wedge)
           {
             if (verbose)
-	      cout << "Creating hash bond #" << mol.NumBonds() << " " << atom[bond[i].a].n << "<->"
-                   << atom[bond[i].b].n << ", order: " << bond[i].type << ", flags: " << OB_HASH_BOND << '.' << endl;
+              std::cout << "Creating hash bond #" << mol.NumBonds() << " " << atom[bond[i].a].n << "<->"
+                        << atom[bond[i].b].n << ", order: " << bond[i].type << ", flags: " << OB_HASH_BOND << '.' << std::endl;
 
             if (atom[bond[i].a].anum == OXYGEN_ATOMIC_NUM || atom[bond[i].a].anum == HYDROGEN_ATOMIC_NUM || atom[bond[i].a].anum == FLUORINE_ATOMIC_NUM
                 || atom[bond[i].a].anum == IODINE_ATOMIC_NUM || atom[bond[i].a].anum == CHLORINE_ATOMIC_NUM || atom[bond[i].a].anum == BROMINE_ATOMIC_NUM
@@ -316,8 +321,8 @@ void create_molecule(OBMol &mol, vector<atom_t> &atom, const vector<bond_t> &bon
 	else if (bond[i].arom)
           {
             if (verbose)
-              cout << "Creating aromatic bond #" << mol.NumBonds() << " " << atom[bond[i].a].n << "->"
-                   << atom[bond[i].b].n << ", order: " << AROMATIC_BOND_ORDER << '.' << endl;
+              std::cout << "Creating aromatic bond #" << mol.NumBonds() << " " << atom[bond[i].a].n << "->"
+                        << atom[bond[i].b].n << ", order: " << AROMATIC_BOND_ORDER << '.' << std::endl;
 
             mol.AddBond(atom[bond[i].a].n, atom[bond[i].b].n, AROMATIC_BOND_ORDER);
           }
@@ -331,8 +336,8 @@ void create_molecule(OBMol &mol, vector<atom_t> &atom, const vector<bond_t> &bon
               bond_flags = OB_TORDOWN_BOND;
 
             if (verbose)
-              cout << "Creating bond #" << mol.NumBonds() << " " << atom[bond[i].a].n << "->"
-                   << atom[bond[i].b].n << ", type: " << bond[i].type << ", flags: " << bond_flags << '.' << endl;
+              std::cout << "Creating bond #" << mol.NumBonds() << " " << atom[bond[i].a].n << "->"
+                        << atom[bond[i].b].n << ", type: " << bond[i].type << ", flags: " << bond_flags << '.' << std::endl;
 
 	    if (bond[i].wedge && bond[i].hash) // wavy bonds
 	      {
@@ -345,7 +350,7 @@ void create_molecule(OBMol &mol, vector<atom_t> &atom, const vector<bond_t> &bon
 		SetTetrahedtalUnknown(b);
 	      }
 	    else
-	      mol.AddBond(atom[bond[i].a].n, atom[bond[i].b].n, bond[i].type, bond_flags);	      
+	      mol.AddBond(atom[bond[i].a].n, atom[bond[i].b].n, bond[i].type, bond_flags);
           }
       }
   mol.EndModify();
@@ -387,7 +392,7 @@ void create_molecule(OBMol &mol, vector<atom_t> &atom, const vector<bond_t> &bon
 	Num_DoubleBonds++;
     }
 
-  vector<int> Num_Rings(8, 0); // number of rings of the given size (e.g. "Num_Rings[2]" = number of rings of size 2)
+  std::vector<int> Num_Rings(8, 0); // number of rings of the given size (e.g. "Num_Rings[2]" = number of rings of size 2)
   int num_rings = 0; // total number of rings
   int num_aromatic = 0; // total number of aromatic rings
 
@@ -397,13 +402,13 @@ void create_molecule(OBMol &mol, vector<atom_t> &atom, const vector<bond_t> &bon
     OBAtomIterator atom_iter_R;
     for (OBAtom *a = mol_without_R.BeginAtom(atom_iter_R); a; a = mol_without_R.NextAtom(atom_iter_R))
       if (a->GetAtomicNum() == 0)
-	a->SetAtomicNum(CARBON_ATOMIC_NUM);            
+	a->SetAtomicNum(CARBON_ATOMIC_NUM);
     mol_without_R.EndModify();
     mol_without_R.FindRingAtomsAndBonds();
     // Get the Smallest Set of Smallest Rings:
-    vector<OBRing*> vr = mol_without_R.GetSSSR();
-  
-    for (vector<OBRing*>::iterator iter = vr.begin(); iter != vr.end(); iter++)
+    std::vector<OBRing*> vr = mol_without_R.GetSSSR();
+
+    for (std::vector<OBRing*>::iterator iter = vr.begin(); iter != vr.end(); iter++)
       {
 	num_rings++;
 	if ((*iter)->IsAromatic())
@@ -489,7 +494,7 @@ void create_molecule(OBMol &mol, vector<atom_t> &atom, const vector<bond_t> &bon
 	    }
 	  if (a->GetFormalCharge() > 0) PositiveCharge++;
         }
-      
+
       molecule_statistics.num_organic_non_carbon_atoms = N_Count + F_Count + Cl_Count + Br_Count;
       int num_angles = 0;
       //vector<double> angles;
@@ -555,16 +560,16 @@ void create_molecule(OBMol &mol, vector<atom_t> &atom, const vector<bond_t> &bon
       int x[] = {C_Count,N_Count,O_Count,F_Count,S_Count,Cl_Count,Br_Count,Si_Count,U_Count,Me_Count,Li_Count,R_Count, Xx_Count,num_rings,num_aromatic,molecule_statistics.fragments,Num_Rings[5],Num_Rings[6],Num_HashBonds,Num_WedgeBonds,Num_DoubleBonds,PositiveCharge,n_letters,mol.NumAtoms(),mol.NumHvyAtoms(),mol.NumBonds()};
       int n = sizeof(x)/sizeof(int);
       *confidence = confidence_function(x,n);
-      
+
       if (confidence_parameters)
 	{
-	  stringstream cpss;
+          std::stringstream cpss;
 	  for (int  i = 0; i < n-1; i++)
 	    cpss << x[i]<<",";
 	  cpss << x[n-1];
 	  //       0           1             2              3              4            5               6             7              8             9             10             11
 	  //	  cpss<<C_Count<<","<<N_Count<<","<<O_Count<<","<<F_Count<<","<<S_Count<<","<<Cl_Count<<","<< Br_Count<<","<<Si_Count<<","<<U_Count<<","<<Me_Count<<","<<Li_Count<<","<<R_Count<<","<<
-	    //  12           13             14                   15                                16                 17                  18                   19                    20                 
+	    //  12           13             14                   15                                16                 17                  18                   19                    20
 	  //   Xx_Count<<","<<num_rings<<","<<num_aromatic<<","<<molecule_statistics.fragments<<","<<Num_Rings[5]<<","<<Num_Rings[6]<<","<<Num_HashBonds<<","<<Num_WedgeBonds<<","<<Num_DoubleBonds
 	    //            21                  22            23                   24                       25
 	  //   <<","<<PositiveCharge<<","<<n_letters<<","<<mol.NumAtoms()<<","<<mol.NumHvyAtoms()<<","<<mol.NumBonds();
@@ -575,7 +580,7 @@ void create_molecule(OBMol &mol, vector<atom_t> &atom, const vector<bond_t> &bon
   if (generate_2D_coordinates)
     {
       if (verbose && !super_atoms.empty())
-        cout << "Generating 2D coordinates for atoms " << super_atoms << " and bonds " << super_bonds << endl;
+        std::cout << "Generating 2D coordinates for atoms " << super_atoms << " and bonds " << super_bonds << std::endl;
 
       for (unsigned int i = 0; i < super_atoms.size(); i++)
         {
@@ -589,7 +594,7 @@ void create_molecule(OBMol &mol, vector<atom_t> &atom, const vector<bond_t> &bon
 	  char buff[BUFF_SIZE];
 	  OBSetData *group = new OBSetData;
 	  group->SetAttribute("_SGroupBrackets");
-	  group->SetOrigin(userInput);	
+	  group->SetOrigin(userInput);
 	  for (size_t i = 0; i < brackets.size(); i++)
 	    {
 	      double x1 = double(brackets[i].box.x1) * scale;
@@ -597,8 +602,8 @@ void create_molecule(OBMol &mol, vector<atom_t> &atom, const vector<bond_t> &bon
 	      double x2 = double(brackets[i].box.x2) * scale;
 	      double y2 = -double(brackets[i].box.y2) * scale;
 
-	      set<OBAtom*> visited;
-	      set<OBAtom*> nbrs;
+              std::set<OBAtom*> visited;
+              std::set<OBAtom*> nbrs;
 	      OBAtom* start(NULL);
 	      OBAtom* finish(NULL);
 	      int bond1 = -1;
@@ -610,7 +615,7 @@ void create_molecule(OBMol &mol, vector<atom_t> &atom, const vector<bond_t> &bon
 		  OBAtom *a2 = b->GetEndAtom();
 		  if (a1->y() > y2 && a1->y() < y1 && a2->y() > y2 && a2->y() < y1)
 		    {
-		      if (a1->x() < x1 && a2->x() > x1)		     
+		      if (a1->x() < x1 && a2->x() > x1)
 			{
 			  start = a1;
 			  visited.insert(a1);
@@ -644,7 +649,7 @@ void create_molecule(OBMol &mol, vector<atom_t> &atom, const vector<bond_t> &bon
 		continue;
 	      OBBond *b1 = mol.GetBond(bond1);
 	      OBBond *b2 = mol.GetBond(bond2);
-	      
+
 	      OBPairData *i1 = new OBPairData;
 	      i1->SetAttribute("_SGroup");
 	      i1->SetOrigin(userInput);
@@ -667,13 +672,13 @@ void create_molecule(OBMol &mol, vector<atom_t> &atom, const vector<bond_t> &bon
 		    {
 		      if (visited.find(b) == visited.end())
 			nbrs.insert(b);
-		    }		  
+		    }
 		  visited.insert(a);
 		  nbrs.erase(a);
 		}
 	      visited.erase(start);
 	      visited.erase(finish);
-	      for (set<OBAtom*>::iterator it = visited.begin(); it != visited.end(); ++it)
+	      for (std::set<OBAtom*>::iterator it = visited.begin(); it != visited.end(); ++it)
 		{
 		  OBAtom *a = *it;
 		  OBPairData *i3 = new OBPairData;
@@ -683,18 +688,18 @@ void create_molecule(OBMol &mol, vector<atom_t> &atom, const vector<bond_t> &bon
 		  i3->SetValue(buff);
 		  a->SetData(i3);
 		}
-	      
+
 	      OBSetData *coords = new OBSetData;
 	      coords->SetAttribute("Coordinates");
 	      coords->SetOrigin(userInput);
-	      
+
 	      OBPairData *dx1 = new OBPairData;
 	      dx1->SetAttribute("x1");
 	      dx1->SetOrigin(userInput);
 	      snprintf(buff, BUFF_SIZE, "%10.4f", x1);
 	      dx1->SetValue(buff);
 	      coords->AddData(dx1);
-	      
+
 	      OBPairData *dy1 = new OBPairData;
 	      dy1->SetAttribute("y1");
 	      dy1->SetOrigin(userInput);
@@ -708,14 +713,14 @@ void create_molecule(OBMol &mol, vector<atom_t> &atom, const vector<bond_t> &bon
 	      snprintf(buff, BUFF_SIZE, "%10.4f", x2);
 	      dx2->SetValue(buff);
 	      coords->AddData(dx2);
-	      
+
 	      OBPairData *dy2 = new OBPairData;
 	      dy2->SetAttribute("y2");
 	      dy2->SetOrigin(userInput);
 	      snprintf(buff, BUFF_SIZE, "%10.4f", y2);
 	      dy2->SetValue(buff);
 	      coords->AddData(dy2);
-	      
+
 	      OBPairData *lbl = new OBPairData;
 	      lbl->SetAttribute("label");
 	      lbl->SetOrigin(userInput);
@@ -730,36 +735,42 @@ void create_molecule(OBMol &mol, vector<atom_t> &atom, const vector<bond_t> &bon
     }
 }
 
-molecule_statistics_t calculate_molecule_statistics(vector<atom_t> &atom, const vector<bond_t> &bond, int n_bond, double avg_bond_length, const map<string, string> &superatom, bool verbose)
+molecule_statistics_t calculate_molecule_statistics(
+    std::vector<atom_t> &atom, const std::vector<bond_t> &bond, int n_bond, double avg_bond_length,
+    const std::map<std::string, std::string> &superatom, bool verbose)
 {
   molecule_statistics_t molecule_statistics;
 
   #pragma omp critical
   {
     OBMol mol;
-    vector <bracket_t>  brackets;
+    std::vector <bracket_t> brackets;
     create_molecule(mol, atom, bond, n_bond, avg_bond_length, molecule_statistics, false, NULL, superatom, 0, NULL, false, brackets);
     mol.Clear();
   }
 
   if (verbose)
-    cout << "Molecule fragments: " << molecule_statistics.fragments << '.' << endl;
+    std::cout << "Molecule fragments: " << molecule_statistics.fragments << '.' << std::endl;
 
   return molecule_statistics;
 }
 
-const string get_formatted_structure(vector<atom_t> &atom, const vector<bond_t> &bond, int n_bond, const string &format, const string &embedded_format, molecule_statistics_t &molecule_statistics,
-                                     double &confidence, bool show_confidence, double avg_bond_length, double scaled_avg_bond_length, bool show_avg_bond_length, const int * const resolution,
-                                     const int * const page, const box_t * const surrounding_box,
-                                     const map<string, string> &superatom, int n_letters, bool show_learning, int resolution_iteration, bool verbose,
-				     const vector <bracket_t>&  brackets)
+const std::string get_formatted_structure(
+    std::vector<atom_t> &atom, const std::vector<bond_t> &bond, int n_bond,
+    const std::string &format, const std::string &embedded_format,
+    molecule_statistics_t &molecule_statistics,
+    double &confidence, bool show_confidence,
+    double avg_bond_length, double scaled_avg_bond_length, bool show_avg_bond_length,
+    const int * const resolution, const int * const page, const box_t * const surrounding_box,
+    const std::map<std::string, std::string> &superatom, int n_letters, bool show_learning,
+    int resolution_iteration, bool verbose, const std::vector<bracket_t>& brackets)
 {
-  ostringstream strstr;
+  std::ostringstream strstr;
   #pragma omp critical
   {
     OBMol mol;
-    string confidence_parameters;
-    create_molecule(mol, atom, bond, n_bond, avg_bond_length, molecule_statistics, format == "sdf" || format == "mol" || format == "sd" || format == "mdl", &confidence, superatom, 
+    std::string confidence_parameters;
+    create_molecule(mol, atom, bond, n_bond, avg_bond_length, molecule_statistics, format == "sdf" || format == "mol" || format == "sd" || format == "mdl", &confidence, superatom,
 		    n_letters, &confidence_parameters, verbose, brackets);
 
     // Add hydrogens to the entire molecule to fill out implicit valence spots:
@@ -797,7 +808,7 @@ const string get_formatted_structure(vector<atom_t> &atom, const vector<bond_t> 
       {
         OBPairData *label = new OBPairData;
         label->SetAttribute("Confidence_estimate");
-        ostringstream cs;
+        std::ostringstream cs;
         cs << confidence;
         label->SetValue(cs.str());
         mol.SetData(label);
@@ -807,25 +818,24 @@ const string get_formatted_structure(vector<atom_t> &atom, const vector<bond_t> 
       {
         OBPairData *label = new OBPairData;
         label->SetAttribute("Confidence_parameters");
-        ostringstream cs;
+        std::ostringstream cs;
         cs << confidence_parameters;
         label->SetValue(cs.str());
         mol.SetData(label);
 
 	OBPairData *label1 = new OBPairData;
         label1->SetAttribute("Resolution_iteration");
-        ostringstream cs1;
+        std::ostringstream cs1;
         cs1 << resolution_iteration;
         label1->SetValue(cs1.str());
         mol.SetData(label1);
-	
       }
 
     if (show_avg_bond_length)
       {
         OBPairData *label = new OBPairData;
         label->SetAttribute("Average_bond_length");
-        ostringstream cs;
+        std::ostringstream cs;
         cs << scaled_avg_bond_length;
         label->SetValue(cs.str());
         mol.SetData(label);
@@ -835,7 +845,7 @@ const string get_formatted_structure(vector<atom_t> &atom, const vector<bond_t> 
       {
         OBPairData *label = new OBPairData;
         label->SetAttribute("Resolution");
-        ostringstream cs;
+        std::ostringstream cs;
         cs << *resolution;
         label->SetValue(cs.str());
         mol.SetData(label);
@@ -845,7 +855,7 @@ const string get_formatted_structure(vector<atom_t> &atom, const vector<bond_t> 
       {
         OBPairData *label = new OBPairData;
         label->SetAttribute("Page");
-        ostringstream cs;
+        std::ostringstream cs;
         cs << *page;
         label->SetValue(cs.str());
         mol.SetData(label);
@@ -855,7 +865,7 @@ const string get_formatted_structure(vector<atom_t> &atom, const vector<bond_t> 
       {
         OBPairData *label = new OBPairData;
         label->SetAttribute("Surrounding_box");
-        ostringstream cs;
+        std::ostringstream cs;
         cs << surrounding_box->x1 << 'x' << surrounding_box->y1 << '-' << surrounding_box->x2 << 'x' << surrounding_box->y2;
         label->SetValue(cs.str());
         mol.SetData(label);
@@ -863,7 +873,7 @@ const string get_formatted_structure(vector<atom_t> &atom, const vector<bond_t> 
 
     if (!embedded_format.empty())
       {
-        string value;
+        std::string value;
 
         OBConversion conv;
 
@@ -916,13 +926,13 @@ const string get_formatted_structure(vector<atom_t> &atom, const vector<bond_t> 
           strstr << " "<< surrounding_box->x1 << 'x' << surrounding_box->y1 << '-' << surrounding_box->x2 << 'x' << surrounding_box->y2;
       }
 
-    strstr << endl;
+    strstr << std::endl;
 
     mol.Clear();
   }
 
   if (verbose)
-    cout << "Structure length: " << strstr.str().length() << ", molecule fragments: " << molecule_statistics.fragments << '.' << endl;
+    std::cout << "Structure length: " << strstr.str().length() << ", molecule fragments: " << molecule_statistics.fragments << '.' << std::endl;
 
   return (strstr.str());
 }

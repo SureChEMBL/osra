@@ -52,7 +52,7 @@ typedef struct dash_s dash_t;
 struct bracket_t
 {
   box_t box;
-  string a;
+  std::string a;
 };
 
 //
@@ -68,7 +68,7 @@ struct bracket_t
 // bond - vector of bonds
 // n_atom - number of atoms
 // n_bond - number of bonds
-void remove_disconnected_atoms(vector<atom_t> &atom, vector<bond_t> &bond, int n_atom, int n_bond);
+void remove_disconnected_atoms(std::vector<atom_t> &atom, std::vector<bond_t> &bond, int n_atom, int n_bond);
 
 // Function: remove_zero_bonds()
 //
@@ -79,7 +79,7 @@ void remove_disconnected_atoms(vector<atom_t> &atom, vector<bond_t> &bond, int n
 // bond - vector of bonds
 // n_bond - number of bonds
 // atom - vector of atoms
-void remove_zero_bonds(vector<bond_t> &bond, int n_bond, vector<atom_t> &atom);
+void remove_zero_bonds(std::vector<bond_t> &bond, int n_bond, std::vector<atom_t> &atom);
 
 // Function: collapse_doubleup_bonds()
 //
@@ -88,7 +88,7 @@ void remove_zero_bonds(vector<bond_t> &bond, int n_bond, vector<atom_t> &atom);
 // Parameters:
 // bond - vector of bonds
 // n_bond - number of bonds
-void collapse_doubleup_bonds(vector<bond_t> &bond, int n_bond);
+void collapse_doubleup_bonds(std::vector<bond_t> &bond, int n_bond);
 
 // Function: skeletize()
 //
@@ -106,7 +106,8 @@ void collapse_doubleup_bonds(vector<bond_t> &bond, int n_bond);
 //
 // Returns:
 // Average bond thickness
-double skeletize(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, const Image &image, double threshold,const ColorGray &bgColor, double dist, double avg);
+double skeletize(std::vector<atom_t> &atom, std::vector<bond_t> &bond, int n_bond, const Image &image,
+                 double threshold, const ColorGray &bgColor, double dist, double avg);
 
 // Function: dist_double_bonds()
 //
@@ -120,7 +121,7 @@ double skeletize(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, const I
 //
 // Returns:
 // Estimated distance between double bonds
-double dist_double_bonds(const vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, double avg);
+double dist_double_bonds(const std::vector<atom_t> &atom, std::vector<bond_t> &bond, int n_bond, double avg);
 
 // Function: double_triple_bonds()
 //
@@ -136,7 +137,8 @@ double dist_double_bonds(const vector<atom_t> &atom, vector<bond_t> &bond, int n
 //
 // Returns:
 // New value for n_bond
-int double_triple_bonds(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, double avg, int &n_atom,double max_dist_double_bond);
+int double_triple_bonds(std::vector<atom_t> &atom, std::vector<bond_t> &bond, int n_bond, double avg,
+                        int &n_atom, double max_dist_double_bond);
 
 // Function: extend_terminal_bond_to_label()
 //
@@ -153,7 +155,9 @@ int double_triple_bonds(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, 
 // avg - average bond length
 // maxh - maximum bond thickness
 // max_dist_double_bond - maximum distance between double bonds
-void extend_terminal_bond_to_label(vector<atom_t> &atom, const vector<letters_t> &letters, int n_letters, const vector<bond_t> &bond, int n_bond, const vector<label_t> &label, int n_label, double avg, double maxh,
+void extend_terminal_bond_to_label(std::vector<atom_t> &atom, const std::vector<letters_t> &letters,
+                                   int n_letters, const std::vector<bond_t> &bond, int n_bond,
+                                   const std::vector<label_t> &label, int n_label, double avg, double maxh,
                                    double max_dist_double_bond);
 
 // Function: extend_terminal_bond_to_bonds()
@@ -167,7 +171,8 @@ void extend_terminal_bond_to_label(vector<atom_t> &atom, const vector<letters_t>
 // avg - average bond length
 // maxh - maximum bond thickness
 // max_dist_double_bond - maximum distance between double bonds
-void extend_terminal_bond_to_bonds(vector<atom_t> &atom, vector<bond_t> &bond, int n_bond, double avg, double maxh,double max_dist_double_bond);
+void extend_terminal_bond_to_bonds(std::vector<atom_t> &atom, std::vector<bond_t> &bond, int n_bond,
+                                   double avg, double maxh, double max_dist_double_bond);
 
 // Function: assign_charge()
 //
@@ -181,7 +186,9 @@ void extend_terminal_bond_to_bonds(vector<atom_t> &atom, vector<bond_t> &bond, i
 // fix - spelling correction map loaded from an external file
 // superatom - superatom dictionary map loaded from an external file
 // debug - a flag for debug output
-void assign_charge(vector<atom_t> &atom, vector<bond_t> &bond, int n_atom, int n_bond, const map<string, string> &fix,const map<string, string> &superatom, bool debug);
+void assign_charge(std::vector<atom_t> &atom, std::vector<bond_t> &bond, int n_atom, int n_bond,
+                   const std::map<std::string, std::string> &fix,
+                   const std::map<std::string, std::string> &superatom, bool debug);
 
 // Function: find_atoms()
 //
@@ -197,7 +204,8 @@ void assign_charge(vector<atom_t> &atom, vector<bond_t> &bond, int n_atom, int n
 //
 // Returns:
 // number of atoms
-int find_atoms(const potrace_path_t *p, vector<atom_t> &atom, vector<bond_t> &bond, int *n_bond,int width, int height);
+int find_atoms(const potrace_path_t *p, std::vector<atom_t> &atom, std::vector<bond_t> &bond,
+               int *n_bond, int width, int height);
 
 // Function: find_dashed_bonds()
 //
@@ -216,8 +224,10 @@ int find_atoms(const potrace_path_t *p, vector<atom_t> &atom, vector<bond_t> &bo
 // THRESHOLD - black-white binarization threshold
 // thick - flag set if the image was subject to thinning
 // dist - maximum dashed bond length
-int find_dashed_bonds(const potrace_path_t *p, vector<atom_t> &atom, vector<bond_t> &bond, int n_atom, int *n_bond,int max, double avg, const Image &img,
-                      const ColorGray &bg, double THRESHOLD, bool thick, double dist, vector<letters_t> &letters);
+int find_dashed_bonds(const potrace_path_t *p, std::vector<atom_t> &atom, std::vector<bond_t> &bond,
+                      int n_atom, int *n_bond, int max, double avg, const Image &img,
+                      const ColorGray &bg, double THRESHOLD, bool thick, double dist,
+                      std::vector<letters_t> &letters);
 
 // Function: find_small_bonds()
 //
@@ -235,8 +245,8 @@ int find_dashed_bonds(const potrace_path_t *p, vector<atom_t> &atom, vector<bond
 //
 // Returns:
 // new value of n_atom
-int find_small_bonds(const potrace_path_t *p, vector<atom_t> &atom, vector<bond_t> &bond, int n_atom, int *n_bond,
-                     double max_area, double Small, double thickness);
+int find_small_bonds(const potrace_path_t *p, std::vector<atom_t> &atom, std::vector<bond_t> &bond,
+                     int n_atom, int *n_bond, double max_area, double Small, double thickness);
 
 // Function: resolve_bridge_bonds()
 //
@@ -254,8 +264,9 @@ int find_small_bonds(const potrace_path_t *p, vector<atom_t> &atom, vector<bond_
 //
 // Returns:
 // The number of fragments
-int resolve_bridge_bonds(vector<atom_t> &atom, int n_atom, vector<bond_t> &bond, int n_bond, double thickness,
-                         double avg_bond_length, const map<string, string> &superatom, bool verbose);
+int resolve_bridge_bonds(std::vector<atom_t> &atom, int n_atom, std::vector<bond_t> &bond, int n_bond,
+                         double thickness, double avg_bond_length,
+                         const std::map<std::string, std::string> &superatom, bool verbose);
 
 // Function: collapse_atoms()
 //
@@ -267,7 +278,7 @@ int resolve_bridge_bonds(vector<atom_t> &atom, int n_atom, vector<bond_t> &bond,
 // n_atom - number of atoms
 // n_bond - number of bonds
 // dist - threshold distance between atoms
-void collapse_atoms(vector<atom_t> &atom, vector<bond_t> &bond, int n_atom, int n_bond, double dist);
+void collapse_atoms(std::vector<atom_t> &atom, std::vector<bond_t> &bond, int n_atom, int n_bond, double dist);
 
 // Function: collapse_bonds()
 //
@@ -278,7 +289,7 @@ void collapse_atoms(vector<atom_t> &atom, vector<bond_t> &bond, int n_atom, int 
 // bond - vector of bonds
 // n_bond - number of bonds
 // dist - threshold bond length
-void collapse_bonds(vector<atom_t> &atom, const vector<bond_t> &bond, int n_bond, double dist);
+void collapse_bonds(std::vector<atom_t> &atom, const std::vector<bond_t> &bond, int n_bond, double dist);
 
 // Function: fix_one_sided_bonds()
 //
@@ -293,7 +304,8 @@ void collapse_bonds(vector<atom_t> &atom, const vector<bond_t> &bond, int n_bond
 //
 // Returns:
 // new value for n_bond
-int fix_one_sided_bonds(vector<bond_t> &bond, int n_bond, const vector<atom_t> &atom, double thickness, double avg);
+int fix_one_sided_bonds(std::vector<bond_t> &bond, int n_bond, const std::vector<atom_t> &atom,
+                        double thickness, double avg);
 
 // Function: find_wedge_bonds()
 //
@@ -314,8 +326,9 @@ int fix_one_sided_bonds(vector<bond_t> &bond, int n_bond, const vector<atom_t> &
 //
 // Returns:
 // Bond thickness
-double find_wedge_bonds(const Image &image, vector<atom_t> &atom, int n_atom, vector<bond_t> &bond, int n_bond,
-                        const ColorGray &bgColor, double THRESHOLD_BOND, double max_dist_double_bond, double avg, int limit, int dist = 0);
+double find_wedge_bonds(const Image &image, std::vector<atom_t> &atom, int n_atom, std::vector<bond_t> &bond,
+                        int n_bond, const ColorGray &bgColor, double THRESHOLD_BOND,
+                        double max_dist_double_bond, double avg, int limit, int dist = 0);
 
 // Function: collapse_double_bonds()
 //
@@ -326,7 +339,7 @@ double find_wedge_bonds(const Image &image, vector<atom_t> &atom, int n_atom, ve
 // n_bond - number of bonds
 // atom - vector of atoms
 // dist - maximum bond length for small connecting bond
-void collapse_double_bonds(vector<bond_t> &bond, int n_bond, vector<atom_t> &atom, double dist);
+void collapse_double_bonds(std::vector<bond_t> &bond, int n_bond, std::vector<atom_t> &atom, double dist);
 
 // Function: find_up_down_bonds()
 //
@@ -337,7 +350,7 @@ void collapse_double_bonds(vector<bond_t> &bond, int n_bond, vector<atom_t> &ato
 // n_bond - number of bonds
 // atom  - vector of atoms
 // thickness - bond thickness
-void find_up_down_bonds(vector<bond_t> &bond, int n_bond, vector<atom_t> &atom, double thickness);
+void find_up_down_bonds(std::vector<bond_t> &bond, int n_bond, std::vector<atom_t> &atom, double thickness);
 
 // Function: find_old_aromatic_bonds()
 //
@@ -349,7 +362,8 @@ void find_up_down_bonds(vector<bond_t> &bond, int n_bond, vector<atom_t> &atom, 
 // atom - vector of atoms
 // n_atom - number of atoms
 // avg - average bond length
-void find_old_aromatic_bonds(const potrace_path_t *p, vector<bond_t> &bond, int n_bond, vector<atom_t> &atom,int n_atom, double avg);
+void find_old_aromatic_bonds(const potrace_path_t *p, std::vector<bond_t> &bond, int n_bond,
+                             std::vector<atom_t> &atom, int n_atom, double avg);
 
 // Function: flatten_bonds()
 //
@@ -360,7 +374,7 @@ void find_old_aromatic_bonds(const potrace_path_t *p, vector<bond_t> &bond, int 
 // n_bond - number of bonds
 // atom - vector of atoms
 // maxh - maximum vertical distance for the "kink"
-void flatten_bonds(vector<bond_t> &bond, int n_bond, vector<atom_t> &atom, double maxh);
+void flatten_bonds(std::vector<bond_t> &bond, int n_bond, std::vector<atom_t> &atom, double maxh);
 
 // Function: mark_terminal_atoms()
 //
@@ -371,7 +385,7 @@ void flatten_bonds(vector<bond_t> &bond, int n_bond, vector<atom_t> &atom, doubl
 // n_bond - number of bonds
 // atom  - vector of atoms
 // n_atom -  number of atoms
-void mark_terminal_atoms(const vector<bond_t> &bond, int n_bond, vector<atom_t> &atom, int n_atom);
+void mark_terminal_atoms(const std::vector<bond_t> &bond, int n_bond, std::vector<atom_t> &atom, int n_atom);
 
 // Function: find_limits_on_avg_bond()
 //
@@ -382,8 +396,8 @@ void mark_terminal_atoms(const vector<bond_t> &bond, int n_bond, vector<atom_t> 
 // max_bond - a reference to maximum bond_length
 // pages_of_avg_bonds - a vector (element per page) of vectors (element per structure) of average bond lengths
 // pages_of_ind_conf - a vector (pages) of vectors (structures on a page) of confidence estimes
-void find_limits_on_avg_bond(double &best_bond, const vector<vector<double> > &pages_of_avg_bonds,
-                             const vector<vector<double> > &pages_of_ind_conf);
+void find_limits_on_avg_bond(double &best_bond, const std::vector<std::vector<double> > &pages_of_avg_bonds,
+                             const std::vector<std::vector<double> > &pages_of_ind_conf);
 
 
 // Function: find_wavy_bonds()
@@ -397,17 +411,22 @@ void find_limits_on_avg_bond(double &best_bond, const vector<vector<double> > &p
 // avg - average bond length
 //
 // Returns: number of bonds
-int find_wavy_bonds(vector<bond_t> &bond,int n_bond,const vector<atom_t> &atom,double avg);
+int find_wavy_bonds(std::vector<bond_t> &bond, int n_bond, const std::vector<atom_t> &atom, double avg);
 
 
-void remove_small_bonds_in_chars(vector<atom_t> &atom, vector<bond_t> &bond,vector<letters_t> &letters);
+void remove_small_bonds_in_chars(std::vector<atom_t> &atom, std::vector<bond_t> &bond,
+                                 std::vector<letters_t> &letters);
 
-void remove_bracket_atoms(vector<atom_t> &atom, int n_atom, const vector<bond_t> &bond, int n_bond, const set<pair<int,int> > &brackets,
-			  double thickness, int box_x, int box_y, double box_scale, int real_font_width,int real_font_height,
-			  vector <bracket_t>  &reduced_bracket_boxes);
+void remove_bracket_atoms(std::vector<atom_t> &atom, int n_atom, const std::vector<bond_t> &bond, int n_bond,
+                          const std::set<std::pair<int, int> > &brackets, double thickness, int box_x,
+                          int box_y, double box_scale, int real_font_width,int real_font_height,
+			  std::vector<bracket_t> &reduced_bracket_boxes);
 
-void assign_labels_to_brackets(vector <bracket_t>  &bracket_boxes, const vector<label_t> &label, int n_label, const vector<letters_t> &letters, int n_letters, 
+void assign_labels_to_brackets(std::vector<bracket_t> &bracket_boxes, const std::vector<label_t> &label,
+                               int n_label, const std::vector<letters_t> &letters, int n_letters,
 			       int real_font_width, int real_font_height);
 
-void remove_vertical_bonds_close_to_brackets(const vector <bracket_t>  &bracket_boxes, vector<atom_t> &atom, const vector<bond_t> &bond, int n_bond, double thickness, double avg_bond_length);
+void remove_vertical_bonds_close_to_brackets(const std::vector<bracket_t> &bracket_boxes,
+                                             std::vector<atom_t> &atom, const std::vector<bond_t> &bond,
+                                             int n_bond, double thickness, double avg_bond_length);
 
